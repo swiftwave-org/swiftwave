@@ -66,3 +66,17 @@ sudo docker service create \
   haproxytech/haproxy-debian:2.9
 ```
 
+### Register new backend
+```
+Pre-requesties
+> Add resolver and a dns configuration to it [docker]
+----------------
+1. Add backend
+2. Add server template to backend
+3. Add ACL to frontend
+4. Add backend switching for created ACL
+
+Without SSL, also possible
+
+use_backend be_minc_service if { hdr(host) -i apache.tanmoy.info }
+```
