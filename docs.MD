@@ -90,4 +90,4 @@ redirect scheme https code 301 if !{ ssl_fc }
 use_backend letsencrypt-backend if { path_beg /.well-known/acme-challenge/ }
 ```
 
-> We need multiple frontend for 
+> We should use multiple frontend rather than too much complex ssl
