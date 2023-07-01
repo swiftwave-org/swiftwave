@@ -6,6 +6,7 @@ sudo docker service create \
 --name minc-service \
 --network swarm-network \
 --endpoint-mode dnsrr \
+--limit-memory 100m \
 tanmoysrt/minc:v2
 ```
 
