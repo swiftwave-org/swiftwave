@@ -91,3 +91,11 @@ use_backend letsencrypt-backend if { path_beg /.well-known/acme-challenge/ }
 ```
 
 > We should use multiple frontend rather than too much complex ssl
+
+### Write program to issue SSL and upload to haproxy
+```
+- Try to have a golang program which will verify DNS records and issue certificates
+- Also run SSL reloader every day to issue certificates before 30 days expiry
+- Allow to import custom SSL certifcate
+- Update in haproxy via API. provide details via volume mount
+```
