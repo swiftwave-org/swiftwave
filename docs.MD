@@ -80,3 +80,14 @@ Without SSL, also possible
 
 use_backend be_minc_service if { hdr(host) -i apache.tanmoy.info }
 ```
+
+### Might need to enable support for letsencrypt
+```
+bind :443 ssl crt /etc/haproxy/certs/ alpn h2,http/1.1
+
+redirect scheme https code 301 if !{ ssl_fc }
+
+use_backend letsencrypt-backend if { path_beg /.well-known/acme-challenge/ }
+```
+
+> We need multiple frontend for 
