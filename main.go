@@ -8,11 +8,15 @@ import (
 )
 
 
+
 func main() {
 	var wg sync.WaitGroup
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic(err)
+	}
+	if cli == nil {
+		panic("cli is nil")
 	}
 	// Start listening for events
 	// wg.Add(1)
@@ -21,6 +25,9 @@ func main() {
 	// Fetch services
 	// wg.Add(1)
 	// go fetchService(cli, &wg)
+
+	// Fetch DNS
+	fmt.Println(fetchDNSRecord("hashnode.network", "A"))
 
 	// Wait for events
 	wg.Wait()
