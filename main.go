@@ -15,36 +15,36 @@ func main() {
 	// Create a new HAProxySocket
 	var haproxySocket = HAProxySocket{};
 	haproxySocket.InitTcpSocket("localhost", 5555);
-	haproxySocket.Auth("admin", "mypasswrd");
+	haproxySocket.Auth("admin", "mypassword");
 	errFound := false;
 	transaction_id, err := haproxySocket.FetchNewTransactionId()
 	if err != nil {
+		print("Error while fetching HAProxy version: " + err.Error())
 		os.Exit(1)
 		return
 	}
 
 	// Add backend
+	if err != nil {
+		errFound = true;
+	}else{
+		err := haproxySocket.AddBackend(transaction_id, "minc-service", 3000, 3);
+		if err != nil {
+			errFound = true;
+		}
+		fmt.Println("Add backend")
+	}
+
+	// Update backend
 	// if err != nil {
 	// 	errFound = true;
 	// }else{
-	// 	err := haproxySocket.AddBackend(transaction_id, "minc-service", 3000, 3);
-	// 	if err != nil {
-	// 		errFound = true;
-	// 	}else{
-	// 		err := haproxySocket.AddBackend(transaction_id, "minc-service", 3001, 3);
-	// 		if err != nil {
-	// 			errFound = true;
-	// 		}else{
-	// 			err := haproxySocket.AddBackend(transaction_id, "minc-service", 3002, 3);
-	// 			if err != nil {
-	// 				errFound = true;
-	// 			}
-	// 		}
-	// 	}
+	// 	err := haproxySocket.UpdateBackend(transaction_id, "minc-service-er", 3003, 3, "minc-service", 3000, 1);
 	// 	if err != nil {
 	// 		errFound = true;
 	// 	}
-	// 	fmt.Println("Add backend")
+	// 	fmt.Println(err)
+	// 	fmt.Println("Update backend")
 	// }
 
 	if errFound {
