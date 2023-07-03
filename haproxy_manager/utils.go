@@ -17,3 +17,7 @@ func queryParamsToString(queryParams QueryParameters) string {
 func (q *QueryParameters) add(key string, value string) {
 	*q = append(*q, QueryParameter{key, value})
 }
+
+func isValidStatusCode(statusCode int) bool {
+	return statusCode >= 200 && statusCode < 300
+}

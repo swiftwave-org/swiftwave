@@ -52,6 +52,7 @@ func (s HAProxySocket) postRequest(route string, queryParams QueryParameters, bo
 		return nil, err
 	}
 	req.SetBasicAuth(s.username, s.password);
+	req.Header.Add("Content-Type", "application/json");
 	client := &http.Client{}
 	return client.Do(req)
 }
@@ -66,6 +67,7 @@ func (s HAProxySocket) putRequest(route string, queryParams QueryParameters, bod
 		return nil, err
 	}
 	req.SetBasicAuth(s.username, s.password);
+	req.Header.Add("Content-Type", "application/json");
 	client := &http.Client{}
 	return client.Do(req)
 }

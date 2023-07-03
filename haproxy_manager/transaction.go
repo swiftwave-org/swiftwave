@@ -23,7 +23,7 @@ func (s HAProxySocket) fetchVersion() (string, error){
 }
 
 // Generate new transaction id
-func (s HAProxySocket) fetchNewTransactionId()(string, error){
+func (s HAProxySocket) FetchNewTransactionId()(string, error){
 	version, err := s.fetchVersion()
 	if err != nil {
 		return "", errors.New("Error while fetching HAProxy version: " + err.Error())
@@ -31,7 +31,7 @@ func (s HAProxySocket) fetchNewTransactionId()(string, error){
 	queryParams := QueryParameters{}
 	queryParams.add("version", version)
 	res, err := s.postRequest("/services/haproxy/transactions", queryParams, nil)
-	if err != nil {
+	if err != nil || !isValidStatusCode(res.StatusCode)  {
 		return "", errors.New("failed to fetch version")
 	}
 	defer res.Body.Close()
@@ -49,12 +49,22 @@ func (s HAProxySocket) fetchNewTransactionId()(string, error){
 }
 
 // Commit new transaction with force reload to apply changes
-func (s HAProxySocket) commitTransaction(transactionId string) error{
+func (s HAProxySocket) CommitTransaction(transactionId string) error{
 	queryParams := QueryParameters{}
 	queryParams.add("force_reload", "true")
 	res, err := s.putRequest("/services/haproxy/transactions/"+transactionId, queryParams, nil)
-	if err != nil {
+	if err != nil || !isValidStatusCode(res.StatusCode) {
 		return errors.New("error while committing transaction: "+transactionId)
+	}
+	defer res.Body.Close()
+	return nil
+}
+
+// Delete transaction
+func (s HAProxySocket) DeleteTransaction(transactionId string) error{
+	res, err := s.deleteRequest("/services/haproxy/transactions/"+transactionId, QueryParameters{})
+	if err != nil || !isValidStatusCode(res.StatusCode) {
+		return errors.New("error while deleting transaction: "+transactionId)
 	}
 	defer res.Body.Close()
 	return nil
