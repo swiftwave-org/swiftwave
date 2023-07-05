@@ -3,20 +3,19 @@ package main
 import (
 	"fmt"
 	"os"
+
 	// "sync"
 	. "keroku/m/haproxy_manager"
 )
-
-
 
 func main() {
 	// var wg sync.WaitGroup
 
 	// Create a new HAProxySocket
-	var haproxySocket = HAProxySocket{};
-	haproxySocket.InitTcpSocket("localhost", 5555);
-	haproxySocket.Auth("admin", "mypassword");
-	errFound := false;
+	var haproxySocket = HAProxySocket{}
+	haproxySocket.InitTcpSocket("localhost", 5555)
+	haproxySocket.Auth("admin", "mypassword")
+	errFound := false
 	transaction_id, err := haproxySocket.FetchNewTransactionId()
 	if err != nil {
 		print("Error while fetching HAProxy version: " + err.Error())
@@ -47,15 +46,44 @@ func main() {
 	// 	fmt.Println("Update backend")
 	// }
 
+	// Add backend switch
+	// err = haproxySocket.AddHTTPLink(transaction_id, "be_minc-service_3000", "honu.tanmoy.info")
+	// if err != nil {
+	// 	errFound = true;
+	// 	fmt.Println(err)
+	// }
+
+	// Delete backend switch
+	// err = haproxySocket.DeleteHTTPLink(transaction_id, "be_minc-service_3000", "honu.tanmoy.info")
+	// if err != nil {
+	// 	errFound = true;
+	// 	fmt.Println(err)
+	// }
+
+	/// Add TCP frontend
+	// err = haproxySocket.AddTCPLink(transaction_id, "be_minc-service_3000", 5000, "", TCPMode)
+	// if err != nil {
+	// 	errFound = true
+	// 	fmt.Println(err)
+	// }
+
+	// Delete backend
+	err = haproxySocket.DeleteTCPLink(transaction_id, "be_minc-service_3000", 5000, "")
+	if err != nil {
+		errFound = true;
+		fmt.Println(err)
+	}
+
 	if errFound {
-		fmt.Println("Deleting transaction: "+transaction_id)
+		fmt.Println("Deleting transaction: " + transaction_id)
 		haproxySocket.DeleteTransaction(transaction_id)
 		fmt.Println("Error found")
-	}else{
-		fmt.Println("Committing transaction: "+transaction_id)
+	} else {
+		fmt.Println("Committing transaction: " + transaction_id)
 		haproxySocket.CommitTransaction(transaction_id)
 		fmt.Println("No error found")
 	}
+
 
 
 	// Wait for events

@@ -16,10 +16,9 @@ type QueryParameter struct {
 
 type QueryParameters []QueryParameter
 
-type FrontendType string
+type ListenerMode string
 
 const (
-	HTTPFrontend FrontendType = "http"
-	HTTPSFrontend FrontendType = "https"
-	TCPFrontend FrontendType = "tcp"
+	HTTPMode ListenerMode = "http"
+	TCPMode ListenerMode = "tcp"
 )
