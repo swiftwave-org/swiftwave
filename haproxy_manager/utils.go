@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+func isPortRestrictedForManualConfig(port int) bool {
+	return port == 80 || port == 443
+}
+
 func queryParamsToString(queryParams QueryParameters) string {
 	tmp := "?"
 	for _, param := range queryParams {
