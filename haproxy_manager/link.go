@@ -171,6 +171,9 @@ func (s HAProxySocket) DeleteHTTPSLink(transaction_id string, backend_name strin
 // -- Manage ACLs with frontend [port{required} and domain_name{optional}]
 // -- Manage rules with frontend and backend switch
 func (s HAProxySocket) AddTCPLink(transaction_id string, backend_name string, port int, domain_name string, listenerMode ListenerMode) error {
+	if isPortRestrictedForManualConfig(port) {
+		return errors.New("port is restricted for manual configuration")
+	}
 	frontend_name := ""
 	if domain_name == "" {
 		frontend_name = "fe_tcp_" + strconv.Itoa(port)
@@ -253,6 +256,9 @@ func (s HAProxySocket) AddTCPLink(transaction_id string, backend_name string, po
 
 // Delete TCP Frontend from HAProxy configuration
 func (s HAProxySocket) DeleteTCPLink(transaction_id string, backend_name string, port int, domain_name string) error {
+	if isPortRestrictedForManualConfig(port) {
+		return errors.New("port is restricted for manual configuration")
+	}
 	frontend_name := ""
 	if domain_name == "" {
 		frontend_name = "fe_tcp_" + strconv.Itoa(port)
