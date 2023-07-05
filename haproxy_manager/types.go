@@ -15,3 +15,11 @@ type QueryParameter struct {
 }
 
 type QueryParameters []QueryParameter
+
+type FrontendType string
+
+const (
+	HTTPFrontend FrontendType = "http"
+	HTTPSFrontend FrontendType = "https"
+	TCPFrontend FrontendType = "tcp"
+)

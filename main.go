@@ -36,16 +36,16 @@ func main() {
 	// }
 
 	// Update backend
-	if err != nil {
-		errFound = true;
-	}else{
-		err := haproxySocket.UpdateBackend(transaction_id, "minc-service-new3", 5000, 1, "minc-service", 3000, 2);
-		if err != nil {
-			errFound = true;
-		}
-		fmt.Println(err)
-		fmt.Println("Update backend")
-	}
+	// if err != nil {
+	// 	errFound = true;
+	// }else{
+	// 	err := haproxySocket.UpdateBackend(transaction_id, "minc-service-new3", 5000, 1, "minc-service", 3000, 2);
+	// 	if err != nil {
+	// 		errFound = true;
+	// 	}
+	// 	fmt.Println(err)
+	// 	fmt.Println("Update backend")
+	// }
 
 	if errFound {
 		fmt.Println("Deleting transaction: "+transaction_id)
