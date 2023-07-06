@@ -111,3 +111,10 @@ use_backend letsencrypt-backend if { path_beg /.well-known/acme-challenge/ }
 - Allow to import custom SSL certifcate
 - Update in haproxy via API. provide details via volume mount
 ```
+
+
+### Environment variables
+```
+ACCOUNT_PRIVATE_KEY_FILE_PATH
+ACCOUNT_EMAIL
+```

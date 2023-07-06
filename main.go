@@ -1,92 +1,212 @@
 package main
 
 import (
+	"bufio"
+	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
+	"strings"
+	"sync"
 
-	// "sync"
-	. "keroku/m/haproxy_manager"
+	"github.com/mholt/acmez"
+	"github.com/mholt/acmez/acme"
+	// "github.com/mholt/acmez"
 )
 
-func main() {
-	// var wg sync.WaitGroup
+const tokenFile = "tokens.txt" 
 
-	// Create a new HAProxySocket
-	var haproxySocket = HAProxySocket{}
-	haproxySocket.InitTcpSocket("localhost", 5555)
-	haproxySocket.Auth("admin", "mypassword")
-	errFound := false
-	transaction_id, err := haproxySocket.FetchNewTransactionId()
+func main() {
+	var wg sync.WaitGroup
+
+	ctx := context.Background()
+	
+	keyData, err := ioutil.ReadFile("private_key2.pem")
 	if err != nil {
-		print("Error while fetching HAProxy version: " + err.Error())
-		os.Exit(1)
+		fmt.Println(err)
 		return
 	}
 
-	// Add backend
-	// if err != nil {
-	// 	errFound = true;
-	// }else{
-	// 	err := haproxySocket.AddBackend(transaction_id, "minc-service", 3000, 3);
-	// 	if err != nil {
-	// 		errFound = true;
-	// 	}
-	// 	fmt.Println("Add backend")
-	// }
+	// Parse the PEM-encoded data
+	block, _ := pem.Decode(keyData)
+	if block == nil || block.Type != "EC PRIVATE KEY" {
+		fmt.Println("Invalid PEM file or key type")
+		return
+	}
 
-	// Update backend
-	// if err != nil {
-	// 	errFound = true;
-	// }else{
-	// 	err := haproxySocket.UpdateBackend(transaction_id, "minc-service-new3", 5000, 1, "minc-service", 3000, 2);
-	// 	if err != nil {
-	// 		errFound = true;
-	// 	}
-	// 	fmt.Println(err)
-	// 	fmt.Println("Update backend")
-	// }
-
-	// Add backend switch
-	// err = haproxySocket.AddHTTPLink(transaction_id, "be_minc-service_3000", "honu.tanmoy.info")
-	// if err != nil {
-	// 	errFound = true;
-	// 	fmt.Println(err)
-	// }
-
-	// Delete backend switch
-	// err = haproxySocket.DeleteHTTPLink(transaction_id, "be_minc-service_3000", "honu.tanmoy.info")
-	// if err != nil {
-	// 	errFound = true;
-	// 	fmt.Println(err)
-	// }
-
-	/// Add TCP frontend
-	// err = haproxySocket.AddTCPLink(transaction_id, "be_minc-service_3000", 5000, "", TCPMode)
-	// if err != nil {
-	// 	errFound = true
-	// 	fmt.Println(err)
-	// }
-
-	// Delete backend
-	err = haproxySocket.DeleteTCPLink(transaction_id, "be_minc-service_3000", 5000, "")
+	// Parse the DER-encoded key data
+	accountPrivateKey, err := x509.ParseECPrivateKey(block.Bytes)
 	if err != nil {
-		errFound = true;
 		fmt.Println(err)
 	}
 
-	if errFound {
-		fmt.Println("Deleting transaction: " + transaction_id)
-		haproxySocket.DeleteTransaction(transaction_id)
-		fmt.Println("Error found")
-	} else {
-		fmt.Println("Committing transaction: " + transaction_id)
-		haproxySocket.CommitTransaction(transaction_id)
-		fmt.Println("No error found")
+	account := acme.Account{
+		Contact:              []string{"mailto:tanmoysrt@gmail.com"},
+		TermsOfServiceAgreed: true,
+		PrivateKey:           accountPrivateKey,
 	}
 
+	// Create a new ACME client
+	client := acmez.Client{
+		Client: &acme.Client{
+			Directory: "https://acme-staging-v02.api.letsencrypt.org/directory",
+			HTTPClient: &http.Client{
+				Transport: &http.Transport{
+					TLSClientConfig: &tls.Config{
+						InsecureSkipVerify: true, // REMOVE THIS FOR PRODUCTION USE!
+					},
+				},
+			},
+		},
+		ChallengeSolvers: map[string]acmez.Solver{
+			acme.ChallengeTypeHTTP01:    mySolver{}, // provide these!
+		},
+	}
 
+	// only once
+	// account, err = client.GetAccount(ctx, account)
+	// if err != nil {
+	// 	fmt.Println("new account: %v", err)
+	// 	return
+	// }
+	fmt.Println("Account created")
+	fmt.Println(account)
 
-	// Wait for events
-	// wg.Wait()
+	// Generate Certificate key
+	certPrivateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	fmt.Println("Generating certificate key...")
+	if err != nil {
+		fmt.Println("failed to generating certificate key: %v", err)
+		return
+	}
+	err = storeKeyToFile("cert_key.pem", certPrivateKey)
+	if err != nil {
+		fmt.Println("failed to storing certificate key: %v", err)
+		return
+	}
+
+	return
+
+	// Start verification server
+	wg.Add(1)
+	go func() {
+		http.HandleFunc("/.well-known/acme-challenge/",  helloHandler)
+		fmt.Println("Server listening on port 80...")
+		http.ListenAndServe(":80", nil)
+	}()
+
+	// Request certificate
+	// Obtain a certificate for the domain
+	domains := []string{"minc.tanmoy.info"}
+	certs, err := client.ObtainCertificate(ctx, account, certPrivateKey, domains)
+	if err != nil {
+		fmt.Println("failed to obtaining certificate: %v", err)
+		return
+	}
+
+	for _, cert := range certs {
+		fmt.Printf("Certificate %q:\n%s\n\n", cert.URL, cert.ChainPEM)
+	}
 	fmt.Println("done")
+	wg.Wait()
+}
+
+
+func helloHandler(w http.ResponseWriter, r *http.Request) {
+	var token string;
+	token = strings.ReplaceAll(r.URL.Path, "/.well-known/acme-challenge/", "");
+	fmt.Println("Searching "+token+" in "+tokenFile)
+	fullToken, err := findTokenByPrefix(token)
+	if err != nil {
+		fmt.Fprintf(w, "Token not found!")
+		return
+	}
+	fmt.Fprintf(w, fullToken)
+}
+
+func storeTokenToFile(token string) error {
+	file, err := os.OpenFile(tokenFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+	_, err = writer.WriteString(token + "\n")
+	if err != nil {
+		return err
+	}
+	writer.Flush()
+
+	return nil
+}
+
+// findTokenByPrefix finds a token from the file that matches the given prefix
+func findTokenByPrefix(prefix string) (string, error) {
+	file, err := os.Open(tokenFile)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		token := scanner.Text()
+		if strings.HasPrefix(token, prefix+".") {
+			return token, nil
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	return "", fmt.Errorf("matching token not found")
+}
+
+func storeKeyToFile(keyFile string, key *ecdsa.PrivateKey) error {
+	// Encode the private key to PEM format
+	keyBytes, err := x509.MarshalECPrivateKey(key)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	pemKey := pem.Block{
+		Type:  "EC PRIVATE KEY",
+		Bytes: keyBytes,
+	}
+
+	// Create the PEM file
+	file, err := os.Create(keyFile)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer file.Close()
+
+	// Write the PEM-encoded key to the file
+	err = pem.Encode(file, &pemKey)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return nil
+}
+
+type mySolver struct{}
+
+func (s mySolver) Present(ctx context.Context, chal acme.Challenge) error {
+	fmt.Printf("[DEBUG] store token: %s", chal.KeyAuthorization)
+	storeTokenToFile(chal.KeyAuthorization)
+	return nil
+}
+
+func (s mySolver) CleanUp(ctx context.Context, chal acme.Challenge) error {
+	fmt.Printf("[DEBUG] cleanup: %s", chal.KeyAuthorization)
+	return nil
 }
