@@ -1,3 +1,4 @@
 vendor
 *.pem
-tokens.txt
+data
+dump

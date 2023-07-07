@@ -116,5 +116,5 @@ use_backend letsencrypt-backend if { path_beg /.well-known/acme-challenge/ }
 ### Environment variables
 ```
 ACCOUNT_PRIVATE_KEY_FILE_PATH
-ACCOUNT_EMAIL
+ACCOUNT_Email
 ```

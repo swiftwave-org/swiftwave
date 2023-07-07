@@ -9,25 +9,26 @@ import (
 	"os"
 	"strings"
 
+	"github.com/mholt/acmez"
 	"github.com/mholt/acmez/acme"
 )
 
 // Initialize the ACME client
-func initiateACMEAccount(ctx context.Context, client *acme.Client, accountPrivateKeyFilePath string, accountEmail string) (acme.Account, error){
+func initiateACMEAccount(ctx context.Context, client *acmez.Client, AccountPrivateKeyFilePath string, accountEmail string) (acme.Account, error) {
 	// Read the private key from file
-	accountPrivateKey, err := fetchAccountPrivateKey(accountPrivateKeyFilePath)
+	accountPrivateKey, err := fetchAccountPrivateKey(AccountPrivateKeyFilePath)
 	if err != nil {
 		return acme.Account{}, err
 	}
 
 	// ACME Client Account
 	account := acme.Account{
-		Contact:              []string{"mailto:"+accountEmail},
+		Contact:              []string{"mailto:" + accountEmail},
 		TermsOfServiceAgreed: true,
 		PrivateKey:           accountPrivateKey,
 	}
 
-	var finalAccount acme.Account;
+	var finalAccount acme.Account
 	// Try to fetch the account from server using same private key
 	fetchedAccount, err := client.GetAccount(ctx, account)
 	if err == nil {
@@ -45,24 +46,24 @@ func initiateACMEAccount(ctx context.Context, client *acme.Client, accountPrivat
 
 // Fetch the account private key from file
 // If file does not exist, it will create a new private key and store it in file
-func fetchAccountPrivateKey(accountPrivateKeyFilePath string) (*ecdsa.PrivateKey, error){
-	if !strings.HasSuffix(accountPrivateKeyFilePath, ".pem") {
+func fetchAccountPrivateKey(AccountPrivateKeyFilePath string) (*ecdsa.PrivateKey, error) {
+	if !strings.HasSuffix(AccountPrivateKeyFilePath, ".pem") {
 		return nil, errors.New("invalid account private key file path. file must be .pem file")
 	}
 	// If file does not exist, create a new private key
-	if _, err := os.Stat(accountPrivateKeyFilePath); os.IsNotExist(err) {
+	if _, err := os.Stat(AccountPrivateKeyFilePath); os.IsNotExist(err) {
 		accountPrivateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 		if err != nil {
 			return nil, errors.New("unable to generate account private key")
 		}
-		err = storeKeyToFile(accountPrivateKeyFilePath, accountPrivateKey)
+		err = storePrivateKeyToFile(AccountPrivateKeyFilePath, accountPrivateKey)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// Read the private key from file
-	accountPrivateKey, err := readKeyFromFile(accountPrivateKeyFilePath)
+	accountPrivateKey, err := readPrivateKeyFromFile(AccountPrivateKeyFilePath)
 	if err != nil {
 		return nil, err
 	}
