@@ -1,4 +1,4 @@
-package sslmanager
+package Manager
 
 import (
 	"context"
@@ -12,10 +12,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// SSLManager constructor
+// Manager constructor
 
-// Init SSLManager
-func (s *SSLManager) Init(ctx context.Context, db gorm.DB, options SSLManagerOptions) error {
+// Init Manager
+func (s *Manager) Init(ctx context.Context, db gorm.DB, options ManagerOptions) error {
 	s.ctx = ctx
 	s.dbClient = db
 	s.options = options

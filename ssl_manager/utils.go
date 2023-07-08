@@ -1,5 +1,4 @@
-package sslmanager
-
+package Manager
 
 import (
 	"crypto/ecdsa"
@@ -41,7 +40,7 @@ func storePrivateKeyToFile(keyFile string, key *ecdsa.PrivateKey) error {
 }
 
 // Read the private key from a file
-func readPrivateKeyFromFile(keyFile string)(*ecdsa.PrivateKey, error) {
+func readPrivateKeyFromFile(keyFile string) (*ecdsa.PrivateKey, error) {
 	keyData, err := ioutil.ReadFile(keyFile)
 	if err != nil {
 		return nil, errors.New("unable to read account private key file")
@@ -87,14 +86,14 @@ func storeBytesToPEMFile(bytes []byte, pemFile string) error {
 // -- Create a private key if it doesn't exist
 // -- Read the private key from file if it exists
 
-func fetchPrivateKeyForDomain(domain string, certsPrivateKeyDirectory string)(*ecdsa.PrivateKey, error){
+func fetchPrivateKeyForDomain(domain string, certsPrivateKeyDirectory string) (*ecdsa.PrivateKey, error) {
 	privateKeyFile := certsPrivateKeyDirectory + "/" + domain + ".pem"
 	privateKey, err := readPrivateKeyFromFile(privateKeyFile)
 	if err == nil {
 		return privateKey, nil
 	} else {
 		// Create a private key
-		privateKey, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader);
+		privateKey, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 		if err != nil {
 			return nil, errors.New("unable to generate private key")
 		}

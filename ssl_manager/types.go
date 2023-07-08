@@ -1,4 +1,4 @@
-package sslmanager
+package Manager
 
 import (
 	"context"
@@ -9,15 +9,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type SSLManager struct {
+type Manager struct {
 	ctx      context.Context
 	account  acme.Account
 	client   acmez.Client
 	dbClient gorm.DB
-	options  SSLManagerOptions
+	options  ManagerOptions
 }
 
-type SSLManagerOptions struct {
+type ManagerOptions struct {
 	Email                     string
 	AccountPrivateKeyFilePath string
 	DomainPrivateKeyStorePath string

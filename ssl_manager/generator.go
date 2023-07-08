@@ -1,4 +1,4 @@
-package sslmanager
+package Manager
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 // This will initiate ACME server to reverse verification
 // and store generated certificate in preferred location
 // - output: fullchain.pem
-func (s SSLManager) ObtainCertificate(domain string) error {
+func (s Manager) ObtainCertificate(domain string) error {
 	// Check if the domain is pointing to the server
 	if !s.VerifyDomain(domain) {
 		return errors.New("domain is not pointing to the server")
@@ -33,7 +33,7 @@ func (s SSLManager) ObtainCertificate(domain string) error {
 	}
 	// Update the creation date in redis
 	tx := s.dbClient.Create(&DomainSSLDetails{
-		Domain:   domain,
+		Domain:       domain,
 		CreationDate: time.Now(),
 	})
 	if tx.Error != nil {

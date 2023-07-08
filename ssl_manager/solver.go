@@ -1,4 +1,4 @@
-package sslmanager
+package Manager
 
 import (
 	"context"
@@ -44,7 +44,7 @@ func (s http01Solver) CleanUp(ctx context.Context, chal acme.Challenge) error {
 }
 
 // Required for http-01 verification
-func (s SSLManager) fetchKeyAuthorization(token string) string {
+func (s Manager) fetchKeyAuthorization(token string) string {
 	keyAuthorization := KeyAuthorizationToken{}
 	tx := s.dbClient.Where("token = ?", token).Find(&keyAuthorization)
 	if tx.Error != nil {

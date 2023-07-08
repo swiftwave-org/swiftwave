@@ -1,10 +1,10 @@
-package sslmanager
+package Manager
 
 import "net/http"
 
 // Verify whether the domain is pointing to the server
 // Run this before requesting certificate from ACME
-func (s SSLManager) VerifyDomain(domain string) bool {
+func (s Manager) VerifyDomain(domain string) bool {
 	req, err := http.NewRequest("GET", "http://"+domain+"/.well-known/pre-authorize/", nil)
 	if err != nil {
 		return false

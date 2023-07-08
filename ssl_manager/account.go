@@ -1,4 +1,4 @@
-package sslmanager
+package Manager
 
 import (
 	"context"

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	. "keroku/m/ssl_manager"
+	SSL "keroku/m/ssl_manager"
 	"net/http"
 	"sync"
 
@@ -20,18 +20,18 @@ func main() {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	db.AutoMigrate(&KeyAuthorizationToken{})
-	db.AutoMigrate(&DomainSSLDetails{})
+	db.AutoMigrate(&SSL.KeyAuthorizationToken{})
+	db.AutoMigrate(&SSL.DomainSSLDetails{})
 
-	options := SSLManagerOptions{
+	options := SSL.ManagerOptions{
 		Email:                     "tanmoysrt@gmail.com",
 		AccountPrivateKeyFilePath: "/home/ubuntu/client_program/data/account_private_key.pem",
 		DomainPrivateKeyStorePath: "/home/ubuntu/client_program/data/domain/private_key",
 		DomainFullChainStorePath:  "/home/ubuntu/client_program/data/domain/full_chain",
 	}
 
-	// Initialize SSLManager
-	ssl_manager := SSLManager{}
+	// Initialize Manager
+	ssl_manager := SSL.Manager{}
 	ssl_manager.Init(ctx, *db, options)
 
 	// Start the HTTP server
