@@ -21,6 +21,9 @@ func (s *Manager) Init(ctx context.Context, db gorm.DB, options ManagerOptions) 
 	s.options = options
 	s.options.DomainPrivateKeyStorePath = strings.TrimSuffix(s.options.DomainPrivateKeyStorePath, "/")
 	s.options.DomainFullChainStorePath = strings.TrimSuffix(s.options.DomainFullChainStorePath, "/")
+	// Migrate database
+	db.AutoMigrate(&KeyAuthorizationToken{})
+	db.AutoMigrate(&DomainSSLDetails{})
 	// Initialize account
 	s.client = acmez.Client{
 		Client: &acme.Client{

@@ -20,9 +20,6 @@ func main() {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	db.AutoMigrate(&SSL.KeyAuthorizationToken{})
-	db.AutoMigrate(&SSL.DomainSSLDetails{})
-
 	options := SSL.ManagerOptions{
 		Email:                     "tanmoysrt@gmail.com",
 		AccountPrivateKeyFilePath: "/home/ubuntu/client_program/data/account_private_key.pem",
@@ -56,7 +53,7 @@ func main() {
 	// Request certificate
 	wg.Add(1)
 	go func() {
-		err := ssl_manager.ObtainCertificate("minc.tanmoy.info")
+		err := ssl_manager.ObtainCertificate("apache.tanmoy.info")
 		if err != nil {
 			fmt.Println(err)
 			return
