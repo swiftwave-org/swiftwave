@@ -7,7 +7,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"io/ioutil"
 	"os"
 )
 
@@ -41,7 +40,7 @@ func storePrivateKeyToFile(keyFile string, key *ecdsa.PrivateKey) error {
 
 // Read the private key from a file
 func readPrivateKeyFromFile(keyFile string) (*ecdsa.PrivateKey, error) {
-	keyData, err := ioutil.ReadFile(keyFile)
+	keyData, err := os.ReadFile(keyFile)
 	if err != nil {
 		return nil, errors.New("unable to read account private key file")
 	}
