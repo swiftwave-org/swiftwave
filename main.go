@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	SSL "keroku/m/ssl_manager"
-	"net/http"
 	"sync"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"github.com/labstack/echo/v4"
 )
 
 func main() {
@@ -34,14 +34,10 @@ func main() {
 	// Start the HTTP server
 	wg.Add(1)
 	go func() {
-		http.HandleFunc("/.well-known/acme-challenge/", func(w http.ResponseWriter, r *http.Request) {
-			ssl_manager.ACMEHttpHandler(w, r)
-		})
-		http.HandleFunc("/.well-known/pre-authorize/", func(w http.ResponseWriter, r *http.Request) {
-			ssl_manager.DNSConfigurationPreAuthorizeHttpHandler(w, r)
-		})
+		server := echo.New()
+		ssl_manager.InitHttpHandlers(server)
 		fmt.Println("Server listening on port 80...")
-		err := http.ListenAndServe(":80", nil)
+		err := server.Start(":80")
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -53,7 +49,7 @@ func main() {
 	// Request certificate
 	wg.Add(1)
 	go func() {
-		err := ssl_manager.ObtainCertificate("apache.tanmoy.info")
+		err := ssl_manager.ObtainCertificate("nginx.tanmoy.info")
 		if err != nil {
 			fmt.Println(err)
 			return
