@@ -1,9 +1,8 @@
 package Manager
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
@@ -11,15 +10,12 @@ import (
 )
 
 // Store the private key to a file
-func storePrivateKeyToFile(keyFile string, key *ecdsa.PrivateKey) error {
+func storePrivateKeyToFile(keyFile string, key *rsa.PrivateKey) error {
 	// Encode the private key to PEM format
-	keyBytes, err := x509.MarshalECPrivateKey(key)
-	if err != nil {
-		return err
-	}
+	keyBytes := x509.MarshalPKCS1PrivateKey(key)
 
 	pemKey := pem.Block{
-		Type:  "EC PRIVATE KEY",
+		Type:  "RSA PRIVATE KEY",
 		Bytes: keyBytes,
 	}
 
@@ -39,7 +35,7 @@ func storePrivateKeyToFile(keyFile string, key *ecdsa.PrivateKey) error {
 }
 
 // Read the private key from a file
-func readPrivateKeyFromFile(keyFile string) (*ecdsa.PrivateKey, error) {
+func readPrivateKeyFromFile(keyFile string) (*rsa.PrivateKey, error) {
 	keyData, err := os.ReadFile(keyFile)
 	if err != nil {
 		return nil, errors.New("unable to read account private key file")
@@ -47,12 +43,12 @@ func readPrivateKeyFromFile(keyFile string) (*ecdsa.PrivateKey, error) {
 
 	// Parse the PEM-encoded data
 	block, _ := pem.Decode(keyData)
-	if block == nil || block.Type != "EC PRIVATE KEY" {
+	if block == nil || block.Type != "RSA PRIVATE KEY" {
 		return nil, errors.New("invalid PEM file or key type")
 	}
 
 	// Parse the DER-encoded key data
-	privateKey, err := x509.ParseECPrivateKey(block.Bytes)
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
 		return nil, errors.New("unable to parse private key")
 	}
@@ -60,11 +56,13 @@ func readPrivateKeyFromFile(keyFile string) (*ecdsa.PrivateKey, error) {
 }
 
 // Store byte[] to PEM file
-func storeBytesToPEMFile(bytes []byte, pemFile string) error {
-	pemKey := pem.Block{
-		Type:  "CERTIFICATE",
-		Bytes: bytes,
-	}
+func storeBytesToCRTFile(bytes []byte, pemFile string) error {
+	// pemKey := pem.Block{
+	// 	Type:  "CERTIFICATE",
+	// 	Bytes: bytes,
+	// }
+
+	data := string(bytes)
 
 	// Create the PEM file
 	file, err := os.Create(pemFile)
@@ -73,11 +71,13 @@ func storeBytesToPEMFile(bytes []byte, pemFile string) error {
 	}
 	defer file.Close()
 
+	file.WriteString(data)
+
 	// Write the PEM-encoded key to the file
-	err = pem.Encode(file, &pemKey)
-	if err != nil {
-		return err
-	}
+	// err = pem.Encode(file, &pemKey)
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 }
 
@@ -85,14 +85,14 @@ func storeBytesToPEMFile(bytes []byte, pemFile string) error {
 // -- Create a private key if it doesn't exist
 // -- Read the private key from file if it exists
 
-func fetchPrivateKeyForDomain(domain string, certsPrivateKeyDirectory string) (*ecdsa.PrivateKey, error) {
-	privateKeyFile := certsPrivateKeyDirectory + "/" + domain + ".pem"
+func fetchPrivateKeyForDomain(domain string, certsPrivateKeyDirectory string) (*rsa.PrivateKey, error) {
+	privateKeyFile := certsPrivateKeyDirectory + "/" + domain + ".key"
 	privateKey, err := readPrivateKeyFromFile(privateKeyFile)
 	if err == nil {
 		return privateKey, nil
 	} else {
 		// Create a private key
-		privateKey, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		privateKey, err = rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {
 			return nil, errors.New("unable to generate private key")
 		}

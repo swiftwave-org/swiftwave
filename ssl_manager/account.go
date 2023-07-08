@@ -2,9 +2,8 @@ package Manager
 
 import (
 	"context"
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/rsa"
 	"errors"
 	"os"
 	"strings"
@@ -46,13 +45,13 @@ func initiateACMEAccount(ctx context.Context, client *acmez.Client, AccountPriva
 
 // Fetch the account private key from file
 // If file does not exist, it will create a new private key and store it in file
-func fetchAccountPrivateKey(AccountPrivateKeyFilePath string) (*ecdsa.PrivateKey, error) {
-	if !strings.HasSuffix(AccountPrivateKeyFilePath, ".pem") {
-		return nil, errors.New("invalid account private key file path. file must be .pem file")
+func fetchAccountPrivateKey(AccountPrivateKeyFilePath string) (*rsa.PrivateKey, error) {
+	if !strings.HasSuffix(AccountPrivateKeyFilePath, ".key") {
+		return nil, errors.New("invalid account private key file path. file must be .key file")
 	}
 	// If file does not exist, create a new private key
 	if _, err := os.Stat(AccountPrivateKeyFilePath); os.IsNotExist(err) {
-		accountPrivateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		accountPrivateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 		if err != nil {
 			return nil, errors.New("unable to generate account private key")
 		}

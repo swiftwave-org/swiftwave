@@ -18,6 +18,7 @@ type Manager struct {
 }
 
 type ManagerOptions struct {
+	IsStaging                 bool
 	Email                     string
 	AccountPrivateKeyFilePath string
 	DomainPrivateKeyStorePath string

@@ -25,9 +25,13 @@ func (s *Manager) Init(ctx context.Context, db gorm.DB, options ManagerOptions) 
 	db.AutoMigrate(&KeyAuthorizationToken{})
 	db.AutoMigrate(&DomainSSLDetails{})
 	// Initialize account
+	acmeDirectory := "https://acme-staging-v02.api.letsencrypt.org/directory"
+	if !options.IsStaging {
+		acmeDirectory = "https://acme-v02.api.letsencrypt.org/directory"
+	}
 	s.client = acmez.Client{
 		Client: &acme.Client{
-			Directory: "https://acme-staging-v02.api.letsencrypt.org/directory",
+			Directory: acmeDirectory,
 			HTTPClient: &http.Client{
 				Transport: &http.Transport{
 					TLSClientConfig: &tls.Config{

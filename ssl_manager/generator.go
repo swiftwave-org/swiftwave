@@ -9,7 +9,7 @@ import (
 
 // This will initiate ACME server to reverse verification
 // and store generated certificate in preferred location
-// - output: fullchain.pem
+// - output: fullchain.crt
 func (s Manager) ObtainCertificate(domain string) error {
 	// Check if the domain is pointing to the server
 	if !s.VerifyDomain(domain) {
@@ -27,17 +27,30 @@ func (s Manager) ObtainCertificate(domain string) error {
 	// Get the certificate
 	certificate := certs[0]
 	// Store the certificate to file
-	err = storeBytesToPEMFile(certificate.ChainPEM, s.options.DomainFullChainStorePath+"/"+domain+".pem")
+	err = storeBytesToCRTFile(certificate.ChainPEM, s.options.DomainFullChainStorePath+"/"+domain+".crt")
 	if err != nil {
 		return errors.New("unable to store certificate to file")
 	}
 	// Update the creation date in redis
-	tx := s.dbClient.Create(&DomainSSLDetails{
-		Domain:       domain,
-		CreationDate: time.Now(),
-	})
+	// -- check if the domain is already in database
+	var domainSSLDetails DomainSSLDetails
+	tx := s.dbClient.Where("domain = ?", domain).First(&domainSSLDetails)
 	if tx.Error != nil {
-		return errors.New("unable to update creation date in redis")
+		tx := s.dbClient.Create(&DomainSSLDetails{
+			Domain:       domain,
+			CreationDate: time.Now(),
+		})
+		if tx.Error != nil {
+			return errors.New("unable to create entry in database")
+		} else {
+			return nil
+		}
+	} else {
+		// Update the creation date
+		tx = s.dbClient.Model(&domainSSLDetails).Update("creation_date", time.Now())
+		if tx.Error != nil {
+			return errors.New("unable to update creation date in database")
+		}
+		return nil
 	}
-	return nil
 }
