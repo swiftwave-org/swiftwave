@@ -101,7 +101,7 @@ func (s HAProxySocket) AddHTTPSLink(transaction_id string, backend_name string, 
 	add_backend_switch_request_body := map[string]interface{}{
 		"cond":      "if",
 		"cond_test": `{ hdr(host) -i ` + domain_name + ` }`,
-		"index":     1,
+		"index":     0,
 		"name":      backend_name,
 	}
 	add_backend_switch_request_body_bytes, err := json.Marshal(add_backend_switch_request_body)
