@@ -111,7 +111,7 @@ func (s HAProxySocket) uploadSSL(route string, domain string, file io.Reader) (*
 	return client.Do(req)
 }
 
-func (s HAProxySocket) updateSSL(route string, domain string, file io.Reader) (*http.Response, error) {
+func (s HAProxySocket) replaceSSL(route string, domain string, file io.Reader) (*http.Response, error) {
 	if !strings.HasPrefix(route, "/"){
 		route = "/" + route
 	}

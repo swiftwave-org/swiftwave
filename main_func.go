@@ -107,7 +107,7 @@ func SSLUpdate() {
 		errFound = true
 		fmt.Println(err)
 	}
-	err = haproxySocket.AddSSL(transaction_id, "minc.tanmoy.info", privateKey, fullChain)
+	err = haproxySocket.UpdateSSL(transaction_id, "minc.tanmoy.info", privateKey, fullChain)
 	fmt.Println(err)
 
 	if errFound {

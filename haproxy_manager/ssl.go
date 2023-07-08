@@ -8,7 +8,7 @@ import (
 )
 
 // Add SSL certificate to HAProxy
-func (s HAProxySocket) AddSSL(transaction_id string, domain string, privateKey []byte, fullChain []byte) error {
+func (s HAProxySocket) UpdateSSL(transaction_id string, domain string, privateKey []byte, fullChain []byte) error {
 	// Create a new buffer
 	var buffer bytes.Buffer
 	// Add the full chain
@@ -40,7 +40,7 @@ func (s HAProxySocket) AddSSL(transaction_id string, domain string, privateKey [
 	if updateSSLRequired {
 		ioReader := bytes.NewReader(buffer.Bytes())
 		// Try to Upload the file
-		res, err := s.updateSSL("/services/haproxy/storage/ssl_certificates/"+domainSanitizedName, domainSanitizedName, ioReader)
+		res, err := s.replaceSSL("/services/haproxy/storage/ssl_certificates/"+domainSanitizedName, domainSanitizedName, ioReader)
 		if err != nil {
 			return errors.New("error while updating ssl certificate :"+err.Error())
 		}
