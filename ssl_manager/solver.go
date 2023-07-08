@@ -17,10 +17,13 @@ func (s http01Solver) Present(ctx context.Context, chal acme.Challenge) error {
 	if !strings.Contains(keyAuthorization, ".") {
 		return errors.New("invalid key authorization")
 	}
-	token := "token_"+strings.Split(keyAuthorization, ".")[0]
-	status :=  s.redisClient.Set(ctx, token, keyAuthorization, 0)
-	if status.Err() != nil {
-		return status.Err()
+	token := strings.Split(keyAuthorization, ".")[0]
+	tx := s.dbClient.Create(&KeyAuthorizationToken{
+		Token:              token,
+		AuthorizationToken: keyAuthorization,
+	})
+	if tx.Error != nil {
+		return tx.Error
 	}
 	return nil
 }
@@ -32,19 +35,20 @@ func (s http01Solver) CleanUp(ctx context.Context, chal acme.Challenge) error {
 	if !strings.Contains(keyAuthorization, ".") {
 		return errors.New("invalid key authorization")
 	}
-	token := "token_"+strings.Split(keyAuthorization, ".")[0]
-	status :=  s.redisClient.Del(ctx, token)
-	if status.Err() != nil {
-		return status.Err()
+	token := strings.Split(keyAuthorization, ".")[0]
+	tx := s.dbClient.Delete(&KeyAuthorizationToken{}, "token = ?", token)
+	if tx.Error != nil {
+		return tx.Error
 	}
 	return nil
 }
 
 // Required for http-01 verification
 func (s SSLManager) fetchKeyAuthorization(token string) string {
-	keyAuthorization, err := s.redisClient.Get(s.ctx, "token_"+token).Result()
-	if err != nil {
+	keyAuthorization := KeyAuthorizationToken{}
+	tx := s.dbClient.Where("token = ?", token).Find(&keyAuthorization)
+	if tx.Error != nil {
 		return ""
 	}
-	return keyAuthorization
+	return keyAuthorization.AuthorizationToken
 }

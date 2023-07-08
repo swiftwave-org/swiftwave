@@ -32,8 +32,11 @@ func (s SSLManager) ObtainCertificate(domain string) error {
 		return errors.New("unable to store certificate to file")
 	}
 	// Update the creation date in redis
-	redisError := s.redisClient.Set(s.ctx, "created_on_"+domain, time.Now().Format("02-01-2006"), 0)
-	if redisError.Err() != nil {
+	tx := s.dbClient.Create(&DomainSSLDetails{
+		Domain:   domain,
+		CreationDate: time.Now(),
+	})
+	if tx.Error != nil {
 		return errors.New("unable to update creation date in redis")
 	}
 	return nil

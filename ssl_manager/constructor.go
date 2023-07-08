@@ -9,15 +9,15 @@ import (
 
 	"github.com/mholt/acmez"
 	"github.com/mholt/acmez/acme"
-	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 )
 
 // SSLManager constructor
 
 // Init SSLManager
-func (s *SSLManager) Init(ctx context.Context, redisClient redis.Client, options SSLManagerOptions) error {
+func (s *SSLManager) Init(ctx context.Context, db gorm.DB, options SSLManagerOptions) error {
 	s.ctx = ctx
-	s.redisClient = redisClient
+	s.dbClient = db
 	s.options = options
 	s.options.DomainPrivateKeyStorePath = strings.TrimSuffix(s.options.DomainPrivateKeyStorePath, "/")
 	s.options.DomainFullChainStorePath = strings.TrimSuffix(s.options.DomainFullChainStorePath, "/")
@@ -35,7 +35,7 @@ func (s *SSLManager) Init(ctx context.Context, redisClient redis.Client, options
 		},
 		ChallengeSolvers: map[string]acmez.Solver{
 			acme.ChallengeTypeHTTP01: http01Solver{
-				redisClient: s.redisClient,
+				dbClient: s.dbClient,
 			},
 		},
 	}
