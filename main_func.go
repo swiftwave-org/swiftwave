@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	DOCKER "keroku/m/docker_manager"
 	HAProxy "keroku/m/haproxy_manager"
 	SSL "keroku/m/ssl_manager"
 	"os"
 	"sync"
 
+	"github.com/docker/docker/client"
 	"github.com/labstack/echo/v4"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -123,4 +125,16 @@ func SSLUpdate() {
 	// Wait for events
 	wg.Wait()
 	fmt.Println("done")
+}
+
+func TestDocker(){
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.WithHost("unix:///run/user/1000/docker.sock"))
+	if err != nil {
+		panic(err)
+	}
+	dClient := DOCKER.Manager{}
+	dClient.Init(ctx, *cli)
+
+	fmt.Println(dClient.VolumeExists("test"))
 }
