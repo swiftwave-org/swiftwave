@@ -129,12 +129,19 @@ func SSLUpdate() {
 
 func TestDocker(){
 	ctx := context.Background()
-	cli, err := client.NewClientWithOpts(client.WithHost("unix:///run/user/1000/docker.sock"))
+	cli, err := client.NewClientWithOpts(client.WithHost("tcp://127.0.0.1:2375"))
 	if err != nil {
 		panic(err)
 	}
 	dClient := DOCKER.Manager{}
 	dClient.Init(ctx, *cli)
 
-	fmt.Println(dClient.VolumeExists("test"))
+	// fmt.Println(dClient.CreateVolume())
+	// fmt.Println(dClient.VolumeUsage())
+	// fmt.Println(dClient.VolumeUsage("a3ca139b3619064a066eacf9645ec2d6df4bf2d2e1ca5820fbaabe45f57e7e56"))
+	// fmt.Println(dClient.RemoveVolume("835b690a85584c0f59902b4ff730c30740591527fcba89820534ac5cad6d14eb"))
+	// fmt.Println(dClient.VolumeExists("c39afeeef0d0473a99eb4a8c86ea63ccb341b4ed63f14cc183ba4e7264232bb9e89cb225f931484aad8d3b62709cf261d08ee740037f4a2eaf03389c1d202ec4"))
+
+	// dClient.CreateService("mincc-service", 2);
+	// dClient.UpdateService("mincc-service", "njryymk1cayxvme5m6sex5jlu", 5);
 }

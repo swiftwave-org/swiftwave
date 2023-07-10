@@ -17,6 +17,15 @@ sudo docker service create \
 tanmoysrt/minc:v2
 ```
 
+sudo docker service create \
+--mode replicated \
+--replicas 3 \
+--name alpine-service \
+--network swarm-network \
+--endpoint-mode dnsrr \
+--limit-memory 100m \
+nginx
+
 ### haproxy.cfg
 ```
 global
@@ -118,4 +127,15 @@ use_backend letsencrypt-backend if { path_beg /.well-known/acme-challenge/ }
 ```
 ACCOUNT_PRIVATE_KEY_FILE_PATH
 ACCOUNT_Email
+```
+
+### Run dockerproxy
+```
+sudo docker container run \
+   -d --privileged \
+   --name dockerproxy \
+   -v /var/run/docker.sock:/var/run/docker.sock \
+   -p 2375:2375 \
+   --env-file ./dockerproxy.env \
+   tecnativa/docker-socket-proxy
 ```

@@ -1,0 +1,61 @@
+[
+    {
+        "ID": "njryymk1cayxvme5m6sex5jlu",
+        "Version": {
+            "Index": 6622
+        },
+        "CreatedAt": "2023-07-10T21:17:52.768085932Z",
+        "UpdatedAt": "2023-07-10T21:17:52.768085932Z",
+        "Spec": {
+            "Name": "mincc-service",
+            "Labels": {},
+            "TaskTemplate": {
+                "ContainerSpec": {
+                    "Image": "tanmoysrt/minc:v2",
+                    "StopGracePeriod": 10000000000,
+                    "DNSConfig": {},
+                    "Isolation": "default"
+                },
+                "Resources": {},
+                "RestartPolicy": {
+                    "Condition": "any",
+                    "Delay": 5000000000,
+                    "MaxAttempts": 0
+                },
+                "Placement": {},
+                "Networks": [
+                    {
+                        "Target": "vfv2ly2x9w6h3wg78lc86okxf"
+                    }
+                ],
+                "ForceUpdate": 0,
+                "Runtime": "container"
+            },
+            "Mode": {
+                "Replicated": {
+                    "Replicas": 2
+                }
+            },
+            "UpdateConfig": {
+                "Parallelism": 1,
+                "FailureAction": "pause",
+                "Monitor": 5000000000,
+                "MaxFailureRatio": 0,
+                "Order": "stop-first"
+            },
+            "RollbackConfig": {
+                "Parallelism": 1,
+                "FailureAction": "pause",
+                "Monitor": 5000000000,
+                "MaxFailureRatio": 0,
+                "Order": "stop-first"
+            },
+            "EndpointSpec": {
+                "Mode": "dnsrr"
+            }
+        },
+        "Endpoint": {
+            "Spec": {}
+        }
+    }
+]
