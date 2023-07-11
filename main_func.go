@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	DOCKER "keroku/m/docker_manager"
+	DOCKER "keroku/m/container_manager"
 	HAProxy "keroku/m/haproxy_manager"
 	SSL "keroku/m/ssl_manager"
 	"os"
@@ -14,7 +15,6 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
-
 
 func RunSSLSystem() {
 	var wg sync.WaitGroup
@@ -127,7 +127,7 @@ func SSLUpdate() {
 	fmt.Println("done")
 }
 
-func TestDocker(){
+func TestDocker() {
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.WithHost("tcp://127.0.0.1:2375"))
 	if err != nil {
@@ -135,6 +135,30 @@ func TestDocker(){
 	}
 	dClient := DOCKER.Manager{}
 	dClient.Init(ctx, *cli)
+
+	spec := DOCKER.Service{
+		Name: "nginx-service",
+		Image: "nginx:latest",
+		Command: []string{},
+		Env: map[string]string{
+			"APP_NAME": "nginx",
+			"APP_COLOR": "blue",
+		},
+		VolumeMounts: []DOCKER.VolumeMount{},
+		Networks: []string{
+		},
+		Replicas: 5,
+	}
+
+	// dClient.CreateService(spec)
+
+	data, err := dClient.StatusService(spec)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		d, _ := json.Marshal(data)
+		fmt.Println(string(d))
+	}
 
 	// fmt.Println(dClient.CreateVolume())
 	// fmt.Println(dClient.VolumeUsage())

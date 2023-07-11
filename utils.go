@@ -1,4 +1,4 @@
-package dockermanager
+package main
 
 import (
 	"strings"
