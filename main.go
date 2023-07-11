@@ -4,5 +4,7 @@ package main
 func main() {
 	// RunSSLSystem()
 	// SSLUpdate()
-	TestDocker()
+	// TestDocker()
+	TestDockerNetwork()
+	
 }

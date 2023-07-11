@@ -139,3 +139,8 @@ sudo docker container run \
    --env-file ./dockerproxy.env \
    tecnativa/docker-socket-proxy
 ```
+
+
+#### TODO
+- Make main overlay network very low CIDR
+- Make smaller overlay networks for services

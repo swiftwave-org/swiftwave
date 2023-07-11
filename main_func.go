@@ -169,3 +169,19 @@ func TestDocker() {
 	// dClient.CreateService("mincc-service", 2);
 	// dClient.UpdateService("mincc-service", "njryymk1cayxvme5m6sex5jlu", 5);
 }
+
+
+func TestDockerNetwork(){
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.WithHost("tcp://127.0.0.1:2375"))
+	if err != nil {
+		panic(err)
+	}
+	dClient := DOCKER.Manager{}
+	dClient.Init(ctx, *cli)
+
+	// fmt.Println(dClient.DeleteNetwork("my-attachable-overlay"))
+	fmt.Println(dClient.ExistNetwork("swarm-network"))
+	fmt.Println(dClient.CIDRNetwork("swarm-network"))
+	fmt.Println(dClient.GatewayNetwork("swarm-network"))
+}
