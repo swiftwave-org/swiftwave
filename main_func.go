@@ -181,7 +181,7 @@ func TestDockerNetwork(){
 	dClient.Init(ctx, *cli)
 
 	// fmt.Println(dClient.DeleteNetwork("my-attachable-overlay"))
-	fmt.Println(dClient.ExistNetwork("swarm-network"))
+	fmt.Println(dClient.ExistsNetwork("swarm-network"))
 	fmt.Println(dClient.CIDRNetwork("swarm-network"))
 	fmt.Println(dClient.GatewayNetwork("swarm-network"))
 }

@@ -28,7 +28,7 @@ func (m Manager) RemoveVolume(id string) error {
 }
 
 // Check if volume exists
-func (m Manager) ExistVolume(id string) bool {
+func (m Manager) ExistsVolume(id string) bool {
 	d, err := m.client.VolumeInspect(m.ctx, id)
 	fmt.Println(d)
 	return err == nil

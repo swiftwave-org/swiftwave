@@ -19,7 +19,7 @@ func (m Manager) CreateNetwork(name string) error {
 }
 
 // Delete a network
-func (m Manager) DeleteNetwork(name string) error {
+func (m Manager) RemoveNetwork(name string) error {
 	err := m.client.NetworkRemove(m.ctx, name)
 	if err != nil {
 		return errors.New("error removing network ")
@@ -28,7 +28,7 @@ func (m Manager) DeleteNetwork(name string) error {
 }
 
 // Check if a network exists
-func (m Manager) ExistNetwork(name string) bool {
+func (m Manager) ExistsNetwork(name string) bool {
 	_, err := m.client.NetworkInspect(m.ctx, name, types.NetworkInspectOptions{})
 	return err == nil
 }
