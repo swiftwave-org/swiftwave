@@ -55,7 +55,7 @@ func RunSSLSystem() {
 	// Request certificate
 	wg.Add(1)
 	go func() {
-		err := ssl_manager.ObtainCertificate("minc.tanmoy.info")
+		err := ssl_manager.ObtainCertificate("nginx.tanmoy.info")
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -85,7 +85,7 @@ func SSLUpdate() {
 	}
 
 	// Add backend switch
-	// err = haproxySocket.AddHTTPSLink(transaction_id, "be_minc-service_3000", "minc.tanmoy.info")
+	// err = haproxySocket.AddHTTPSLink(transaction_id, "be_minc-service_3000", "nginx.tanmoy.info")
 	// if err != nil {
 	// 	errFound = true;
 	// 	fmt.Println(err)
@@ -99,17 +99,17 @@ func SSLUpdate() {
 	// }
 
 	// Add SSL certificate
-	privateKey, err := os.ReadFile("/home/ubuntu/client_program/data/domain/private_key/minc.tanmoy.info.key")
+	privateKey, err := os.ReadFile("/home/ubuntu/client_program/data/domain/private_key/nginx.tanmoy.info.key")
 	if err != nil {
 		errFound = true
 		fmt.Println(err)
 	}
-	fullChain, err := os.ReadFile("/home/ubuntu/client_program/data/domain/full_chain/minc.tanmoy.info.crt")
+	fullChain, err := os.ReadFile("/home/ubuntu/client_program/data/domain/full_chain/nginx.tanmoy.info.crt")
 	if err != nil {
 		errFound = true
 		fmt.Println(err)
 	}
-	err = haproxySocket.UpdateSSL(transaction_id, "minc.tanmoy.info", privateKey, fullChain)
+	err = haproxySocket.UpdateSSL(transaction_id, "nginx.tanmoy.info", privateKey, fullChain)
 	fmt.Println(err)
 
 	if errFound {
@@ -184,4 +184,113 @@ func TestDockerNetwork(){
 	fmt.Println(dClient.ExistsNetwork("swarm-network"))
 	fmt.Println(dClient.CIDRNetwork("swarm-network"))
 	fmt.Println(dClient.GatewayNetwork("swarm-network"))
+}
+
+func FullFledgeTest(){
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.WithHost("tcp://127.0.0.1:2375"))
+	if err != nil {
+		panic(err)
+	}
+	dockerClient := DOCKER.Manager{}
+	dockerClient.Init(ctx, *cli)
+
+	// Main overlay network
+	mainNetwork := "swarm-network"
+
+	// Create overlay network
+	overlayNetwork := "nginx-service-network"
+	err = dockerClient.CreateNetwork(overlayNetwork)
+	if err != nil {
+		panic(err)
+	}
+
+	// Create volume
+	err = dockerClient.CreateVolume("nginx-service-volume")
+	if err != nil {
+		panic(err)
+	}
+
+	// Create nginx service
+	spec := DOCKER.Service{
+		Name: "nginx-service",
+		Image: "nginx:latest",
+		Command: []string{},
+		Env: map[string]string{},
+		VolumeMounts: []DOCKER.VolumeMount{
+			{
+				Source: "nginx-service-volume",
+				Target: "/etc/nginx",
+				ReadOnly: false,
+			},
+		},
+		Networks: []string{
+			mainNetwork,
+			overlayNetwork,
+		},
+		Replicas: 3,
+	}
+	err = dockerClient.CreateService(spec)
+	if err != nil {
+		panic(err)
+	}
+
+	// HAProxy
+	var wg sync.WaitGroup
+
+	// Create a new HAProxySocket
+	var haproxySocket = HAProxy.HAProxySocket{}
+	haproxySocket.InitTcpSocket("localhost", 5555)
+	haproxySocket.Auth("admin", "mypassword")
+	errFound := false
+	transaction_id, err := haproxySocket.FetchNewTransactionId()
+	if err != nil {
+		print("Error while fetching HAProxy version: " + err.Error())
+		os.Exit(1)
+		return
+	}
+
+	// Add backend
+	err = haproxySocket.AddBackend(transaction_id, "nginx-service", 80, 3)
+	if err != nil {
+		errFound = true;
+		fmt.Println(err)
+	}
+
+	// Add backend switch
+	err = haproxySocket.AddHTTPSLink(transaction_id, "be_nginx-service_80", "nginx.tanmoy.info")
+	if err != nil {
+		errFound = true;
+		fmt.Println(err)
+	}
+
+	// Generate SSL certificate  --> Run seperately -- in production use queue
+
+	// Add SSL certificate
+	privateKey, err := os.ReadFile("/home/ubuntu/client_program/data/domain/private_key/nginx.tanmoy.info.key")
+	if err != nil {
+		errFound = true
+		fmt.Println(err)
+	}
+	fullChain, err := os.ReadFile("/home/ubuntu/client_program/data/domain/full_chain/nginx.tanmoy.info.crt")
+	if err != nil {
+		errFound = true
+		fmt.Println(err)
+	}
+	err = haproxySocket.UpdateSSL(transaction_id, "nginx.tanmoy.info", privateKey, fullChain)
+	fmt.Println(err)
+
+	if errFound {
+		fmt.Println("Deleting transaction: " + transaction_id)
+		haproxySocket.DeleteTransaction(transaction_id)
+		fmt.Println("Error found")
+	} else {
+		fmt.Println("Committing transaction: " + transaction_id)
+		haproxySocket.CommitTransaction(transaction_id)
+		fmt.Println("No error found")
+	}
+
+	// Wait for events
+	wg.Wait()
+	fmt.Println("done")
 }

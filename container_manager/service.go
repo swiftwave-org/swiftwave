@@ -142,6 +142,7 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 	volumeMounts := []mount.Mount{}
 	for _, volumeMount := range service.VolumeMounts {
 		volumeMounts = append(volumeMounts, mount.Mount{
+			Type: mount.TypeVolume,
 			Source:   volumeMount.Source,
 			Target:   volumeMount.Target,
 			ReadOnly: volumeMount.ReadOnly,

@@ -8,14 +8,14 @@ import (
 )
 
 // Create a new volume, return id of the volume
-func (m Manager) CreateVolume(name string) (string, error) {
-	createdVolume, err := m.client.VolumeCreate(m.ctx, volume.CreateOptions{
+func (m Manager) CreateVolume(name string) error {
+	_, err := m.client.VolumeCreate(m.ctx, volume.CreateOptions{
 		Name: name,
 	})
 	if err != nil {
-		return "", errors.New("error creating volume " + err.Error())
+		return errors.New("error creating volume " + err.Error())
 	}
-	return createdVolume.Name, nil
+	return nil
 }
 
 // Remove a volume by id
