@@ -13,7 +13,7 @@ func (m Manager) CreateNetwork(name string) error {
 		Attachable: true,
 	})
 	if err != nil {
-		return errors.New("error creating network " + err.Error())
+		return errors.New("error creating network ")
 	}
 	return nil
 }
@@ -22,7 +22,7 @@ func (m Manager) CreateNetwork(name string) error {
 func (m Manager) DeleteNetwork(name string) error {
 	err := m.client.NetworkRemove(m.ctx, name)
 	if err != nil {
-		return errors.New("error removing network " + err.Error())
+		return errors.New("error removing network ")
 	}
 	return nil
 }
@@ -37,7 +37,7 @@ func (m Manager) ExistNetwork(name string) bool {
 func (m Manager) CIDRNetwork(name string) (string, error) {
 	network, err := m.client.NetworkInspect(m.ctx, name, types.NetworkInspectOptions{})
 	if err != nil {
-		return "", errors.New("error inspecting network " + err.Error())
+		return "", errors.New("error inspecting network ")
 	}
 	return network.IPAM.Config[0].Subnet, nil
 }
@@ -46,7 +46,7 @@ func (m Manager) CIDRNetwork(name string) (string, error) {
 func (m Manager) GatewayNetwork(name string) (string, error) {
 	network, err := m.client.NetworkInspect(m.ctx, name, types.NetworkInspectOptions{})
 	if err != nil {
-		return "", errors.New("error inspecting network " + err.Error())
+		return "", errors.New("error inspecting network ")
 	}
 	return network.IPAM.Config[0].Gateway, nil
 }
