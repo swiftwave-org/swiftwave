@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func generateLongRandomString(length int) (string, error) {
+func GenerateLongRandomString(length int) (string, error) {
 	numUUIDs := (length + 32) / 33 // Number of UUIDs needed to achieve desired length
 	randomString := ""
 
