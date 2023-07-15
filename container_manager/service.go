@@ -106,6 +106,7 @@ func (m Manager) StatusService(service Service) (ServiceStatus, error) {
 
 	runningReplicas := 0
 	// query containers list
+	// TODO: query Task list inspite of containers list
 	containers, err := m.client.ContainerList(m.ctx, types.ContainerListOptions{
 		Filters: filters.NewArgs(
 			filters.Arg("label", "com.docker.swarm.service.name="+service.Name),
