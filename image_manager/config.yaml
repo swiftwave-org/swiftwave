@@ -1,0 +1,274 @@
+service_order:
+  - flask-pip
+  - flask-poetry
+  - django-pip
+  - django-poetry
+  - fastapi-pip
+  - fastapi-poetry
+  - streamlit-pip
+  - streamlit-poetry
+  - springboot-gradle
+  - springboot-maven
+  - rails
+  - sinatra
+  - nextjs
+  - preactjs
+  - reactjs
+  - vuejs
+  - expressjs
+
+lookup_files:
+  - package.json
+  - requirements.txt
+  - Pipfile.lock
+  - pyproject.toml
+  - poetry.lock
+  - Gemfile
+  - Gemfile.lock
+  - build.gradle
+  - build.gradle.kts
+  - pom.xml
+
+services:
+  expressjs:
+    name: ExpressJS
+    description: Express JS based web application
+  reactjs:
+    name: ReactJS
+    description: React JS based web application
+  nextjs:
+    name: NextJS
+    description: Next JS based web application
+  preactjs:
+    name: PreactJS
+    description: Preact JS based web application
+  vuejs:
+    name: VueJS
+    description: Vue JS based web application
+  flask-pip:
+    name: Flask + Pip
+    description: Flask based web application with pip
+  flask-poetry:
+    name: Flask + Poetry
+    description: Flask based web application with poetry
+  django-pip:
+    name: Django + Pip
+    description: Django based web application with pip
+  django-poetry:
+    name: Django + Poetry
+    description: Django based web application with poetry
+  fastapi-pip:
+    name: FastAPI + Pip
+    description: FastAPI based web application with pip
+  fastapi-poetry:
+    name: FastAPI + Poetry
+    description: FastAPI based web application with poetry
+  streamlit-pip:
+    name: Streamlit + Pip
+    description: Streamlit based web application with pip
+  streamlit-poetry:
+    name: Streamlit + Poetry
+    description: Streamlit based web application with poetry
+  sinatra:
+    name: Sinatra
+    description: Sinatra based web application
+  rails:
+    name: Rails
+    description: Rails based web application
+  springboot-gradle:
+    name: Spring Boot + Gradle
+    description: Spring Boot based web application with Gradle
+  springboot-maven:
+    name: Spring Boot + Maven
+    description: Spring Boot based web application with Maven
+
+templates:
+  reactjs:
+    name: reactjs
+    vaiables:
+      - buildCommand:
+          type: string
+          description: Build command for reactjs
+          default: npm run build
+      - buildDirectory:
+          type: string
+          description: Build directory for reactjs
+          default: build
+      - port:
+          type: string
+          description: Port for reactjs
+          default: 3000
+  nextjs:
+    name: nextjs
+    vaiables:
+      - buildCommand:
+          type: string
+          description: Build command for nextjs
+          default: npm run build
+      - port:
+          type: string
+          description: Port for nextjs
+          default: 3000
+
+identifiers:
+  nextjs:
+  - selector:
+    - file: package.json
+      keywords:
+        - next
+  preactjs:
+  - selector:
+    - file: package.json
+      keywords:
+        - preact
+  reactjs:
+  - selector:
+    - file: package.json
+      keywords:
+        - react
+  vuejs:
+  - selector:
+    - file: package.json
+      keywords:
+        - vue
+  expressjs:
+  - selector:
+    - file: package.json
+      keywords:
+        - express
+  flask-pip:
+  - selector:
+    - file: requirements.txt
+      keywords:
+        - Flask
+  - selector:
+    - file: requirements.txt
+      keywords:
+        - flask
+  - selector:
+    - file: Pipfile.lock
+      keywords:
+        - Flask
+  - selector:
+    - file: Pipfile.lock
+      keywords:
+        - flask
+  flask-poetry:
+  - selector:
+    - file: pyproject.toml
+      keywords:
+        - Flask
+  - selector:
+    - file: pyproject.toml
+      keywords:
+        - flask
+  - selector:
+    - file: poetry.lock
+      keywords:
+        - Flask
+  - selector:
+    - file: poetry.lock
+      keywords:
+        - flask
+  django-pip:
+  - selector:
+    - file: requirements.txt
+      keywords:
+        - Django
+  - selector:
+    - file: requirements.txt
+      keywords:
+        - django
+  - selector:
+    - file: Pipfile.lock
+      keywords:
+        - Django
+  - selector:
+    - file: Pipfile.lock
+      keywords:
+        - django
+  django-poetry:
+  - selector:
+    - file: pyproject.toml
+      keywords:
+        - Django
+  - selector:
+    - file: pyproject.toml
+      keywords:
+        - django
+  - selector:
+    - file: poetry.lock
+      keywords:
+        - Django
+  - selector:
+    - file: poetry.lock
+      keywords:
+        - django
+  fastapi-pip:
+  - selector:
+    - file: requirements.txt
+      keywords:
+        - fastapi
+  - selector:
+    - file: Pipfile.lock
+      keywords:
+        - fastapi
+  fastapi-poetry:
+  - selector:
+    - file: pyproject.toml
+      keywords:
+        - fastapi
+  - selector:
+    - file: poetry.lock
+      keywords:
+        - fastapi
+  streamlit-pip:
+  - selector:
+    - file: requirements.txt
+      keywords:
+        - streamlit
+  - selector:
+    - file: Pipfile.lock
+      keywords:
+        - streamlit
+  streamlit-poetry:
+  - selector:
+    - file: pyproject.toml
+      keywords:
+        - streamlit
+  - selector:
+    - file: poetry.lock
+      keywords:
+        - streamlit
+  sinatra:
+  - selector:
+    - file: Gemfile
+      keywords:
+        - sinatra
+  - selector:
+    - file: Gemfile.lock
+      keywords:
+        - sinatra
+  rails:
+  - selector:
+    - file: Gemfile
+      keywords:
+        - rails
+  - selector:
+    - file: Gemfile.lock
+      keywords:
+        - rails
+  springboot-gradle:
+  - selector:
+    - file: build.gradle
+      keywords:
+        - org.springframework
+  - selector:
+    - file: build.gradle.kts
+      keywords:
+        - org.springframework
+  springboot-maven:
+  - selector:
+    - file: pom.xml
+      keywords:
+        - org.springframework

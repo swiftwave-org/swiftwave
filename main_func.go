@@ -8,6 +8,7 @@ import (
 	HAProxy "keroku/m/haproxy_manager"
 	SSL "keroku/m/ssl_manager"
 	GIT "keroku/m/git_manager"
+	IMAGE_MANAGER "keroku/m/image_manager"
 	"os"
 	"sync"
 
@@ -36,6 +37,25 @@ func GitTest() {
 	fmt.Println(manager.FetchFolderStructure(repo))
 	fmt.Println(manager.FetchFileContent(repo, "941.valid-mountain-array.java"))
 }
+
+func ImageManagerTest() {
+	manager := IMAGE_MANAGER.Manager{}
+	manager.Init()
+	git_manager := GIT.Manager{}
+	git_manager.Init(GIT.GitUser{
+		Username: "tanmoysrt",
+		Password: "",
+	})
+	// fmt.Println(manager.FetchRepositories())
+	var repo GIT.Repository = GIT.Repository{
+		Name: "spring-petclinic",
+		Username: "spring-projects",
+		Branch: "main",
+		IsPrivate: false,
+	}
+	fmt.Println(manager.DetectService(git_manager, repo))
+}
+
 
 
 func RunSSLSystem() {

@@ -7,5 +7,6 @@ func main() {
 	// TestDockerNetwork()
 	// RunSSLSystem()
 	// FullFledgeTest()
-	GitTest()
+	// GitTest()
+	ImageManagerTest()
 }
