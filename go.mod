@@ -4,10 +4,16 @@ go 1.20
 
 require (
 	github.com/docker/docker v24.0.2+incompatible
+	github.com/google/go-github v17.0.0+incompatible
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/mholt/acmez v1.2.0
 	gorm.io/driver/sqlite v1.5.2
 	gorm.io/gorm v1.25.2
+)
+
+require (
+	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 )
 
 require (

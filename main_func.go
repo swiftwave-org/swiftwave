@@ -7,6 +7,7 @@ import (
 	DOCKER "keroku/m/container_manager"
 	HAProxy "keroku/m/haproxy_manager"
 	SSL "keroku/m/ssl_manager"
+	GIT "keroku/m/git_manager"
 	"os"
 	"sync"
 
@@ -15,6 +16,27 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
+
+
+
+func GitTest() {
+	manager := GIT.Manager{}
+	manager.Init(GIT.GitUser{
+		Username: "tanmoysrt",
+		Password: "",
+	})
+	// fmt.Println(manager.FetchRepositories())
+	var repo GIT.Repository = GIT.Repository{
+		Name: "dsa-leetcode-solutions",
+		Username: "tanmoysrt",
+		Branch: "main",
+		IsPrivate: false,
+	}
+	fmt.Println(manager.FetchLatestCommitHash(repo))
+	fmt.Println(manager.FetchFolderStructure(repo))
+	fmt.Println(manager.FetchFileContent(repo, "941.valid-mountain-array.java"))
+}
+
 
 func RunSSLSystem() {
 	var wg sync.WaitGroup
