@@ -25,7 +25,7 @@ func (m Manager) DetectService(manager GIT.Manager, repo GIT.Repository) (string
 	}
 
 	for _, serviceName := range m.Config.ServiceOrder {
-		// Fethc service selectors
+		// Fetch service selectors
 		identifiers := m.Config.Identifiers[serviceName]
 		for _, identifier := range identifiers {
 			// Fetch file content for each selector
@@ -44,5 +44,16 @@ func (m Manager) DetectService(manager GIT.Manager, repo GIT.Repository) (string
 		}
 	}
 
-	return "", nil
+	return "", errors.New("failed to detect service")
+}
+
+func (m Manager) DefaultArgs(serviceName string) map[string]string {
+	args := map[string]string{}
+	if _, ok := m.Config.Templates[serviceName]; !ok {
+		return args
+	}
+	for key, variable := range m.Config.Templates[serviceName].Variables {
+		args[key] = variable.Default
+	}
+	return args
 }

@@ -26,7 +26,7 @@ RUN echo 'require("fs").writeFileSync("./next.config.js", `module.exports = ${JS
 RUN node ./modify.js
 RUN rm ./modify.js
 ENV NODE_ENV production
-RUN /bin/sh -c "${BUILD_COMMAND} && npm prune --production"
+RUN ${BUILD_COMMAND} && npm prune --production
 
 # Production image, copy all the files and run next
 FROM node:18.11-slim AS runner

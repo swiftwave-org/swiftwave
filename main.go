@@ -8,5 +8,6 @@ func main() {
 	// RunSSLSystem()
 	// FullFledgeTest()
 	// GitTest()
-	ImageManagerTest()
+	// ImageManagerTest()
+	ImageGenerateTest()
 }

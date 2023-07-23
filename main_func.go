@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	DOCKER "keroku/m/container_manager"
-	HAProxy "keroku/m/haproxy_manager"
-	SSL "keroku/m/ssl_manager"
 	GIT "keroku/m/git_manager"
+	HAProxy "keroku/m/haproxy_manager"
 	IMAGE_MANAGER "keroku/m/image_manager"
+	SSL "keroku/m/ssl_manager"
 	"os"
 	"sync"
 
@@ -41,21 +41,73 @@ func GitTest() {
 func ImageManagerTest() {
 	manager := IMAGE_MANAGER.Manager{}
 	manager.Init()
+	fmt.Println(manager.DefaultArgs("nextjs"))
+	// git_manager := GIT.Manager{}
+	// git_manager.Init(GIT.GitUser{
+	// 	Username: "tanmoysrt",
+	// 	Password: "",
+	// })
+	// var repo GIT.Repository = GIT.Repository{
+	// 	Name: "spring-petclinic",
+	// 	Username: "spring-projects",
+	// 	Branch: "main",
+	// 	IsPrivate: false,
+	// }
+	// fmt.Println(manager.DetectService(git_manager, repo))
+}
+
+
+func ImageGenerateTest() {
+	// image manager
+	image_manager := IMAGE_MANAGER.Manager{}
+	image_manager.Init()
+
+	// git manager
 	git_manager := GIT.Manager{}
 	git_manager.Init(GIT.GitUser{
 		Username: "tanmoysrt",
 		Password: "",
 	})
-	// fmt.Println(manager.FetchRepositories())
-	var repo GIT.Repository = GIT.Repository{
-		Name: "spring-petclinic",
-		Username: "spring-projects",
-		Branch: "main",
+	var git_repo GIT.Repository = GIT.Repository{
+		Name: "react-todo-app",
+		Username: "kabirbaidhya",
+		Branch: "master",
 		IsPrivate: false,
 	}
-	fmt.Println(manager.DetectService(git_manager, repo))
-}
 
+	// container manager
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.WithHost("tcp://127.0.0.1:2375"))
+	if err != nil {
+		panic(err)
+	}
+	dClient := DOCKER.Manager{}
+	dClient.Init(ctx, *cli)
+
+	serviceName, err := image_manager.DetectService(git_manager, git_repo)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	// path, err := git_manager.CloneRepository(git_repo)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+	path := "/tmp/keroku/756d3a78-3a2b-44dd-a813-0b9e69475747"
+	dockerfile := image_manager.DockerTemplates[serviceName]
+	buildargs := image_manager.DefaultArgs(serviceName)
+
+	// Create image
+	scanner, err := dClient.CreateImage(dockerfile, buildargs, path, "todo-app-vvvv")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	for scanner.Scan() {
+		fmt.Println(scanner.Text())
+	}
+}
 
 
 func RunSSLSystem() {
