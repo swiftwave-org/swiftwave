@@ -1,4 +1,4 @@
-package imagemanager
+package dockerconfiggenerator
 
 import (
 	"errors"
@@ -19,7 +19,7 @@ func (m Manager) DetectService(manager GIT.Manager, repo GIT.Repository) (string
 				return "", errors.New("failed to fetch file content for " + lookupFile + "")
 			}
 			lookupFiles[lookupFile] = file
-		}else{
+		} else {
 			lookupFiles[lookupFile] = ""
 		}
 	}

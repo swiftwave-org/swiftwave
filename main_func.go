@@ -18,8 +18,6 @@ import (
 	"gorm.io/gorm"
 )
 
-
-
 func GitTest() {
 	manager := GIT.Manager{}
 	manager.Init(GIT.GitUser{
@@ -28,9 +26,9 @@ func GitTest() {
 	})
 	// fmt.Println(manager.FetchRepositories())
 	var repo GIT.Repository = GIT.Repository{
-		Name: "dsa-leetcode-solutions",
-		Username: "tanmoysrt",
-		Branch: "main",
+		Name:      "dsa-leetcode-solutions",
+		Username:  "tanmoysrt",
+		Branch:    "main",
 		IsPrivate: false,
 	}
 	fmt.Println(manager.FetchLatestCommitHash(repo))
@@ -38,7 +36,7 @@ func GitTest() {
 	fmt.Println(manager.FetchFileContent(repo, "941.valid-mountain-array.java"))
 }
 
-func ImageManagerTest() {
+func dockerconfiggeneratorTest() {
 	manager := IMAGE_MANAGER.Manager{}
 	manager.Init()
 	fmt.Println(manager.DefaultArgs("nextjs"))
@@ -56,7 +54,6 @@ func ImageManagerTest() {
 	// fmt.Println(manager.DetectService(git_manager, repo))
 }
 
-
 func ImageGenerateTest() {
 	// image manager
 	image_manager := IMAGE_MANAGER.Manager{}
@@ -69,9 +66,9 @@ func ImageGenerateTest() {
 		Password: "",
 	})
 	var git_repo GIT.Repository = GIT.Repository{
-		Name: "react-todo-app",
-		Username: "kabirbaidhya",
-		Branch: "master",
+		Name:      "react-todo-app",
+		Username:  "kabirbaidhya",
+		Branch:    "master",
 		IsPrivate: false,
 	}
 
@@ -108,7 +105,6 @@ func ImageGenerateTest() {
 		fmt.Println(scanner.Text())
 	}
 }
-
 
 func RunSSLSystem() {
 	var wg sync.WaitGroup
@@ -231,17 +227,16 @@ func TestDocker() {
 	dClient.Init(ctx, *cli)
 
 	spec := DOCKER.Service{
-		Name: "nginx-service",
-		Image: "nginx:latest",
+		Name:    "nginx-service",
+		Image:   "nginx:latest",
 		Command: []string{},
 		Env: map[string]string{
-			"APP_NAME": "nginx",
+			"APP_NAME":  "nginx",
 			"APP_COLOR": "blue",
 		},
 		VolumeMounts: []DOCKER.VolumeMount{},
-		Networks: []string{
-		},
-		Replicas: 5,
+		Networks:     []string{},
+		Replicas:     5,
 	}
 
 	// dClient.CreateService(spec)
@@ -264,8 +259,7 @@ func TestDocker() {
 	// dClient.UpdateService("mincc-service", "njryymk1cayxvme5m6sex5jlu", 5);
 }
 
-
-func TestDockerNetwork(){
+func TestDockerNetwork() {
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.WithHost("tcp://127.0.0.1:2375"))
 	if err != nil {
@@ -280,7 +274,7 @@ func TestDockerNetwork(){
 	fmt.Println(dClient.GatewayNetwork("swarm-network"))
 }
 
-func FullFledgeTest(){
+func FullFledgeTest() {
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.WithHost("tcp://127.0.0.1:2375"))
 	if err != nil {
@@ -307,14 +301,14 @@ func FullFledgeTest(){
 
 	// Create nginx service
 	spec := DOCKER.Service{
-		Name: "nginx-service",
-		Image: "nginx:latest",
+		Name:    "nginx-service",
+		Image:   "nginx:latest",
 		Command: []string{},
-		Env: map[string]string{},
+		Env:     map[string]string{},
 		VolumeMounts: []DOCKER.VolumeMount{
 			{
-				Source: "nginx-service-volume",
-				Target: "/etc/nginx",
+				Source:   "nginx-service-volume",
+				Target:   "/etc/nginx",
 				ReadOnly: false,
 			},
 		},
@@ -347,14 +341,14 @@ func FullFledgeTest(){
 	// Add backend
 	err = haproxySocket.AddBackend(transaction_id, "nginx-service", 80, 3)
 	if err != nil {
-		errFound = true;
+		errFound = true
 		fmt.Println(err)
 	}
 
 	// Add backend switch
 	err = haproxySocket.AddHTTPSLink(transaction_id, "be_nginx-service_80", "nginx.tanmoy.info")
 	if err != nil {
-		errFound = true;
+		errFound = true
 		fmt.Println(err)
 	}
 

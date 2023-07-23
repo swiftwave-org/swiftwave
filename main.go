@@ -8,6 +8,6 @@ func main() {
 	// RunSSLSystem()
 	// FullFledgeTest()
 	// GitTest()
-	// ImageManagerTest()
+	// dockerconfiggeneratorTest()
 	ImageGenerateTest()
 }

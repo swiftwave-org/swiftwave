@@ -1,4 +1,4 @@
-package imagemanager
+package dockerconfiggenerator
 
 import (
 	"embed"

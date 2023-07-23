@@ -1,7 +1,7 @@
-package imagemanager
+package dockerconfiggenerator
 
 type Manager struct {
-	Config      Config            `yaml:"config"`
+	Config          Config            `yaml:"config"`
 	DockerTemplates map[string]string `yaml:"docker_files"`
 }
 
@@ -19,7 +19,7 @@ type Service struct {
 }
 
 type Template struct {
-	Name      string     `yaml:"name"`
+	Name      string              `yaml:"name"`
 	Variables map[string]Variable `yaml:"variables"`
 }
 
