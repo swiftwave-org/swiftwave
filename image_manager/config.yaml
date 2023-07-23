@@ -86,26 +86,26 @@ templates:
   reactjs:
     name: reactjs
     vaiables:
-      - buildCommand:
+      - BUILD_COMMAND:
           type: string
           description: Build command for reactjs
           default: npm run build
-      - buildDirectory:
+      - BUILD_DIRECTORY:
           type: string
           description: Build directory for reactjs
           default: build
-      - port:
+      - PORT:
           type: string
           description: Port for reactjs
           default: 3000
   nextjs:
     name: nextjs
     vaiables:
-      - buildCommand:
+      - BUILD_COMMAND:
           type: string
           description: Build command for nextjs
           default: npm run build
-      - port:
+      - PORT:
           type: string
           description: Port for nextjs
           default: 3000

@@ -12,6 +12,10 @@ RUN \
 
 # Rebuild the source code only when needed
 FROM node:18.11-slim AS builder
+
+# Build args
+ARG BUILD_COMMAND="npm run build"
+
 WORKDIR /app
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
@@ -21,10 +25,15 @@ RUN echo 'data.output = "standalone";' >> ./modify.js
 RUN echo 'require("fs").writeFileSync("./next.config.js", `module.exports = ${JSON.stringify(data, null, 4)}`);'  >> ./modify.js
 RUN node ./modify.js
 RUN rm ./modify.js
-RUN NODE_ENV=production npm run build && npm prune --production
+ENV NODE_ENV production
+RUN /bin/sh -c "${BUILD_COMMAND} && npm prune --production"
 
 # Production image, copy all the files and run next
 FROM node:18.11-slim AS runner
+
+# Build args
+ARG PORT=80
+
 WORKDIR /app
 ENV NODE_ENV production
 RUN addgroup --gid 1001 nodejs
@@ -34,6 +43,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
-EXPOSE 80
-ENV PORT 80
+EXPOSE ${PORT}
+ENV PORT ${PORT}
 CMD ["node", "server.js"]
