@@ -77,15 +77,26 @@ sudo docker service create \
   --network swarm-network \
   --publish published=80,target=80,protocol=tcp,mode=host \
   --publish published=443,target=443,protocol=tcp,mode=host \
-  --publish published=5555,target=5555,protocol=tcp,mode=host \
-  --publish published=5554,target=5554,protocol=tcp,mode=host \
-  --publish published=5000,target=5000,protocol=tcp,mode=host \
-  --publish published=6000,target=6000,protocol=tcp,mode=host \
-  --publish published=7000,target=7000,protocol=tcp,mode=host \
-  --publish published=8000,target=8000,protocol=tcp,mode=host \
   --mount type=bind,src=/etc/haproxy,dst=/usr/local/etc/haproxy \
   --dns=127.0.0.11 \
   haproxytech/haproxy-debian:2.9
+
+sudo docker service create \
+  --mode global \
+  --name haproxy-service \
+  --network host \
+  --mount type=bind,src=/etc/haproxy,dst=/usr/local/etc/haproxy \
+  --dns=127.0.0.11 \
+  haproxytech/haproxy-debian:2.9
+
+sudo docker service create \
+  --mode global \
+  --name dns-service \
+  --network swarm-network \
+  --publish published=5353,target=53,protocol=udp,mode=host \
+  andyshinn/dnsmasq:latest
+
+sudo docker service update --publish-add published=3553,target=3553,protocol=tcp,mode=host haproxy-service
 ```
 
 ### Register new backend

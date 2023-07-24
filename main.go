@@ -9,5 +9,6 @@ func main() {
 	// FullFledgeTest()
 	// GitTest()
 	// dockerconfiggeneratorTest()
-	ImageGenerateTest()
+	// ImageGenerateTest()
+	CustomFrontendTCPTest()
 }

@@ -7,7 +7,7 @@ import (
 	DOCKER "keroku/m/container_manager"
 	GIT "keroku/m/git_manager"
 	HAProxy "keroku/m/haproxy_manager"
-	IMAGE_MANAGER "keroku/m/image_manager"
+	IMAGE_MANAGER "keroku/m/docker_config_generator"
 	SSL "keroku/m/ssl_manager"
 	"os"
 	"sync"
@@ -36,7 +36,7 @@ func GitTest() {
 	fmt.Println(manager.FetchFileContent(repo, "941.valid-mountain-array.java"))
 }
 
-func dockerconfiggeneratorTest() {
+func DockerconfiggeneratorTest() {
 	manager := IMAGE_MANAGER.Manager{}
 	manager.Init()
 	fmt.Println(manager.DefaultArgs("nextjs"))
@@ -381,4 +381,31 @@ func FullFledgeTest() {
 	// Wait for events
 	wg.Wait()
 	fmt.Println("done")
+}
+
+
+func CustomFrontendTCPTest(){
+	// Create a new HAProxySocket
+	var haproxySocket = HAProxy.HAProxySocket{}
+	haproxySocket.InitTcpSocket("localhost", 5555)
+	haproxySocket.Auth("admin", "mypassword")
+	transaction_id, err := haproxySocket.FetchNewTransactionId()
+	if err != nil {
+		print("Error while fetching HAProxy version: " + err.Error())
+		os.Exit(1)
+		return
+	}
+
+	
+	err = haproxySocket.AddTCPLink(transaction_id, "be_minc-service_3000", 5555, "test2.tanmoy.info", HAProxy.HTTPMode)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("Committing transaction: " + transaction_id)
+	err = haproxySocket.CommitTransaction(transaction_id)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println("No error found")
+	}
 }
