@@ -1,16 +1,16 @@
 package haproxymanager
 
-type HAProxySocket struct {
-	Host string
-	Port int
-	isUnix bool // If true, Host is a path to a unix socket
+type Manager struct {
+	Host           string
+	Port           int
+	isUnix         bool // If true, Host is a path to a unix socket
 	unixSocketPath string
-	username string
-	password string
+	username       string
+	password       string
 }
 
 type QueryParameter struct {
-	key string
+	key   string
 	value string
 }
 
@@ -20,5 +20,5 @@ type ListenerMode string
 
 const (
 	HTTPMode ListenerMode = "http"
-	TCPMode ListenerMode = "tcp"
+	TCPMode  ListenerMode = "tcp"
 )

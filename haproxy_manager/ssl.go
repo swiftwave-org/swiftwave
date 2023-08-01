@@ -8,7 +8,7 @@ import (
 )
 
 // Add SSL certificate to HAProxy
-func (s HAProxySocket) UpdateSSL(transaction_id string, domain string, privateKey []byte, fullChain []byte) error {
+func (s Manager) UpdateSSL(transaction_id string, domain string, privateKey []byte, fullChain []byte) error {
 	// Create a new buffer
 	var buffer bytes.Buffer
 	// Add the full chain
@@ -27,12 +27,12 @@ func (s HAProxySocket) UpdateSSL(transaction_id string, domain string, privateKe
 	// Try to Upload the file
 	res, err := s.uploadSSL("/services/haproxy/storage/ssl_certificates", domainSanitizedName, ioReader)
 	if err != nil {
-		return errors.New("error while uploading ssl certificate :"+err.Error())
+		return errors.New("error while uploading ssl certificate :" + err.Error())
 	}
 	if !isValidStatusCode(res.StatusCode) {
 		if res.StatusCode != 409 {
-			return errors.New("error while uploading ssl certificate with status code"+strconv.Itoa(res.StatusCode))
-		}else{
+			return errors.New("error while uploading ssl certificate with status code" + strconv.Itoa(res.StatusCode))
+		} else {
 			// Already exists, so update
 			updateSSLRequired = true
 		}
@@ -42,10 +42,10 @@ func (s HAProxySocket) UpdateSSL(transaction_id string, domain string, privateKe
 		// Try to Upload the file
 		res, err := s.replaceSSL("/services/haproxy/storage/ssl_certificates/"+domainSanitizedName, domainSanitizedName, ioReader)
 		if err != nil {
-			return errors.New("error while updating ssl certificate :"+err.Error())
+			return errors.New("error while updating ssl certificate :" + err.Error())
 		}
 		if !isValidStatusCode(res.StatusCode) {
-			return errors.New("error while updating ssl certificate with status code"+strconv.Itoa(res.StatusCode))
+			return errors.New("error while updating ssl certificate with status code" + strconv.Itoa(res.StatusCode))
 		}
 	}
 	return nil

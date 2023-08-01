@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	DOCKER "keroku/m/container_manager"
+	IMAGE_MANAGER "keroku/m/docker_config_generator"
 	GIT "keroku/m/git_manager"
 	HAProxy "keroku/m/haproxy_manager"
-	IMAGE_MANAGER "keroku/m/docker_config_generator"
 	SSL "keroku/m/ssl_manager"
 	"os"
 	"sync"
@@ -162,12 +162,12 @@ func SSLUpdate() {
 	// return;
 	var wg sync.WaitGroup
 
-	// Create a new HAProxySocket
-	var haproxySocket = HAProxy.HAProxySocket{}
-	haproxySocket.InitTcpSocket("localhost", 5555)
-	haproxySocket.Auth("admin", "mypassword")
+	// Create a new Manager
+	var Manager = HAProxy.Manager{}
+	Manager.InitTcpSocket("localhost", 5555)
+	Manager.Auth("admin", "mypassword")
 	errFound := false
-	transaction_id, err := haproxySocket.FetchNewTransactionId()
+	transaction_id, err := Manager.FetchNewTransactionId()
 	if err != nil {
 		print("Error while fetching HAProxy version: " + err.Error())
 		os.Exit(1)
@@ -175,14 +175,14 @@ func SSLUpdate() {
 	}
 
 	// Add backend switch
-	// err = haproxySocket.AddHTTPSLink(transaction_id, "be_minc-service_3000", "nginx.tanmoy.info")
+	// err = Manager.AddHTTPSLink(transaction_id, "be_minc-service_3000", "nginx.tanmoy.info")
 	// if err != nil {
 	// 	errFound = true;
 	// 	fmt.Println(err)
 	// }
 
 	// Delete backend switch
-	// err = haproxySocket.DeleteHTTPLink(transaction_id, "be_minc-service_3000", "minc.tanmoy.info")
+	// err = Manager.DeleteHTTPLink(transaction_id, "be_minc-service_3000", "minc.tanmoy.info")
 	// if err != nil {
 	// 	errFound = true;
 	// 	fmt.Println(err)
@@ -199,16 +199,16 @@ func SSLUpdate() {
 		errFound = true
 		fmt.Println(err)
 	}
-	err = haproxySocket.UpdateSSL(transaction_id, "nginx.tanmoy.info", privateKey, fullChain)
+	err = Manager.UpdateSSL(transaction_id, "nginx.tanmoy.info", privateKey, fullChain)
 	fmt.Println(err)
 
 	if errFound {
 		fmt.Println("Deleting transaction: " + transaction_id)
-		haproxySocket.DeleteTransaction(transaction_id)
+		Manager.DeleteTransaction(transaction_id)
 		fmt.Println("Error found")
 	} else {
 		fmt.Println("Committing transaction: " + transaction_id)
-		haproxySocket.CommitTransaction(transaction_id)
+		Manager.CommitTransaction(transaction_id)
 		fmt.Println("No error found")
 	}
 
@@ -326,12 +326,12 @@ func FullFledgeTest() {
 	// HAProxy
 	var wg sync.WaitGroup
 
-	// Create a new HAProxySocket
-	var haproxySocket = HAProxy.HAProxySocket{}
-	haproxySocket.InitTcpSocket("localhost", 5555)
-	haproxySocket.Auth("admin", "mypassword")
+	// Create a new Manager
+	var Manager = HAProxy.Manager{}
+	Manager.InitTcpSocket("localhost", 5555)
+	Manager.Auth("admin", "mypassword")
 	errFound := false
-	transaction_id, err := haproxySocket.FetchNewTransactionId()
+	transaction_id, err := Manager.FetchNewTransactionId()
 	if err != nil {
 		print("Error while fetching HAProxy version: " + err.Error())
 		os.Exit(1)
@@ -339,14 +339,14 @@ func FullFledgeTest() {
 	}
 
 	// Add backend
-	err = haproxySocket.AddBackend(transaction_id, "nginx-service", 80, 3)
+	err = Manager.AddBackend(transaction_id, "nginx-service", 80, 3)
 	if err != nil {
 		errFound = true
 		fmt.Println(err)
 	}
 
 	// Add backend switch
-	err = haproxySocket.AddHTTPSLink(transaction_id, "be_nginx-service_80", "nginx.tanmoy.info")
+	err = Manager.AddHTTPSLink(transaction_id, "be_nginx-service_80", "nginx.tanmoy.info")
 	if err != nil {
 		errFound = true
 		fmt.Println(err)
@@ -365,16 +365,16 @@ func FullFledgeTest() {
 		errFound = true
 		fmt.Println(err)
 	}
-	err = haproxySocket.UpdateSSL(transaction_id, "nginx.tanmoy.info", privateKey, fullChain)
+	err = Manager.UpdateSSL(transaction_id, "nginx.tanmoy.info", privateKey, fullChain)
 	fmt.Println(err)
 
 	if errFound {
 		fmt.Println("Deleting transaction: " + transaction_id)
-		haproxySocket.DeleteTransaction(transaction_id)
+		Manager.DeleteTransaction(transaction_id)
 		fmt.Println("Error found")
 	} else {
 		fmt.Println("Committing transaction: " + transaction_id)
-		haproxySocket.CommitTransaction(transaction_id)
+		Manager.CommitTransaction(transaction_id)
 		fmt.Println("No error found")
 	}
 
@@ -383,26 +383,24 @@ func FullFledgeTest() {
 	fmt.Println("done")
 }
 
-
-func CustomFrontendTCPTest(){
-	// Create a new HAProxySocket
-	var haproxySocket = HAProxy.HAProxySocket{}
-	haproxySocket.InitTcpSocket("localhost", 5555)
-	haproxySocket.Auth("admin", "mypassword")
-	transaction_id, err := haproxySocket.FetchNewTransactionId()
+func CustomFrontendTCPTest() {
+	// Create a new Manager
+	var Manager = HAProxy.Manager{}
+	Manager.InitTcpSocket("localhost", 5555)
+	Manager.Auth("admin", "mypassword")
+	transaction_id, err := Manager.FetchNewTransactionId()
 	if err != nil {
 		print("Error while fetching HAProxy version: " + err.Error())
 		os.Exit(1)
 		return
 	}
 
-	
-	err = haproxySocket.AddTCPLink(transaction_id, "be_minc-service_3000", 5555, "test2.tanmoy.info", HAProxy.HTTPMode)
+	err = Manager.AddTCPLink(transaction_id, "be_minc-service_3000", 5555, "test2.tanmoy.info", HAProxy.HTTPMode)
 	if err != nil {
 		fmt.Println(err)
 	}
 	fmt.Println("Committing transaction: " + transaction_id)
-	err = haproxySocket.CommitTransaction(transaction_id)
+	err = Manager.CommitTransaction(transaction_id)
 	if err != nil {
 		fmt.Println(err)
 	} else {

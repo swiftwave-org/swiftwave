@@ -12,7 +12,7 @@ import (
 // Add HTTP Link [Backend Switch] to HAProxy configuration
 // -- Manage ACLs with frontend [only domain_name]
 // -- Manage rules with frontend and backend switch
-func (s HAProxySocket) AddHTTPLink(transaction_id string, backend_name string, domain_name string) error {
+func (s Manager) AddHTTPLink(transaction_id string, backend_name string, domain_name string) error {
 	frontend_name := "fe_http"
 	// Build query parameterss
 	add_backend_switch_request_query_params := QueryParameters{}
@@ -39,7 +39,7 @@ func (s HAProxySocket) AddHTTPLink(transaction_id string, backend_name string, d
 }
 
 // Delete HTTP Link from HAProxy configuration
-func (s HAProxySocket) DeleteHTTPLink(transaction_id string, backend_name string, domain_name string) error {
+func (s Manager) DeleteHTTPLink(transaction_id string, backend_name string, domain_name string) error {
 	frontend_name := "fe_http"
 	// Build query parameterss
 	fetch_backend_switch_request_query_params := QueryParameters{}
@@ -91,7 +91,7 @@ func (s HAProxySocket) DeleteHTTPLink(transaction_id string, backend_name string
 // Add HTTPS Link [Backend Switch] to HAProxy configuration
 // -- Manage ACLs with frontend [only domain_name]
 // -- Manage rules with frontend and backend switch
-func (s HAProxySocket) AddHTTPSLink(transaction_id string, backend_name string, domain_name string) error {
+func (s Manager) AddHTTPSLink(transaction_id string, backend_name string, domain_name string) error {
 	frontend_name := "fe_https"
 	// Build query parameters
 	add_backend_switch_request_query_params := QueryParameters{}
@@ -118,7 +118,7 @@ func (s HAProxySocket) AddHTTPSLink(transaction_id string, backend_name string, 
 }
 
 // Delete HTTPS Link from HAProxy configuration
-func (s HAProxySocket) DeleteHTTPSLink(transaction_id string, backend_name string, domain_name string) error {
+func (s Manager) DeleteHTTPSLink(transaction_id string, backend_name string, domain_name string) error {
 	frontend_name := "fe_https"
 	// Build query parameterss
 	fetch_backend_switch_request_query_params := QueryParameters{}
@@ -170,7 +170,7 @@ func (s HAProxySocket) DeleteHTTPSLink(transaction_id string, backend_name strin
 // Add TCP Frontend to HAProxy configuration
 // -- Manage ACLs with frontend [port{required} and domain_name{optional}]
 // -- Manage rules with frontend and backend switch
-func (s HAProxySocket) AddTCPLink(transaction_id string, backend_name string, port int, domain_name string, listenerMode ListenerMode) error {
+func (s Manager) AddTCPLink(transaction_id string, backend_name string, port int, domain_name string, listenerMode ListenerMode) error {
 	if isPortRestrictedForManualConfig(port) {
 		return errors.New("port is restricted for manual configuration")
 	}
@@ -255,7 +255,7 @@ func (s HAProxySocket) AddTCPLink(transaction_id string, backend_name string, po
 }
 
 // Delete TCP Frontend from HAProxy configuration
-func (s HAProxySocket) DeleteTCPLink(transaction_id string, backend_name string, port int, domain_name string) error {
+func (s Manager) DeleteTCPLink(transaction_id string, backend_name string, port int, domain_name string) error {
 	if isPortRestrictedForManualConfig(port) {
 		return errors.New("port is restricted for manual configuration")
 	}

@@ -9,7 +9,7 @@ import (
 
 // Add Backend to HAProxy configuration
 // -- Manage server template with backend
-func (s HAProxySocket) AddBackend(transaction_id string, service_name string, port int, replicas int) error {
+func (s Manager) AddBackend(transaction_id string, service_name string, port int, replicas int) error {
 	backend_name := "be_" + service_name + "_" + strconv.Itoa(port)
 	// Build query parameterss
 	add_backend_request_query_params := QueryParameters{}
@@ -38,7 +38,7 @@ func (s HAProxySocket) AddBackend(transaction_id string, service_name string, po
 	replicas_str := strconv.Itoa(replicas)
 	// Server template prefix
 	server_template_prefix := service_name + "_container-"
-	// Add server template query parameters
+	// Add seManagerrver template query parameters
 	add_server_template_request_query_params := QueryParameters{}
 	add_server_template_request_query_params.add("transaction_id", transaction_id)
 	add_server_template_request_query_params.add("backend", backend_name)
@@ -66,7 +66,7 @@ func (s HAProxySocket) AddBackend(transaction_id string, service_name string, po
 }
 
 // Delete Backend from HAProxy configuration
-func (s HAProxySocket) DeleteBackend(transaction_id string, service_name string, port int) error {
+func (s Manager) DeleteBackend(transaction_id string, service_name string, port int) error {
 	backend_name := "be_" + service_name + "_" + strconv.Itoa(port)
 	// Build query parameterss
 	add_backend_request_query_params := QueryParameters{}
@@ -81,7 +81,7 @@ func (s HAProxySocket) DeleteBackend(transaction_id string, service_name string,
 }
 
 // Update Backend from HAProxy configuration
-func (s HAProxySocket) UpdateBackend(transaction_id string,
+func (s Manager) UpdateBackend(transaction_id string,
 	old_service_name string, old_port int, old_replicas int,
 	new_service_name string, new_port int, new_replicas int,
 ) error {
