@@ -2,8 +2,6 @@ package Manager
 
 import (
 	"context"
-	"time"
-
 	"github.com/mholt/acmez"
 	"github.com/mholt/acmez/acme"
 	"gorm.io/gorm"
@@ -33,9 +31,4 @@ type http01Solver struct {
 type KeyAuthorizationToken struct {
 	Token              string `gorm:"primaryKey"`
 	AuthorizationToken string
-}
-
-type DomainSSLDetails struct {
-	Domain       string `gorm:"primaryKey"`
-	CreationDate time.Time
 }

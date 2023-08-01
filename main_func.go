@@ -145,11 +145,11 @@ func RunSSLSystem() {
 	// Request certificate
 	wg.Add(1)
 	go func() {
-		err := ssl_manager.ObtainCertificate("nginx.tanmoy.info")
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+		// err := ssl_manager.ObtainCertificate("nginx.tanmoy.info")
+		// if err != nil {
+		// 	fmt.Println(err)
+		// 	return
+		// }
 		wg.Done()
 	}()
 

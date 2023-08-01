@@ -1,7 +1,6 @@
 package Manager
 
 import (
-	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -53,54 +52,4 @@ func readPrivateKeyFromFile(keyFile string) (*rsa.PrivateKey, error) {
 		return nil, errors.New("unable to parse private key")
 	}
 	return privateKey, nil
-}
-
-// Store byte[] to PEM file
-func storeBytesToCRTFile(bytes []byte, pemFile string) error {
-	// pemKey := pem.Block{
-	// 	Type:  "CERTIFICATE",
-	// 	Bytes: bytes,
-	// }
-
-	data := string(bytes)
-
-	// Create the PEM file
-	file, err := os.Create(pemFile)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	file.WriteString(data)
-
-	// Write the PEM-encoded key to the file
-	// err = pem.Encode(file, &pemKey)
-	// if err != nil {
-	// 	return err
-	// }
-	return nil
-}
-
-// Get private key for a domain
-// -- Create a private key if it doesn't exist
-// -- Read the private key from file if it exists
-
-func fetchPrivateKeyForDomain(domain string, certsPrivateKeyDirectory string) (*rsa.PrivateKey, error) {
-	privateKeyFile := certsPrivateKeyDirectory + "/" + domain + ".key"
-	privateKey, err := readPrivateKeyFromFile(privateKeyFile)
-	if err == nil {
-		return privateKey, nil
-	} else {
-		// Create a private key
-		privateKey, err = rsa.GenerateKey(rand.Reader, 2048)
-		if err != nil {
-			return nil, errors.New("unable to generate private key")
-		}
-		// Store the private key to file
-		err = storePrivateKeyToFile(privateKeyFile, privateKey)
-		if err != nil {
-			return nil, errors.New("unable to store private key to file")
-		}
-		return privateKey, nil
-	}
 }

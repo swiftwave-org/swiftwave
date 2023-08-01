@@ -23,7 +23,6 @@ func (s *Manager) Init(ctx context.Context, db gorm.DB, options ManagerOptions) 
 	s.options.DomainFullChainStorePath = strings.TrimSuffix(s.options.DomainFullChainStorePath, "/")
 	// Migrate database
 	db.AutoMigrate(&KeyAuthorizationToken{})
-	db.AutoMigrate(&DomainSSLDetails{})
 	// Initialize account
 	acmeDirectory := "https://acme-staging-v02.api.letsencrypt.org/directory"
 	if !options.IsStaging {
