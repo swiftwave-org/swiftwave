@@ -39,7 +39,6 @@ func GitTest() {
 func DockerconfiggeneratorTest() {
 	manager := IMAGE_MANAGER.Manager{}
 	manager.Init()
-	fmt.Println(manager.DefaultArgs("nextjs"))
 	// git_manager := GIT.Manager{}
 	// git_manager.Init(GIT.GitUser{
 	// 	Username: "tanmoysrt",
@@ -81,7 +80,7 @@ func ImageGenerateTest() {
 	dClient := DOCKER.Manager{}
 	dClient.Init(ctx, *cli)
 
-	serviceName, err := image_manager.DetectService(git_manager, git_repo)
+	details, err := image_manager.GenerateConfigFromGitRepository(git_manager, git_repo)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -92,11 +91,10 @@ func ImageGenerateTest() {
 	// 	return
 	// }
 	path := "/tmp/keroku/756d3a78-3a2b-44dd-a813-0b9e69475747"
-	dockerfile := image_manager.DockerTemplates[serviceName]
-	buildargs := image_manager.DefaultArgs(serviceName)
+	buildargs := image_manager.DefaultArgsFromService(details.DetectedService)
 
 	// Create image
-	scanner, err := dClient.CreateImage(dockerfile, buildargs, path, "todo-app-vvvv")
+	scanner, err := dClient.CreateImage(details.DockerFile, buildargs, path, "todo-app-vvvv")
 	if err != nil {
 		fmt.Println(err)
 		return

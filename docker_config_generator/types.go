@@ -24,9 +24,9 @@ type Template struct {
 }
 
 type Variable struct {
-	Type        string `yaml:"type"`
-	Description string `yaml:"description"`
-	Default     string `yaml:"default"`
+	Type        string `yaml:"type" json:"type"`
+	Description string `yaml:"description" json:"description"`
+	Default     string `yaml:"default" json:"default"`
 }
 
 type Identifier struct {
@@ -36,4 +36,11 @@ type Identifier struct {
 type IdentifierSelector struct {
 	File     string   `yaml:"file"`
 	Keywords []string `yaml:"keywords"`
+}
+
+// DockerFile Config
+type DockerFileConfig struct {
+	DetectedService string `json:"detected_service"`
+	DockerFile string `json:"docker_file"`
+	Variables map[string]Variable `json:"variables"`
 }
