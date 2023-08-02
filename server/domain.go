@@ -206,56 +206,26 @@ func (server *Server) IssueDomainSSL(c echo.Context) error {
 			return nil
 		}
 	}
-	// TODO: move to queue
-	// Obtain certificate from Let's Encrypt
-	cert, err := server.SSL_MANAGER.ObtainCertificate(domain.Name, domain.SSLPrivateKey)
-	if err != nil {
-		c.JSON(500, map[string]interface{}{
-			"error":   err.Error(),
-			"message": "Failed to obtain certificate",
-		})
-		return nil
-	}
-	// Update domain in database
-	domain.SSLStatus = DomainSSLStatusIssued
-	domain.SSLFullChain = cert
-	domain.SSLIssuedAt = time.Now()
-	domain.SSLIssuer = "Let's Encrypt"
+	// Update status
+	domain.SSLStatus = DomainSSLStatusIssuing
 	tx3 := server.DB_CLIENT.Save(&domain)
 	if tx3.Error != nil {
 		c.JSON(500, map[string]interface{}{
 			"error":   tx3.Error.Error(),
-			"message": "Failed to update domain ssl certificate",
-		})
-	}
-	// TODO: move to queue
-	// Move certificate to certificates folder
-	transaction_id, err := server.HAPROXY_MANAGER.FetchNewTransactionId()
-	if err != nil {
-		c.JSON(500, map[string]interface{}{
-			"error":   err.Error(),
-			"message": "failed to update SSL certificate in HAProxy",
+			"message": "Failed to update domain ssl status",
 		})
 		return nil
 	}
-	// Update SSL certificate
-	err = server.HAPROXY_MANAGER.UpdateSSL(transaction_id, domain.Name, []byte(domain.SSLPrivateKey), []byte(domain.SSLFullChain))
+	// Add domain to task queue
+	err := server.AddDomainToSSLGenerateQueue(domain.Name)
 	if err != nil {
 		c.JSON(500, map[string]interface{}{
 			"error":   err.Error(),
-			"message": "failed to update SSL certificate in HAProxy",
+			"message": "Failed to enqueue domain for ssl certificate generation",
 		})
 		return nil
 	}
-	// Commit transaction
-	err = server.HAPROXY_MANAGER.CommitTransaction(transaction_id)
-	if err != nil {
-		c.JSON(500, map[string]interface{}{
-			"error":   err.Error(),
-			"message": "failed to update SSL certificate in HAProxy",
-		})
-		return nil
-	}
+
 	// Return domain
 	return c.JSON(200, domain)
 }

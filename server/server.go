@@ -9,7 +9,10 @@ import (
 	"strconv"
 
 	DOCKER_CLIENT "github.com/docker/docker/client"
+	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo/v4"
+	"github.com/vmihailenco/taskq/v3"
+	"github.com/vmihailenco/taskq/v3/redisq"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -22,8 +25,15 @@ type Server struct {
 	DOCKER_CONFIG_GENERATOR DOCKER_CONFIG_GENERATOR.Manager
 	DOCKER_CLIENT           DOCKER_CLIENT.Client
 	DB_CLIENT               gorm.DB
+	REDIS_CLIENT            redis.Client
 	ECHO_SERVER             echo.Echo
 	PORT                    int
+	// Worker related
+	QUEUE_FACTORY         taskq.Factory
+	TASK_QUEUE            taskq.Queue
+	TASK_MAP              map[string]*taskq.Task
+	WORKER_CONTEXT        context.Context
+	WORKER_CONTEXT_CANCEL context.CancelFunc
 }
 
 // Init function
@@ -34,6 +44,14 @@ func (server *Server) Init(port int) {
 	if err != nil {
 		panic("failed to connect database")
 	}
+
+	// Initiating Redis client
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+	server.REDIS_CLIENT = *rdb
 
 	// Initiating SSL Manager
 	options := SSL.ManagerOptions{
@@ -84,9 +102,27 @@ func (server *Server) Init(port int) {
 
 	// Initiating Routes for ACME Challenge
 	server.SSL_MANAGER.InitHttpHandlers(&server.ECHO_SERVER)
+
+	// Worker related
+	server.WORKER_CONTEXT, server.WORKER_CONTEXT_CANCEL = context.WithCancel(context.Background())
+	server.QUEUE_FACTORY = redisq.NewFactory()
+	server.TASK_QUEUE = server.QUEUE_FACTORY.RegisterQueue(&taskq.QueueOptions{
+		Name:  "main-queue",
+		Redis: &server.REDIS_CLIENT,
+	})
+	server.TASK_MAP = make(map[string]*taskq.Task)
+
+	server.RegisteWorkerTasks()
+	err = server.StartWorkerConsumers()
+	if err != nil {
+		panic(err)
+	}
+
 }
+
+// Init workers
 
 // Start server
 func (server *Server) Start() {
-	server.ECHO_SERVER.Logger.Fatal(server.ECHO_SERVER.Start(":"+strconv.Itoa(server.PORT)))
+	server.ECHO_SERVER.Logger.Fatal(server.ECHO_SERVER.Start(":" + strconv.Itoa(server.PORT)))
 }
