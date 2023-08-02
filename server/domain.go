@@ -10,25 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// Types
 
-type Domain struct {
-	ID            uint            `json:"id" gorm:"primaryKey"`
-	Name          string          `json:"name"`
-	SSLStatus     DomainSSLStatus `json:"ssl_status"`
-	SSLPrivateKey string          `json:"ssl_private_key"`
-	SSLFullChain  string          `json:"ssl_full_chain"`
-	SSLIssuedAt   time.Time       `json:"ssl_issued_at"`
-	SSLIssuer     string          `json:"ssl_issuer"`
-}
-
-type DomainSSLStatus string
-
-const (
-	DomainSSLStatusNone    DomainSSLStatus = "none"
-	DomainSSLStatusIssued  DomainSSLStatus = "issued"
-	DomainSSLStatusIssuing DomainSSLStatus = "issuing"
-)
 
 // Init functions
 
