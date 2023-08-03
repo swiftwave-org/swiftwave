@@ -11,69 +11,19 @@ import (
 )
 
 // Generate DockerConfig from git repository.
-func (m Manager) GenerateConfigFromGitRepository(manager GIT.Manager, repo GIT.Repository) (DockerFileConfig, error) {
-	folderStructure, err := manager.FetchFolderStructure(repo)
+func (m Manager) GenerateConfigFromGitRepository(git_url string, branch string, username string, password string) (DockerFileConfig, error) {
+	tmpFolder := "/tmp/" + uuid.New().String()
+	if os.Mkdir(tmpFolder, 0777) != nil {
+		return DockerFileConfig{}, errors.New("failed to create tmp folder")
+	}
+	defer deleteDirectory(tmpFolder)
+	// Clone repository
+	err := GIT.CloneRepository(git_url, branch, username, password, tmpFolder)
 	if err != nil {
-		return DockerFileConfig{}, errors.New("failed to fetch folder structure")
+		return DockerFileConfig{}, errors.New("failed to clone repository")
 	}
-	// Try to find docker file
-	file, err := manager.FetchFileContent(repo, "Dockerfile")
-	if err != nil {
-		file, err = manager.FetchFileContent(repo, "dockerfile")
-		if err != nil {
-			file, err = manager.FetchFileContent(repo, "DockerFile")
-		}
-	}
-	if err == nil {
-		// Dockerfile found
-		dockerConfig := DockerFileConfig{}
-		dockerConfig.DetectedService = "Dockerfile from repository"
-		dockerConfig.DockerFile = file
-		dockerConfig.Variables = ParseBuildArgsFromDockerfile(file)
-		return dockerConfig, nil
-	}
-
-	// In case Dockerfile is not found, try to detect service
-	// Look for other files and generate docker file
-	var lookupFiles map[string]string = map[string]string{}
-	for _, lookupFile := range m.Config.LookupFiles {
-		if existsInArray(folderStructure, lookupFile) {
-			file, err := manager.FetchFileContent(repo, lookupFile)
-			if err != nil {
-				return DockerFileConfig{}, errors.New("failed to fetch file content for " + lookupFile + "")
-			}
-			lookupFiles[lookupFile] = file
-		} else {
-			lookupFiles[lookupFile] = ""
-		}
-	}
-
-	for _, serviceName := range m.Config.ServiceOrder {
-		// Fetch service selectors
-		identifiers := m.Config.Identifiers[serviceName]
-		for _, identifier := range identifiers {
-			// Fetch file content for each selector
-			isIdentifierMatched := false
-			for _, selector := range identifier.Selector {
-				isMatched := true
-				// Check if file content contains keywords
-				for _, keyword := range selector.Keywords {
-					isMatched = isMatched && strings.Contains(lookupFiles[selector.File], keyword)
-				}
-				isIdentifierMatched = isIdentifierMatched || isMatched
-			}
-			if isIdentifierMatched {
-				// Fetch docker file
-				dockerConfig := DockerFileConfig{}
-				dockerConfig.DetectedService = serviceName
-				dockerConfig.DockerFile = m.DockerTemplates[serviceName]
-				dockerConfig.Variables = m.Config.Templates[serviceName].Variables
-				return dockerConfig, nil
-			}
-		}
-	}
-
-	return DockerFileConfig{}, errors.New("failed to detect service")
+	// Generate config from source code directory
+	return m.generateConfigFromSourceCodeDirectory(tmpFolder)
 }
 
 // Generate DockerConfig from source code .tar file.
@@ -84,15 +34,20 @@ func (m Manager) GenerateConfigFromSourceCodeTar(tarFile string) (DockerFileConf
 	err := ExtractTar(tarFile, tmpFolder)
 	if err != nil {
 		log.Println(err)
-		deleteDirectory(tmpFolder)
 		return DockerFileConfig{}, errors.New("failed to extract tar file")
 	}
+	// Generate config from source code directory
+	return m.generateConfigFromSourceCodeDirectory(tmpFolder)
+}
+
+// Generate DockerConfig from source code directory.
+func (m Manager) generateConfigFromSourceCodeDirectory(directory string) (DockerFileConfig, error) {
 	// Try to find docker file
-	file, err := os.ReadFile(tmpFolder + "/Dockerfile")
+	file, err := os.ReadFile(directory + "/Dockerfile")
 	if err != nil {
-		file, err = os.ReadFile(tmpFolder + "/dockerfile")
+		file, err = os.ReadFile(directory + "/dockerfile")
 		if err != nil {
-			file, err = os.ReadFile(tmpFolder + "/DockerFile")
+			file, err = os.ReadFile(directory + "/DockerFile")
 		}
 	}
 
@@ -109,8 +64,8 @@ func (m Manager) GenerateConfigFromSourceCodeTar(tarFile string) (DockerFileConf
 	// Look for other files and generate docker file
 	var lookupFiles map[string]string = map[string]string{}
 	for _, lookupFile := range m.Config.LookupFiles {
-		if existsInFolder(tmpFolder, lookupFile) {
-			file, err := os.ReadFile(tmpFolder + "/" + lookupFile)
+		if existsInFolder(directory, lookupFile) {
+			file, err := os.ReadFile(directory + "/" + lookupFile)
 			if err != nil {
 				return DockerFileConfig{}, errors.New("failed to fetch file content for " + lookupFile + "")
 			}
@@ -145,7 +100,7 @@ func (m Manager) GenerateConfigFromSourceCodeTar(tarFile string) (DockerFileConf
 		}
 	}
 
-	return DockerFileConfig{}, errors.New("failed to detect service")	
+	return DockerFileConfig{}, errors.New("failed to detect service")
 }
 
 // Generate DockerConfig from custom dockerfile. If GenerateConfigFromGitRepository fails to detect service, this function will be used.

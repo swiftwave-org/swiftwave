@@ -15,6 +15,7 @@ import (
 func (server *Server) InitApplicationRestAPI() {
 	server.ECHO_SERVER.POST("/application/deploy/upload", server.UploadTarFile)
 	server.ECHO_SERVER.POST("/application/deploy/dockerconfig/generate/tarball", server.GenerateDockerConfigFromTarball)
+	server.ECHO_SERVER.POST("/application/deploy/dockerconfig/generate/git", server.GenerateDockerConfigFromGit)
 }
 
 
@@ -73,6 +74,34 @@ func (server *Server) InitApplicationRestAPI() {
 
 // Dockerconfig generate from git repo
 // POST /application/deploy/dockerconfig/generate/git
+func (server *Server) GenerateDockerConfigFromGit(c echo.Context) error {
+	repository_url := c.FormValue("repository_url")
+	branch := c.FormValue("branch")
+	git_credential_id := c.FormValue("git_credential_id")
+	if repository_url == "" || branch == "" || git_credential_id == "" {
+		return c.JSON(400, map[string]string{
+			"message": "missing parameters",
+		})
+	}
+	// Fetch git credential
+	var gitCredential GitCredential
+	if err := server.DB_CLIENT.Where("id = ?", git_credential_id).First(&gitCredential).Error; err != nil {
+		log.Println(err)
+		return c.JSON(400, map[string]string{
+			"message": "git credential not found",
+		})
+	}
+	// Generate config
+	config, err := server.DOCKER_CONFIG_GENERATOR.GenerateConfigFromGitRepository(repository_url, branch, gitCredential.Username, gitCredential.Password)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(500, map[string]string{
+			"message": "failed to generate docker config",
+		})
+	}
+	// Return config
+	return c.JSON(200, config)
+}
 
 // Dockerconfig generate from source code
 // POST /application/deploy/dockerconfig/generate/tarball

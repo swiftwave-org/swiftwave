@@ -35,11 +35,20 @@ type ApplicationSource struct {
 	Type            ApplicationSourceType `json:"type"`
 	GitCredential   GitCredential         `json:"git_credential"`
 	GitCredentialID uint                  `json:"git_credential_id"`
-	RepositoryURL   string                `json:"repository_url"`
+	GitProvider     string                `json:"git_provider"`
+	RepositoryUsername string             `json:"repository_username"`
+	RepositoryName string                 `json:"repository_name"`
 	Branch          string                `json:"branch"`
 	LastCommit      string                `json:"last_commit"`
 	TarballPath     string                `json:"tarball_path"`
 }
+
+type GitProvider string
+
+const (
+	GitProviderGithub GitProvider = "github"
+	GitProviderGitlab GitProvider = "gitlab"
+)
 
 type ApplicationSourceType string
 

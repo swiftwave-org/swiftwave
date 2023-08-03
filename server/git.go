@@ -1,11 +1,10 @@
 package server
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
-
+	GIT "keroku/m/git_manager"
 	"github.com/labstack/echo/v4"
 )
 
@@ -164,38 +163,24 @@ func (server *Server) testGitCredential(c echo.Context) error {
 			"message": "repository_url query parameter is required",
 		})
 	}
+	branch := c.QueryParam("branch")
+	if branch == "" {
+		return c.JSON(400, map[string]interface{}{
+			"message": "branch query parameter is required",
+		})
+	}
 	// Test git credential
-	url := fmt.Sprintf("https://api.github.com/repos/%s/%s",
-		FetchRepositoryUsernameFromURL(repositoryUrl), 
-		FetchRepositoryNameFromURL(repositoryUrl),
-	)
+	hash, err := GIT.FetchLatestCommitHash(repositoryUrl, branch, gitCredential.Username, gitCredential.Password)
 
-	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		fmt.Println("Error creating request:", err)
+		log.Println(err.Error())
 		return c.JSON(500, map[string]interface{}{
 			"message": "failed to access repository",
 		})
 	}
 
-	req.Header.Set("Accept", "application/vnd.github+json")
-	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
-	req.SetBasicAuth(gitCredential.Username, gitCredential.Password)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return c.JSON(500, map[string]interface{}{
-			"message": "failed to access repository",
-		})
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return c.JSON(500, map[string]interface{}{
-			"message": "failed to access repository",
-		})
-	}
 	return c.JSON(200, map[string]interface{}{
 		"message": "Git credential is valid and repository is accessible",
+		"hash": hash,
 	})
 }

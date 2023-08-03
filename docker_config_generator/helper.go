@@ -8,15 +8,6 @@ import (
 	"regexp"
 )
 
-func existsInArray(array []string, element string) bool {
-	for _, arrayElement := range array {
-		if arrayElement == element {
-			return true
-		}
-	}
-	return false
-}
-
 
 // ParseBuildArgsFromDockerfile parses build arguments from dockerfile.
 func ParseBuildArgsFromDockerfile(dockerfile string) map[string]Variable {
