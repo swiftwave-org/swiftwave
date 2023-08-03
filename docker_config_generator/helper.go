@@ -2,7 +2,6 @@ package dockerconfiggenerator
 
 import (
 	"archive/tar"
-	"compress/gzip"
 	"io"
 	"os"
 	"path/filepath"
@@ -48,11 +47,6 @@ func ExtractTar(tarFile string, destFolder string) error {
 	if err != nil {
 		return err
 	}
-	gzr, err := gzip.NewReader(reader)
-	if err != nil {
-		return err
-	}
-	defer gzr.Close()
 
 	// Create destination folder
 	if _, err := os.Stat(destFolder); os.IsNotExist(err) {
@@ -63,7 +57,7 @@ func ExtractTar(tarFile string, destFolder string) error {
 	}
 	
 	// Create tar reader
-	tr := tar.NewReader(gzr)
+	tr := tar.NewReader(reader)
 
 	for {
 		header, err := tr.Next()
@@ -95,7 +89,7 @@ func ExtractTar(tarFile string, destFolder string) error {
 
 		// if it's a file create it
 		case tar.TypeReg:
-			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
+			f, err := createFileWithDirectories(target, os.FileMode(header.Mode))
 			if err != nil {
 				return err
 			}
@@ -111,6 +105,29 @@ func ExtractTar(tarFile string, destFolder string) error {
 		}
 	}
 }
+
+func createDirectoriesIfNotExist(filePath string) error {
+    dir := filepath.Dir(filePath)
+    return os.MkdirAll(dir, 0755) // 0755 sets the permissions for the new directories
+}
+
+func createFileWithDirectories(filePath string, fileMode os.FileMode) (*os.File, error) {
+    if err := createDirectoriesIfNotExist(filePath); err != nil {
+        return nil, err
+    }
+
+    file, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR, fileMode)
+    if err != nil {
+        return nil, err
+    }
+
+    return file, nil
+}
+
+func deleteDirectory(dir string) {
+	os.RemoveAll(dir)
+}
+
 
 // Check if a file exists in folder
 func existsInFolder(destFolder string, file string) bool {

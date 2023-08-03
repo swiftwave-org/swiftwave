@@ -15,21 +15,17 @@ import (
 // Init functions
 
 func (server *Server) InitDomainRestAPI() {
-	server.ECHO_SERVER.GET("/domains", server.GetDomains)
-	server.ECHO_SERVER.GET("/domains/:id", server.GetDomain)
-	server.ECHO_SERVER.POST("/domains", server.CreateDomain)
-	server.ECHO_SERVER.DELETE("/domains/:id", server.DeleteDomain)
-	server.ECHO_SERVER.POST("/domains/:id/ssl/issue", server.IssueDomainSSL)
+	server.ECHO_SERVER.GET("/domains", server.getDomains)
+	server.ECHO_SERVER.GET("/domains/:id", server.getDomain)
+	server.ECHO_SERVER.POST("/domains", server.createDomain)
+	server.ECHO_SERVER.DELETE("/domains/:id", server.deleteDomain)
+	server.ECHO_SERVER.POST("/domains/:id/ssl/issue", server.issueDomainSSL)
 }
 
 // REST API functions
 
-func (server *Server) MigrateDomainDB() {
-	server.DB_CLIENT.AutoMigrate(&Domain{})
-}
-
 // GET /domains
-func (server *Server) GetDomains(c echo.Context) error {
+func (server *Server) getDomains(c echo.Context) error {
 	// Fetch all domains from database
 	var domains []Domain
 	tx := server.DB_CLIENT.Find(&domains)
@@ -45,7 +41,7 @@ func (server *Server) GetDomains(c echo.Context) error {
 }
 
 // GET /domains/:id
-func (server *Server) GetDomain(c echo.Context) error {
+func (server *Server) getDomain(c echo.Context) error {
 	if c.Param("id") == "" {
 		c.JSON(400, map[string]interface{}{
 			"message": "id parameter is required",
@@ -65,7 +61,7 @@ func (server *Server) GetDomain(c echo.Context) error {
 }
 
 // POST /domains
-func (server *Server) CreateDomain(c echo.Context) error {
+func (server *Server) createDomain(c echo.Context) error {
 	// JSON decode request body
 	var domain Domain
 	tx := c.Bind(&domain)
@@ -113,7 +109,7 @@ func (server *Server) CreateDomain(c echo.Context) error {
 }
 
 // DELETE /domains/:id
-func (server *Server) DeleteDomain(c echo.Context) error {
+func (server *Server) deleteDomain(c echo.Context) error {
 	if c.Param("id") == "" {
 		c.JSON(400, map[string]interface{}{
 			"message": "id parameter is required",
@@ -145,7 +141,7 @@ func (server *Server) DeleteDomain(c echo.Context) error {
 
 // TODO: if SSL certificate is already issued, only reissue if it's expired or force is true
 // POST /domains/:id/ssl/issue
-func (server *Server) IssueDomainSSL(c echo.Context) error {
+func (server *Server) issueDomainSSL(c echo.Context) error {
 	if c.Param("id") == "" {
 		c.JSON(400, map[string]interface{}{
 			"message": "id parameter is required",

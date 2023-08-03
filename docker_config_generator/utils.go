@@ -3,6 +3,7 @@ package dockerconfiggenerator
 import (
 	"errors"
 	GIT "keroku/m/git_manager"
+	"log"
 	"os"
 	"strings"
 
@@ -79,8 +80,11 @@ func (m Manager) GenerateConfigFromGitRepository(manager GIT.Manager, repo GIT.R
 func (m Manager) GenerateConfigFromSourceCodeTar(tarFile string) (DockerFileConfig, error) {
 	// Extract tar file to a temporary folder
 	tmpFolder := "/tmp/" + uuid.New().String()
+	defer deleteDirectory(tmpFolder)
 	err := ExtractTar(tarFile, tmpFolder)
 	if err != nil {
+		log.Println(err)
+		deleteDirectory(tmpFolder)
 		return DockerFileConfig{}, errors.New("failed to extract tar file")
 	}
 	// Try to find docker file
@@ -91,6 +95,7 @@ func (m Manager) GenerateConfigFromSourceCodeTar(tarFile string) (DockerFileConf
 			file, err = os.ReadFile(tmpFolder + "/DockerFile")
 		}
 	}
+
 	if err == nil {
 		// Dockerfile found
 		dockerConfig := DockerFileConfig{}

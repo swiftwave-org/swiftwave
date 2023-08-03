@@ -28,6 +28,7 @@ type Server struct {
 	REDIS_CLIENT            redis.Client
 	ECHO_SERVER             echo.Echo
 	PORT                    int
+	CODE_TARBALL_DIR        string
 	// Worker related
 	QUEUE_FACTORY         taskq.Factory
 	TASK_QUEUE            taskq.Queue
@@ -39,6 +40,7 @@ type Server struct {
 // Init function
 func (server *Server) Init(port int) {
 	server.PORT = port
+	server.CODE_TARBALL_DIR = "/home/ubuntu/client_program/tarball"
 	// Initiating database client
 	db_client, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
 	if err != nil {
@@ -94,10 +96,11 @@ func (server *Server) Init(port int) {
 	server.ECHO_SERVER = *echo.New()
 
 	// Migrating database
-	server.MigrateDomainDB()
+	server.MigrateDatabaseTables()
 
 	// Initiating REST API
 	server.InitDomainRestAPI()
+	server.InitApplicationRestAPI()
 	server.InitTestRestAPI()
 
 	// Initiating Routes for ACME Challenge

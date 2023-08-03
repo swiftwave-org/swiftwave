@@ -53,9 +53,19 @@ const (
 type Application struct {
 	ID           uint              `json:"id" gorm:"primaryKey"`
 	Source       ApplicationSource `json:"source"`
+	SourceID     uint              `json:"source_id"`
 	Image        string            `json:"image"`
 	BuildArgs    string            `json:"build_args"`
 	EnvVariables string            `json:"env_variables"`
 	DockerConfig string            `json:"docker_config"`
 	VolumeMounts string            `json:"volume_mounts"`
+}
+
+
+// Migrate database
+func (server *Server) MigrateDatabaseTables() {
+	server.DB_CLIENT.AutoMigrate(&Domain{})
+	server.DB_CLIENT.AutoMigrate(&GitCredential{})
+	server.DB_CLIENT.AutoMigrate(&ApplicationSource{})
+	server.DB_CLIENT.AutoMigrate(&Application{})
 }
