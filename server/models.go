@@ -31,16 +31,17 @@ type GitCredential struct {
 
 // Application Sources
 type ApplicationSource struct {
-	ID              uint                  `json:"id" gorm:"primaryKey"`
-	Type            ApplicationSourceType `json:"type"`
-	GitCredential   GitCredential         `json:"git_credential"`
-	GitCredentialID uint                  `json:"git_credential_id"`
-	GitProvider     string                `json:"git_provider"`
-	RepositoryUsername string             `json:"repository_username"`
-	RepositoryName string                 `json:"repository_name"`
-	Branch          string                `json:"branch"`
-	LastCommit      string                `json:"last_commit"`
-	TarballPath     string                `json:"tarball_path"`
+	ID                 uint                  `json:"id" gorm:"primaryKey"`
+	Type               ApplicationSourceType `json:"type"`
+	GitCredential      GitCredential         `json:"git_credential"`
+	GitCredentialID    uint                  `json:"git_credential_id"`
+	GitProvider        GitProvider           `json:"git_provider"`
+	RepositoryUsername string                `json:"repository_username"`
+	RepositoryName     string                `json:"repository_name"`
+	Branch             string                `json:"branch"`
+	LastCommit         string                `json:"last_commit"`
+	TarballFile        string                `json:"tarball_file"`
+	DockerImage        string                `json:"docker_image"`
 }
 
 type GitProvider string
@@ -55,20 +56,48 @@ type ApplicationSourceType string
 const (
 	ApplicationSourceTypeGit     ApplicationSourceType = "git"
 	ApplicationSourceTypeTarball ApplicationSourceType = "tarball"
+	ApplicationSourceTypeImage   ApplicationSourceType = "image"
 )
 
 // Application
 type Application struct {
-	ID           uint              `json:"id" gorm:"primaryKey"`
-	Source       ApplicationSource `json:"source"`
-	SourceID     uint              `json:"source_id"`
-	Image        string            `json:"image"`
-	BuildArgs    string            `json:"build_args"`
-	EnvVariables string            `json:"env_variables"`
-	DockerConfig string            `json:"docker_config"`
-	VolumeMounts string            `json:"volume_mounts"`
+	ID                   uint              `json:"id" gorm:"primaryKey"`
+	ServiceName          string            `json:"service_name" gorm:"unique"`
+	Source               ApplicationSource `json:"source"`
+	SourceID             uint              `json:"source_id"`
+	Image                string            `json:"image"`
+	BuildArgs            string            `json:"build_args" validate:"required"`
+	EnvironmentVariables string            `json:"environment_variables" validate:"required"`
+	Dockerfile           string            `json:"dockerfile" validate:"required"`
+	Status               ApplicationStatus `json:"status"`
 }
 
+type ApplicationStatus string
+
+const (
+	ApplicationStatusPending             ApplicationStatus = "pending"
+	ApplicationStatusRunning             ApplicationStatus = "running"
+	ApplicationStatusStopped             ApplicationStatus = "stopped"
+	ApplicationStatusFailed              ApplicationStatus = "failed"
+	ApplicationStatusBuildingImage       ApplicationStatus = "building_image"
+	ApplicationStatusBuildingImageFailed ApplicationStatus = "building_image_failed"
+	ApplicationStatusDeploying           ApplicationStatus = "deploying"
+	ApplicationStatusDeployingFailed     ApplicationStatus = "deploying_failed"
+)
+
+// Application deploy request
+type ApplicationDeployRequest struct {
+	ServiceName           string                `json:"service_name" validate:"required"`
+	ApplicationSourceType ApplicationSourceType `json:"source_type" validate:"required"`
+	GitCredentialID       uint                  `json:"git_credential_id"`
+	RepositoryURL         string                `json:"repository_url"`
+	Branch                string                `json:"branch"`
+	TarballFile           string                `json:"tarball_file"`
+	Dockerfile            string                `json:"dockerfile" validate:"required"`
+	EnvironmentVariables  map[string]string     `json:"environment_variables" validate:"required"`
+	BuildArgs             map[string]string     `json:"build_args" validate:"required"`
+	DockerImage           string                `json:"docker_image"`
+}
 
 // Migrate database
 func (server *Server) MigrateDatabaseTables() {

@@ -8,13 +8,12 @@ import (
 	"regexp"
 )
 
-
 // ParseBuildArgsFromDockerfile parses build arguments from dockerfile.
 func ParseBuildArgsFromDockerfile(dockerfile string) map[string]Variable {
 	variables := map[string]Variable{}
 
 	// Extract ARG names and default values (if any)
-	argPattern := `ARG\s+(\w+)\s*=?\s*(.*)`
+	argPattern := `ARG\s+(\w+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|(\S+)))?`
 	re := regexp.MustCompile(argPattern)
 	matches := re.FindAllStringSubmatch(dockerfile, -1)
 
@@ -22,6 +21,9 @@ func ParseBuildArgsFromDockerfile(dockerfile string) map[string]Variable {
 	for _, match := range matches {
 		argName := match[1]
 		defaultValue := match[2]
+		if defaultValue == "" {
+			defaultValue = match[3]
+		}
 		variables[argName] = Variable{
 			Type:        argName,
 			Default:     defaultValue,

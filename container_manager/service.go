@@ -2,7 +2,6 @@ package containermanger
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -35,7 +34,6 @@ func (m Manager) UpdateService(service Service) error {
 	}
 	_, err = m.client.ServiceUpdate(m.ctx, service.Name, version, m.serviceToServiceSpec(service), types.ServiceUpdateOptions{})
 	if err != nil {
-		fmt.Println(err)
 		return errors.New("error updating service")
 	}
 	return nil
@@ -55,7 +53,6 @@ func (m Manager) RollbackService(service Service) error {
 	}
 	_, err = m.client.ServiceUpdate(m.ctx, service.Name, version, *serviceData.PreviousSpec, types.ServiceUpdateOptions{})
 	if err != nil {
-		fmt.Println(err)
 		return errors.New("error updating service")
 	}
 	return nil
