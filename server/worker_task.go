@@ -21,3 +21,24 @@ func (s *Server) RegisterUpdateSSLHAProxyTask(){
 	})
 	s.TASK_MAP["ssl-update-haproxy"] = t
 }
+
+// Application deployment tasks
+func (s *Server) RegisterDockerImageGenerationTask(){
+	t := taskq.RegisterTask(&taskq.TaskOptions{
+		Name:    "docker-image-preparationAddServiceToDockerImageGenerationQueue",
+		Handler: func(service_name string) error {
+			return s.ProcessDockerImageGenerationRequestFromQueue(service_name)
+		},
+	})
+	s.TASK_MAP["docker-image-preparation"] = t
+}
+
+func (s *Server) RegisterDeployServiceTask(){
+	t := taskq.RegisterTask(&taskq.TaskOptions{
+		Name:    "deploy-service",
+		Handler: func(service_name string) error {
+			return s.ProcessDeployServiceRequestFromQueue(service_name)
+		},
+	})
+	s.TASK_MAP["deploy-service"] = t
+}

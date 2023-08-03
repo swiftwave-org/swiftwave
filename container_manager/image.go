@@ -37,7 +37,5 @@ func (m Manager) CreateImage(dockerfile string, buildargs map[string]string, cod
 		return nil, errors.New("failed to build the image")
 	}
 	scanner := bufio.NewScanner(response.Body)
-	// Delete the folder
-	os.RemoveAll(codepath)
 	return scanner, nil
 }

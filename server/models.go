@@ -75,14 +75,17 @@ type Application struct {
 type ApplicationStatus string
 
 const (
-	ApplicationStatusPending             ApplicationStatus = "pending"
-	ApplicationStatusRunning             ApplicationStatus = "running"
-	ApplicationStatusStopped             ApplicationStatus = "stopped"
-	ApplicationStatusFailed              ApplicationStatus = "failed"
-	ApplicationStatusBuildingImage       ApplicationStatus = "building_image"
-	ApplicationStatusBuildingImageFailed ApplicationStatus = "building_image_failed"
-	ApplicationStatusDeploying           ApplicationStatus = "deploying"
-	ApplicationStatusDeployingFailed     ApplicationStatus = "deploying_failed"
+	ApplicationStatusPending                ApplicationStatus = "pending"
+	ApplicationStatusBuildingImage          ApplicationStatus = "building_image"
+	ApplicationStatusBuildingImageQueued    ApplicationStatus = "building_image_queued"
+	ApplicationStatusBuildingImageCompleted ApplicationStatus = "building_image_completed"
+	ApplicationStatusBuildingImageFailed    ApplicationStatus = "building_image_failed"
+	ApplicationStatusDeploying              ApplicationStatus = "deploying"
+	ApplicationStatusDeployingQueued        ApplicationStatus = "deploying_queued"
+	ApplicationStatusDeployingFailed        ApplicationStatus = "deploying_failed"
+	ApplicationStatusRunning                ApplicationStatus = "running"
+	ApplicationStatusStopped                ApplicationStatus = "stopped"
+	ApplicationStatusFailed                 ApplicationStatus = "failed"
 )
 
 // Application deploy request

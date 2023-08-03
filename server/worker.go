@@ -5,6 +5,8 @@ package server
 func (s *Server) RegisteWorkerTasks(){
 	s.RegisterSSLGenerateTask()
 	s.RegisterUpdateSSLHAProxyTask()
+	s.RegisterDockerImageGenerationTask()
+	s.RegisterDeployServiceTask()
 }
 
 // Start the worker consumers

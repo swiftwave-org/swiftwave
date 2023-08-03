@@ -122,6 +122,8 @@ func (server *Server) Init(port int) {
 		panic(err)
 	}
 
+	// Cron related
+	server.InitCronJobs()
 }
 
 // Init workers
