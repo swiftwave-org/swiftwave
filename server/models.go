@@ -36,7 +36,6 @@ type ApplicationSource struct {
 	GitCredential   GitCredential         `json:"git_credential"`
 	GitCredentialID uint                  `json:"git_credential_id"`
 	RepositoryURL   string                `json:"repository_url"`
-	RepositoryName  string                `json:"repository_name"`
 	Branch          string                `json:"branch"`
 	LastCommit      string                `json:"last_commit"`
 	TarballPath     string                `json:"tarball_path"`
