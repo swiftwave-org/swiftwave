@@ -24,6 +24,10 @@ func (server *Server) InitApplicationRestAPI() {
 	server.ECHO_SERVER.POST("/applications/deploy", server.deployApplication)
 	server.ECHO_SERVER.GET("/applications", server.getApplications)
 	server.ECHO_SERVER.GET("/applications/:id", server.getApplication)
+	server.ECHO_SERVER.DELETE("/applications/:id", server.deleteApplication)
+	server.ECHO_SERVER.GET("/applications/:id/logs", server.getApplicationDeployLogs)
+	server.ECHO_SERVER.GET("/applications/:id/logs/:log_id", server.getApplicationDeployLog)
+	
 }
 
 // Upload tar file and return the file name
@@ -288,6 +292,58 @@ func (server *Server) getApplication(c echo.Context) error {
 	return c.JSON(200, application)
 }
 
+// DELETE /application/:id
+func (server *Server) deleteApplication(c echo.Context) error {
+	applicationID := c.Param("id")
+	var application Application
+	tx := server.DB_CLIENT.Where("id = ?", applicationID).First(&application)
+	if tx.Error != nil {
+		log.Println(tx.Error)
+		return c.JSON(404, map[string]string{
+			"message": "failed to get application",
+		})
+	}
+	// Delete application
+	tx = server.DB_CLIENT.Delete(&application)
+	if tx.Error != nil {
+		log.Println(tx.Error)
+		return c.JSON(500, map[string]string{
+			"message": "failed to delete application",
+		})
+	}
+	return c.JSON(200, map[string]string{
+		"message": "application deleted",
+	})
+}
 // GET /application/:id/logs
-// GET /application/:id/resources
+// Return record without `Logs` field
+func (server *Server) getApplicationDeployLogs(c echo.Context) error {
+	var applicationDeployLogs []ApplicationDeployLog
+	applicationID := c.Param("id")
+	tx := server.DB_CLIENT.Model(&ApplicationDeployLog{}).Select("id","application_id","time").Where("application_id = ?", applicationID).Find(&applicationDeployLogs)
+	if tx.Error != nil {
+		log.Println(tx.Error)
+		return c.JSON(500, map[string]string{
+			"message": "failed to get application logs",
+		})
+	}
+	return c.JSON(200, applicationDeployLogs)
+}
+// GET /application/:id/logs/:log_id
+func (server *Server) getApplicationDeployLog(c echo.Context) error {
+	var applicationDeployLog ApplicationDeployLog
+	logID := c.Param("log_id")
+	applicationID := c.Param("id")
+	tx := server.DB_CLIENT.Model(&ApplicationDeployLog{}).Select("logs").Where(map[string]interface{}{
+		"id": logID,
+		"application_id": applicationID,
+	}).Find(&applicationDeployLog)
+	if tx.Error != nil {
+		log.Println(tx.Error)
+		return c.JSON(404, map[string]string{
+			"message": "failed to get application log",
+		})
+	}
+	return c.JSON(200, applicationDeployLog.Logs)
+}
 // PUT /application/:id

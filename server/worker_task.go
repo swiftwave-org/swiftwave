@@ -26,8 +26,8 @@ func (s *Server) RegisterUpdateSSLHAProxyTask(){
 func (s *Server) RegisterDockerImageGenerationTask(){
 	t := taskq.RegisterTask(&taskq.TaskOptions{
 		Name:    "docker-image-preparationAddServiceToDockerImageGenerationQueue",
-		Handler: func(service_name string) error {
-			return s.ProcessDockerImageGenerationRequestFromQueue(service_name)
+		Handler: func(service_name string, log_id string) error {
+			return s.ProcessDockerImageGenerationRequestFromQueue(service_name, log_id)
 		},
 	})
 	s.TASK_MAP["docker-image-preparation"] = t
@@ -36,8 +36,8 @@ func (s *Server) RegisterDockerImageGenerationTask(){
 func (s *Server) RegisterDeployServiceTask(){
 	t := taskq.RegisterTask(&taskq.TaskOptions{
 		Name:    "deploy-service",
-		Handler: func(service_name string) error {
-			return s.ProcessDeployServiceRequestFromQueue(service_name)
+		Handler: func(service_name string, log_id string) error {
+			return s.ProcessDeployServiceRequestFromQueue(service_name, log_id)
 		},
 	})
 	s.TASK_MAP["deploy-service"] = t

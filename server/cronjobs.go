@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -33,12 +34,26 @@ func (s *Server) MovePendingApplicationsToImageGenerationQueueCronjob(){
 					log.Println(tx2.Error)
 					return tx2.Error
 				}
+				// Create log record
+				logRecord := ApplicationDeployLog{
+					ID: uuid.New().String(),
+					ApplicationID: application.ID,
+					Application:  application,
+					Logs: "Queued for image generation",
+					Time: time.Now(),
+				}
+				tx3 := tx.Create(&logRecord)
+				if tx3.Error != nil {
+					log.Println(tx3.Error)
+					return tx3.Error
+				}
 				// Enqueue
-				err := s.AddServiceToDockerImageGenerationQueue(application.ServiceName)
+				err := s.AddServiceToDockerImageGenerationQueue(application.ServiceName, logRecord.ID)
 				if err != nil {
 					log.Println(err)
 					return err
 				}
+				s.AddLogToApplicationDeployLog(logRecord.ID, "Successfully enqueued for image generation", "info")
 				return nil
 			})
 			if err != nil {

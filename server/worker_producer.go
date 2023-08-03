@@ -12,12 +12,12 @@ func (s *Server) AddDomainToSSLUpdateHAProxyQueue(domain string) error {
 	return s.TASK_QUEUE.Add(task.WithArgs(context.Background(), domain))
 }
 
-func (s *Server) AddServiceToDockerImageGenerationQueue(service_name string) error {
+func (s *Server) AddServiceToDockerImageGenerationQueue(service_name string, log_id string) error {
 	task := s.TASK_MAP["docker-image-preparation"]
-	return s.TASK_QUEUE.Add(task.WithArgs(context.Background(), service_name))
+	return s.TASK_QUEUE.Add(task.WithArgs(context.Background(), service_name, log_id))
 }
 
-func (s *Server) AddServiceToDeployQueue(service_name string) error {
+func (s *Server) AddServiceToDeployQueue(service_name string, log_id string) error {
 	task := s.TASK_MAP["deploy-service"]
 	return s.TASK_QUEUE.Add(task.WithArgs(context.Background(), service_name))
 }

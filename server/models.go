@@ -102,10 +102,20 @@ type ApplicationDeployRequest struct {
 	DockerImage           string                `json:"docker_image"`
 }
 
+// Application deploy logs
+type ApplicationDeployLog struct {
+	ID            string        `json:"id" gorm:"primaryKey"`
+	ApplicationID uint        `json:"application_id"`
+	Application   Application `json:"-"`
+	Logs          string      `json:"-"`
+	Time          time.Time   `json:"time"`
+}
+
 // Migrate database
 func (server *Server) MigrateDatabaseTables() {
 	server.DB_CLIENT.AutoMigrate(&Domain{})
 	server.DB_CLIENT.AutoMigrate(&GitCredential{})
 	server.DB_CLIENT.AutoMigrate(&ApplicationSource{})
 	server.DB_CLIENT.AutoMigrate(&Application{})
+	server.DB_CLIENT.AutoMigrate(&ApplicationDeployLog{})
 }
