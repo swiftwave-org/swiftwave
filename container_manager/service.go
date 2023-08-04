@@ -2,7 +2,6 @@ package containermanger
 
 import (
 	"errors"
-
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
@@ -68,8 +67,8 @@ func (m Manager) RemoveService(servicename string) error {
 }
 
 // Get status of a service
-func (m Manager) StatusService(service Service) (ServiceStatus, error) {
-	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, service.Name, types.ServiceInspectOptions{
+func (m Manager) StatusService(serviceName string) (ServiceStatus, error) {
+	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{
 		InsertDefaults: true,
 	})
 	if err != nil {
@@ -102,11 +101,11 @@ func (m Manager) StatusService(service Service) (ServiceStatus, error) {
 	}
 
 	runningReplicas := 0
-	// query containers list
-	// TODO: query Task list inspite of containers list
-	containers, err := m.client.ContainerList(m.ctx, types.ContainerListOptions{
+	// query task list
+	tasks, err := m.client.TaskList(m.ctx, types.TaskListOptions{
 		Filters: filters.NewArgs(
-			filters.Arg("label", "com.docker.swarm.service.name="+service.Name),
+			filters.Arg("desired-state", "running"),
+			filters.Arg("name", serviceName),
 		),
 	})
 
@@ -114,9 +113,14 @@ func (m Manager) StatusService(service Service) (ServiceStatus, error) {
 		return ServiceStatus{}, errors.New("error getting service status")
 	}
 
-	runningReplicas = len(containers)
+	runningReplicas = len(tasks)
+
+	desiredReplicas := -1
+	if serviceData.Spec.Mode.Replicated != nil {
+		desiredReplicas = int(*serviceData.Spec.Mode.Replicated.Replicas)
+	}
 	return ServiceStatus{
-		DesiredReplicas: int(*serviceData.Spec.Mode.Replicated.Replicas),
+		DesiredReplicas: desiredReplicas,
 		RunningReplicas: runningReplicas,
 		LastUpdatedAt:   serviceData.UpdatedAt.String(),
 		ServiceUpdateStatus: updateStatus,

@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	GIT_MANAGER "keroku/m/git_manager"
 	"log"
@@ -31,7 +32,7 @@ func (server *Server) InitApplicationRestAPI() {
 	server.ECHO_SERVER.DELETE("/applications/:id", server.deleteApplication)
 	server.ECHO_SERVER.GET("/applications/:id/logs", server.getApplicationBuildLogs)
 	server.ECHO_SERVER.GET("/applications/:id/logs/:log_id", server.getApplicationBuildLog)
-
+	server.ECHO_SERVER.GET("/application/availiblity/service_name", server.checkApplicationServiceNameAvailability)
 }
 
 // Upload tar file and return the file name
@@ -527,3 +528,29 @@ func (server *Server) getApplicationStatus(c echo.Context) error {
 }
 
 // GET /application/availiblity/service_name/?name=xxxx
+func (server *Server) checkApplicationServiceNameAvailability(c echo.Context) error {
+	name := c.QueryParam("name")
+	isAvailable := true
+	var application Application
+	if name != ""{
+		// Check from database
+		tx := server.DB_CLIENT.Where("service_name = ?", name).First(&application)
+		if tx.Error != nil {
+			if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+				isAvailable = isAvailable && true
+			} else {
+				isAvailable = isAvailable && false
+			}
+		} else {
+			isAvailable = isAvailable && false
+		}
+		// Check from docker
+		_, err := server.DOCKER_MANAGER.StatusService(name)
+		isAvailable = isAvailable && (err != nil)
+	} else {
+		isAvailable = false
+	}
+	return c.JSON(200, map[string]bool{
+		"available": isAvailable,
+	})
+}
