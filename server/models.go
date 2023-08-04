@@ -115,8 +115,8 @@ type ApplicationDeployUpdateRequest struct {
 	Replicas             uint              `json:"replicas"`
 }
 
-// Application deploy logs
-type ApplicationDeployLog struct {
+// Application build logs
+type ApplicationBuildLog struct {
 	ID            string      `json:"id" gorm:"primaryKey"`
 	ApplicationID uint        `json:"application_id"`
 	Application   Application `json:"-"`
@@ -130,5 +130,5 @@ func (server *Server) MigrateDatabaseTables() {
 	server.DB_CLIENT.AutoMigrate(&GitCredential{})
 	server.DB_CLIENT.AutoMigrate(&ApplicationSource{})
 	server.DB_CLIENT.AutoMigrate(&Application{})
-	server.DB_CLIENT.AutoMigrate(&ApplicationDeployLog{})
+	server.DB_CLIENT.AutoMigrate(&ApplicationBuildLog{})
 }

@@ -25,12 +25,13 @@ func (server *Server) InitApplicationRestAPI() {
 	server.ECHO_SERVER.POST("/applications/deploy", server.deployApplication)
 	server.ECHO_SERVER.GET("/applications", server.getApplications)
 	server.ECHO_SERVER.GET("/applications/:id", server.getApplication)
+	server.ECHO_SERVER.GET("/applications/:id/status", server.getApplicationStatus)
 	server.ECHO_SERVER.PUT("/applications/:id", server.updateApplication)
 	server.ECHO_SERVER.POST("/applications/:id/redeploy", server.redeployApplication)
 	server.ECHO_SERVER.DELETE("/applications/:id", server.deleteApplication)
-	server.ECHO_SERVER.GET("/applications/:id/logs", server.getApplicationDeployLogs)
-	server.ECHO_SERVER.GET("/applications/:id/logs/:log_id", server.getApplicationDeployLog)
-	
+	server.ECHO_SERVER.GET("/applications/:id/logs", server.getApplicationBuildLogs)
+	server.ECHO_SERVER.GET("/applications/:id/logs/:log_id", server.getApplicationBuildLog)
+
 }
 
 // Upload tar file and return the file name
@@ -317,41 +318,43 @@ func (server *Server) deleteApplication(c echo.Context) error {
 	// Remove service
 	server.DOCKER_MANAGER.RemoveService(application.ServiceName)
 	// Delete all logs
-	server.DB_CLIENT.Where("application_id = ?", applicationID).Delete(&ApplicationDeployLog{})
+	server.DB_CLIENT.Where("application_id = ?", applicationID).Delete(&ApplicationBuildLog{})
 	return c.JSON(200, map[string]string{
 		"message": "application deleted",
 	})
 }
+
 // GET /application/:id/logs
 // Return record without `Logs` field
-func (server *Server) getApplicationDeployLogs(c echo.Context) error {
-	var applicationDeployLogs []ApplicationDeployLog
+func (server *Server) getApplicationBuildLogs(c echo.Context) error {
+	var applicationBuildLogs []ApplicationBuildLog
 	applicationID := c.Param("id")
-	tx := server.DB_CLIENT.Model(&ApplicationDeployLog{}).Select("id","application_id","time").Where("application_id = ?", applicationID).Find(&applicationDeployLogs)
+	tx := server.DB_CLIENT.Model(&ApplicationBuildLog{}).Select("id", "application_id", "time").Where("application_id = ?", applicationID).Find(&applicationBuildLogs)
 	if tx.Error != nil {
 		log.Println(tx.Error)
 		return c.JSON(500, map[string]string{
 			"message": "failed to get application logs",
 		})
 	}
-	return c.JSON(200, applicationDeployLogs)
+	return c.JSON(200, applicationBuildLogs)
 }
+
 // GET /application/:id/logs/:log_id
-func (server *Server) getApplicationDeployLog(c echo.Context) error {
-	var applicationDeployLog ApplicationDeployLog
+func (server *Server) getApplicationBuildLog(c echo.Context) error {
+	var applicationBuildLog ApplicationBuildLog
 	logID := c.Param("log_id")
 	applicationID := c.Param("id")
-	tx := server.DB_CLIENT.Model(&ApplicationDeployLog{}).Select("logs").Where(map[string]interface{}{
-		"id": logID,
+	tx := server.DB_CLIENT.Model(&ApplicationBuildLog{}).Select("logs").Where(map[string]interface{}{
+		"id":             logID,
 		"application_id": applicationID,
-	}).Find(&applicationDeployLog)
+	}).Find(&applicationBuildLog)
 	if tx.Error != nil {
 		log.Println(tx.Error)
 		return c.JSON(404, map[string]string{
 			"message": "failed to get application log",
 		})
 	}
-	return c.JSON(200, applicationDeployLog.Logs)
+	return c.JSON(200, applicationBuildLog.Logs)
 }
 
 // PUT /application/:id
@@ -447,13 +450,13 @@ func (server *Server) updateApplication(c echo.Context) error {
 		application.Replicas = updateRequest.Replicas
 		application.Dockerfile = updateRequest.Dockerfile
 		application.Replicas = updateRequest.Replicas
-		environment_variables , err := json.Marshal(updateRequest.EnvironmentVariables)
+		environment_variables, err := json.Marshal(updateRequest.EnvironmentVariables)
 		if err != nil {
 			log.Println(err)
 			return err
 		}
 		application.EnvironmentVariables = string(environment_variables)
-		build_args , err := json.Marshal(updateRequest.BuildArgs)
+		build_args, err := json.Marshal(updateRequest.BuildArgs)
 		if err != nil {
 			log.Println(err)
 			return err
@@ -507,6 +510,20 @@ func (server *Server) redeployApplication(c echo.Context) error {
 		})
 	}
 	return c.JSON(200, application)
+}
+
+// GET /application/:id/status
+func (server *Server) getApplicationStatus(c echo.Context) error {
+	applicationID := c.Param("id")
+	var application Application
+	tx := server.DB_CLIENT.Where("id = ?", applicationID).First(&application)
+	if tx.Error != nil {
+		log.Println(tx.Error)
+		return c.JSON(404, map[string]string{
+			"message": "failed to get application",
+		})
+	}
+	return c.JSON(200, application.Status)
 }
 
 // GET /application/availiblity/service_name/?name=xxxx

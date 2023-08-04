@@ -8,15 +8,14 @@ import (
 	"gorm.io/gorm"
 )
 
-
-func (s *Server) InitCronJobs(){
+func (s *Server) InitCronJobs() {
 	go s.MovePendingApplicationsToImageGenerationQueueCronjob()
 	go s.MoveRedeployPendingApplicationsToImageGenerationQueueCronjob()
 	go s.MoveDeployingPendingApplicationsToDeployingQueueCronjob()
 }
 
 // Move `pending` applications to `image generation queue` for building docker image
-func (s *Server) MovePendingApplicationsToImageGenerationQueueCronjob(){
+func (s *Server) MovePendingApplicationsToImageGenerationQueueCronjob() {
 	for {
 		// Get all pending applications
 		var applications []Application
@@ -38,11 +37,11 @@ func (s *Server) MovePendingApplicationsToImageGenerationQueueCronjob(){
 					return tx2.Error
 				}
 				// Create log record
-				logRecord := ApplicationDeployLog{
-					ID: uuid.New().String(),
+				logRecord := ApplicationBuildLog{
+					ID:            uuid.New().String(),
 					ApplicationID: application.ID,
-					Logs: "Queued for image generation",
-					Time: time.Now(),
+					Logs:          "Queued for image generation",
+					Time:          time.Now(),
 				}
 				tx3 := tx.Create(&logRecord)
 				if tx3.Error != nil {
@@ -55,7 +54,7 @@ func (s *Server) MovePendingApplicationsToImageGenerationQueueCronjob(){
 					log.Println(err)
 					return err
 				}
-				s.AddLogToApplicationDeployLog(logRecord.ID, "Successfully enqueued for image generation", "info")
+				s.AddLogToApplicationBuildLog(logRecord.ID, "Successfully enqueued for image generation", "info")
 				return nil
 			})
 			if err != nil {
@@ -67,7 +66,7 @@ func (s *Server) MovePendingApplicationsToImageGenerationQueueCronjob(){
 }
 
 // Move `redeploy_pending` applications to `image generation queue` for building docker image
-func (s *Server) MoveRedeployPendingApplicationsToImageGenerationQueueCronjob(){
+func (s *Server) MoveRedeployPendingApplicationsToImageGenerationQueueCronjob() {
 	for {
 		// Get all pending applications
 		var applications []Application
@@ -89,11 +88,11 @@ func (s *Server) MoveRedeployPendingApplicationsToImageGenerationQueueCronjob(){
 					return tx2.Error
 				}
 				// Create log record
-				logRecord := ApplicationDeployLog{
-					ID: uuid.New().String(),
+				logRecord := ApplicationBuildLog{
+					ID:            uuid.New().String(),
 					ApplicationID: application.ID,
-					Logs: "Queued for image generation",
-					Time: time.Now(),
+					Logs:          "Queued for image generation",
+					Time:          time.Now(),
 				}
 				tx3 := tx.Create(&logRecord)
 				if tx3.Error != nil {
@@ -106,7 +105,7 @@ func (s *Server) MoveRedeployPendingApplicationsToImageGenerationQueueCronjob(){
 					log.Println(err)
 					return err
 				}
-				s.AddLogToApplicationDeployLog(logRecord.ID, "Successfully enqueued for image generation", "info")
+				s.AddLogToApplicationBuildLog(logRecord.ID, "Successfully enqueued for image generation", "info")
 				return nil
 			})
 			if err != nil {
@@ -118,7 +117,7 @@ func (s *Server) MoveRedeployPendingApplicationsToImageGenerationQueueCronjob(){
 }
 
 // Move `deploying_pending` applications to `deploying queue` for deploying the application
-func (s *Server) MoveDeployingPendingApplicationsToDeployingQueueCronjob(){
+func (s *Server) MoveDeployingPendingApplicationsToDeployingQueueCronjob() {
 	for {
 		// Get all pending applications
 		var applications []Application
@@ -139,7 +138,7 @@ func (s *Server) MoveDeployingPendingApplicationsToDeployingQueueCronjob(){
 					log.Println(tx2.Error)
 					return tx2.Error
 				}
-				
+
 				// Enqueue
 				err := s.AddServiceToDeployQueue(application.ServiceName)
 				if err != nil {
