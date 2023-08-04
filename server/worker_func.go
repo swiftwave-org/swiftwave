@@ -266,7 +266,7 @@ func (s *Server) ProcessDeployServiceRequestFromQueue(service_name string) error
 		Command: []string{},
 		Env: environmentVariables,
 		Networks: []string{s.SWARM_NETWORK},
-		Replicas: 2,
+		Replicas: uint64(application.Replicas),
 		VolumeMounts: []DOCKER_MANAGER.VolumeMount{},
 	}
 	err = s.DOCKER_MANAGER.CreateService(service)

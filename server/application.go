@@ -352,4 +352,5 @@ func (server *Server) getApplicationDeployLog(c echo.Context) error {
 }
 
 // PUT /application/:id
+
 // GET /application/availiblity/service_name/?name=xxxx
