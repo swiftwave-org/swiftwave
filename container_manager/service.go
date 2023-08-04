@@ -2,6 +2,8 @@ package containermanger
 
 import (
 	"errors"
+	"io"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
@@ -128,7 +130,19 @@ func (m Manager) StatusService(serviceName string) (ServiceStatus, error) {
 }
 
 // Get service logs
-// TODO: Stream logs
+func (m Manager) LogsService(serviceName string, since string, until string) (io.ReadCloser, error) {
+	logs, err := m.client.ServiceLogs(m.ctx, serviceName, types.ContainerLogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Follow: false,
+		Since: since,
+		Until: until,
+	})
+	if err != nil {
+		return nil, errors.New("error getting service logs")
+	}
+	return logs, nil
+}
 
 // Private functions
 func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {

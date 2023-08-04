@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"io"
@@ -30,9 +31,10 @@ func (server *Server) InitApplicationRestAPI() {
 	server.ECHO_SERVER.PUT("/applications/:id", server.updateApplication)
 	server.ECHO_SERVER.POST("/applications/:id/redeploy", server.redeployApplication)
 	server.ECHO_SERVER.DELETE("/applications/:id", server.deleteApplication)
-	server.ECHO_SERVER.GET("/applications/:id/logs", server.getApplicationBuildLogs)
-	server.ECHO_SERVER.GET("/applications/:id/logs/:log_id", server.getApplicationBuildLog)
-	server.ECHO_SERVER.GET("/application/availiblity/service_name", server.checkApplicationServiceNameAvailability)
+	server.ECHO_SERVER.GET("/applications/:id/logs/build", server.getApplicationBuildLogs)
+	server.ECHO_SERVER.GET("/applications/:id/logs/build/:log_id", server.getApplicationBuildLog)
+	server.ECHO_SERVER.GET("/applications/:id/logs/runtime", server.getApplicationRuntimeLogs)
+	server.ECHO_SERVER.GET("/applications/availiblity/service_name", server.checkApplicationServiceNameAvailability)
 }
 
 // Upload tar file and return the file name
@@ -325,7 +327,7 @@ func (server *Server) deleteApplication(c echo.Context) error {
 	})
 }
 
-// GET /application/:id/logs
+// GET /application/:id/logs/build
 // Return record without `Logs` field
 func (server *Server) getApplicationBuildLogs(c echo.Context) error {
 	var applicationBuildLogs []ApplicationBuildLog
@@ -340,7 +342,7 @@ func (server *Server) getApplicationBuildLogs(c echo.Context) error {
 	return c.JSON(200, applicationBuildLogs)
 }
 
-// GET /application/:id/logs/:log_id
+// GET /application/:id/logs/build/:log_id
 func (server *Server) getApplicationBuildLog(c echo.Context) error {
 	var applicationBuildLog ApplicationBuildLog
 	logID := c.Param("log_id")
@@ -356,6 +358,41 @@ func (server *Server) getApplicationBuildLog(c echo.Context) error {
 		})
 	}
 	return c.JSON(200, applicationBuildLog.Logs)
+}
+
+// GET /application/:id/logs/runtime
+func (server *Server) getApplicationRuntimeLogs(c echo.Context) error {
+	applicationID := c.Param("id")
+	var application Application
+	tx := server.DB_CLIENT.Where("id = ?", applicationID).First(&application)
+	if tx.Error != nil {
+		log.Println(tx.Error)
+		return c.JSON(404, map[string]string{
+			"message": "failed to get application",
+		})
+	}
+	// if since or until is not provided, it will act as default
+	since := c.QueryParam("since")
+	until := c.QueryParam("until")
+	// Get logs
+	logsReader, err := server.DOCKER_MANAGER.LogsService("minc-service", since, until)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(500, map[string]string{
+			"message": "failed to get application logs",
+		})
+	}
+
+	scanner := bufio.NewScanner(logsReader)
+	text := ""
+	for scanner.Scan() {
+		text += scanner.Text() + "\n"
+	}
+	return c.JSON(200, map[string]string{
+		"logs": text,
+		"since": since,
+		"until": until,
+	})
 }
 
 // PUT /application/:id
@@ -532,7 +569,7 @@ func (server *Server) checkApplicationServiceNameAvailability(c echo.Context) er
 	name := c.QueryParam("name")
 	isAvailable := true
 	var application Application
-	if name != ""{
+	if name != "" {
 		// Check from database
 		tx := server.DB_CLIENT.Where("service_name = ?", name).First(&application)
 		if tx.Error != nil {
