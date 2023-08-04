@@ -384,6 +384,7 @@ func (server *Server) getApplicationRuntimeLogs(c echo.Context) error {
 	}
 
 	scanner := bufio.NewScanner(logsReader)
+	// TODO: remove unicode invalid characters
 	text := ""
 	for scanner.Scan() {
 		text += scanner.Text() + "\n"
