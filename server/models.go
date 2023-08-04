@@ -88,6 +88,7 @@ const (
 	ApplicationStatusRunning                ApplicationStatus = "running"
 	ApplicationStatusStopped                ApplicationStatus = "stopped"
 	ApplicationStatusFailed                 ApplicationStatus = "failed"
+	ApplicationStatusRedeployPending        ApplicationStatus = "redeploy_pending"
 )
 
 // Application deploy request
@@ -103,6 +104,15 @@ type ApplicationDeployRequest struct {
 	BuildArgs             map[string]string     `json:"build_args" validate:"required"`
 	DockerImage           string                `json:"docker_image"`
 	Replicas              uint                  `json:"replicas"`
+}
+
+// Application deploy update request
+type ApplicationDeployUpdateRequest struct {
+	Source               ApplicationSource `json:"source"`
+	BuildArgs            map[string]string `json:"build_args" validate:"required"`
+	EnvironmentVariables map[string]string `json:"environment_variables" validate:"required"`
+	Dockerfile           string            `json:"dockerfile" validate:"required"`
+	Replicas             uint              `json:"replicas"`
 }
 
 // Application deploy logs

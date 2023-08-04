@@ -3,9 +3,9 @@ package server
 import (
 	"encoding/json"
 	"errors"
+	DOCKER_MANAGER "keroku/m/container_manager"
 	DOCKER_CONFIG_GENERATOR "keroku/m/docker_config_generator"
 	GIT_MANAGER "keroku/m/git_manager"
-	DOCKER_MANAGER "keroku/m/container_manager"
 	"log"
 	"os"
 	"path/filepath"
@@ -74,9 +74,9 @@ func (s *Server) ProcessUpdateSSLHAProxyRequestFromQueue(name string) error {
 }
 
 // Application deployment tasks
-func (s *Server) ProcessDockerImageGenerationRequestFromQueue(service_name string, log_id string) error {
+func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_id string) error {
 	var application Application
-	if err := s.DB_CLIENT.Preload("Source.GitCredential").Preload(clause.Associations).Where("service_name = ?", service_name).First(&application).Error; err != nil {
+	if err := s.DB_CLIENT.Preload("Source.GitCredential").Preload(clause.Associations).Where("id = ?", app_id).First(&application).Error; err != nil {
 		log.Println("Failed to fetch application record from database")
 		s.AddLogToApplicationDeployLog(log_id, "Failed to fetch application record from database", "error")
 		return err
@@ -124,7 +124,7 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(service_name strin
 			s.AddLogToApplicationDeployLog(log_id, "Failed to fetch latest commit hash", "error")
 			return err
 		}
-		s.AddLogToApplicationDeployLog(log_id, "Fetched latest commit hash: " + commitHash, "info")
+		s.AddLogToApplicationDeployLog(log_id, "Fetched latest commit hash: "+commitHash, "info")
 		// Image name
 		imageName := application.ServiceName + ":" + commitHash
 		// Build docker image
@@ -137,7 +137,9 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(service_name strin
 			var data map[string]interface{}
 			for scanner.Scan() {
 				err = json.Unmarshal(scanner.Bytes(), &data)
-				if err != nil { continue }
+				if err != nil {
+					continue
+				}
 				if data["stream"] != nil {
 					s.AddLogToApplicationDeployLog(log_id, data["stream"].(string), "info")
 				}
@@ -152,7 +154,15 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(service_name strin
 			s.AddLogToApplicationDeployLog(log_id, "Failed to update application status in database", "error")
 			log.Println("Failed to update application status in database")
 		}
-
+		// Update application commit hash
+		source := ApplicationSource{
+			ID: application.SourceID,
+		}
+		tx2 = s.DB_CLIENT.Model(&source).Update("last_commit", commitHash)
+		if tx2.Error != nil {
+			s.AddLogToApplicationDeployLog(log_id, "Failed to update application commit hash in database", "error")
+			log.Println("Failed to update application commit hash in database")
+		}
 	} else if application.Source.Type == ApplicationSourceTypeTarball {
 		tarballpath := filepath.Join(s.CODE_TARBALL_DIR, application.Source.TarballFile)
 		// Verify file exists
@@ -189,7 +199,9 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(service_name strin
 			var data map[string]interface{}
 			for scanner.Scan() {
 				err = json.Unmarshal(scanner.Bytes(), &data)
-				if err != nil { continue }
+				if err != nil {
+					continue
+				}
 				if data["stream"] != nil {
 					s.AddLogToApplicationDeployLog(log_id, data["stream"].(string), "info")
 				}
@@ -217,7 +229,6 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(service_name strin
 			log.Println("Failed to update application status in database")
 		}
 	}
-
 	s.AddLogToApplicationDeployLog(log_id, "Successfully built docker image"+application.Image, "info")
 
 	// Deploy service
@@ -227,17 +238,21 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(service_name strin
 	if tx3.Error != nil {
 		log.Println("Failed to update application status in database")
 	}
-
 	return nil
 }
 
-func (s *Server) ProcessDeployServiceRequestFromQueue(service_name string) error {
+func (s *Server) ProcessDeployServiceRequestFromQueue(app_id uint) error {
 	// Fetch application from database
 	var application Application
-	tx := s.DB_CLIENT.Where("service_name = ?", service_name).First(&application)
-	if tx.Error != nil {
-		log.Println("Failed to fetch application from database")
-		return tx.Error
+	if err := s.DB_CLIENT.Preload("Source.GitCredential").Preload(clause.Associations).Where("id = ?", app_id).First(&application).Error; err != nil {
+		log.Println("Failed to fetch application record from database")
+		return err
+	}
+	// Verify application status
+	if application.Status != ApplicationStatusDeployingPending && application.Status != ApplicationStatusDeployingQueued {
+		log.Println("Application status is not deployment pending state")
+		failApplicationDeployUpdateStatus(&application, s.DB_CLIENT)
+		return errors.New("Application status is not deployment pending state")
 	}
 	// update status to deploying
 	application.Status = ApplicationStatusDeploying
@@ -261,22 +276,28 @@ func (s *Server) ProcessDeployServiceRequestFromQueue(service_name string) error
 	}
 	// Deploy service
 	service := DOCKER_MANAGER.Service{
-		Name: application.ServiceName,
-		Image: application.Image,
-		Command: []string{},
-		Env: environmentVariables,
-		Networks: []string{s.SWARM_NETWORK},
-		Replicas: uint64(application.Replicas),
+		Name:         application.ServiceName,
+		Image:        application.Image,
+		Command:      []string{},
+		Env:          environmentVariables,
+		Networks:     []string{s.SWARM_NETWORK},
+		Replicas:     uint64(application.Replicas),
 		VolumeMounts: []DOCKER_MANAGER.VolumeMount{},
 	}
 	err = s.DOCKER_MANAGER.CreateService(service)
 	if err != nil {
-		err = s.DOCKER_MANAGER.RemoveService(service.Name)
+		log.Println("Failed to create service, fallback try to update service")
+		err = s.DOCKER_MANAGER.UpdateService(service)
 		if err != nil {
-			log.Println("Failed to remove service")
+			log.Println("Failed to update service, fallback try to remove service")
+			err = s.DOCKER_MANAGER.RemoveService(service.Name)
+			if err != nil {
+				log.Println("Failed to remove service")
+			}
 		}
 		failApplicationDeployUpdateStatus(&application, s.DB_CLIENT)
-	} else {
+	}
+	if err == nil {
 		// update status
 		application.Status = ApplicationStatusRunning
 		tx3 := s.DB_CLIENT.Save(&application)
@@ -294,7 +315,6 @@ func failImageBuildUpdateStatus(application *Application, db_client gorm.DB) {
 		log.Println("Failed to update application status in database")
 	}
 }
-
 
 func failApplicationDeployUpdateStatus(application *Application, db_client gorm.DB) {
 	application.Status = ApplicationStatusDeployingFailed

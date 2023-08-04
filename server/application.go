@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"io"
+	GIT_MANAGER "keroku/m/git_manager"
 	"log"
 	"os"
 	"path/filepath"
@@ -24,6 +25,8 @@ func (server *Server) InitApplicationRestAPI() {
 	server.ECHO_SERVER.POST("/applications/deploy", server.deployApplication)
 	server.ECHO_SERVER.GET("/applications", server.getApplications)
 	server.ECHO_SERVER.GET("/applications/:id", server.getApplication)
+	server.ECHO_SERVER.PUT("/applications/:id", server.updateApplication)
+	server.ECHO_SERVER.POST("/applications/:id/redeploy", server.redeployApplication)
 	server.ECHO_SERVER.DELETE("/applications/:id", server.deleteApplication)
 	server.ECHO_SERVER.GET("/applications/:id/logs", server.getApplicationDeployLogs)
 	server.ECHO_SERVER.GET("/applications/:id/logs/:log_id", server.getApplicationDeployLog)
@@ -352,5 +355,158 @@ func (server *Server) getApplicationDeployLog(c echo.Context) error {
 }
 
 // PUT /application/:id
+func (server *Server) updateApplication(c echo.Context) error {
+	var updateRequest ApplicationDeployUpdateRequest
+	if err := c.Bind(&updateRequest); err != nil {
+		log.Println(err)
+		return c.JSON(400, map[string]string{
+			"message": "invalid request body",
+		})
+	}
+	// Fetch application record
+	applicationID := c.Param("id")
+	var application Application
+	tx := server.DB_CLIENT.Preload("Source.GitCredential").Preload(clause.Associations).Where("id = ?", applicationID).First(&application)
+	if tx.Error != nil {
+		log.Println(tx.Error)
+		return c.JSON(404, map[string]string{
+			"message": "failed to get application",
+		})
+	}
+	var source ApplicationSource = application.Source
+	// Update application
+	if updateRequest.Source.Type != application.Source.Type {
+		log.Println("Source type cannot be changed")
+		return c.JSON(400, map[string]string{
+			"message": "source type cannot be changed",
+		})
+	}
+	// Track whether image configuration is changed
+	var imageChanged bool = false
+	// Verify condition for Type `git`
+	if updateRequest.Source.Type == ApplicationSourceTypeGit {
+		if updateRequest.Source.GitCredentialID == 0 {
+			log.Println("Git credential is required")
+			return c.JSON(400, map[string]string{
+				"message": "git credential is required",
+			})
+		}
+		source.GitCredentialID = updateRequest.Source.GitCredentialID
+		if updateRequest.Source.RepositoryName == "" {
+			log.Println("Repository name is required")
+			return c.JSON(400, map[string]string{
+				"message": "repository name is required",
+			})
+		}
+		source.RepositoryName = updateRequest.Source.RepositoryName
+		if updateRequest.Source.Branch == "" {
+			log.Println("Branch is required")
+			return c.JSON(400, map[string]string{
+				"message": "branch is required",
+			})
+		}
+		source.Branch = updateRequest.Source.Branch
+		commithash, err := GIT_MANAGER.FetchLatestCommitHash(source.RepositoryURL(), source.Branch, source.GitCredential.Username, source.GitCredential.Password)
+		if err == nil {
+			imageChanged = imageChanged || (commithash != application.Source.LastCommit)
+		} else {
+			imageChanged = true
+		}
+	}
+	// Verify condition for Type `tarball`
+	if updateRequest.Source.Type == ApplicationSourceTypeTarball {
+		if updateRequest.Source.TarballFile == "" {
+			log.Println("Tarball URL is required")
+			return c.JSON(400, map[string]string{
+				"message": "tarball URL is required",
+			})
+		}
+		imageChanged = imageChanged || (updateRequest.Source.TarballFile != source.TarballFile)
+		source.TarballFile = updateRequest.Source.TarballFile
+	}
+
+	// Verify condition for Type `image`
+	if updateRequest.Source.Type == ApplicationSourceTypeImage {
+		if updateRequest.Source.DockerImage == "" {
+			log.Println("Image is required")
+			return c.JSON(400, map[string]string{
+				"message": "image is required",
+			})
+		}
+		imageChanged = imageChanged || (updateRequest.Source.DockerImage != source.DockerImage)
+		source.DockerImage = updateRequest.Source.DockerImage
+	}
+
+	err := server.DB_CLIENT.Transaction(func(tx *gorm.DB) error {
+		tx2 := tx.Save(&source)
+		if tx2.Error != nil {
+			log.Println(tx2.Error)
+			return tx2.Error
+		}
+		application.SourceID = source.ID
+		application.Replicas = updateRequest.Replicas
+		application.Dockerfile = updateRequest.Dockerfile
+		application.Replicas = updateRequest.Replicas
+		environment_variables , err := json.Marshal(updateRequest.EnvironmentVariables)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		application.EnvironmentVariables = string(environment_variables)
+		build_args , err := json.Marshal(updateRequest.BuildArgs)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		if string(build_args) != application.BuildArgs {
+			imageChanged = true
+		}
+		application.BuildArgs = string(build_args)
+		// Reset status
+		if imageChanged {
+			application.Status = ApplicationStatusRedeployPending
+		} else {
+			application.Status = ApplicationStatusDeployingPending
+		}
+		// Update application
+		tx3 := tx.Save(&application)
+		if tx3.Error != nil {
+			log.Println(tx3.Error)
+			return tx3.Error
+		}
+		return nil
+	})
+
+	if err != nil {
+		log.Println(err)
+		return c.JSON(500, map[string]string{
+			"message": "failed to update application",
+		})
+	}
+	return c.JSON(200, application)
+}
+
+// GET /application/:id/redeploy
+func (server *Server) redeployApplication(c echo.Context) error {
+	applicationID := c.Param("id")
+	var application Application
+	tx := server.DB_CLIENT.Preload("Source.GitCredential").Preload(clause.Associations).Where("id = ?", applicationID).First(&application)
+	if tx.Error != nil {
+		log.Println(tx.Error)
+		return c.JSON(404, map[string]string{
+			"message": "failed to get application",
+		})
+	}
+	// Update application
+	application.Status = ApplicationStatusRedeployPending
+	tx2 := server.DB_CLIENT.Save(&application)
+	if tx2.Error != nil {
+		log.Println(tx2.Error)
+		return c.JSON(500, map[string]string{
+			"message": "failed to update application",
+		})
+	}
+	return c.JSON(200, application)
+}
 
 // GET /application/availiblity/service_name/?name=xxxx
