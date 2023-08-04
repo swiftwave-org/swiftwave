@@ -80,6 +80,7 @@ const (
 	ApplicationStatusBuildingImageQueued    ApplicationStatus = "building_image_queued"
 	ApplicationStatusBuildingImageCompleted ApplicationStatus = "building_image_completed"
 	ApplicationStatusBuildingImageFailed    ApplicationStatus = "building_image_failed"
+	ApplicationStatusDeployingPending       ApplicationStatus = "deploying_pending"
 	ApplicationStatusDeploying              ApplicationStatus = "deploying"
 	ApplicationStatusDeployingQueued        ApplicationStatus = "deploying_queued"
 	ApplicationStatusDeployingFailed        ApplicationStatus = "deploying_failed"
@@ -104,7 +105,7 @@ type ApplicationDeployRequest struct {
 
 // Application deploy logs
 type ApplicationDeployLog struct {
-	ID            string        `json:"id" gorm:"primaryKey"`
+	ID            string      `json:"id" gorm:"primaryKey"`
 	ApplicationID uint        `json:"application_id"`
 	Application   Application `json:"-"`
 	Logs          string      `json:"-"`

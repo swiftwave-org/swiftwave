@@ -59,8 +59,8 @@ func (m Manager) RollbackService(service Service) error {
 }
 
 // Remove a service
-func (m Manager) RemoveService(service Service) error {
-	err := m.client.ServiceRemove(m.ctx, service.Name)
+func (m Manager) RemoveService(servicename string) error {
+	err := m.client.ServiceRemove(m.ctx, servicename)
 	if err != nil {
 		return errors.New("error removing service")
 	}

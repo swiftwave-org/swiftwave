@@ -11,8 +11,10 @@ import (
 
 func (s *Server) InitCronJobs(){
 	go s.MovePendingApplicationsToImageGenerationQueueCronjob()
+	go s.MoveDeployingPendingApplicationsToDeployingQueueCronjob()
 }
 
+// Move `pending` applications to `image generation queue` for building docker image
 func (s *Server) MovePendingApplicationsToImageGenerationQueueCronjob(){
 	for {
 		// Get all pending applications
@@ -58,6 +60,44 @@ func (s *Server) MovePendingApplicationsToImageGenerationQueueCronjob(){
 			})
 			if err != nil {
 				log.Println("Error while moving pending applications to image generation queue: ", err)
+			}
+		}
+		time.Sleep(10 * time.Second)
+	}
+}
+
+// Move `deploying_pending` applications to `deploying queue` for deploying the application
+func (s *Server) MoveDeployingPendingApplicationsToDeployingQueueCronjob(){
+	for {
+		// Get all pending applications
+		var applications []Application
+		tx := s.DB_CLIENT.Model(&Application{}).Select("id","service_name","status").Where("status = ?", ApplicationStatusDeployingPending).Find(&applications)
+		if tx.Error != nil {
+			log.Println(tx.Error)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		// Move them to image generation queue
+		for _, application := range applications {
+			log.Println("Moving application to deploying-queue: ", application.ServiceName)
+			err := s.DB_CLIENT.Transaction(func(tx *gorm.DB) error {
+				// Update status
+				application.Status = ApplicationStatusDeployingQueued
+				tx2 := tx.Save(&application)
+				if tx2.Error != nil {
+					log.Println(tx2.Error)
+					return tx2.Error
+				}
+				// Enqueue
+				err := s.AddServiceToDeployQueue(application.ServiceName)
+				if err != nil {
+					log.Println(err)
+					return err
+				}
+				return nil
+			})
+			if err != nil {
+				log.Println("Error while moving deploying_pending applications to deploying queue: ", err)
 			}
 		}
 		time.Sleep(10 * time.Second)

@@ -2,8 +2,10 @@ package server
 
 import (
 	"encoding/json"
-	GIT_MANAGER "keroku/m/git_manager"
+	"errors"
 	DOCKER_CONFIG_GENERATOR "keroku/m/docker_config_generator"
+	GIT_MANAGER "keroku/m/git_manager"
+	DOCKER_MANAGER "keroku/m/container_manager"
 	"log"
 	"os"
 	"path/filepath"
@@ -206,6 +208,8 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(service_name strin
 	} else if application.Source.Type == ApplicationSourceTypeImage {
 		log.Println("Application source type is image, skipping image generation")
 		s.AddLogToApplicationDeployLog(log_id, "Application source type is image, skipping image generation", "info")
+		// Update image name
+		application.Image = application.Source.DockerImage
 		// Update application status
 		application.Status = ApplicationStatusBuildingImageCompleted
 		tx2 := s.DB_CLIENT.Save(&application)
@@ -215,31 +219,85 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(service_name strin
 	}
 
 	s.AddLogToApplicationDeployLog(log_id, "Successfully built docker image"+application.Image, "info")
-	return nil
 
-	// TODO: Deploy service
-	// Enqueue application for deployment
-	err = s.AddServiceToDeployQueue(application.ServiceName, log_id)
-	if err != nil {
-		log.Println("Failed to enqueue application for deployment")
-	} else {
-		log.Println("Successfully enqueued application for deployment")
-		application.Status = ApplicationStatusDeployingQueued
-		tx3 := s.DB_CLIENT.Save(&application)
-		if tx3.Error != nil {
-			log.Println("Failed to update application status in database")
-		}
+	// Deploy service
+	// Update application status to deploying_pending
+	application.Status = ApplicationStatusDeployingPending
+	tx3 := s.DB_CLIENT.Save(&application)
+	if tx3.Error != nil {
+		log.Println("Failed to update application status in database")
 	}
 
 	return nil
 }
 
-func (s *Server) ProcessDeployServiceRequestFromQueue(service_name string, log_id string) error {
-	return nil
+func (s *Server) ProcessDeployServiceRequestFromQueue(service_name string) error {
+	// Fetch application from database
+	var application Application
+	tx := s.DB_CLIENT.Where("service_name = ?", service_name).First(&application)
+	if tx.Error != nil {
+		log.Println("Failed to fetch application from database")
+		return tx.Error
+	}
+	// update status to deploying
+	application.Status = ApplicationStatusDeploying
+	tx2 := s.DB_CLIENT.Save(&application)
+	if tx2.Error != nil {
+		log.Println("Failed to update application status in database")
+	}
+	// Check if image is present
+	if application.Image == "" {
+		log.Println("Application image is empty")
+		failApplicationDeployUpdateStatus(&application, s.DB_CLIENT)
+		return errors.New("Application image is empty")
+	}
+	// Environment variables
+	var environmentVariables map[string]string = make(map[string]string)
+	err := json.Unmarshal([]byte(application.EnvironmentVariables), &environmentVariables)
+	if err != nil {
+		log.Println("Failed to unmarshal environment variables")
+		failApplicationDeployUpdateStatus(&application, s.DB_CLIENT)
+		return err
+	}
+	// Deploy service
+	service := DOCKER_MANAGER.Service{
+		Name: application.ServiceName,
+		Image: application.Image,
+		Command: []string{},
+		Env: environmentVariables,
+		Networks: []string{s.SWARM_NETWORK},
+		Replicas: 2,
+		VolumeMounts: []DOCKER_MANAGER.VolumeMount{},
+	}
+	err = s.DOCKER_MANAGER.CreateService(service)
+	if err != nil {
+		err = s.DOCKER_MANAGER.RemoveService(service.Name)
+		if err != nil {
+			log.Println("Failed to remove service")
+		}
+		failApplicationDeployUpdateStatus(&application, s.DB_CLIENT)
+	} else {
+		// update status
+		application.Status = ApplicationStatusRunning
+		tx3 := s.DB_CLIENT.Save(&application)
+		if tx3.Error != nil {
+			log.Println("Failed to update application status in database")
+		}
+	}
+	return err
 }
 
 func failImageBuildUpdateStatus(application *Application, db_client gorm.DB) {
 	application.Status = ApplicationStatusBuildingImageFailed
+	tx := db_client.Save(&application)
+	if tx.Error != nil {
+		log.Println("Failed to update application status in database")
+	}
+}
+
+
+func failApplicationDeployUpdateStatus(application *Application, db_client gorm.DB) {
+	application.Status = ApplicationStatusDeployingFailed
 	tx := db_client.Save(&application)
 	if tx.Error != nil {
 		log.Println("Failed to update application status in database")

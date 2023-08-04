@@ -311,6 +311,10 @@ func (server *Server) deleteApplication(c echo.Context) error {
 			"message": "failed to delete application",
 		})
 	}
+	// Remove service
+	server.DOCKER_MANAGER.RemoveService(application.ServiceName)
+	// Delete all logs
+	server.DB_CLIENT.Where("application_id = ?", applicationID).Delete(&ApplicationDeployLog{})
 	return c.JSON(200, map[string]string{
 		"message": "application deleted",
 	})
@@ -346,4 +350,6 @@ func (server *Server) getApplicationDeployLog(c echo.Context) error {
 	}
 	return c.JSON(200, applicationDeployLog.Logs)
 }
+
 // PUT /application/:id
+// GET /application/availiblity/service_name/?name=xxxx

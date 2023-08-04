@@ -36,8 +36,8 @@ func (s *Server) RegisterDockerImageGenerationTask(){
 func (s *Server) RegisterDeployServiceTask(){
 	t := taskq.RegisterTask(&taskq.TaskOptions{
 		Name:    "deploy-service",
-		Handler: func(service_name string, log_id string) error {
-			return s.ProcessDeployServiceRequestFromQueue(service_name, log_id)
+		Handler: func(service_name string) error {
+			return s.ProcessDeployServiceRequestFromQueue(service_name)
 		},
 	})
 	s.TASK_MAP["deploy-service"] = t

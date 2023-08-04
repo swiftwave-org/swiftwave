@@ -17,7 +17,7 @@ func (s *Server) AddServiceToDockerImageGenerationQueue(service_name string, log
 	return s.TASK_QUEUE.Add(task.WithArgs(context.Background(), service_name, log_id))
 }
 
-func (s *Server) AddServiceToDeployQueue(service_name string, log_id string) error {
+func (s *Server) AddServiceToDeployQueue(service_name string) error {
 	task := s.TASK_MAP["deploy-service"]
 	return s.TASK_QUEUE.Add(task.WithArgs(context.Background(), service_name))
 }

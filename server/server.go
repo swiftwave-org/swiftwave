@@ -29,6 +29,7 @@ type Server struct {
 	ECHO_SERVER             echo.Echo
 	PORT                    int
 	CODE_TARBALL_DIR        string
+	SWARM_NETWORK           string
 	// Worker related
 	QUEUE_FACTORY         taskq.Factory
 	TASK_QUEUE            taskq.Queue
@@ -41,6 +42,7 @@ type Server struct {
 func (server *Server) Init(port int) {
 	server.PORT = port
 	server.CODE_TARBALL_DIR = "/home/ubuntu/client_program/tarball"
+	server.SWARM_NETWORK = "swarm-network"
 	// Initiating database client
 	db_client, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
 	if err != nil {
