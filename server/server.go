@@ -16,6 +16,7 @@ import (
 	"github.com/vmihailenco/taskq/v3"
 	"github.com/vmihailenco/taskq/v3/redisq"
 	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -55,7 +56,16 @@ func (server *Server) Init() {
 	server.HAPROXY_SERVICE = os.Getenv("HAPROXY_SERVICE_NAME")
 	server.RESTRICTED_PORTS = []int{80, 443, 5555}
 	// Initiating database client
-	db_client, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
+	db_type := os.Getenv("DATABASE_TYPE")
+	var db_dialect gorm.Dialector
+	if db_type == "postgres" {
+		db_dialect = postgres.Open(os.Getenv("POSTGRESQL_URI"))
+	} else if db_type == "sqlite" {
+		db_dialect = sqlite.Open(os.Getenv("SQLITE_DATABASE"))
+	} else {
+		panic("Unknown database type")
+	}
+	db_client, err := gorm.Open(db_dialect, &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
