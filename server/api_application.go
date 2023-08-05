@@ -1,7 +1,6 @@
 package server
 
 import (
-	"bufio"
 	"encoding/json"
 	"errors"
 	"io"
@@ -10,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -384,12 +384,25 @@ func (server *Server) getApplicationRuntimeLogs(c echo.Context) error {
 		})
 	}
 
-	scanner := bufio.NewScanner(logsReader)
-	// TODO: remove unicode invalid characters
-	text := ""
-	for scanner.Scan() {
-		text += scanner.Text() + "\n"
+	// scanner := bufio.NewScanner(logsReader)
+	data, err := io.ReadAll(logsReader)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(500, map[string]string{
+			"message": "failed to get application logs",
+		})
 	}
+	text := string(data)
+	text = strings.ReplaceAll(text, "\u00005", "")
+	text = strings.Map(func(r rune) rune {
+		if r == '\n' || r == '\r' || r == '\t' || r == '\b' || r == '\f' {
+			return r
+		}
+		if unicode.IsGraphic(r) {
+			return r
+		}
+		return -1
+	}, text)
 	return c.JSON(200, map[string]string{
 		"logs": text,
 		"since": since,
