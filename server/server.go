@@ -30,6 +30,7 @@ type Server struct {
 	PORT                    int
 	CODE_TARBALL_DIR        string
 	SWARM_NETWORK           string
+	RESTRICTED_PORTS        []int
 	// Worker related
 	QUEUE_FACTORY         taskq.Factory
 	TASK_QUEUE            taskq.Queue
@@ -43,6 +44,7 @@ func (server *Server) Init(port int) {
 	server.PORT = port
 	server.CODE_TARBALL_DIR = "/home/ubuntu/client_program/tarball"
 	server.SWARM_NETWORK = "swarm-network"
+	server.RESTRICTED_PORTS = []int{80,443}
 	// Initiating database client
 	db_client, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
 	if err != nil {
@@ -105,6 +107,7 @@ func (server *Server) Init(port int) {
 	server.InitApplicationRestAPI()
 	server.InitTestRestAPI()
 	server.InitGitRestAPI()
+	server.InitIngressRestAPI()
 
 	// Initiating Routes for ACME Challenge
 	server.SSL_MANAGER.InitHttpHandlers(&server.ECHO_SERVER)

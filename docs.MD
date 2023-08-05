@@ -77,7 +77,6 @@ sudo docker service create \
   --network swarm-network \
   --publish published=80,target=80,protocol=tcp,mode=host \
   --publish published=443,target=443,protocol=tcp,mode=host \
-  --publish published=5555,target=5555,protocol=tcp,mode=host \
   --mount type=bind,src=/etc/haproxy,dst=/usr/local/etc/haproxy \
   --dns=127.0.0.11 \
   haproxytech/haproxy-debian:2.9

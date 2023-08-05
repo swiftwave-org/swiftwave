@@ -170,8 +170,8 @@ func (s Manager) DeleteHTTPSLink(transaction_id string, backend_name string, dom
 // Add TCP Frontend to HAProxy configuration
 // -- Manage ACLs with frontend [port{required} and domain_name{optional}]
 // -- Manage rules with frontend and backend switch
-func (s Manager) AddTCPLink(transaction_id string, backend_name string, port int, domain_name string, listenerMode ListenerMode) error {
-	if isPortRestrictedForManualConfig(port) {
+func (s Manager) AddTCPLink(transaction_id string, backend_name string, port int, domain_name string, listenerMode ListenerMode, restrictedPorts []int) error {
+	if IsPortRestrictedForManualConfig(port, restrictedPorts) {
 		return errors.New("port is restricted for manual configuration")
 	}
 	frontend_name := ""
@@ -255,8 +255,8 @@ func (s Manager) AddTCPLink(transaction_id string, backend_name string, port int
 }
 
 // Delete TCP Frontend from HAProxy configuration
-func (s Manager) DeleteTCPLink(transaction_id string, backend_name string, port int, domain_name string) error {
-	if isPortRestrictedForManualConfig(port) {
+func (s Manager) DeleteTCPLink(transaction_id string, backend_name string, port int, domain_name string, restrictedPorts []int) error {
+	if IsPortRestrictedForManualConfig(port, restrictedPorts) {
 		return errors.New("port is restricted for manual configuration")
 	}
 	frontend_name := ""

@@ -35,6 +35,7 @@ func (server *Server) InitApplicationRestAPI() {
 	server.ECHO_SERVER.GET("/applications/:id/logs/build/:log_id", server.getApplicationBuildLog)
 	server.ECHO_SERVER.GET("/applications/:id/logs/runtime", server.getApplicationRuntimeLogs)
 	server.ECHO_SERVER.GET("/applications/availiblity/service_name", server.checkApplicationServiceNameAvailability)
+	server.ECHO_SERVER.GET("/applications/servicenames", server.getApplicationServiceNames)
 }
 
 // Upload tar file and return the file name
@@ -591,4 +592,21 @@ func (server *Server) checkApplicationServiceNameAvailability(c echo.Context) er
 	return c.JSON(200, map[string]bool{
 		"available": isAvailable,
 	})
+}
+
+// GET /applications/servicenames
+func (server *Server) getApplicationServiceNames(c echo.Context) error {
+	var applications []Application
+	tx := server.DB_CLIENT.Select("service_name").Find(&applications)
+	if tx.Error != nil {
+		log.Println(tx.Error)
+		return c.JSON(500, map[string]string{
+			"message": "failed to get application",
+		})
+	}
+	var serviceNames []string
+	for _, application := range applications {
+		serviceNames = append(serviceNames, application.ServiceName)
+	}
+	return c.JSON(200, serviceNames)
 }

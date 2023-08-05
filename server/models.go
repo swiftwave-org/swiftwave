@@ -100,6 +100,35 @@ type ApplicationBuildLog struct {
 	Time          time.Time   `json:"time"`
 }
 
+// Ingress Rules
+type IngressRule struct {
+	ID          uint              `json:"id" gorm:"primaryKey"`
+	Protocol    ProtocolType      `json:"protocol" validate:"required"`
+	DomainName  string            `json:"domain_name"` // Ignored if protocol is TCP
+	Port        uint              `json:"port" validate:"required"`
+	ServiceName string            `json:"service_name" validate:"required"`
+	ServicePort uint              `json:"service_port" validate:"required"`
+	Status      IngressRuleStatus `json:"status"`
+	UpdatedAt   time.Time         `json:"updated_at"`
+}
+
+type ProtocolType string
+
+const (
+	HTTPProtcol  ProtocolType = "http"
+	HTTPSProtcol ProtocolType = "https"
+	TCPProtcol   ProtocolType = "tcp"
+)
+
+type IngressRuleStatus string
+
+const (
+	IngressRuleStatusPending       IngressRuleStatus = "pending"
+	IngressRuleStatusApplied       IngressRuleStatus = "applied"
+	IngressRuleStatusFailed        IngressRuleStatus = "failed"
+	IngressRuleStatusDeletePending IngressRuleStatus = "delete_pending"
+)
+
 // Migrate database
 func (server *Server) MigrateDatabaseTables() {
 	server.DB_CLIENT.AutoMigrate(&Domain{})
@@ -107,8 +136,8 @@ func (server *Server) MigrateDatabaseTables() {
 	server.DB_CLIENT.AutoMigrate(&ApplicationSource{})
 	server.DB_CLIENT.AutoMigrate(&Application{})
 	server.DB_CLIENT.AutoMigrate(&ApplicationBuildLog{})
+	server.DB_CLIENT.AutoMigrate(&IngressRule{})
 }
-
 
 // Application deploy request
 type ApplicationDeployRequest struct {

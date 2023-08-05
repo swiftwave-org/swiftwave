@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -12,6 +13,7 @@ func (s *Server) InitCronJobs() {
 	go s.MovePendingApplicationsToImageGenerationQueueCronjob()
 	go s.MoveRedeployPendingApplicationsToImageGenerationQueueCronjob()
 	go s.MoveDeployingPendingApplicationsToDeployingQueueCronjob()
+	go s.ProcessIngressRulesRequestCronjob()
 }
 
 // Move `pending` applications to `image generation queue` for building docker image
@@ -150,6 +152,23 @@ func (s *Server) MoveDeployingPendingApplicationsToDeployingQueueCronjob() {
 			if err != nil {
 				log.Println("Error while moving deploying_pending applications to deploying queue: ", err)
 			}
+		}
+		time.Sleep(10 * time.Second)
+	}
+}
+
+// Process ingress rules request - `pending` , `delete_pending` status records
+func (s *Server) ProcessIngressRulesRequestCronjob() {
+	for {
+		var ingressRules []IngressRule
+		tx := s.DB_CLIENT.Where("status = ? OR status = ?", IngressRuleStatusPending, IngressRuleStatusDeletePending).Find(&ingressRules)
+		if tx.Error != nil {
+			log.Println(tx.Error)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		for _, ingressRule := range ingressRules {
+			fmt.Println(ingressRule)
 		}
 		time.Sleep(10 * time.Second)
 	}
