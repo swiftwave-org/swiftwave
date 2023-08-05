@@ -125,12 +125,21 @@ func (server *Server) updateGitCredential(c echo.Context) error {
 
 // DELETE /git/credentials/:id
 func (server *Server) deleteGitCredential(c echo.Context) error {
-	// TODO: check if git credential is used by any application
 	if c.Param("id") == "" {
 		return c.JSON(400, map[string]interface{}{
 			"message": "id parameter is required",
 		})
 	}
+	
+	// check if git credential is used by any application
+	var applicationSource ApplicationSource
+	tx2 := server.DB_CLIENT.Where("git_credential_id = ?", c.Param("id")).First(&applicationSource)
+	if tx2.Error == nil {
+		return c.JSON(400, map[string]interface{}{
+			"message": "git credential is used by an application",
+		})
+	}
+
 	// Delete git credential from database
 	tx := server.DB_CLIENT.Delete(&GitCredential{}, c.Param("id"))
 	if tx.Error != nil {

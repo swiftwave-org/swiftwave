@@ -139,7 +139,6 @@ func (server *Server) deleteDomain(c echo.Context) error {
 	return c.JSON(200, domain)
 }
 
-// TODO: if SSL certificate is already issued, only reissue if it's expired or force is true
 // POST /domains/:id/ssl/issue
 func (server *Server) issueDomainSSL(c echo.Context) error {
 	if c.Param("id") == "" {

@@ -48,8 +48,6 @@ func (server *Server) getIngressRule(c echo.Context) error {
 
 // POST /ingresses
 func (server *Server) createIngressRule(c echo.Context) error {
-	// TODO: check service name before creating ingress rule
-	// TODO: check domain name
 	var ingressRule IngressRule
 	err := c.Bind(&ingressRule)
 	if err != nil {
@@ -58,6 +56,26 @@ func (server *Server) createIngressRule(c echo.Context) error {
 			"message": "Failed to decode request body",
 		})
 	}
+	// verify domain name
+	if ingressRule.Protocol == HTTPSProtcol && ingressRule.DomainName == "" {
+		return c.JSON(400, map[string]interface{}{
+			"message": "Domain name is required for HTTPS protocol",
+		})
+	}
+	if ingressRule.Protocol == HTTPProtcol && ingressRule.DomainName == "" {
+		return c.JSON(400, map[string]interface{}{
+			"message": "Domain name is required for HTTP protocol",
+		})
+	}
+	// Verify if service exists
+	var application Application
+	tx := server.DB_CLIENT.Where("name = ?", ingressRule.ServiceName).First(&application)
+	if tx.Error != nil {
+		return c.JSON(400, map[string]interface{}{
+			"message": "Service not found",
+		})
+	}
+	// Set default values
 	ingressRule.ID = 0
 	if ingressRule.Protocol == TCPProtcol {
 		ingressRule.DomainName = ""
@@ -119,8 +137,8 @@ func (server *Server) createIngressRule(c echo.Context) error {
 	}
 	ingressRule.UpdatedAt = time.Now()
 	ingressRule.Status = IngressRuleStatusPending
-	tx := server.DB_CLIENT.Create(&ingressRule)
-	if tx.Error != nil {
+	tx2 := server.DB_CLIENT.Create(&ingressRule)
+	if tx2.Error != nil {
 		return c.JSON(500, map[string]interface{}{
 			"error":   tx.Error.Error(),
 			"message": "Failed to create ingress rule",
