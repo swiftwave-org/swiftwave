@@ -1,7 +1,7 @@
 package server
 
 import (
-	"fmt"
+	HAPROXY_MANAGER "keroku/m/haproxy_manager"
 	"log"
 	"time"
 
@@ -168,7 +168,131 @@ func (s *Server) ProcessIngressRulesRequestCronjob() {
 			continue
 		}
 		for _, ingressRule := range ingressRules {
-			fmt.Println(ingressRule)
+			transaction_id, err := s.HAPROXY_MANAGER.FetchNewTransactionId()
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			if ingressRule.Status == IngressRuleStatusPending {
+				// add backend
+				backend_name := s.HAPROXY_MANAGER.GenerateBackendName(ingressRule.ServiceName, int(ingressRule.ServicePort))
+				// skip if backend already exists - check db for service name and port and status != pending and id != ingressRule.ID
+				backendDoesNotExist := false
+				var ingressRuleCheck IngressRule
+				tx := s.DB_CLIENT.Where("id != ? AND service_name = ? AND service_port = ? AND status != ?", ingressRule.ID, ingressRule.ServiceName, ingressRule.ServicePort, IngressRuleStatusPending).First(&ingressRuleCheck)
+				if tx.Error != nil {
+					if tx.Error == gorm.ErrRecordNotFound {
+						backendDoesNotExist = true
+					}
+				}
+				// if backend does not exist, create it
+				if backendDoesNotExist {
+					_, err := s.HAPROXY_MANAGER.AddBackend(transaction_id, ingressRule.ServiceName, int(ingressRule.ServicePort), 1)
+					if err != nil {
+						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						log.Println(err)
+						continue
+					}
+				}
+				// create backend switch rule
+				if ingressRule.Protocol == HTTPSProtcol {
+					err = s.HAPROXY_MANAGER.AddHTTPSLink(transaction_id, backend_name, ingressRule.DomainName)
+					if err != nil {
+						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						log.Println(err)
+						continue
+					}
+				} else if ingressRule.Protocol == HTTPProtcol && ingressRule.Port == 80 {
+					err = s.HAPROXY_MANAGER.AddHTTPLink(transaction_id, backend_name, ingressRule.DomainName)
+					if err != nil {
+						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						log.Println(err)
+						continue
+					}
+				} else {
+					var listenerMode HAPROXY_MANAGER.ListenerMode
+					if ingressRule.Protocol == TCPProtcol {
+						listenerMode = HAPROXY_MANAGER.TCPMode
+					} else {
+						listenerMode = HAPROXY_MANAGER.HTTPMode
+					}
+					err = s.HAPROXY_MANAGER.AddTCPLink(transaction_id, backend_name, int(ingressRule.Port), ingressRule.DomainName, listenerMode, s.RESTRICTED_PORTS)
+					if err != nil {
+						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						log.Println(err)
+						continue
+					}
+				}
+				// commit transaction
+				err = s.HAPROXY_MANAGER.CommitTransaction(transaction_id)
+				if err != nil {
+					s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+					log.Println(err)
+					continue
+				}
+				// update status
+				ingressRule.Status = IngressRuleStatusApplied
+				tx2 := s.DB_CLIENT.Save(&ingressRule)
+				if tx2.Error != nil {
+					log.Println(tx2.Error)
+				}
+			} else if ingressRule.Status == IngressRuleStatusDeletePending {
+				backend_name := s.HAPROXY_MANAGER.GenerateBackendName(ingressRule.ServiceName, int(ingressRule.ServicePort))
+				// delete backend switch rule
+				if ingressRule.Protocol == HTTPSProtcol {
+					err = s.HAPROXY_MANAGER.DeleteHTTPSLink(transaction_id, backend_name, ingressRule.DomainName)
+					if err != nil {
+						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						log.Println(err)
+						continue
+					}
+				} else if ingressRule.Protocol == HTTPProtcol && ingressRule.Port == 80 {
+					err = s.HAPROXY_MANAGER.DeleteHTTPLink(transaction_id, backend_name, ingressRule.DomainName)
+					if err != nil {
+						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						log.Println(err)
+						continue
+					}
+				} else {
+					err = s.HAPROXY_MANAGER.DeleteTCPLink(transaction_id, backend_name, int(ingressRule.Port), ingressRule.DomainName, s.RESTRICTED_PORTS)
+					if err != nil {
+						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						log.Println(err)
+						continue
+					}
+				}
+				// ensure this backend is not used by any other ingress rules
+				// check by service name and port and status != delete pending
+				backendUsedByOther := true
+				var ingressRuleCheck IngressRule
+				tx := s.DB_CLIENT.Where("id != ? AND service_name = ? AND service_port = ? AND status != ?", ingressRule.ID, ingressRule.ServiceName, ingressRule.ServicePort, IngressRuleStatusDeletePending).First(&ingressRuleCheck)
+				if tx.Error != nil {
+					if tx.Error == gorm.ErrRecordNotFound {
+						backendUsedByOther = false
+					}
+				}
+				if !backendUsedByOther {
+					// delete backend
+					err = s.HAPROXY_MANAGER.DeleteBackend(transaction_id, backend_name)
+					if err != nil {
+						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						log.Println(err)
+						continue
+					}
+				}
+				// commit transaction
+				err = s.HAPROXY_MANAGER.CommitTransaction(transaction_id)
+				if err != nil {
+					s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+					log.Println(err)
+					continue
+				}
+				// delete ingress rule
+				tx2 := s.DB_CLIENT.Delete(&ingressRule)
+				if tx2.Error != nil {
+					log.Println(tx2.Error)					
+				}
+			}
 		}
 		time.Sleep(10 * time.Second)
 	}
