@@ -10,11 +10,11 @@ import (
 
 // Init functions
 func (server *Server) InitIngressRestAPI() {
-	server.ECHO_SERVER.GET("/ingresses", server.getIngressRules)
-	server.ECHO_SERVER.GET("/ingresses/:id", server.getIngressRule)
-	server.ECHO_SERVER.POST("/ingresses", server.createIngressRule)
-	server.ECHO_SERVER.DELETE("/ingresses/:id", server.deleteIngressRule)
-	server.ECHO_SERVER.GET("/ingresses/restricted-ports", server.getRestrictedPorts)
+	server.ECHO_SERVER.GET("/mapping/ingresses", server.getIngressRules)
+	server.ECHO_SERVER.GET("/mapping/ingresses/:id", server.getIngressRule)
+	server.ECHO_SERVER.POST("/mapping/ingresses", server.createIngressRule)
+	server.ECHO_SERVER.DELETE("/mapping/ingresses/:id", server.deleteIngressRule)
+	server.ECHO_SERVER.GET("/mapping/ingresses/restricted-ports", server.getRestrictedPorts)
 }
 
 // REST API functions
@@ -88,7 +88,7 @@ func (server *Server) createIngressRule(c echo.Context) error {
 			})
 		}
 	}
-	// Verify if using different for https 
+	// Verify if using different for https
 	if ingressRule.Protocol == HTTPSProtcol && ingressRule.Port != 443 {
 		return c.JSON(400, map[string]interface{}{
 			"message": "HTTPS protocol must use port 443",
@@ -96,7 +96,7 @@ func (server *Server) createIngressRule(c echo.Context) error {
 	}
 	// Check if conflicting ingress rule exists
 	isConflictFound := false
-	if (ingressRule.Protocol == HTTPProtcol && ingressRule.Port == 80) || 
+	if (ingressRule.Protocol == HTTPProtcol && ingressRule.Port == 80) ||
 		(ingressRule.Protocol == HTTPSProtcol && ingressRule.Port == 443) {
 		// check for same domain, if found
 		var ingressRuleInConflict IngressRule

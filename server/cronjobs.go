@@ -16,6 +16,7 @@ func (s *Server) InitCronJobs() {
 	go s.MoveRedeployPendingApplicationsToImageGenerationQueueCronjob()
 	go s.MoveDeployingPendingApplicationsToDeployingQueueCronjob()
 	go s.ProcessIngressRulesRequestCronjob()
+	go s.ProcessRedirectRulesRequestCronjob()
 	go s.HAproxyExposedPortsProcessor()
 }
 
@@ -342,7 +343,7 @@ func (s *Server) HAproxyExposedPortsProcessor() {
 				})
 			}
 			// Update exposed ports
-			err := s.DOCKER_MANAGER.UpdatePublishedHostPorts(s.HAPROXY_SERVICE,ports_update_required)
+			err := s.DOCKER_MANAGER.UpdatePublishedHostPorts(s.HAPROXY_SERVICE, ports_update_required)
 			if err != nil {
 				log.Println(err)
 			} else {
@@ -350,5 +351,70 @@ func (s *Server) HAproxyExposedPortsProcessor() {
 			}
 		}
 		time.Sleep(20 * time.Second)
+	}
+}
+
+// Process redirect rules request - `pending` and `delete_pending`
+func (s *Server) ProcessRedirectRulesRequestCronjob() {
+	for {
+		// Fetch all redirect rules with status pending
+		var redirectRules []RedirectRule
+		tx := s.DB_CLIENT.Where("status != ?", RedirectRuleStatusApplied).Find(&redirectRules)
+		if tx.Error != nil {
+			log.Println(tx.Error)
+			continue
+		}
+		// Process redirect rules
+		for _, redirectRule := range redirectRules {
+			// create transaction
+			transaction_id, err := s.HAPROXY_MANAGER.FetchNewTransactionId()
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			if redirectRule.Status == RedirectRuleStatusPending {
+				// create redirect rule
+				err = s.HAPROXY_MANAGER.AddHTTPRedirectRule(transaction_id, redirectRule.DomainName, redirectRule.RedirectURL)
+				if err != nil {
+					s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+					log.Println(err)
+					continue
+				}
+				// commit transaction
+				err = s.HAPROXY_MANAGER.CommitTransaction(transaction_id)
+				if err != nil {
+					s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+					log.Println(err)
+					continue
+				}
+				// update status
+				redirectRule.Status = RedirectRuleStatusApplied
+				tx2 := s.DB_CLIENT.Save(&redirectRule)
+				if tx2.Error != nil {
+					log.Println(tx2.Error)
+				}
+			} else if redirectRule.Status == RedirectRuleStatusDeletePending {
+				// delete redirect rule
+				err = s.HAPROXY_MANAGER.DeleteHTTPRedirectRule(transaction_id, redirectRule.DomainName)
+				if err != nil {
+					s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+					log.Println(err)
+					continue
+				}
+				// commit transaction
+				err = s.HAPROXY_MANAGER.CommitTransaction(transaction_id)
+				if err != nil {
+					s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+					log.Println(err)
+					continue
+				}
+				// delete redirect rule
+				tx2 := s.DB_CLIENT.Delete(&redirectRule)
+				if tx2.Error != nil {
+					log.Println(tx2.Error)
+				}
+			}
+		}
+		time.Sleep(10 * time.Second)
 	}
 }

@@ -129,6 +129,24 @@ const (
 	IngressRuleStatusDeletePending IngressRuleStatus = "delete_pending"
 )
 
+// Redirect Rules -- only for HTTP
+type RedirectRule struct {
+	ID          uint               `json:"id" gorm:"primaryKey"`
+	Port        uint               `json:"port" validate:"required"`
+	DomainName  string             `json:"domain_name" validate:"required"`
+	RedirectURL string             `json:"redirect_url" validate:"required"`
+	Status      RedirectRuleStatus `json:"status"`
+	UpdatedAt   time.Time          `json:"updated_at"`
+}
+
+type RedirectRuleStatus string
+
+const (
+	RedirectRuleStatusPending       RedirectRuleStatus = "pending"
+	RedirectRuleStatusApplied       RedirectRuleStatus = "applied"
+	RedirectRuleStatusDeletePending RedirectRuleStatus = "delete_pending"
+)
+
 // Migrate database
 func (server *Server) MigrateDatabaseTables() {
 	server.DB_CLIENT.AutoMigrate(&Domain{})
@@ -137,6 +155,7 @@ func (server *Server) MigrateDatabaseTables() {
 	server.DB_CLIENT.AutoMigrate(&Application{})
 	server.DB_CLIENT.AutoMigrate(&ApplicationBuildLog{})
 	server.DB_CLIENT.AutoMigrate(&IngressRule{})
+	server.DB_CLIENT.AutoMigrate(&RedirectRule{})
 }
 
 // Application deploy request

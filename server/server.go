@@ -110,6 +110,7 @@ func (server *Server) Init(port int) {
 	server.InitTestRestAPI()
 	server.InitGitRestAPI()
 	server.InitIngressRestAPI()
+	server.InitRedirectRestAPI()
 
 	// Initiating Routes for ACME Challenge
 	server.SSL_MANAGER.InitHttpHandlers(&server.ECHO_SERVER)
