@@ -376,7 +376,7 @@ func (server *Server) getApplicationRuntimeLogs(c echo.Context) error {
 	since := c.QueryParam("since")
 	until := c.QueryParam("until")
 	// Get logs
-	logsReader, err := server.DOCKER_MANAGER.LogsService("minc-service", since, until)
+	logsReader, err := server.DOCKER_MANAGER.LogsService(application.ServiceName, since, until)
 	if err != nil {
 		log.Println(err)
 		return c.JSON(500, map[string]string{
