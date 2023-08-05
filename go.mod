@@ -1,4 +1,4 @@
-module keroku/m
+module swiftwave/m
 
 go 1.20
 

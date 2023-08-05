@@ -2,11 +2,11 @@ package server
 
 import (
 	"context"
-	DOCKER "keroku/m/container_manager"
-	DOCKER_CONFIG_GENERATOR "keroku/m/docker_config_generator"
-	HAPROXY "keroku/m/haproxy_manager"
-	SSL "keroku/m/ssl_manager"
 	"strconv"
+	DOCKER "swiftwave/m/container_manager"
+	DOCKER_CONFIG_GENERATOR "swiftwave/m/docker_config_generator"
+	HAPROXY "swiftwave/m/haproxy_manager"
+	SSL "swiftwave/m/ssl_manager"
 
 	DOCKER_CLIENT "github.com/docker/docker/client"
 	"github.com/go-redis/redis/v8"
@@ -41,12 +41,12 @@ type Server struct {
 }
 
 // Init function
-func (server *Server) Init(port int) {
-	server.PORT = port
+func (server *Server) Init() {
+	server.PORT = 3333
 	server.CODE_TARBALL_DIR = "/home/ubuntu/client_program/tarball"
 	server.SWARM_NETWORK = "swarm-network"
 	server.HAPROXY_SERVICE = "haproxy-service"
-	server.RESTRICTED_PORTS = []int{80, 443}
+	server.RESTRICTED_PORTS = []int{80, 443, 5555}
 	// Initiating database client
 	db_client, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
 	if err != nil {
@@ -66,8 +66,6 @@ func (server *Server) Init(port int) {
 		IsStaging:                 false,
 		Email:                     "tanmoysrt@gmail.com",
 		AccountPrivateKeyFilePath: "/home/ubuntu/client_program/data/account_private_key.key",
-		DomainPrivateKeyStorePath: "/home/ubuntu/client_program/data/domain/private_key",
-		DomainFullChainStorePath:  "/home/ubuntu/client_program/data/domain/full_chain",
 	}
 	ssl_manager := SSL.Manager{}
 	ssl_manager.Init(context.Background(), *db_client, options)

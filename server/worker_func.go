@@ -3,12 +3,12 @@ package server
 import (
 	"encoding/json"
 	"errors"
-	DOCKER_MANAGER "keroku/m/container_manager"
-	DOCKER_CONFIG_GENERATOR "keroku/m/docker_config_generator"
-	GIT_MANAGER "keroku/m/git_manager"
 	"log"
 	"os"
 	"path/filepath"
+	DOCKER_MANAGER "swiftwave/m/container_manager"
+	DOCKER_CONFIG_GENERATOR "swiftwave/m/docker_config_generator"
+	GIT_MANAGER "swiftwave/m/git_manager"
 	"time"
 
 	"github.com/google/uuid"

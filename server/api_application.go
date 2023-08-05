@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	GIT_MANAGER "keroku/m/git_manager"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	GIT_MANAGER "swiftwave/m/git_manager"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -395,7 +395,7 @@ func (server *Server) getApplicationRuntimeLogs(c echo.Context) error {
 		}
 	}
 	return c.JSON(200, map[string]string{
-		"logs": text,
+		"logs":  text,
 		"since": since,
 		"until": until,
 	})

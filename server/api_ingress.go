@@ -1,8 +1,8 @@
 package server
 
 import (
-	HAPROXY_MANAGER "keroku/m/haproxy_manager"
 	"strconv"
+	HAPROXY_MANAGER "swiftwave/m/haproxy_manager"
 	"time"
 
 	"github.com/labstack/echo/v4"

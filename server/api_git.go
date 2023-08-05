@@ -4,7 +4,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	GIT "keroku/m/git_manager"
+	GIT "swiftwave/m/git_manager"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -105,7 +106,7 @@ func (server *Server) updateGitCredential(c echo.Context) error {
 			"message": "name is required",
 		})
 	}
-	id , err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": "id parameter is required",
@@ -130,7 +131,7 @@ func (server *Server) deleteGitCredential(c echo.Context) error {
 			"message": "id parameter is required",
 		})
 	}
-	
+
 	// check if git credential is used by any application
 	var applicationSource ApplicationSource
 	tx2 := server.DB_CLIENT.Where("git_credential_id = ?", c.Param("id")).First(&applicationSource)
@@ -190,6 +191,6 @@ func (server *Server) testGitCredential(c echo.Context) error {
 
 	return c.JSON(200, map[string]interface{}{
 		"message": "Git credential is valid and repository is accessible",
-		"hash": hash,
+		"hash":    hash,
 	})
 }

@@ -1,9 +1,9 @@
 package server
 
 import (
-	HAPROXY_MANAGER "keroku/m/haproxy_manager"
 	"log"
 	"reflect"
+	HAPROXY_MANAGER "swiftwave/m/haproxy_manager"
 	"time"
 
 	"github.com/docker/docker/api/types/swarm"

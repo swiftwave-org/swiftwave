@@ -19,8 +19,6 @@ type ManagerOptions struct {
 	IsStaging                 bool
 	Email                     string
 	AccountPrivateKeyFilePath string
-	DomainPrivateKeyStorePath string
-	DomainFullChainStorePath  string
 }
 
 type http01Solver struct {

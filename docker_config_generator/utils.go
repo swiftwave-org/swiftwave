@@ -2,10 +2,10 @@ package dockerconfiggenerator
 
 import (
 	"errors"
-	GIT "keroku/m/git_manager"
 	"log"
 	"os"
 	"strings"
+	GIT "swiftwave/m/git_manager"
 
 	"github.com/google/uuid"
 )
