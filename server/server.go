@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"log"
+	"os"
 	"strconv"
 	DOCKER "swiftwave/m/container_manager"
 	DOCKER_CONFIG_GENERATOR "swiftwave/m/docker_config_generator"
@@ -42,10 +44,15 @@ type Server struct {
 
 // Init function
 func (server *Server) Init() {
-	server.PORT = 3333
-	server.CODE_TARBALL_DIR = "/home/ubuntu/client_program/tarball"
-	server.SWARM_NETWORK = "swarm-network"
-	server.HAPROXY_SERVICE = "haproxy-service"
+	server_port , err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		log.Fatal("PORT environment variable is not set")
+		panic(err)
+	}
+	server.PORT = server_port
+	server.CODE_TARBALL_DIR = os.Getenv("CODE_TARBALL_DIR")
+	server.SWARM_NETWORK = os.Getenv("SWARM_NETWORK")
+	server.HAPROXY_SERVICE = os.Getenv("HAPROXY_SERVICE_NAME")
 	server.RESTRICTED_PORTS = []int{80, 443, 5555}
 	// Initiating database client
 	db_client, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
@@ -55,8 +62,8 @@ func (server *Server) Init() {
 
 	// Initiating Redis client
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
+		Addr:     os.Getenv("REDIS_ADDRESS"),
+		Password: os.Getenv("REDIS_PASSWORD"),
 		DB:       0,  // use default DB
 	})
 	server.REDIS_CLIENT = *rdb
@@ -64,19 +71,24 @@ func (server *Server) Init() {
 	// Initiating SSL Manager
 	options := SSL.ManagerOptions{
 		IsStaging:                 false,
-		Email:                     "tanmoysrt@gmail.com",
-		AccountPrivateKeyFilePath: "/home/ubuntu/client_program/data/account_private_key.key",
+		Email:                     os.Getenv("ACCOUNT_EMAIL_ID"),
+		AccountPrivateKeyFilePath: os.Getenv("ACCOUNT_PRIVATE_KEY_FILE_PATH"),
 	}
 	ssl_manager := SSL.Manager{}
 	ssl_manager.Init(context.Background(), *db_client, options)
 
 	// Initiating HAPROXY Manager
 	var haproxy_manager = HAPROXY.Manager{}
-	haproxy_manager.InitTcpSocket("localhost", 5555)
-	haproxy_manager.Auth("admin", "mypassword")
+	haproxy_port , err := strconv.Atoi(os.Getenv("HAPROXY_MANAGER_PORT"))
+	if err != nil {
+		log.Fatal("HAPROXY_MANAGER_PORT environment variable is not set")
+		panic(err)
+	}
+	haproxy_manager.InitTcpSocket(os.Getenv("HAPROXY_MANAGER_HOST"), haproxy_port)
+	haproxy_manager.Auth(os.Getenv("HAPROXY_MANAGER_USERNAME"), os.Getenv("HAPROXY_MANAGER_PASSWORD"))
 
 	// Initiating Docker Manager
-	docker_client, err := DOCKER_CLIENT.NewClientWithOpts(DOCKER_CLIENT.WithHost("tcp://127.0.0.1:2375"))
+	docker_client, err := DOCKER_CLIENT.NewClientWithOpts(DOCKER_CLIENT.WithHost(os.Getenv("DOCKER_HOST")))
 	if err != nil {
 		panic(err)
 	}
@@ -102,14 +114,6 @@ func (server *Server) Init() {
 	// Migrating database
 	server.MigrateDatabaseTables()
 
-	// Initiating REST API
-	server.InitDomainRestAPI()
-	server.InitApplicationRestAPI()
-	server.InitTestRestAPI()
-	server.InitGitRestAPI()
-	server.InitIngressRestAPI()
-	server.InitRedirectRestAPI()
-
 	// Initiating Routes for ACME Challenge
 	server.SSL_MANAGER.InitHttpHandlers(&server.ECHO_SERVER)
 
@@ -121,20 +125,29 @@ func (server *Server) Init() {
 		Redis: &server.REDIS_CLIENT,
 	})
 	server.TASK_MAP = make(map[string]*taskq.Task)
-
+	// Registering worker tasks
 	server.RegisteWorkerTasks()
-	err = server.StartWorkerConsumers()
+}
+
+// Start server
+func (server *Server) Start() {
+	// Initiating REST API
+	server.InitDomainRestAPI()
+	server.InitApplicationRestAPI()
+	server.InitTestRestAPI()
+	server.InitGitRestAPI()
+	server.InitIngressRestAPI()
+	server.InitRedirectRestAPI()
+
+	// Start worker consumers
+	err := server.StartWorkerConsumers()
 	if err != nil {
 		panic(err)
 	}
 
 	// Cron related
 	server.InitCronJobs()
-}
 
-// Init workers
-
-// Start server
-func (server *Server) Start() {
+	// Starting server
 	server.ECHO_SERVER.Logger.Fatal(server.ECHO_SERVER.Start(":" + strconv.Itoa(server.PORT)))
 }
