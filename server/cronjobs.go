@@ -3,8 +3,10 @@ package server
 import (
 	HAPROXY_MANAGER "keroku/m/haproxy_manager"
 	"log"
+	"reflect"
 	"time"
 
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -14,6 +16,7 @@ func (s *Server) InitCronJobs() {
 	go s.MoveRedeployPendingApplicationsToImageGenerationQueueCronjob()
 	go s.MoveDeployingPendingApplicationsToDeployingQueueCronjob()
 	go s.ProcessIngressRulesRequestCronjob()
+	go s.HAproxyExposedPortsProcessor()
 }
 
 // Move `pending` applications to `image generation queue` for building docker image
@@ -290,10 +293,62 @@ func (s *Server) ProcessIngressRulesRequestCronjob() {
 				// delete ingress rule
 				tx2 := s.DB_CLIENT.Delete(&ingressRule)
 				if tx2.Error != nil {
-					log.Println(tx2.Error)					
+					log.Println(tx2.Error)
 				}
 			}
 		}
 		time.Sleep(10 * time.Second)
+	}
+}
+
+// Process to maintain exposed-ports of haproxy-service
+func (s *Server) HAproxyExposedPortsProcessor() {
+	for {
+		// Fetch all ingress rules with only port field
+		var ingressRules []IngressRule
+		tx := s.DB_CLIENT.Select("port").Where("port IS NOT NULL").Find(&ingressRules)
+		if tx.Error != nil {
+			log.Println(tx.Error)
+			continue
+		}
+		// Serialize port
+		var portsmap map[int]bool = make(map[int]bool)
+		for _, ingressRule := range ingressRules {
+			portsmap[int(ingressRule.Port)] = true
+		}
+		// add 80 and 443 to ports
+		portsmap[80] = true
+		portsmap[443] = true
+		portsmap[5555] = true
+		// Check if ports are changed
+		exposedPorts, err := s.DOCKER_MANAGER.FetchPublishedHostPorts(s.HAPROXY_SERVICE)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		exposedPortsMap := make(map[int]bool)
+		for _, port := range exposedPorts {
+			exposedPortsMap[port] = true
+		}
+		portsNotChanged := reflect.DeepEqual(exposedPortsMap, portsmap)
+		if !portsNotChanged {
+			var ports_update_required []swarm.PortConfig = make([]swarm.PortConfig, 0)
+			for port := range portsmap {
+				ports_update_required = append(ports_update_required, swarm.PortConfig{
+					Protocol:      swarm.PortConfigProtocolTCP,
+					PublishMode:   swarm.PortConfigPublishModeHost,
+					TargetPort:    uint32(port),
+					PublishedPort: uint32(port),
+				})
+			}
+			// Update exposed ports
+			err := s.DOCKER_MANAGER.UpdatePublishedHostPorts(s.HAPROXY_SERVICE,ports_update_required)
+			if err != nil {
+				log.Println(err)
+			} else {
+				log.Println("Exposed ports are changed")
+			}
+		}
+		time.Sleep(20 * time.Second)
 	}
 }

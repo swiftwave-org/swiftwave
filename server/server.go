@@ -28,6 +28,7 @@ type Server struct {
 	REDIS_CLIENT            redis.Client
 	ECHO_SERVER             echo.Echo
 	PORT                    int
+	HAPROXY_SERVICE         string
 	CODE_TARBALL_DIR        string
 	SWARM_NETWORK           string
 	RESTRICTED_PORTS        []int
@@ -44,7 +45,8 @@ func (server *Server) Init(port int) {
 	server.PORT = port
 	server.CODE_TARBALL_DIR = "/home/ubuntu/client_program/tarball"
 	server.SWARM_NETWORK = "swarm-network"
-	server.RESTRICTED_PORTS = []int{80,443}
+	server.HAPROXY_SERVICE = "haproxy-service"
+	server.RESTRICTED_PORTS = []int{80, 443}
 	// Initiating database client
 	db_client, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
 	if err != nil {
