@@ -1,0 +1,45 @@
+# swiftwave should be stack name
+version: '3'
+services:
+  server:
+    image: "swiftwave_server:latest"
+    volumes:
+      - /home/ubuntu/app/backup:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "3333:3333"
+    environment:
+      - PORT=3333
+      - CODE_TARBALL_DIR=/data/tarball
+      - SWARM_NETWORK=swarm-network
+      - HAPROXY_SERVICE_NAME=swiftwave_haproxy
+      - DATABASE_TYPE=sqlite
+      - SQLITE_DATABASE=gorm.db
+      - POSTGRESQL_URI=
+      - REDIS_ADDRESS=swiftwave_redis:6379
+      - REDIS_PASSWORD=
+      - ACCOUNT_EMAIL_ID=tanmoysrt@gmail.com
+      - ACCOUNT_PRIVATE_KEY_FILE_PATH=/data/account_private_key.key
+      - HAPROXY_MANAGER_HOST=localhost
+      - HAPROXY_MANAGER_PORT=5555
+      - HAPROXY_MANAGER_USERNAME="admin"
+      - HAPROXY_MANAGER_PASSWORD="mypassword"
+      - DOCKER_HOST="tcp://127.0.0.1:2375"
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+  haproxy:
+    image: "haproxy:alpine"
+    volumes:
+      - /home/ubuntu/client_program/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    depends_on:
+      - swiftwave
+    networks:
+      - swarm-network
+    command: ["haproxy", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
+
+networks:
+  swarm_network:
+    driver: overlay
+    attachable: true

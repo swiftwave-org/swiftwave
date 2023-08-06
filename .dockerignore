@@ -6,3 +6,4 @@ gorm.db
 m
 tarball
 .vscode
+.env

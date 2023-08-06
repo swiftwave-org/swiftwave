@@ -54,7 +54,7 @@ func (server *Server) Init() {
 	server.CODE_TARBALL_DIR = os.Getenv("CODE_TARBALL_DIR")
 	server.SWARM_NETWORK = os.Getenv("SWARM_NETWORK")
 	server.HAPROXY_SERVICE = os.Getenv("HAPROXY_SERVICE_NAME")
-	server.RESTRICTED_PORTS = []int{80, 443, 5555}
+	server.RESTRICTED_PORTS = []int{80, 443, 5555, 3333}
 	// Initiating database client
 	db_type := os.Getenv("DATABASE_TYPE")
 	var db_dialect gorm.Dialector
