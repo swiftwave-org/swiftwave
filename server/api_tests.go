@@ -3,7 +3,6 @@ package server
 import (
 	"io"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -11,7 +10,6 @@ import (
 
 func (server *Server) InitTestRestAPI() {
 	server.ECHO_SERVER.GET("/tests/domain/reachibility", server.TestDomainReachibility)
-	server.ECHO_SERVER.GET("/tests/domain/ping", server.TestDomainPing)
 }
 
 // GET /tests/domain/reachibility?domain=example.com
@@ -27,7 +25,7 @@ func (server *Server) TestDomainReachibility(c echo.Context) error {
 	http_client := http.Client{
 		Timeout: 5 * time.Second,
 	}
-	resp, err := http_client.Get("http://" + domain + ":"+strconv.Itoa(server.PORT)+"/tests/domain/ping")
+	resp, err := http_client.Get("http://" + domain + "/.well-known/pre-authorize/")
 	if err != nil {
 		return c.JSON(500, map[string]interface{}{
 			"message": "domain is not reachable",
@@ -37,7 +35,7 @@ func (server *Server) TestDomainReachibility(c echo.Context) error {
 	// if response is 200, return true
 	if resp.StatusCode == 200 {
 		resp_body_byte, err := io.ReadAll(resp.Body)
-		if err == nil && string(resp_body_byte) == "pong" {
+		if err == nil && string(resp_body_byte) == "OK" {
 			return c.JSON(200, map[string]interface{}{
 				"message": "domain is reachable",
 			})
@@ -48,9 +46,3 @@ func (server *Server) TestDomainReachibility(c echo.Context) error {
 		"message": "domain is not reachable",
 	})
 }
-
-// GET /tests/domain/ping
-func (server *Server) TestDomainPing(c echo.Context) error {
-	return c.String(200, "pong")
-}
-

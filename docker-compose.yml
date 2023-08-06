@@ -17,14 +17,14 @@ services:
         protocol: tcp
         mode: ingress
     dns:
-      - "127.0.0.11"
+      - "1.1.1.1"
     environment:
       - PORT=3333
       - CODE_TARBALL_DIR=/data/tarball
       - SWARM_NETWORK=swiftwave_swarm_network
       - HAPROXY_SERVICE_NAME=swiftwave_haproxy
       - DATABASE_TYPE=sqlite
-      - SQLITE_DATABASE=gorm.db
+      - SQLITE_DATABASE=/data/gorm.db
       - POSTGRESQL_URI=
       - REDIS_ADDRESS=swiftwave_redis:6379
       - REDIS_PASSWORD=
