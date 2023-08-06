@@ -9,6 +9,7 @@ import (
 	DOCKER_CONFIG_GENERATOR "swiftwave/m/docker_config_generator"
 	HAPROXY "swiftwave/m/haproxy_manager"
 	SSL "swiftwave/m/ssl_manager"
+	"time"
 
 	DOCKER_CLIENT "github.com/docker/docker/client"
 	"github.com/go-redis/redis/v8"
@@ -16,26 +17,28 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/vmihailenco/taskq/v3"
 	"github.com/vmihailenco/taskq/v3/redisq"
-	"gorm.io/driver/sqlite"
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 // Server struct
 type Server struct {
-	SSL_MANAGER             SSL.Manager
-	HAPROXY_MANAGER         HAPROXY.Manager
-	DOCKER_MANAGER          DOCKER.Manager
-	DOCKER_CONFIG_GENERATOR DOCKER_CONFIG_GENERATOR.Manager
-	DOCKER_CLIENT           DOCKER_CLIENT.Client
-	DB_CLIENT               gorm.DB
-	REDIS_CLIENT            redis.Client
-	ECHO_SERVER             echo.Echo
-	PORT                    int
-	HAPROXY_SERVICE         string
-	CODE_TARBALL_DIR        string
-	SWARM_NETWORK           string
-	RESTRICTED_PORTS        []int
+	SSL_MANAGER                  SSL.Manager
+	HAPROXY_MANAGER              HAPROXY.Manager
+	DOCKER_MANAGER               DOCKER.Manager
+	DOCKER_CONFIG_GENERATOR      DOCKER_CONFIG_GENERATOR.Manager
+	DOCKER_CLIENT                DOCKER_CLIENT.Client
+	DB_CLIENT                    gorm.DB
+	REDIS_CLIENT                 redis.Client
+	ECHO_SERVER                  echo.Echo
+	PORT                         int
+	HAPROXY_SERVICE              string
+	CODE_TARBALL_DIR             string
+	SWARM_NETWORK                string
+	RESTRICTED_PORTS             []int
+	SESSION_TOKENS               map[string]time.Time
+	SESSION_TOKEN_EXPIRY_MINUTES int
 	// Worker related
 	QUEUE_FACTORY         taskq.Factory
 	TASK_QUEUE            taskq.Queue
@@ -46,7 +49,7 @@ type Server struct {
 
 // Init function
 func (server *Server) Init() {
-	server_port , err := strconv.Atoi(os.Getenv("PORT"))
+	server_port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
 		log.Fatal("PORT environment variable is not set")
 		panic(err)
@@ -65,6 +68,11 @@ func (server *Server) Init() {
 		restricted_ports = append(restricted_ports, port_int)
 	}
 	server.RESTRICTED_PORTS = restricted_ports
+	token_expiry_minutes, err := strconv.Atoi(os.Getenv("SESSION_TOKEN_EXPIRY_MINUTES"))
+	if err != nil {
+		panic(err)
+	}
+	server.SESSION_TOKEN_EXPIRY_MINUTES = token_expiry_minutes
 	// Initiating database client
 	db_type := os.Getenv("DATABASE_TYPE")
 	var db_dialect gorm.Dialector
@@ -84,7 +92,7 @@ func (server *Server) Init() {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     os.Getenv("REDIS_ADDRESS"),
 		Password: os.Getenv("REDIS_PASSWORD"),
-		DB:       0,  // use default DB
+		DB:       0, // use default DB
 	})
 	server.REDIS_CLIENT = *rdb
 
@@ -99,7 +107,7 @@ func (server *Server) Init() {
 
 	// Initiating HAPROXY Manager
 	var haproxy_manager = HAPROXY.Manager{}
-	haproxy_port , err := strconv.Atoi(os.Getenv("HAPROXY_MANAGER_PORT"))
+	haproxy_port, err := strconv.Atoi(os.Getenv("HAPROXY_MANAGER_PORT"))
 	if err != nil {
 		log.Fatal("HAPROXY_MANAGER_PORT environment variable is not set")
 		panic(err)
@@ -132,9 +140,9 @@ func (server *Server) Init() {
 	server.ECHO_SERVER = *echo.New()
 
 	// Initiating middlewares
-	server.ECHO_SERVER.Pre(middleware.RemoveTrailingSlash())
 	server.ECHO_SERVER.Use(middleware.CORS())
-
+	server.ECHO_SERVER.Pre(middleware.RemoveTrailingSlash())
+	server.ECHO_SERVER.Pre(server.authMiddleware)
 
 	// Migrating database
 	server.MigrateDatabaseTables()
@@ -157,6 +165,7 @@ func (server *Server) Init() {
 // Start server
 func (server *Server) Start() {
 	// Initiating REST API
+	server.InitAuthRestAPI()
 	server.InitDomainRestAPI()
 	server.InitApplicationRestAPI()
 	server.InitTestRestAPI()

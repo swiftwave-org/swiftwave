@@ -18,6 +18,7 @@ func (s *Server) InitCronJobs() {
 	go s.ProcessIngressRulesRequestCronjob()
 	go s.ProcessRedirectRulesRequestCronjob()
 	go s.HAproxyExposedPortsProcessor()
+	go s.CleanExpiredSessionTokensCronjob()
 }
 
 // Move `pending` applications to `image generation queue` for building docker image
@@ -413,6 +414,23 @@ func (s *Server) ProcessRedirectRulesRequestCronjob() {
 					log.Println(tx2.Error)
 				}
 			}
+		}
+		time.Sleep(10 * time.Second)
+	}
+}
+
+// Cleanip expired session tokens
+func (s *Server) CleanExpiredSessionTokensCronjob() {
+	for {
+		var removeTokens []string = make([]string, 0)
+		for token, sessionToken := range s.SESSION_TOKENS {
+			if sessionToken.Before(time.Now()) {
+				removeTokens = append(removeTokens, token)
+			}
+		}
+		// Remove expired tokens
+		for _, token := range removeTokens {
+			delete(s.SESSION_TOKENS, token)
 		}
 		time.Sleep(10 * time.Second)
 	}

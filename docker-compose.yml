@@ -21,6 +21,8 @@ services:
       - "1.1.1.1"
     environment:
       - PORT=3333
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=$2y$15$QNxoy6BWKiqvPE9aoadRrexi/H13d/FBwKJTdXcjxWrMuT8ZeAw7y
       - CODE_TARBALL_DIR=/data/tarball
       - SWARM_NETWORK=swiftwave_swarm_network
       - HAPROXY_SERVICE_NAME=swiftwave_haproxy
@@ -37,6 +39,7 @@ services:
       - HAPROXY_MANAGER_PASSWORD=mypassword
       - DOCKER_HOST=unix:///var/run/docker.sock
       - RESTRICTED_PORTS=80,443,5555,3333
+      - SESSION_TOKEN_EXPIRY_MINUTES=60
     depends_on:
       - haproxy
       - redis
