@@ -71,8 +71,9 @@ services:
       - controlplane_network
 networks:
   swarm_network:
+    name: swarm_network
     driver: overlay
-    attachable: true
+    external: true
   controlplane_network:
     driver: overlay
     internal: true
