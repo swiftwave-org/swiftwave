@@ -6,12 +6,22 @@ services:
     volumes:
       - /home/ubuntu/app/backup:/data
       - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.swiftwave_controlplane_node==true
     ports:
-      - "3333:3333"
+      - target: 3333
+        published: 3333
+        protocol: tcp
+        mode: ingress
+    dns:
+      - "127.0.0.11"
     environment:
       - PORT=3333
       - CODE_TARBALL_DIR=/data/tarball
-      - SWARM_NETWORK=swarm-network
+      - SWARM_NETWORK=swiftwave_swarm_network
       - HAPROXY_SERVICE_NAME=swiftwave_haproxy
       - DATABASE_TYPE=sqlite
       - SQLITE_DATABASE=gorm.db
@@ -20,26 +30,42 @@ services:
       - REDIS_PASSWORD=
       - ACCOUNT_EMAIL_ID=tanmoysrt@gmail.com
       - ACCOUNT_PRIVATE_KEY_FILE_PATH=/data/account_private_key.key
-      - HAPROXY_MANAGER_HOST=localhost
+      - HAPROXY_MANAGER_HOST=swiftwave_haproxy
       - HAPROXY_MANAGER_PORT=5555
-      - HAPROXY_MANAGER_USERNAME="admin"
-      - HAPROXY_MANAGER_PASSWORD="mypassword"
-      - DOCKER_HOST="tcp://127.0.0.1:2375"
+      - HAPROXY_MANAGER_USERNAME=admin
+      - HAPROXY_MANAGER_PASSWORD=mypassword
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    depends_on:
+      - haproxy
+      - redis
+    networks:
+      - controlplane_network
+  haproxy:
+    image: "haproxytech/haproxy-debian:2.9"
+    volumes:
+      - /home/ubuntu/app/haproxy:/usr/local/etc/haproxy
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.swiftwave_controlplane_node==true
+    networks:
+      - swarm_network
+      - controlplane_network
   redis:
     image: "redis:alpine"
-    ports:
-      - "6379:6379"
-  haproxy:
-    image: "haproxy:alpine"
-    volumes:
-      - /home/ubuntu/client_program/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-    depends_on:
-      - swiftwave
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.swiftwave_controlplane_node==true
     networks:
-      - swarm-network
-    command: ["haproxy", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
-
+      - controlplane_network
 networks:
   swarm_network:
     driver: overlay
     attachable: true
+  controlplane_network:
+    driver: overlay
+    internal: true
+    attachable: false

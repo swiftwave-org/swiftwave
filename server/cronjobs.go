@@ -320,7 +320,6 @@ func (s *Server) HAproxyExposedPortsProcessor() {
 		// add 80 and 443 to ports
 		portsmap[80] = true
 		portsmap[443] = true
-		portsmap[5555] = true
 		// Check if ports are changed
 		exposedPorts, err := s.DOCKER_MANAGER.FetchPublishedHostPorts(s.HAPROXY_SERVICE)
 		if err != nil {

@@ -1,12 +1,13 @@
 # build stage
-FROM golang:alpine AS build-env
-RUN apk --no-cache add build-base git gcc
+FROM golang:1.21-rc-bookworm AS build-env
+ENV CGO_ENABLED=1
 ADD . /src
 RUN cd /src && go build -o goapp .
 
 # final stage
 FROM ubuntu:22.04
-WORKDIR /app
-COPY --from=build-env /src/goapp /app/
+RUN mkdir /app
 RUN mkdir /data
-ENTRYPOINT ./goapp
+WORKDIR /app
+COPY --from=build-env /src/goapp /app/goapp
+ENTRYPOINT /app/goapp
