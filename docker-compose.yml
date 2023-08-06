@@ -36,6 +36,7 @@ services:
       - HAPROXY_MANAGER_USERNAME=admin
       - HAPROXY_MANAGER_PASSWORD=mypassword
       - DOCKER_HOST=unix:///var/run/docker.sock
+      - RESTRICTED_PORTS=80,443,5555,3333
     depends_on:
       - haproxy
       - redis
