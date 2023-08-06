@@ -13,6 +13,7 @@ import (
 	DOCKER_CLIENT "github.com/docker/docker/client"
 	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/vmihailenco/taskq/v3"
 	"github.com/vmihailenco/taskq/v3/redisq"
 	"gorm.io/driver/sqlite"
@@ -129,6 +130,11 @@ func (server *Server) Init() {
 	server.DOCKER_CLIENT = *docker_client
 	server.DB_CLIENT = *db_client
 	server.ECHO_SERVER = *echo.New()
+
+	// Initiating middlewares
+	server.ECHO_SERVER.Pre(middleware.RemoveTrailingSlash())
+	server.ECHO_SERVER.Use(middleware.CORS())
+
 
 	// Migrating database
 	server.MigrateDatabaseTables()
