@@ -102,7 +102,13 @@ func (server *Server) createIngressRule(c echo.Context) error {
 		var ingressRuleInConflict IngressRule
 		tx := server.DB_CLIENT.Where("domain_name = ? AND protocol = ? AND port = ?", ingressRule.DomainName, HTTPProtcol, 80).First(&ingressRuleInConflict)
 		if tx.Error == nil {
-			isConflictFound = true
+			isConflictFound = true || isConflictFound
+		}
+		// check for same domain, if found in redirect rules
+		var redirectRuleInConflict RedirectRule
+		tx = server.DB_CLIENT.Where("domain_name = ? AND port = ?", ingressRule.DomainName, ingressRule.Port).First(&redirectRuleInConflict)
+		if tx.Error == nil {
+			isConflictFound = true || isConflictFound
 		}
 	}
 	if ingressRule.Protocol == HTTPSProtcol && ingressRule.Port == 443 {
@@ -110,7 +116,7 @@ func (server *Server) createIngressRule(c echo.Context) error {
 		var ingressRuleInConflict IngressRule
 		tx := server.DB_CLIENT.Where("domain_name = ? AND protocol = ? AND port = ?", ingressRule.DomainName, HTTPSProtcol, 443).First(&ingressRuleInConflict)
 		if tx.Error == nil {
-			isConflictFound = true
+			isConflictFound = true || isConflictFound
 		}
 	}
 	if !isConflictFound {
@@ -119,12 +125,12 @@ func (server *Server) createIngressRule(c echo.Context) error {
 		if ingressRule.Protocol == HTTPProtcol {
 			tx := server.DB_CLIENT.Where("domain_name = ? AND protocol = ? AND port = ? AND service_name = ? AND service_port = ?", ingressRule.DomainName, ingressRule.Protocol, ingressRule.Port, ingressRule.ServiceName, ingressRule.ServicePort).First(&ingressRuleInConflict)
 			if tx.Error == nil {
-				isConflictFound = true
+				isConflictFound = true || isConflictFound
 			}
 		} else {
 			tx := server.DB_CLIENT.Where("port = ?", ingressRule.Port).First(&ingressRuleInConflict)
 			if tx.Error == nil {
-				isConflictFound = true
+				isConflictFound = true || isConflictFound
 			}
 		}
 	}

@@ -85,6 +85,15 @@ func (server *Server) createRedirectRule(c echo.Context) error {
 			"message": "Failed to create redirect rule",
 		})
 	}
+	// check for same domain, if found
+	var ingressRuleInConflict IngressRule
+	tx2 := server.DB_CLIENT.Where("domain_name = ? AND protocol = ? AND port = ?", redirectRule.DomainName, HTTPProtcol, redirectRule.Port).First(&ingressRuleInConflict)
+	if tx2.Error != nil {
+		return c.JSON(400, map[string]interface{}{
+			"error":   "DomainName already exists as ingress rule",
+			"message": "Failed to create redirect rule",
+		})
+	}
 	// create redirect rule
 	redirectRule.Status = RedirectRuleStatusPending
 	redirectRule.UpdatedAt = time.Now()
