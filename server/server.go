@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	DOCKER "swiftwave/m/container_manager"
 	DOCKER_CONFIG_GENERATOR "swiftwave/m/docker_config_generator"
 	HAPROXY "swiftwave/m/haproxy_manager"
@@ -59,8 +60,9 @@ func (server *Server) Init() {
 	server.SWARM_NETWORK = os.Getenv("SWARM_NETWORK")
 	server.HAPROXY_SERVICE = os.Getenv("HAPROXY_SERVICE_NAME")
 	restricted_ports_str := os.Getenv("RESTRICTED_PORTS")
+	restricted_ports_str_split := strings.Split(restricted_ports_str, ",")
 	restricted_ports := []int{}
-	for _, port := range restricted_ports_str {
+	for _, port := range restricted_ports_str_split {
 		port_int, err := strconv.Atoi(string(port))
 		if err != nil {
 			panic(err)
@@ -72,6 +74,7 @@ func (server *Server) Init() {
 	if err != nil {
 		panic(err)
 	}
+	server.SESSION_TOKENS = make(map[string]time.Time)
 	server.SESSION_TOKEN_EXPIRY_MINUTES = token_expiry_minutes
 	// Initiating database client
 	db_type := os.Getenv("DATABASE_TYPE")
@@ -140,8 +143,8 @@ func (server *Server) Init() {
 	server.ECHO_SERVER = *echo.New()
 
 	// Initiating middlewares
-	server.ECHO_SERVER.Use(middleware.CORS())
 	server.ECHO_SERVER.Pre(middleware.RemoveTrailingSlash())
+	server.ECHO_SERVER.Use(middleware.CORS())
 	server.ECHO_SERVER.Pre(server.authMiddleware)
 
 	// Migrating database

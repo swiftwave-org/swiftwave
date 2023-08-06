@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/base64"
 	"net/http"
 	"os"
 	"strings"
@@ -32,9 +33,15 @@ func (server *Server) authLogin(c echo.Context) error {
 	}
 	// fetch username and hashed password from env
 	envUsername := os.Getenv("ADMIN_USERNAME")
-	envHashedPassword := os.Getenv("ADMIN_PASSWORD")
-	envHashedPasswordBytes := []byte(envHashedPassword)
-	if err := bcrypt.CompareHashAndPassword(envHashedPasswordBytes, []byte(password)); err != nil && username != envUsername {
+	envHashedBase64Password := os.Getenv("ADMIN_PASSWORD")
+	envHashedPasswordBytes, err := base64.StdEncoding.DecodeString(envHashedBase64Password)
+	if err != nil {
+		return c.JSON(500, map[string]interface{}{
+			"error":   "internal server error",
+			"message": "internal server error",
+		})
+	}
+	if err := bcrypt.CompareHashAndPassword(envHashedPasswordBytes, []byte(password)); err != nil || username != envUsername {
 		return c.JSON(401, map[string]interface{}{
 			"error":   "invalid username or password",
 			"message": "invalid username or password",
@@ -104,7 +111,8 @@ func (server *Server) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		// whitelist routes
 		// - /auth/login
 		// - /.well-known
-		if c.Path() == "/auth/login" || strings.HasPrefix(c.Path(), "/.well-known") {
+		path := c.Request().URL.Path
+		if path == "/auth/login" || strings.HasPrefix(path, "/.well-known") {
 			return next(c)
 		}
 		// check if token is valid

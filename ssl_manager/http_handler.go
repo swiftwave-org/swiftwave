@@ -25,5 +25,5 @@ func (s Manager) dnsConfigurationPreAuthorizeHttpHandler(c echo.Context) error {
 // Init http handlers
 func (s Manager) InitHttpHandlers(e *echo.Echo) {
 	e.GET("/.well-known/acme-challenge/:token", s.acmeHttpHandler)
-	e.GET("/.well-known/pre-authorize/", s.dnsConfigurationPreAuthorizeHttpHandler)
+	e.GET("/.well-known/pre-authorize", s.dnsConfigurationPreAuthorizeHttpHandler)
 }

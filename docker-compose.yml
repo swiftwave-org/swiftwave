@@ -22,7 +22,7 @@ services:
     environment:
       - PORT=3333
       - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=$2y$15$QNxoy6BWKiqvPE9aoadRrexi/H13d/FBwKJTdXcjxWrMuT8ZeAw7y
+      - ADMIN_PASSWORD=JDJhJDE2JHh6VEVLTm9IVldpdm9TemlMWjZhNGU2eldVV0d3RlpNYXc5eFBRNDZHaFF6SDlxcktIZkND
       - CODE_TARBALL_DIR=/data/tarball
       - SWARM_NETWORK=swiftwave_swarm_network
       - HAPROXY_SERVICE_NAME=swiftwave_haproxy
