@@ -17,6 +17,7 @@ services:
         protocol: tcp
         mode: ingress
     dns:
+      - "127.0.0.11" 
       - "1.1.1.1"
     environment:
       - PORT=3333
@@ -54,6 +55,9 @@ services:
       - controlplane_network
   redis:
     image: "redis:alpine"
+    command: sh -c "redis-server --appendonly yes"
+    volumes:
+      - /home/ubuntu/app/redis_data:/data
     deploy:
       mode: global
       placement:
