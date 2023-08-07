@@ -187,14 +187,16 @@ func (server *Server) deployApplication(c echo.Context) error {
 			"message": "missing parameters",
 		})
 	}
+	var gitCredential GitCredential = GitCredential{}
 	// Check if git credential exists
-	var gitCredential GitCredential
-	tx := server.DB_CLIENT.Where("id = ?", deployRequest.GitCredentialID).First(&gitCredential)
-	if tx.Error != nil {
-		log.Println(err)
-		return c.JSON(400, map[string]string{
-			"message": "git credential not found",
-		})
+	if deployRequest.ApplicationSourceType == ApplicationSourceTypeGit {
+		tx := server.DB_CLIENT.Where("id = ?", deployRequest.GitCredentialID).First(&gitCredential)
+		if tx.Error != nil {
+			log.Println(err)
+			return c.JSON(400, map[string]string{
+				"message": "git credential not found",
+			})
+		}
 	}
 	// Check if tarball exists
 	if deployRequest.ApplicationSourceType == ApplicationSourceTypeTarball {
