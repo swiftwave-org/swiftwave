@@ -256,6 +256,7 @@ func (server *Server) deployApplication(c echo.Context) error {
 			Dockerfile:           deployRequest.Dockerfile,
 			Image:                "",
 			Status:               ApplicationStatusPending,
+			Replicas:             deployRequest.Replicas,
 		}
 		if err := tx.Create(&application).Error; err != nil {
 			return err
