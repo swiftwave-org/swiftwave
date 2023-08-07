@@ -10,4 +10,5 @@ RUN mkdir /app
 RUN mkdir /data
 WORKDIR /app
 COPY --from=build-env /src/goapp /app/goapp
+RUN apt-get update && apt-get install -y ca-certificates
 ENTRYPOINT /app/goapp
