@@ -176,6 +176,9 @@ func (server *Server) Start() {
 	server.InitIngressRestAPI()
 	server.InitRedirectRestAPI()
 
+	// Create default git user
+	server.CreateDefaultGitUser()
+
 	// Start worker consumers
 	err := server.StartWorkerConsumers()
 	if err != nil {

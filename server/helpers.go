@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 )
@@ -24,4 +25,21 @@ func (s *Server) AddLogToApplicationBuildLog(log_id string, message string, logl
 	}
 	logRecord.Logs += fmt.Sprintf("\n[%s]-[%s] %s", time.Now(), strings.ToUpper(loglevel), message)
 	s.DB_CLIENT.Save(&logRecord)
+}
+
+
+func (s *Server) CreateDefaultGitUser(){
+	var git_credential GitCredential
+	tx := s.DB_CLIENT.Where("name = ?", "default").First(&git_credential)
+	if tx.Error != nil {
+		log.Println("`default` git user not found, creating...")
+		git_credential.Name = "default"
+		git_credential.Username = ""
+		git_credential.Password = ""
+		tx2 := s.DB_CLIENT.Create(&git_credential)
+		if tx2.Error != nil {
+			log.Println("Failed to create `default` git user")
+			panic(tx2.Error)
+		}
+	}
 }
