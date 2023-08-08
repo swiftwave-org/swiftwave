@@ -10,7 +10,7 @@ import (
 func (server *Server) InitPersistentVolumeAPI() {
 	server.ECHO_SERVER.GET("/volumes", server.GetVolumes)
 	server.ECHO_SERVER.POST("/volumes", server.CreateVolume)
-	server.ECHO_SERVER.DELETE("/volumes", server.DeleteVolume)
+	server.ECHO_SERVER.DELETE("/volumes/:name", server.DeleteVolume)
 }
 
 // GET /volumes
