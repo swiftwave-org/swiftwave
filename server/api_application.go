@@ -215,6 +215,14 @@ func (server *Server) deployApplication(c echo.Context) error {
 			})
 		}
 	}
+	// Check if volume exists
+	for _, volume_name := range deployRequest.Volumes {
+		if server.DOCKER_MANAGER.ExistsVolume(volume_name) == false {
+			return c.JSON(400, map[string]string{
+				"message": volume_name + " : volume not exists",
+			})
+		}
+	}
 
 	var application Application
 	var applicationSource ApplicationSource
@@ -245,6 +253,10 @@ func (server *Server) deployApplication(c echo.Context) error {
 		if err != nil {
 			return err
 		}
+		volumes, err := json.Marshal(deployRequest.Volumes)
+		if err != nil {
+			return err
+		}
 		// Create application
 		application = Application{
 			ID:                   0,
@@ -253,6 +265,7 @@ func (server *Server) deployApplication(c echo.Context) error {
 			SourceID:             applicationSource.ID,
 			EnvironmentVariables: string(envVariables),
 			BuildArgs:            string(buildArgs),
+			Volumes:              string(volumes),
 			Dockerfile:           deployRequest.Dockerfile,
 			Image:                "",
 			Status:               ApplicationStatusPending,

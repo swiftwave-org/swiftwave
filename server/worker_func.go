@@ -274,6 +274,25 @@ func (s *Server) ProcessDeployServiceRequestFromQueue(app_id uint) error {
 		failApplicationDeployUpdateStatus(&application, s.DB_CLIENT)
 		return err
 	}
+	// Volumes
+	var volumeMountsJson map[string]string = make(map[string]string)
+	err = json.Unmarshal([]byte(application.Volumes), &volumeMountsJson)
+	if err != nil {
+		log.Println("Failed to marshal volumes")
+		failApplicationDeployUpdateStatus(&application, s.DB_CLIENT)
+		return err
+	}
+
+	var volumeMounts []DOCKER_MANAGER.VolumeMount = make([]DOCKER_MANAGER.VolumeMount, 0)
+	for _, volume := range volumeMountsJson {
+		volumeMounts = append(volumeMounts, DOCKER_MANAGER.VolumeMount{
+			Source: volume,
+			Target: volumeMountsJson[volume],
+			ReadOnly: false,
+		})
+	}
+	
+
 	// Deploy service
 	service := DOCKER_MANAGER.Service{
 		Name:         application.ServiceName,
@@ -282,7 +301,7 @@ func (s *Server) ProcessDeployServiceRequestFromQueue(app_id uint) error {
 		Env:          environmentVariables,
 		Networks:     []string{s.SWARM_NETWORK},
 		Replicas:     uint64(application.Replicas),
-		VolumeMounts: []DOCKER_MANAGER.VolumeMount{},
+		VolumeMounts: volumeMounts,
 	}
 	err = s.DOCKER_MANAGER.CreateService(service)
 	if err != nil {

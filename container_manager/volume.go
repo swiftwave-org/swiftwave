@@ -33,3 +33,16 @@ func (m Manager) ExistsVolume(id string) bool {
 	fmt.Println(d)
 	return err == nil
 }
+
+// Fetch all volumes
+func (m Manager) FetchVolumes() ([]string, error) {
+	volumes, err := m.client.VolumeList(m.ctx, volume.ListOptions{})
+	if err != nil {
+		return nil, errors.New("error fetching volumes " + err.Error())
+	}
+	var volumeNames []string = make([]string, len(volumes.Volumes))
+	for i , v := range volumes.Volumes {
+		volumeNames[i] = v.Name
+	}
+	return volumeNames, nil
+}

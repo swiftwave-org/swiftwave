@@ -68,6 +68,7 @@ type Application struct {
 	Image                string            `json:"image"`
 	BuildArgs            string            `json:"build_args" validate:"required"`
 	EnvironmentVariables string            `json:"environment_variables" validate:"required"`
+	Volumes              string            `json:"volumes" validate:"required"`
 	Dockerfile           string            `json:"dockerfile" validate:"required"`
 	Replicas             uint              `json:"replicas"`
 	Status               ApplicationStatus `json:"status"`
@@ -169,6 +170,7 @@ type ApplicationDeployRequest struct {
 	Dockerfile            string                `json:"dockerfile" validate:"required"`
 	EnvironmentVariables  map[string]string     `json:"environment_variables" validate:"required"`
 	BuildArgs             map[string]string     `json:"build_args" validate:"required"`
+	Volumes               map[string]string     `json:"volumes"`
 	DockerImage           string                `json:"docker_image"`
 	Replicas              uint                  `json:"replicas"`
 }

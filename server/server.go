@@ -175,6 +175,7 @@ func (server *Server) Start() {
 	server.InitGitRestAPI()
 	server.InitIngressRestAPI()
 	server.InitRedirectRestAPI()
+	server.InitPersistentVolumeAPI()
 
 	// Create default git user
 	server.CreateDefaultGitUser()
