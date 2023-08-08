@@ -26,7 +26,7 @@ func (server *Server) GetVolumes(c echo.Context) error {
 
 // POST /volumes
 func (server *Server) CreateVolume(c echo.Context) error {
-	volume_name := c.QueryParam("name")
+	volume_name := c.FormValue("name")
 	volume_name = sanitizeVolumeName(volume_name)
 	if volume_name == "" {
 		return c.JSON(400, map[string]interface{}{
