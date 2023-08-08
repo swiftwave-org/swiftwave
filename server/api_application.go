@@ -216,7 +216,7 @@ func (server *Server) deployApplication(c echo.Context) error {
 		}
 	}
 	// Check if volume exists
-	for _, volume_name := range deployRequest.Volumes {
+	for volume_name := range deployRequest.Volumes {
 		if server.DOCKER_MANAGER.ExistsVolume(volume_name) == false {
 			return c.JSON(400, map[string]string{
 				"message": volume_name + " : volume not exists",
