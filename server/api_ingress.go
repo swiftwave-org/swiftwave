@@ -122,7 +122,7 @@ func (server *Server) createIngressRule(c echo.Context) error {
 	if !isConflictFound {
 		// check for same domain, protocol and port, if found
 		var ingressRuleInConflict IngressRule
-		if ingressRule.Protocol == HTTPProtcol {
+		if ingressRule.Protocol == HTTPProtcol || ingressRule.Protocol == HTTPSProtcol {
 			tx := server.DB_CLIENT.Where("domain_name = ? AND protocol = ? AND port = ? AND service_name = ? AND service_port = ?", ingressRule.DomainName, ingressRule.Protocol, ingressRule.Port, ingressRule.ServiceName, ingressRule.ServicePort).First(&ingressRuleInConflict)
 			if tx.Error == nil {
 				isConflictFound = true || isConflictFound
