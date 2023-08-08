@@ -314,6 +314,14 @@ func (server *Server) deleteApplication(c echo.Context) error {
 			"message": "failed to get application",
 		})
 	}
+	// Verify if there is no ingress rule
+	var ingressRule IngressRule
+	tx = server.DB_CLIENT.Where("service_name = ?", application.ServiceName).First(&ingressRule)
+	if tx.Error == nil {
+		return c.JSON(500, map[string]string{
+			"message": "failed ! ingress rule exists. delete ingress rule first",
+		})
+	}
 	// Delete application
 	tx = server.DB_CLIENT.Delete(&application)
 	if tx.Error != nil {
