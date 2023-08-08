@@ -69,7 +69,7 @@ func (server *Server) createIngressRule(c echo.Context) error {
 	}
 	// Verify if service exists
 	var application Application
-	tx := server.DB_CLIENT.Where("name = ?", ingressRule.ServiceName).First(&application)
+	tx := server.DB_CLIENT.Where("service_name = ?", ingressRule.ServiceName).First(&application)
 	if tx.Error != nil {
 		return c.JSON(400, map[string]interface{}{
 			"message": "Service not found",
