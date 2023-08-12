@@ -17,6 +17,7 @@ import (
 func (server *Server) InitDomainRestAPI() {
 	server.ECHO_SERVER.GET("/domains", server.getDomains)
 	server.ECHO_SERVER.GET("/domains/:id", server.getDomain)
+	server.ECHO_SERVER.GET("/domains/shortlist", server.getShortlistedDomains)
 	server.ECHO_SERVER.POST("/domains", server.createDomain)
 	server.ECHO_SERVER.DELETE("/domains/:id", server.deleteDomain)
 	server.ECHO_SERVER.POST("/domains/:id/ssl/issue", server.issueDomainSSL)
@@ -58,6 +59,27 @@ func (server *Server) getDomain(c echo.Context) error {
 		return nil
 	}
 	return c.JSON(200, domain)
+}
+
+// GET /domains/shortlist
+func (server *Server) getShortlistedDomains(c echo.Context) error {
+	// Fetch all domains from database
+	var domains []Domain
+	tx := server.DB_CLIENT.Select("name").Find(&domains)
+	if tx.Error != nil {
+		c.JSON(500, map[string]interface{}{
+			"error":   tx.Error.Error(),
+			"message": "Failed to fetch domains from database",
+		})
+		return nil
+	}
+	// Filter domains
+	var shortlistedDomains []string
+	for _, domain := range domains {
+		shortlistedDomains = append(shortlistedDomains, domain.Name)
+	}
+	// Return domains
+	return c.JSON(200, shortlistedDomains)
 }
 
 // POST /domains
