@@ -115,6 +115,10 @@ func (server *Server) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if path == "/auth/login" || strings.HasPrefix(path, "/.well-known") {
 			return next(c)
 		}
+		// whitelist OPTIONS method
+		if c.Request().Method == "OPTIONS" {
+			return next(c)
+		}
 		// check if token is valid
 		if _, ok := server.SESSION_TOKENS[token]; ok {
 			return next(c)
