@@ -74,7 +74,7 @@ func (server *Server) getShortlistedDomains(c echo.Context) error {
 		return nil
 	}
 	// Filter domains
-	var shortlistedDomains []string
+	var shortlistedDomains []string = []string{}
 	for _, domain := range domains {
 		shortlistedDomains = append(shortlistedDomains, domain.Name)
 	}
