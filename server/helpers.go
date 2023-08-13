@@ -43,3 +43,17 @@ func (s *Server) CreateDefaultGitUser(){
 		}
 	}
 }
+
+
+func (s ApplicationSource) GetSourceSummary() string {
+	if s.Type == ApplicationSourceTypeGit {
+		return fmt.Sprintf("%s Branch: %s", s.RepositoryURL(), s.Branch)
+	}
+	if s.Type == ApplicationSourceTypeTarball {
+		return "Source Code"
+	}
+	if s.Type == ApplicationSourceTypeImage {
+		return fmt.Sprintf("Image: %s", s.DockerImage)
+	}
+	return "Unknown"
+}

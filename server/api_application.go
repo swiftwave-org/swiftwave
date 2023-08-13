@@ -26,6 +26,7 @@ func (server *Server) InitApplicationRestAPI() {
 	server.ECHO_SERVER.POST("/applications/deploy/dockerconfig/generate/custom", server.generateDockerConfigFromCustomDockerfile)
 	server.ECHO_SERVER.POST("/applications/deploy", server.deployApplication)
 	server.ECHO_SERVER.GET("/applications", server.getApplications)
+	server.ECHO_SERVER.GET("/applications/summary", server.getApplicationsSummary)
 	server.ECHO_SERVER.GET("/applications/:id", server.getApplication)
 	server.ECHO_SERVER.GET("/applications/:id/status", server.getApplicationStatus)
 	server.ECHO_SERVER.PUT("/applications/:id", server.updateApplication)
@@ -215,7 +216,11 @@ func (server *Server) deployApplication(c echo.Context) error {
 			})
 		}
 	}
+
 	// Check if volume exists
+	if deployRequest.Volumes == nil {
+		deployRequest.Volumes = make(map[string]string, 0)
+	}
 	for volume_name := range deployRequest.Volumes {
 		if server.DOCKER_MANAGER.ExistsVolume(volume_name) == false {
 			return c.JSON(400, map[string]string{
@@ -245,9 +250,15 @@ func (server *Server) deployApplication(c echo.Context) error {
 		if err := tx.Create(&applicationSource).Error; err != nil {
 			return err
 		}
+		if deployRequest.EnvironmentVariables == nil {
+			deployRequest.EnvironmentVariables = make(map[string]string, 0)
+		}
 		envVariables, err := json.Marshal(deployRequest.EnvironmentVariables)
 		if err != nil {
 			return err
+		}
+		if deployRequest.BuildArgs == nil {
+			deployRequest.BuildArgs = make(map[string]string, 0)
 		}
 		buildArgs, err := json.Marshal(deployRequest.BuildArgs)
 		if err != nil {
@@ -300,6 +311,29 @@ func (server *Server) getApplications(c echo.Context) error {
 		})
 	}
 	return c.JSON(200, applications)
+}
+
+// GET /applications/summary
+func (server *Server) getApplicationsSummary(c echo.Context) error {
+	var applications []Application
+	tx := server.DB_CLIENT.Preload("Source.GitCredential").Preload(clause.Associations).Find(&applications)
+	if tx.Error != nil {
+		log.Println(tx.Error)
+		return c.JSON(500, map[string]string{
+			"message": "failed to get applications",
+		})
+	}
+	var applicationSummaries []ApplicationSummary = make([]ApplicationSummary, 0)
+	for _, application := range applications {
+		applicationSummaries = append(applicationSummaries, ApplicationSummary{
+			ID:          application.ID,
+			ServiceName: application.ServiceName,
+			Source:      application.Source.GetSourceSummary(),
+			Replicas:    application.Replicas,
+			Status:      application.Status,
+		})
+	}
+	return c.JSON(200, applicationSummaries)
 }
 
 // GET /application/:id
