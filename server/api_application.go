@@ -632,7 +632,7 @@ func (server *Server) getApplicationServiceNames(c echo.Context) error {
 			"message": "failed to get application",
 		})
 	}
-	var serviceNames []string
+	var serviceNames []string = []string{}
 	for _, application := range applications {
 		serviceNames = append(serviceNames, application.ServiceName)
 	}
