@@ -4,7 +4,7 @@
 
 <img align="right" src="https://avatars.githubusercontent.com/u/140562189?s=50&v=4" height="100px"/>
 
-### 💁 SwiftWave is a self-hosted lightweight PaaS solution to host and manage your applications
+### 💁 SwiftWave is a self-hosted lightweight PaaS solution to deploy and manage your applications
 * Built on top of docker swarm to keep it lightweight
 * Comes with HAPRoxy with Auto configured TCP and HTTP Reverse Proxy
 * Auto SSL Certificate generation support with Lets Encrypt
