@@ -1,16 +1,52 @@
-### On the way
-## ![swiftwave](https://avatars.githubusercontent.com/u/140562189?s=50&v=4) Swiftwave
-<p>
- <img src="https://avatars.githubusercontent.com/u/140562189?s=50&v=4" />
- Swiftwave
-</p>
+# 🚀 Swiftwave [Beta]
 
 [![Publish Docker](https://github.com/swiftwave-org/swiftwave/actions/workflows/docker-publish.yml/badge.svg?branch=main)](https://github.com/swiftwave-org/swiftwave/actions/workflows/docker-publish.yml) [![Deploy Dashboard](https://github.com/swiftwave-org/swiftwave-dashboard/actions/workflows/deploy-website.yml/badge.svg?branch=master)](https://github.com/swiftwave-org/swiftwave-dashboard/actions/workflows/deploy-website.yml) ![Dashboard Uptime](https://img.shields.io/endpoint?labelColor=394149&label=Dashboard+Uptime&url=https://raw.githubusercontent.com/swiftwave-org/upptime/master/api/swiftwave-dashboard/uptime.json) ![Dashboard Response Time](https://img.shields.io/endpoint?labelColor=394149&label=Dashboard+Response+Time&url=https://raw.githubusercontent.com/swiftwave-org/upptime/master/api/swiftwave-dashboard/uptime.json) ![Proxy Uptime](https://img.shields.io/endpoint?labelColor=394149&label=Proxy+Uptime&url=https://raw.githubusercontent.com/swiftwave-org/upptime/master/api/swiftwave-secured-proxy/uptime.json) ![Proxy Response Time](https://img.shields.io/endpoint?labelColor=394149&label=Proxy+Response+Time&url=https://raw.githubusercontent.com/swiftwave-org/upptime/master/api/swiftwave-secured-proxy/response-time.json)
 
-### Quick Installation
-Run below command
+<img align="right" src="https://avatars.githubusercontent.com/u/140562189?s=50&v=4" height="100px"/>
+
+#### 💁 SwiftWave is a self-hosted lightweight PaaS solution to host and manage your applications
+* Built on top of docker swarm to keep it lightweight
+* Comes with HAPRoxy with Auto configured TCP and HTTP Reverse Proxy
+* Auto SSL Certificate generation support with Lets Encrypt
+* Supports large variety of frameworks and applications to deploy
+* Deploy application directly by 
+    * Git Repository [Github & Gitlab Supported]
+    * Upload Source Code
+    * Docker Image URL
+
+#### 🥅 Our Goals
+* Keep it open-source and maintained by the community
+* As easy as Heroku but flexible and scalable as manual deployment in AWS, GCP, Digitalocean with no vendor locking
+* Very lightweight [Must run in a 1GB RAM 1 vCPU Cloud Instance with couple of applications]
+    > You can get free  cloud instance from AWS [1 year], Digitalocean[1 year with Github Education] & Oracle Cloud [Lifetime Free]
+
+#### 🤔 How to Install ?
+`Swiftwave` can be installed at one click.
+
+Run this command in bash
 ```bash
  curl -L get.swiftwave.org | bash
 ```
 
 That's all 🍻
+Wait for ⏰  few minutes and it will bcome online .
+
+#### 👀 How to interact with Swiftwave ?
+##### Introducting `Swiftwave Dashboard`
+![Swiftwave Dashboard](https://github.com/swiftwave-org/swiftwave/assets/57363826/a85c2b14-dd32-448d-a5a1-81bc01d97ef5)
+##### Steps
+- Go to [Swiftwave Dashboard](https://dashboard.swiftwave.org/)
+- At the bottom of the page, from the tab update IP address of your server and port (default port 3333)
+- Enter the `username` and `password` you have set during installation of software
+- That's all 🍻
+
+#### Documentation
+We are working on the development and documentation of the project. We target to release the documentation soon to make it easy for contributors
+
+#### Disclaimer
+This software is still under development. But if we can work towards this, we can make it a good solution.
+
+#### Planned Upcoming Features
+[ ] Make it robust to auto sync stats with containerization tool (docker, podman)
+[ ] Lightweight CI support for Git Repo
+
