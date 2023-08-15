@@ -50,3 +50,8 @@ This software is still under development. But if we can work towards this, we ca
 - [ ] Make it robust to auto sync stats with containerization tool (docker, podman)
 - [ ] Lightweight CI support for Git Repo
 
+
+#### Support Us
+- Support us by ⭐ this repo and share it with your friends
+- You can also sponsor to keep development of this software running . 
+   - Sponsor [@tanmoysrt](https://github.com/sponsors/tanmoysrt)
