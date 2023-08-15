@@ -32,7 +32,7 @@ That's all 🍻
 Wait for ⏰  few minutes and it will bcome online .
 
 ### 👀 How to interact with Swiftwave ?
-#### Introducting `Swiftwave Dashboard`
+#### Introducting `Swiftwave Dashboard` ([Source Code](https://github.com/swiftwave-org/swiftwave-dashboard))
 ![Swiftwave Dashboard](https://github.com/swiftwave-org/swiftwave/assets/57363826/a85c2b14-dd32-448d-a5a1-81bc01d97ef5)
 #### Steps
 - Go to [Swiftwave Dashboard](https://dashboard.swiftwave.org/)
