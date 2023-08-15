@@ -52,6 +52,7 @@ This software is still under development. But if we can work towards this, we ca
 
 
 #### Support Us
-- Support us by ⭐ this repo and share it with your friends
+- Support our work by ⭐ this repo and share it in your community
+- Contribute to our codebase to make it great
 - You can also sponsor to keep development of this software running . 
    - Sponsor [@tanmoysrt](https://github.com/sponsors/tanmoysrt)
