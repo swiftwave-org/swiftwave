@@ -47,6 +47,6 @@ We are working on the development and documentation of the project. We target to
 This software is still under development. But if we can work towards this, we can make it a good solution.
 
 #### Planned Upcoming Features
-[ ] Make it robust to auto sync stats with containerization tool (docker, podman)
-[ ] Lightweight CI support for Git Repo
+- [ ] Make it robust to auto sync stats with containerization tool (docker, podman)
+- [ ] Lightweight CI support for Git Repo
 
