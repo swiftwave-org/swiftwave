@@ -90,7 +90,7 @@ services:
 
 templates:
   sinatra:
-    name: sinatra
+    name: sinatra.Dockerfile
     variables:
       PORT:
         type: string
@@ -105,7 +105,7 @@ templates:
         description: Server for sinatra
         default: thin
   golang:
-    name: golang
+    name: golang.Dockerfile
     variables:
       PORT:
         type: string
@@ -124,7 +124,7 @@ templates:
         description: Name for the golang module
         default: app
   reactjs:
-    name: reactjs
+    name: reactjs.Dockerfile
     variables:
       BUILD_COMMAND:
         type: string
@@ -135,7 +135,7 @@ templates:
         description: Build directory for reactjs
         default: build
   nextjs:
-    name: nextjs
+    name: nextjs.Dockerfile
     variables:
       BUILD_COMMAND:
         type: string
@@ -146,7 +146,7 @@ templates:
         description: Port for nextjs
         default: 3000
   expressjs:
-    name: expressjs
+    name: expressjs.Dockerfile
     variables:
       PORT:
         type: string
