@@ -29,7 +29,8 @@ Run this command in bash
 ```
 
 That's all 🍻
-Wait for ⏰  few minutes and it will bcome online .
+
+Wait for ⏰  few minutes and it will become online .
 
 ### 👀 How to interact with Swiftwave ?
 #### Introducting `Swiftwave Dashboard` ([Source Code](https://github.com/swiftwave-org/swiftwave-dashboard))
