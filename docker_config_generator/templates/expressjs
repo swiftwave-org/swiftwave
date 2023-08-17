@@ -26,4 +26,4 @@ COPY --from=deps /app/node_modules ./node_modules
 USER expressjs
 EXPOSE ${PORT}
 ENV PORT ${PORT}
-CMD ["npm", "start"]
+CMD ["npm", "run", "start"]

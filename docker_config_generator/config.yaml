@@ -89,6 +89,21 @@ services:
     description: Golang based web application
 
 templates:
+  sinatra:
+    name: sinatra
+    variables:
+      PORT:
+        type: string
+        description: Port for sinatra
+        default: 4567
+      BUILDPLATFORM:
+        type: string
+        description: Build platform for sinatra
+        default: x86_64-linux
+      SERVER: 
+        type: string
+        description: Server for sinatra
+        default: thin
   golang:
     name: golang
     variables:
@@ -100,6 +115,14 @@ templates:
         type: string
         description: Build command for golang
         default: go build -o app
+      CGO_ENABLED:
+        type: string
+        description: CGO_ENABLED for golang
+        default: 0
+      NAME: 
+        type: string
+        description: Name for the golang module
+        default: app
   reactjs:
     name: reactjs
     variables:
