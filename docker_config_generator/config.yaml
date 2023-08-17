@@ -16,6 +16,7 @@ service_order:
   - reactjs
   - vuejs
   - expressjs
+  - golang
 
 lookup_files:
   - package.json
@@ -28,6 +29,8 @@ lookup_files:
   - build.gradle
   - build.gradle.kts
   - pom.xml
+  - go.mod
+  - go.sum
 
 services:
   expressjs:
@@ -81,8 +84,22 @@ services:
   springboot-maven:
     name: Spring Boot + Maven
     description: Spring Boot based web application with Maven
+  golang:
+    name: Golang
+    description: Golang based web application
 
 templates:
+  golang:
+    name: golang
+    variables:
+      PORT:
+        type: string
+        description: Port for golang
+        default: 8080
+      BUILD_COMMAND:
+        type: string
+        description: Build command for golang
+        default: go build -o app
   reactjs:
     name: reactjs
     variables:
@@ -268,3 +285,8 @@ identifiers:
     - file: pom.xml
       keywords:
         - org.springframework
+  golang:
+  - selector:
+    - file: go.mod
+      keywords:
+        - module
