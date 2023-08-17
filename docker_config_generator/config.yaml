@@ -122,6 +122,13 @@ templates:
         type: string
         description: Port for nextjs
         default: 3000
+  expressjs:
+    name: expressjs
+    variables:
+      PORT:
+        type: string
+        description: Port for expressjs
+        default: 3000
 
 identifiers:
   nextjs:
