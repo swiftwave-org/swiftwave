@@ -5,6 +5,8 @@ FROM python:3.10-alpine3.18 AS build
 ARG DEPENDENCY_FILE=requirements.txt
 ARG PEX_WRAPPER="pex_wrapper"
 
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # -- deps upgrades and installation --
 RUN apk add -y --update --no-cache gcc python3 python3-dev py3-pip musl-dev linux-headers
@@ -18,6 +20,9 @@ RUN pex -r /source/${DEPENDENCY_FILE} -o /source/${PEX_WRAPPER}
 # -- release stager --
 FROM python:3.10-alpine3.18 AS final
 RUN apk upgrade --no-cache
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # -- args
 ARG PORT=80
