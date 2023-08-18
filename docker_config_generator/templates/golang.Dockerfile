@@ -1,8 +1,9 @@
 FROM golang:1.20-alpine AS builder
 
-ARG BUILD_COMMAND="go build -o"
+ARG BUILD_COMMAND="go build -o app ."
 ARG NAME="app"
-ARG CGO_ENABLED=0
+
+ENV CGO_ENABLED=0
 RUN apk update && apk --no-cache upgrade
 RUN apk --no-cache add ca-certificates git
 WORKDIR /build
@@ -11,7 +12,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN ${CGO_ENABLED} ${BUILD_COMMAND} ${NAME} .
+RUN ${BUILD_COMMAND}
 
 FROM alpine:latest AS runner
 
@@ -27,4 +28,7 @@ EXPOSE ${PORT}
 ENV PORT ${PORT}
 USER user
 
-ENTRYPOINT ["/user/${NAME}"]
+RUN echo "/user/${NAME}" > /user/entrypoint.sh
+RUN chmod +x /user/entrypoint.sh
+
+ENTRYPOINT ["sh", "-c", "/user/entrypoint.sh"]

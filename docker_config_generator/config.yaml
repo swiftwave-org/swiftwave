@@ -107,22 +107,18 @@ templates:
   golang:
     name: golang.Dockerfile
     variables:
-      PORT:
-        type: string
-        description: Port for golang
-        default: 8080
-      BUILD_COMMAND:
-        type: string
-        description: Build command for golang
-        default: go build -o app
-      CGO_ENABLED:
-        type: string
-        description: CGO_ENABLED for golang
-        default: 0
       NAME: 
         type: string
         description: Name for the golang module
         default: app
+      BUILD_COMMAND:
+        type: string
+        description: Build command for golang
+        default: go build -o app .
+      PORT:
+        type: string
+        description: Port for golang [Ignore if not required]
+        default: 8080
   reactjs:
     name: reactjs.Dockerfile
     variables:
