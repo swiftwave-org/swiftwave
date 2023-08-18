@@ -170,6 +170,21 @@ templates:
         type: string
         description: Exposed Port [Ignore if not required]
         default: 80
+  flask-pip:
+    name: flask-pip.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Port for flask
+        default: 80
+      START_COMMAND:
+        type: string
+        description: Start command for flask
+        default: python app.py
+      PEX_WRAPPER:
+        type: string
+        description: Pex Wrapper Name [Dont' modify]
+        default: pex_wrapper
 
 identifiers:
   nextjs:
