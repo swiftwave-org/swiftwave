@@ -13,7 +13,7 @@ RUN \
 # Production image, copy all the files and run
 FROM node:lts-slim AS runner
 
-ARG PORT=3000
+ARG PORT=80
 
 WORKDIR /app
 ENV NODE_ENV production

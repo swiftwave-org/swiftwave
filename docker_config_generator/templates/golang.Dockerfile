@@ -2,6 +2,7 @@ FROM golang:1.20-alpine AS builder
 
 ARG BUILD_COMMAND="go build -o app ."
 ARG NAME="app"
+ARG PORT="80"
 
 ENV CGO_ENABLED=0
 RUN apk update && apk --no-cache upgrade

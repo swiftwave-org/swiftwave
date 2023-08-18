@@ -117,8 +117,8 @@ templates:
         default: go build -o app .
       PORT:
         type: string
-        description: Port for golang [Ignore if not required]
-        default: 8080
+        description: Exposed Port [Ignore if not required]
+        default: 80
   reactjs:
     name: reactjs.Dockerfile
     variables:
@@ -140,14 +140,14 @@ templates:
       PORT:
         type: string
         description: Port for nextjs
-        default: 3000
+        default: 80
   expressjs:
     name: expressjs.Dockerfile
     variables:
       PORT:
         type: string
         description: Port for expressjs
-        default: 3000
+        default: 80
 
 identifiers:
   nextjs:
