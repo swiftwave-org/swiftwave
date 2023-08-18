@@ -37,6 +37,7 @@ RUN poetry check
 
 # Install Dependencies
 RUN poetry install --no-interaction --no-cache --without dev
+RUN poetry add uvicorn[standard]
 RUN adduser -D user --shell /usr/sbin/nologin \
     && chown -R user:user /app
 # Copy Application
