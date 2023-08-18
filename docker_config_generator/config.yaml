@@ -226,7 +226,11 @@ templates:
       START_COMMAND:
         type: string
         description: Start command for flask
-        default: poetry run python -m flask run app.py
+        default: poetry run flask --app main run --host=0.0.0.0
+      POETRY_VERSION:
+        type: string
+        description: Poetry version
+        default: 1.4.2
   fastapi-poetry:
     name: fastapi-poetry.Dockerfile
     variables:
