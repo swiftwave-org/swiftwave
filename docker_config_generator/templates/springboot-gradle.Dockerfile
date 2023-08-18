@@ -1,12 +1,13 @@
 FROM eclipse-temurin:17-jdk-jammy AS builder
 
-ARG BUILD_COMMAND="./mvnw clean install"
+ARG BUILD_COMMAND="./gradlew build"
 
 WORKDIR /opt/app
-COPY .mvn/ .mvn
-COPY mvnw pom.xml ./
+COPY gradle/ gradle
+COPY gradlew build.gradle 
+COPY settings.gradle ./
 
-RUN /opt/app/mvnw dependency:go-offline
+RUN /opt/app/gradlew dependencies
 
 COPY ./src ./src
 
