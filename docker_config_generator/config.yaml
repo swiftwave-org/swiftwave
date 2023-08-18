@@ -211,7 +211,7 @@ templates:
       START_COMMAND:
         type: string
         description: Start command for flask
-        default: python app.py
+        default: python -m flask --app main run --host=0.0.0.0
       PEX_WRAPPER:
         type: string
         description: Pex Wrapper Name [Dont' modify]

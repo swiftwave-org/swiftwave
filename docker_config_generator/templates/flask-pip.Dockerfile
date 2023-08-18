@@ -26,7 +26,7 @@ ENV PYTHONUNBUFFERED=1
 
 # -- args
 ARG PORT=80
-ARG START_COMMAND="python app.py"
+ARG START_COMMAND="python -m flask --app main run --host=0.0.0.0"
 ARG PEX_WRAPPER="pex_wrapper"
 
 # -- copy from build stage --
