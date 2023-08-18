@@ -237,7 +237,11 @@ templates:
       START_COMMAND:
         type: string
         description: Start command for fastapi
-        default: uvicorn main:app --host=0.0.0.0
+        default: poetry run python -m uvicorn main:app --host=0.0.0.0
+      POETRY_VERSION:
+        type: string
+        description: Poetry version
+        default: 1.4.2
   fastapi-pip:
     name: fastapi-pip.Dockerfile
     variables:
