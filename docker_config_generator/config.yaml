@@ -261,6 +261,17 @@ templates:
         type: string
         description: Pex Wrapper Name [Dont' modify]
         default: pex_wrapper
+  streamlit-poetry:
+    name: streamlit-poetry.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Port for streamlit
+        default: 80
+      START_COMMAND:
+        type: string
+        description: Start command for streamlit
+        default: poetry run streamlit run app.py
 
 identifiers:
   nextjs:
