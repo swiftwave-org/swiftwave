@@ -185,6 +185,17 @@ templates:
         type: string
         description: Pex Wrapper Name [Dont' modify]
         default: pex_wrapper
+  flask-poetry:
+    name: flask-poetry.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Port for flask
+        default: 80
+      START_COMMAND:
+        type: string
+        description: Start command for flask
+        default: poetry run python -m flask run app.py
 
 identifiers:
   nextjs:
