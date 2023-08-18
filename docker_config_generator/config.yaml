@@ -15,7 +15,7 @@ service_order:
   - preactjs
   - reactjs
   - vuejs
-  - expressjs
+  - nodejs
   - golang
 
 lookup_files:
@@ -33,9 +33,9 @@ lookup_files:
   - go.sum
 
 services:
-  expressjs:
-    name: ExpressJS
-    description: Express JS based web application
+  nodejs:
+    name: NodeJS
+    description: Node JS based web application
   reactjs:
     name: ReactJS
     description: React JS based web application
@@ -141,12 +141,12 @@ templates:
         type: string
         description: Port for nextjs
         default: 80
-  expressjs:
-    name: expressjs.Dockerfile
+  nodejs:
+    name: nodejs.Dockerfile
     variables:
       PORT:
         type: string
-        description: Port for expressjs
+        description: Exposed Port [Ignore if not required]
         default: 80
 
 identifiers:
@@ -170,11 +170,10 @@ identifiers:
     - file: package.json
       keywords:
         - vue
-  expressjs:
+  nodejs:
   - selector:
     - file: package.json
       keywords:
-        - express
   flask-pip:
   - selector:
     - file: requirements.txt
