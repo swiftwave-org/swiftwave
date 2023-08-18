@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM ruby:3.2.1 as builder
+FROM --platform=$BUILDPLATFORM ruby:latest as builder
 
 ARG BUILDPLATFORM 
 WORKDIR /usr/src/app
@@ -24,6 +24,7 @@ ENV ENV=production
 ENV BUNDLE_PATH='vendor/bundle'
 ENV BUNDLE_DEPLOYMENT=true 
 ENV BUNDLE_WITHOUT="development:test"
+ENV PORT=${PORT}
 WORKDIR /usr/src/app
 RUN adduser -D user --shell /usr/sbin/nologin \
     && chown user:user /usr/src/app

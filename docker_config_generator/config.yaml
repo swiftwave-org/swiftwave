@@ -104,6 +104,21 @@ templates:
         type: string
         description: Server for sinatra
         default: thin
+  springboot-maven:
+    name: springboot-maven.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Port for springboot
+        default: 8080
+      BUILD_COMMAND:
+        type: string
+        description: Build command for springboot
+        default: ./mvnw clean install
+      JAR_FILE:
+        type: string
+        description: Jar file for springboot
+        default: app.jar
   golang:
     name: golang.Dockerfile
     variables:
