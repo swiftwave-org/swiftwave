@@ -29,15 +29,18 @@ WORKDIR /app
 COPY . /app
 COPY --from=build /source /app/
 
+
 # -- app setup --
 ENV PORT=${PORT}
 EXPOSE ${PORT}
+RUN adduser -D user --shell /usr/sbin/nologin \
+    && chown -R user:user /app
 
 # Set alias
 RUN echo "alias python=/app/pex_wrapper" > /app/entrypoint.sh
 # Setup entrypoint
 RUN echo "${START_COMMAND}" >> /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
-
+USER user
 # Run app
 CMD ["sh", "-c", "/app/entrypoint.sh"]
