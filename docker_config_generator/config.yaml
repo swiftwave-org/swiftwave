@@ -237,7 +237,7 @@ templates:
       START_COMMAND:
         type: string
         description: Start command for fastapi
-        default: uvicorn app.main:app
+        default: uvicorn main:app --host=0.0.0.0
   fastapi-pip:
     name: fastapi-pip.Dockerfile
     variables:
@@ -248,7 +248,7 @@ templates:
       START_COMMAND:
         type: string
         description: Start command for fastapi
-        default: python app.main:app
+        default: python -m uvicorn main:app --host=0.0.0.0
       PEX_WRAPPER:
         type: string
         description: Pex Wrapper Name [Dont' modify]

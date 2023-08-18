@@ -20,7 +20,7 @@ RUN python3 -m venv $POETRY_VENV \
 FROM python-base as final
 
 ARG PORT=80
-ARG START_COMMAND="uvicorn app.main:app"
+ARG START_COMMAND="uvicorn main:app --host=0.0.0.0"
 # Copy Poetry to app image
 COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
 
@@ -43,7 +43,15 @@ RUN adduser -D user --shell /usr/sbin/nologin \
 COPY . /app
 
 # Run Application
-ENV PORT=${PORT}
+ENV UVICORN_PORT=${PORT}
 EXPOSE ${PORT}
+
+# Setup entrypoint
+RUN echo ${START_COMMAND} >> /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# Switch to non-root user
 USER user
-CMD ${START_COMMAND} --host=0.0.0.0 --port=${PORT}
+
+# Run app
+CMD ["sh", "-c", "/app/entrypoint.sh"]
