@@ -89,6 +89,7 @@ services:
     description: Golang based web application
 
 templates:
+
   sinatra:
     name: sinatra.Dockerfile
     variables:
@@ -226,6 +227,32 @@ templates:
         type: string
         description: Start command for flask
         default: poetry run python -m flask run app.py
+  fastapi-poetry:
+    name: fastapi-poetry.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Port for fastapi
+        default: 80
+      START_COMMAND:
+        type: string
+        description: Start command for fastapi
+        default: uvicorn app.main:app
+  fastapi-pip:
+    name: fastapi-pip.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Port for fastapi
+        default: 80
+      START_COMMAND:
+        type: string
+        description: Start command for fastapi
+        default: python app.main:app
+      PEX_WRAPPER:
+        type: string
+        description: Pex Wrapper Name [Dont' modify]
+        default: pex_wrapper
 
 identifiers:
   nextjs:
