@@ -1,1 +1,3 @@
 *.Dockerfile linguist-language=Dockerfile 
+Dockerfile:*.Dockerfile linguist-detectable=true
+Dockerfile:Dockerfile linguist-detectable=true
