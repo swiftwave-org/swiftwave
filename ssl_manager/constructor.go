@@ -31,7 +31,7 @@ func (s *Manager) Init(ctx context.Context, db gorm.DB, options ManagerOptions) 
 			HTTPClient: &http.Client{
 				Transport: &http.Transport{
 					TLSClientConfig: &tls.Config{
-						InsecureSkipVerify: true, // REMOVE THIS FOR PRODUCTION USE!
+						InsecureSkipVerify: false,
 					},
 				},
 			},
