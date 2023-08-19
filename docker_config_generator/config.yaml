@@ -89,28 +89,6 @@ services:
     description: Golang based web application
 
 templates:
-  django-pip:
-    name: django-pip.Dockerfile
-    variables:
-      DEPENDENCY_FILE:
-        type: string
-        description: Dependency file for django
-        default: requirements.txt
-      START_COMMAND:
-        type: string
-        description: Start command [Include migrations as well]
-        default: python manage.py makemigrations && python manage.py migrate && gunicorn <project_name>.wsgi:application --bind 0.0.0.0:80
-  django-poetry:
-    name: django-poetry.Dockerfile
-    variables:
-      START_COMMAND:
-        type: string
-        description: Start command [Include migrations as well]
-        default: poetry run python manage.py makemigrations && poetry run python manage.py migrate && poetry run gunicorn <project_name>.wsgi:application --bind  0.0.0.0:80
-      POETRY_VERSION:
-        type: string
-        description: Poetry version
-        default: 1.4.2
   sinatra:
     name: sinatra.Dockerfile
     variables:
@@ -126,6 +104,13 @@ templates:
         type: string
         description: Server for sinatra
         default: thin
+  rails:
+    name: rails.Dockerfile
+    variables:
+      START_COMMAND:
+        type: string
+        description: Start command for rails
+        default: bundle exec rails server -p 3000 -b '0.0.0.0'
   springboot-maven:
     name: springboot-maven.Dockerfile
     variables:
@@ -222,6 +207,28 @@ templates:
         type: string
         description: Exposed Port [Ignore if not required]
         default: 80
+  django-pip:
+    name: django-pip.Dockerfile
+    variables:
+      DEPENDENCY_FILE:
+        type: string
+        description: Dependency file for django
+        default: requirements.txt
+      START_COMMAND:
+        type: string
+        description: Start command [Include migrations as well]
+        default: python manage.py makemigrations && python manage.py migrate && gunicorn <project_name>.wsgi:application --bind 0.0.0.0:80
+  django-poetry:
+    name: django-poetry.Dockerfile
+    variables:
+      START_COMMAND:
+        type: string
+        description: Start command [Include migrations as well]
+        default: poetry run python manage.py makemigrations && poetry run python manage.py migrate && poetry run gunicorn <project_name>.wsgi:application --bind  0.0.0.0:80
+      POETRY_VERSION:
+        type: string
+        description: Poetry version
+        default: 1.4.2
   flask-pip:
     name: flask-pip.Dockerfile
     variables:
@@ -292,14 +299,26 @@ templates:
       START_COMMAND:
         type: string
         description: Start command for streamlit
-        default: poetry run streamlit run app.py
-  rails:
-    name: rails.Dockerfile
+        default: poetry run streamlit run main.py --server.port $PORT
+      POETRY_VERSION:
+        type: string
+        description: Poetry version
+        default: 1.4.2
+  streamlit-pip:
+    name: streamlit-pip.Dockerfile
     variables:
+      PORT:
+        type: string
+        description: Port for streamlit
+        default: 80
       START_COMMAND:
         type: string
-        description: Start command for rails
-        default: bundle exec rails server -p 3000 -b '0.0.0.0'
+        description: Start command for streamlit
+        default: streamlit run main.py --server.port $PORT
+      PEX_WRAPPER:
+        type: string
+        description: Pex Wrapper Name [Dont' modify]
+        default: pex_wrapper
         
 identifiers:
   nextjs:

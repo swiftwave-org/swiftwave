@@ -24,11 +24,11 @@ RUN chown nodejs:nodejs /app
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
 
-USER nodejs
 EXPOSE ${PORT}
 ENV PORT ${PORT}
 
 RUN echo "${START_COMMAND}" > /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
+USER nodejs
 
 ENTRYPOINT ["sh", "-c", "/app/entrypoint.sh"]

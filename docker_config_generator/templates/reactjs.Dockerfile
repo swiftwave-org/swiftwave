@@ -32,4 +32,5 @@ ARG BUILD_DIRECTORY=build
 COPY --from=builder /app/${BUILD_DIRECTORY} /usr/share/nginx/html
 EXPOSE 80
 ENV PORT 80
+USER nginx
 CMD ["nginx", "-g", "daemon off;"]
