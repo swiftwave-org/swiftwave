@@ -15,7 +15,8 @@ service_order:
   - preactjs
   - reactjs
   - vuejs
-  - expressjs
+  - nodejs
+  - golang
 
 lookup_files:
   - package.json
@@ -28,11 +29,13 @@ lookup_files:
   - build.gradle
   - build.gradle.kts
   - pom.xml
+  - go.mod
+  - go.sum
 
 services:
-  expressjs:
-    name: ExpressJS
-    description: Express JS based web application
+  nodejs:
+    name: NodeJS
+    description: Node JS based web application
   reactjs:
     name: ReactJS
     description: React JS based web application
@@ -81,10 +84,80 @@ services:
   springboot-maven:
     name: Spring Boot + Maven
     description: Spring Boot based web application with Maven
+  golang:
+    name: Golang
+    description: Golang based web application
 
 templates:
+  sinatra:
+    name: sinatra.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Port for sinatra
+        default: 4567
+      BUILDPLATFORM:
+        type: string
+        description: Build platform for sinatra
+        default: x86_64-linux
+      SERVER: 
+        type: string
+        description: Server for sinatra
+        default: thin
+  rails:
+    name: rails.Dockerfile
+    variables:
+      START_COMMAND:
+        type: string
+        description: Start command for rails
+        default: bundle exec rails server -p 3000 -b '0.0.0.0'
+  springboot-maven:
+    name: springboot-maven.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Port for springboot
+        default: 8080
+      BUILD_COMMAND:
+        type: string
+        description: Build command for springboot
+        default: ./mvnw clean install
+      JAR_FILE:
+        type: string
+        description: Jar file for springboot
+        default: app.jar
+  springboot-gradle:
+    name: springboot-gradle.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Port for springboot
+        default: 8080
+      BUILD_COMMAND:
+        type: string
+        description: Build command for springboot
+        default: ./gradlew build
+      JAR_FILE:
+        type: string
+        description: Jar file for springboot
+        default: app.jar
+  golang:
+    name: golang.Dockerfile
+    variables:
+      NAME: 
+        type: string
+        description: Name for the golang module
+        default: app
+      BUILD_COMMAND:
+        type: string
+        description: Build command for golang
+        default: go build -o app .
+      PORT:
+        type: string
+        description: Exposed Port [Ignore if not required]
+        default: 80
   reactjs:
-    name: reactjs
+    name: reactjs.Dockerfile
     variables:
       BUILD_COMMAND:
         type: string
@@ -94,8 +167,30 @@ templates:
         type: string
         description: Build directory for reactjs
         default: build
+  vuejs:
+    name: vuejs.Dockerfile
+    variables:
+      BUILD_COMMAND:
+        type: string
+        description: Build command for vuejs
+        default: npm run build
+      BUILD_DIRECTORY:
+        type: string
+        description: Build directory for vuejs
+        default: build
+  preactjs:
+    name: preactjs.Dockerfile
+    variables:
+      BUILD_COMMAND:
+        type: string
+        description: Build command for preactjs
+        default: npm run build
+      BUILD_DIRECTORY:
+        type: string
+        description: Build directory for preactjs
+        default: build
   nextjs:
-    name: nextjs
+    name: nextjs.Dockerfile
     variables:
       BUILD_COMMAND:
         type: string
@@ -104,8 +199,127 @@ templates:
       PORT:
         type: string
         description: Port for nextjs
-        default: 3000
-
+        default: 80
+  nodejs:
+    name: nodejs.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Exposed Port [Ignore if not required]
+        default: 80
+  django-pip:
+    name: django-pip.Dockerfile
+    variables:
+      DEPENDENCY_FILE:
+        type: string
+        description: Dependency file for django
+        default: requirements.txt
+      START_COMMAND:
+        type: string
+        description: Start command [Include migrations as well]
+        default: python manage.py makemigrations && python manage.py migrate && gunicorn <project_name>.wsgi:application --bind 0.0.0.0:80
+  django-poetry:
+    name: django-poetry.Dockerfile
+    variables:
+      START_COMMAND:
+        type: string
+        description: Start command [Include migrations as well]
+        default: poetry run python manage.py makemigrations && poetry run python manage.py migrate && poetry run gunicorn <project_name>.wsgi:application --bind  0.0.0.0:80
+      POETRY_VERSION:
+        type: string
+        description: Poetry version
+        default: 1.4.2
+  flask-pip:
+    name: flask-pip.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Port for flask
+        default: 80
+      START_COMMAND:
+        type: string
+        description: Start command for flask
+        default: python -m flask --app main run --host=0.0.0.0
+      PEX_WRAPPER:
+        type: string
+        description: Pex Wrapper Name [Dont' modify]
+        default: pex_wrapper
+  flask-poetry:
+    name: flask-poetry.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Port for flask
+        default: 80
+      START_COMMAND:
+        type: string
+        description: Start command for flask
+        default: poetry run flask --app main run --host=0.0.0.0
+      POETRY_VERSION:
+        type: string
+        description: Poetry version
+        default: 1.4.2
+  fastapi-poetry:
+    name: fastapi-poetry.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Port for fastapi
+        default: 80
+      START_COMMAND:
+        type: string
+        description: Start command for fastapi
+        default: poetry run python -m uvicorn main:app --host=0.0.0.0
+      POETRY_VERSION:
+        type: string
+        description: Poetry version
+        default: 1.4.2
+  fastapi-pip:
+    name: fastapi-pip.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Port for fastapi
+        default: 80
+      START_COMMAND:
+        type: string
+        description: Start command for fastapi
+        default: python -m uvicorn main:app --host=0.0.0.0
+      PEX_WRAPPER:
+        type: string
+        description: Pex Wrapper Name [Dont' modify]
+        default: pex_wrapper
+  streamlit-poetry:
+    name: streamlit-poetry.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Port for streamlit
+        default: 80
+      START_COMMAND:
+        type: string
+        description: Start command for streamlit
+        default: poetry run streamlit run main.py --server.port $PORT
+      POETRY_VERSION:
+        type: string
+        description: Poetry version
+        default: 1.4.2
+  streamlit-pip:
+    name: streamlit-pip.Dockerfile
+    variables:
+      PORT:
+        type: string
+        description: Port for streamlit
+        default: 80
+      START_COMMAND:
+        type: string
+        description: Start command for streamlit
+        default: streamlit run main.py --server.port $PORT
+      PEX_WRAPPER:
+        type: string
+        description: Pex Wrapper Name [Dont' modify]
+        default: pex_wrapper
+        
 identifiers:
   nextjs:
   - selector:
@@ -127,11 +341,10 @@ identifiers:
     - file: package.json
       keywords:
         - vue
-  expressjs:
+  nodejs:
   - selector:
     - file: package.json
       keywords:
-        - express
   flask-pip:
   - selector:
     - file: requirements.txt
@@ -268,3 +481,8 @@ identifiers:
     - file: pom.xml
       keywords:
         - org.springframework
+  golang:
+  - selector:
+    - file: go.mod
+      keywords:
+        - module
