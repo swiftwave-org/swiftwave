@@ -100,6 +100,17 @@ templates:
         type: string
         description: Start command [Include migrations as well]
         default: python manage.py makemigrations && python manage.py migrate && gunicorn <project_name>.wsgi:application --bind 0.0.0.0:80
+  django-poetry:
+    name: django-poetry.Dockerfile
+    variables:
+      START_COMMAND:
+        type: string
+        description: Start command [Include migrations as well]
+        default: poetry run python manage.py makemigrations && poetry run python manage.py migrate && poetry run gunicorn <project_name>.wsgi:application --bind  0.0.0.0:80
+      POETRY_VERSION:
+        type: string
+        description: Poetry version
+        default: 1.4.2
   sinatra:
     name: sinatra.Dockerfile
     variables:
