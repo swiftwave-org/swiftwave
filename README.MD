@@ -44,13 +44,14 @@ Wait for ⏰  few minutes and it will become online .
 ### Documentation
 We are working on the development and documentation of the project. We target to release the documentation soon to make it easy for contributors
 
-### Disclaimer
-This software is still under development. But if we can work towards this, we can make it a good solution.
+### 🎉 Thanks to all our contributors
+<a href="https://github.com/swiftwave-org/swiftwave/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=swiftwave-org/swiftwave" />
+</a>
 
 ### Planned Upcoming Features
 - [ ] Make it robust to auto sync stats with containerization tool (docker, podman)
 - [ ] Lightweight CI support for Git Repo
-
 
 ### Support Us
 - Support our work by ⭐ this repo and share it in your community
