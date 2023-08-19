@@ -89,7 +89,17 @@ services:
     description: Golang based web application
 
 templates:
-
+  django-pip:
+    name: django-pip.Dockerfile
+    variables:
+      DEPENDENCY_FILE:
+        type: string
+        description: Dependency file for django
+        default: requirements.txt
+      START_COMMAND:
+        type: string
+        description: Start command [Include migrations as well]
+        default: python manage.py makemigrations && python manage.py migrate && gunicorn <project_name>.wsgi:application --bind 0.0.0.0:80
   sinatra:
     name: sinatra.Dockerfile
     variables:
