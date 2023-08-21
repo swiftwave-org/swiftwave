@@ -20,12 +20,12 @@ func (m *Manager) Init() error {
 	}
 	// Load templates
 	m.DockerTemplates = map[string]string{}
-	for _, template := range m.Config.Templates {
+	for service, template := range m.Config.Templates {
 		data, err := templateFolder.ReadFile("templates/"+template.Name)
 		if err != nil {
 			return errors.New("failed to read template : "+template.Name)
 		}
-		m.DockerTemplates[template.Name] = string(data)
+		m.DockerTemplates[service] = string(data)
 	}
 	return nil
 }
