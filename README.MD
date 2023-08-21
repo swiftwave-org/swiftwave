@@ -44,6 +44,12 @@ Wait for ⏰  few minutes and it will become online .
 ### Documentation
 We are working on the development and documentation of the project. We target to release the documentation soon to make it easy for contributors
 
+### Community
+We would love to hear from you and brainstorm on ideas! We communicate on Slack:
+
+[![Slack](https://img.shields.io/badge/chat-on_slack-purple.svg?style=for-the-badge&logo=slack)](https://join.slack.com/t/swiftwave-team/shared_invite/zt-21n86aslx-aAvBi3hv1GigVA_XoXiu4Q)
+
+
 ### 🎉 Thanks to all our contributors
 <a href="https://github.com/swiftwave-org/swiftwave/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=swiftwave-org/swiftwave" />
