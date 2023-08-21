@@ -4,11 +4,11 @@ go 1.20
 
 require (
 	github.com/docker/docker v24.0.5+incompatible
+	github.com/go-git/go-git/v5 v5.8.1
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/mholt/acmez v1.2.0
 	github.com/vmihailenco/taskq/v3 v3.2.9
-	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/driver/sqlite v1.5.3
@@ -16,11 +16,20 @@ require (
 )
 
 require (
+	dario.cat/mergo v1.0.0 // indirect
+	github.com/ProtonMail/go-crypto v0.0.0-20230717121422-5aa5874ade95 // indirect
+	github.com/acomagu/bufpipe v1.0.4 // indirect
+	github.com/cloudflare/circl v1.3.3 // indirect
+	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
+	github.com/go-git/go-billy/v5 v5.4.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgx/v5 v5.3.1 // indirect
+	github.com/pjbgf/sha1cd v0.3.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
+	github.com/skeema/knownhosts v1.2.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 )
 
@@ -38,18 +47,14 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
-	github.com/kr/text v0.2.0 // indirect
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/moby/patternmatcher v0.5.0 // indirect
 	github.com/moby/sys/sequential v0.5.0 // indirect
 	github.com/opencontainers/runc v1.1.8 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
-	github.com/src-d/gcfg v1.4.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
-	gopkg.in/src-d/go-billy.v4 v4.3.2 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
 
