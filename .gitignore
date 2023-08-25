@@ -1,6 +1,6 @@
 vendor
 *.pem
-data
+.data
 dump
 gorm.db
 m
