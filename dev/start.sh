@@ -121,6 +121,9 @@ echo "$haproxy_cfg" >"$SWIFTWAVE_HAPROXY_FOLDER/haproxy.cfg"
 # Start redis
 (cd "$SWIFTWAVE_REDIS_FOLDER" && echo "dbfilename dump.rdb" | redis-server -) > /dev/null 2>&1 &
 
+# Pull docker images
+sudo docker pull ghcr.io/swiftwave-org/swiftwave-dashboard:latest
+sudo docker pull haproxytech/haproxy-debian:2.9
 # Start the services
 sudo docker stack deploy -c /app/dev/docker-compose.dev.yml $STACK_NAME
 
@@ -152,7 +155,7 @@ export HAPROXY_MANAGER_PORT="5555"
 export HAPROXY_MANAGER_USERNAME="admin"
 export HAPROXY_MANAGER_PASSWORD="mypassword"
 export DOCKER_HOST="unix:///var/run/docker.sock"
-export RESTRICTED_PORTS="80,443,5555,3333"
+export RESTRICTED_PORTS="80,443,5555,3333,1212"
 export SESSION_TOKEN_EXPIRY_MINUTES="720"
 export CGO_ENABLED="1"
 echo -e "${GREEN}Environment variables set successfully ! ${NC}"

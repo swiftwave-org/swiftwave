@@ -3,7 +3,7 @@ services:
   haproxy:
     image: "haproxytech/haproxy-debian:2.9"
     volumes:
-      - /app/data/haproxy:/usr/local/etc/haproxy:rw
+      - /app/.data/haproxy:/usr/local/etc/haproxy:rw
     deploy:
       mode: global
       placement:
@@ -16,7 +16,18 @@ services:
         published: 5555
         protocol: tcp
         mode: host
-  
+  dashboard:
+    image: "ghcr.io/swiftwave-org/swiftwave-dashboard:latest"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.swiftwave_controlplane_node==true
+    ports:
+      - target: 80
+        published: 1212
+        protocol: tcp
+        mode: host
 networks:
   swarm_network:
     external: true

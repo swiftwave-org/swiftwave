@@ -38,7 +38,7 @@ container_id=$(sudo docker run --privileged -d -v go_cache:/home/user/go/pkg/mod
 
 echo "Perform post installation tasks..."
 # Run startup script by exec
-sudo docker exec swiftwave_dev_env bash -c "cd /app && ./dev/start.sh"  >> "./dev.log" 2>&1
+sudo docker exec swiftwave_dev_env bash -c "cd /app && ./dev/start.sh" | tee -a dev.log
 echo "Post installation tasks completed"
 # Print IP
 ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $container_id)
@@ -46,9 +46,15 @@ echo -e "${GREEN}Swiftwave dev environment is running at $ip${NC}"
 echo -e "---------------------------------------------------------"
 echo -e "${GREEN}Access Bash Terminal${NC} : ${BLUE}http://$ip:7681${NC}"
 echo -e "---------------------------------------------------------"
-echo -e "Start Swiftwave :"
+echo -e "${GREEN}Start Swiftwave Server :${NC}"
 echo -e "  1. Open ${BLUE}http://$ip:7681${NC} in browser"
 echo -e "  2. Run ${BLUE}go run .${NC} in terminal"
+echo -e "  3. Wait for 3~4 minutes to start the server"
+echo -e "---------------------------------------------------------"
+echo -e "${GREEN}Access Swiftwave Dashboard :${NC}"
+echo -e "  1. Open ${BLUE}http://$ip:1212${NC} in browser"
+echo -e "  2. Configure server details from bottom bar -> Host ${ip} | Port 3333"
+echo -e "  2. Login with ${BLUE}admin${NC} as username and ${BLUE}admin${NC} as password"
 echo -e "---------------------------------------------------------"
 
 # Stop the container
