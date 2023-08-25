@@ -46,6 +46,8 @@ type Server struct {
 	TASK_MAP              map[string]*taskq.Task
 	WORKER_CONTEXT        context.Context
 	WORKER_CONTEXT_CANCEL context.CancelFunc
+	// ENVIRONMENT
+	ENVIRONMENT string
 }
 
 // Init function
@@ -59,6 +61,10 @@ func (server *Server) Init() {
 	server.CODE_TARBALL_DIR = os.Getenv("CODE_TARBALL_DIR")
 	server.SWARM_NETWORK = os.Getenv("SWARM_NETWORK")
 	server.HAPROXY_SERVICE = os.Getenv("HAPROXY_SERVICE_NAME")
+	server.ENVIRONMENT = os.Getenv("ENVIRONMENT")
+	if server.ENVIRONMENT == "" {
+		server.ENVIRONMENT = "production"
+	}
 	restricted_ports_str := os.Getenv("RESTRICTED_PORTS")
 	restricted_ports_str_split := strings.Split(restricted_ports_str, ",")
 	restricted_ports := []int{}

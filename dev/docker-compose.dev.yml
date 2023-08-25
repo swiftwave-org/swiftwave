@@ -1,0 +1,22 @@
+version: '3.5'
+services:
+  haproxy:
+    image: "haproxytech/haproxy-debian:2.9"
+    volumes:
+      - /app/data/haproxy:/usr/local/etc/haproxy:rw
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.swiftwave_controlplane_node==true
+    networks:
+      - swarm_network
+    ports:
+      - target: 5555
+        published: 5555
+        protocol: tcp
+        mode: host
+  
+networks:
+  swarm_network:
+    external: true

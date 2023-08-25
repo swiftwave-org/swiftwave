@@ -1,0 +1,187 @@
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.30kB done
+#1 DONE 0.0s
+
+#2 [internal] load .dockerignore
+#2 transferring context: 97B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/docker:dind
+#3 DONE 0.8s
+
+#4 [ 1/19] FROM docker.io/library/docker:dind@sha256:020562d22f11c27997e00da910ed6b580d93094bc25841cb87aacab4ced4a882
+#4 DONE 0.0s
+
+#5 [12/19] RUN tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
+#5 CACHED
+
+#6 [ 4/19] RUN adduser -D -u 1000 -G user user
+#6 CACHED
+
+#7 [16/19] RUN chown -R user:user /home/user/go/pkg/mod/
+#7 CACHED
+
+#8 [ 6/19] RUN echo "user ALL=(ALL) ALL" > /etc/sudoers.d/user && chmod 0440 /etc/sudoers.d/user
+#8 CACHED
+
+#9 [ 3/19] RUN addgroup --gid 1000 user
+#9 CACHED
+
+#10 [10/19] RUN addgroup user docker
+#10 CACHED
+
+#11 [17/19] RUN wget https://github.com/tsl0922/ttyd/releases/download/1.7.3/ttyd.x86_64 -O /usr/local/bin/ttyd
+#11 CACHED
+
+#12 [13/19] RUN rm go1.21.0.linux-amd64.tar.gz
+#12 CACHED
+
+#13 [ 5/19] RUN echo "user:user" | chpasswd
+#13 CACHED
+
+#14 [ 9/19] RUN addgroup docker
+#14 CACHED
+
+#15 [ 8/19] RUN chown -R user:user /home/user
+#15 CACHED
+
+#16 [18/19] RUN chmod +x /usr/local/bin/ttyd
+#16 CACHED
+
+#17 [ 2/19] RUN apk update --no-cache && apk add --no-cache gcc g++ make sqlite iproute2 net-tools bind-tools bash apache2-utils sudo shadow redis
+#17 CACHED
+
+#18 [14/19] RUN echo "export PATH=$PATH:/usr/local/go/bin" >> /home/user/.bashrc
+#18 CACHED
+
+#19 [ 7/19] RUN mkdir -p /home/user
+#19 CACHED
+
+#20 [11/19] RUN wget https://go.dev/dl/go1.21.0.linux-amd64.tar.gz
+#20 CACHED
+
+#21 [15/19] RUN mkdir -p /home/user/go/pkg/mod/
+#21 CACHED
+
+#22 [19/19] RUN chown user:user /usr/local/bin/ttyd
+#22 CACHED
+
+#23 exporting to image
+#23 exporting layers done
+#23 writing image sha256:551e619e728c2c22e53b43cc772b71bf42d6011a0bccf5540ecff2e48a970092 done
+#23 naming to docker.io/library/swiftwave_dev_env:latest done
+#23 DONE 0.0s
+Waiting for docker to start...
+Docker is not running. Cannot connect.
+Waiting for docker to start...
+Docker is not running. Cannot connect.
+Docker is running!
+Docker started successfully
+Docker swarm is not initialized. Initializing docker swarm...
+Docker swarm initialized successfully
+Creating docker network...
+Docker network created successfully
+Creating service swiftwave_haproxy
+[0;32mHaProxy and Redis started successfully ! [0m
+[0;32mAdmin username : admin [0m
+[0;32mAdmin password : admin [0m
+[0;32mEnvironment variables set successfully ! [0m
+[0;32mTTYD Bash started successfully at port 7681 ! [0m
+ttyd: unrecognized option: W
+[2023/08/25 21:08:13:6216] N: ttyd 1.7.3-a8cae75 (libwebsockets 4.3.2-unknown)
+[2023/08/25 21:08:13:6216] N: tty configuration:
+[2023/08/25 21:08:13:6216] N:   start command: /bin/bash
+[2023/08/25 21:08:13:6216] N:   close signal: SIGHUP (1)
+[2023/08/25 21:08:13:6217] N:   terminal type: xterm-256color
+[2023/08/25 21:08:13:6218] N: lws_create_context: LWS: 4.3.2-unknown, NET SRV H1 WS MbedTLS ConMon IPV6-off
+[2023/08/25 21:08:13:6415] N: elops_init_pt_uv:  Using foreign event loop...
+[2023/08/25 21:08:13:6416] N: __lws_lc_tag:  ++ [wsi|0|pipe] (1)
+[2023/08/25 21:08:13:6416] N: __lws_lc_tag:  ++ [vh|0|netlink] (1)
+[2023/08/25 21:08:13:6418] N: __lws_lc_tag:  ++ [vh|1|default||7681] (2)
+[2023/08/25 21:08:13:6419] N: [vh|1|default||7681]: lws_socket_bind: source ads 0.0.0.0
+[2023/08/25 21:08:13:6419] N: __lws_lc_tag:  ++ [wsi|1|listen|default||7681] (2)
+[2023/08/25 21:08:13:6419] N:  Listening on port: 7681
+Waiting for docker to start...
+Docker is not running. Cannot connect.
+Docker is running!
+Docker started successfully
+Docker swarm is not initialized. Initializing docker swarm...
+Docker swarm initialized successfully
+Creating docker network...
+Docker network created successfully
+Creating service swiftwave_haproxy
+[0;32mHaProxy and Redis started successfully ! [0m
+[0;32mAdmin username : admin [0m
+[0;32mAdmin password : admin [0m
+[0;32mEnvironment variables set successfully ! [0m
+[0;32mTTYD Bash started successfully at port 7681 ! [0m
+ttyd: unrecognized option: W
+[2023/08/25 21:09:33:3559] N: ttyd 1.7.3-a8cae75 (libwebsockets 4.3.2-unknown)
+[2023/08/25 21:09:33:3560] N: tty configuration:
+[2023/08/25 21:09:33:3560] N:   start command: /bin/bash
+[2023/08/25 21:09:33:3560] N:   close signal: SIGHUP (1)
+[2023/08/25 21:09:33:3560] N:   terminal type: xterm-256color
+[2023/08/25 21:09:33:3561] N: lws_create_context: LWS: 4.3.2-unknown, NET SRV H1 WS MbedTLS ConMon IPV6-off
+[2023/08/25 21:09:33:3798] N: elops_init_pt_uv:  Using foreign event loop...
+[2023/08/25 21:09:33:3799] N: __lws_lc_tag:  ++ [wsi|0|pipe] (1)
+[2023/08/25 21:09:33:3800] N: __lws_lc_tag:  ++ [vh|0|netlink] (1)
+[2023/08/25 21:09:33:3801] N: __lws_lc_tag:  ++ [vh|1|default||7681] (2)
+[2023/08/25 21:09:33:3802] N: [vh|1|default||7681]: lws_socket_bind: source ads 0.0.0.0
+[2023/08/25 21:09:33:3802] N: __lws_lc_tag:  ++ [wsi|1|listen|default||7681] (2)
+[2023/08/25 21:09:33:3803] N:  Listening on port: 7681
+Waiting for docker to start...
+Docker is not running. Cannot connect.
+Docker is running!
+Docker started successfully
+Docker swarm is not initialized. Initializing docker swarm...
+Docker swarm initialized successfully
+Creating docker network...
+Docker network created successfully
+Creating service swiftwave_haproxy
+[0;32mHaProxy and Redis started successfully ! [0m
+[0;32mAdmin username : admin [0m
+[0;32mAdmin password : admin [0m
+[0;32mEnvironment variables set successfully ! [0m
+[0;32mTTYD Bash started successfully at port 7681 ! [0m
+ttyd: unrecognized option: W
+[2023/08/25 21:10:47:0943] N: ttyd 1.7.3-a8cae75 (libwebsockets 4.3.2-unknown)
+[2023/08/25 21:10:47:0944] N: tty configuration:
+[2023/08/25 21:10:47:0944] N:   start command: /bin/bash
+[2023/08/25 21:10:47:0944] N:   close signal: SIGHUP (1)
+[2023/08/25 21:10:47:0944] N:   terminal type: xterm-256color
+[2023/08/25 21:10:47:0945] N: lws_create_context: LWS: 4.3.2-unknown, NET SRV H1 WS MbedTLS ConMon IPV6-off
+[2023/08/25 21:10:47:1196] N: elops_init_pt_uv:  Using foreign event loop...
+[2023/08/25 21:10:47:1197] N: __lws_lc_tag:  ++ [wsi|0|pipe] (1)
+[2023/08/25 21:10:47:1197] N: __lws_lc_tag:  ++ [vh|0|netlink] (1)
+[2023/08/25 21:10:47:1198] N: __lws_lc_tag:  ++ [vh|1|default||7681] (2)
+[2023/08/25 21:10:47:1199] N: [vh|1|default||7681]: lws_socket_bind: source ads 0.0.0.0
+[2023/08/25 21:10:47:1200] N: __lws_lc_tag:  ++ [wsi|1|listen|default||7681] (2)
+[2023/08/25 21:10:47:1200] N:  Listening on port: 7681
+Waiting for docker to start...
+Docker is not running. Cannot connect.
+Docker is running!
+Docker started successfully
+Docker swarm is not initialized. Initializing docker swarm...
+Docker swarm initialized successfully
+Creating docker network...
+Docker network created successfully
+Creating service swiftwave_haproxy
+[0;32mHaProxy and Redis started successfully ! [0m
+[0;32mAdmin username : admin [0m
+[0;32mAdmin password : admin [0m
+[0;32mEnvironment variables set successfully ! [0m
+[0;32mTTYD Bash started successfully at port 7681 ! [0m
+ttyd: unrecognized option: W
+[2023/08/25 21:17:54:2739] N: ttyd 1.7.3-a8cae75 (libwebsockets 4.3.2-unknown)
+[2023/08/25 21:17:54:2739] N: tty configuration:
+[2023/08/25 21:17:54:2739] N:   start command: /bin/bash
+[2023/08/25 21:17:54:2739] N:   close signal: SIGHUP (1)
+[2023/08/25 21:17:54:2740] N:   terminal type: xterm-256color
+[2023/08/25 21:17:54:2740] N: lws_create_context: LWS: 4.3.2-unknown, NET SRV H1 WS MbedTLS ConMon IPV6-off
+[2023/08/25 21:17:54:3004] N: elops_init_pt_uv:  Using foreign event loop...
+[2023/08/25 21:17:54:3005] N: __lws_lc_tag:  ++ [wsi|0|pipe] (1)
+[2023/08/25 21:17:54:3006] N: __lws_lc_tag:  ++ [vh|0|netlink] (1)
+[2023/08/25 21:17:54:3007] N: __lws_lc_tag:  ++ [vh|1|default||7681] (2)
+[2023/08/25 21:17:54:3008] N: [vh|1|default||7681]: lws_socket_bind: source ads 0.0.0.0
+[2023/08/25 21:17:54:3009] N: __lws_lc_tag:  ++ [wsi|1|listen|default||7681] (2)
+[2023/08/25 21:17:54:3010] N:  Listening on port: 7681
