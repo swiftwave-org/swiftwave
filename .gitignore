@@ -8,3 +8,4 @@ tarball
 .vscode
 swiftwave-server
 .env
+dev.log
