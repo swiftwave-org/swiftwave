@@ -107,7 +107,12 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 	if application.Source.Type == ApplicationSourceTypeGit {
 		// Create temporary directory
 		tempDirectory := "/tmp/" + uuid.New().String()
-		os.Mkdir(tempDirectory, 0777)
+		err := os.Mkdir(tempDirectory, 0777)
+		if err != nil {
+			failImageBuildUpdateStatus(&application, s.DB_CLIENT)
+			s.AddLogToApplicationBuildLog(log_id, "Failed to create temporary directory", "error")
+			return err
+		}
 		// Defer remove temporary directory
 		defer os.RemoveAll(tempDirectory)
 		// Clone git repository
@@ -174,7 +179,13 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 		}
 		// Create temporary directory
 		tempDirectory := "/tmp/" + uuid.New().String()
-		os.Mkdir(tempDirectory, 0777)
+		err = os.Mkdir(tempDirectory, 0777)
+		if err != nil {
+			log.Println("Failed to create temporary directory")
+			s.AddLogToApplicationBuildLog(log_id, "Failed to create temporary directory", "error")
+			failImageBuildUpdateStatus(&application, s.DB_CLIENT)
+			return err
+		}
 		// Defer remove temporary directory
 		defer os.RemoveAll(tempDirectory)
 		// Extract tarball

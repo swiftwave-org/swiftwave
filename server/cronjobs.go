@@ -232,7 +232,10 @@ func (s *Server) ProcessIngressRulesRequestCronjob() {
 					}
 					err = s.HAPROXY_MANAGER.AddTCPLink(transaction_id, backend_name, int(ingressRule.Port), ingressRule.DomainName, listenerMode, s.RESTRICTED_PORTS)
 					if err != nil {
-						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						if err2 != nil {
+							log.Println(err2)
+						}
 						log.Println(err)
 						continue
 					}
@@ -240,7 +243,10 @@ func (s *Server) ProcessIngressRulesRequestCronjob() {
 				// commit transaction
 				err = s.HAPROXY_MANAGER.CommitTransaction(transaction_id)
 				if err != nil {
-					s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+					err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						if err2 != nil {
+							log.Println(err2)
+						}
 					log.Println(err)
 					continue
 				}
@@ -256,21 +262,30 @@ func (s *Server) ProcessIngressRulesRequestCronjob() {
 				if ingressRule.Protocol == HTTPSProtcol {
 					err = s.HAPROXY_MANAGER.DeleteHTTPSLink(transaction_id, backend_name, ingressRule.DomainName)
 					if err != nil {
-						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						if err2 != nil {
+							log.Println(err2)
+						}
 						log.Println(err)
 						continue
 					}
 				} else if ingressRule.Protocol == HTTPProtcol && ingressRule.Port == 80 {
 					err = s.HAPROXY_MANAGER.DeleteHTTPLink(transaction_id, backend_name, ingressRule.DomainName)
 					if err != nil {
-						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						if err2 != nil {
+							log.Println(err2)
+						}
 						log.Println(err)
 						continue
 					}
 				} else {
 					err = s.HAPROXY_MANAGER.DeleteTCPLink(transaction_id, backend_name, int(ingressRule.Port), ingressRule.DomainName, s.RESTRICTED_PORTS)
 					if err != nil {
-						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						if err2 != nil {
+							log.Println(err2)
+						}
 						log.Println(err)
 						continue
 					}
@@ -289,7 +304,10 @@ func (s *Server) ProcessIngressRulesRequestCronjob() {
 					// delete backend
 					err = s.HAPROXY_MANAGER.DeleteBackend(transaction_id, backend_name)
 					if err != nil {
-						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						if err2 != nil {
+							log.Println(err2)
+						}
 						log.Println(err)
 						continue
 					}
@@ -297,7 +315,10 @@ func (s *Server) ProcessIngressRulesRequestCronjob() {
 				// commit transaction
 				err = s.HAPROXY_MANAGER.CommitTransaction(transaction_id)
 				if err != nil {
-					s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+					err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						if err2 != nil {
+							log.Println(err2)
+						}
 					log.Println(err)
 					continue
 				}
@@ -388,14 +409,20 @@ func (s *Server) ProcessRedirectRulesRequestCronjob() {
 				// create redirect rule
 				err = s.HAPROXY_MANAGER.AddHTTPRedirectRule(transaction_id, redirectRule.DomainName, redirectRule.RedirectURL)
 				if err != nil {
-					s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+					err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						if err2 != nil {
+							log.Println(err2)
+						}
 					log.Println(err)
 					continue
 				}
 				// commit transaction
 				err = s.HAPROXY_MANAGER.CommitTransaction(transaction_id)
 				if err != nil {
-					s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+					err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						if err2 != nil {
+							log.Println(err2)
+						}
 					log.Println(err)
 					continue
 				}
@@ -409,14 +436,20 @@ func (s *Server) ProcessRedirectRulesRequestCronjob() {
 				// delete redirect rule
 				err = s.HAPROXY_MANAGER.DeleteHTTPRedirectRule(transaction_id, redirectRule.DomainName)
 				if err != nil {
-					s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+					err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						if err2 != nil {
+							log.Println(err2)
+						}
 					log.Println(err)
 					continue
 				}
 				// commit transaction
 				err = s.HAPROXY_MANAGER.CommitTransaction(transaction_id)
 				if err != nil {
-					s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+					err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						if err2 != nil {
+							log.Println(err2)
+						}
 					log.Println(err)
 					continue
 				}

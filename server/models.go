@@ -150,13 +150,34 @@ const (
 
 // Migrate database
 func (server *Server) MigrateDatabaseTables() {
-	server.DB_CLIENT.AutoMigrate(&Domain{})
-	server.DB_CLIENT.AutoMigrate(&GitCredential{})
-	server.DB_CLIENT.AutoMigrate(&ApplicationSource{})
-	server.DB_CLIENT.AutoMigrate(&Application{})
-	server.DB_CLIENT.AutoMigrate(&ApplicationBuildLog{})
-	server.DB_CLIENT.AutoMigrate(&IngressRule{})
-	server.DB_CLIENT.AutoMigrate(&RedirectRule{})
+	err := server.DB_CLIENT.AutoMigrate(&Domain{})
+	if err != nil {
+		panic(err)
+	}
+	err = server.DB_CLIENT.AutoMigrate(&GitCredential{})
+	if err != nil {
+		panic(err)
+	}
+	err = server.DB_CLIENT.AutoMigrate(&ApplicationSource{})
+	if err != nil {
+		panic(err)
+	}
+	err = server.DB_CLIENT.AutoMigrate(&Application{})
+	if err != nil {
+		panic(err)
+	}
+	err = server.DB_CLIENT.AutoMigrate(&ApplicationBuildLog{})
+	if err != nil {
+		panic(err)
+	}
+	err = server.DB_CLIENT.AutoMigrate(&IngressRule{})
+	if err != nil {
+		panic(err)
+	}
+	err = server.DB_CLIENT.AutoMigrate(&RedirectRule{})
+	if err != nil {
+		panic(err)
+	}
 }
 
 // Application deploy request
