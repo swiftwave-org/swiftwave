@@ -1,5 +1,6 @@
 # Setup Guide
 1. [Development Setup](#development-setup)
+    - [Prerequisites](#prerequisites)
     - [Linux](#linux)
     - [macOS](#macos)
     - [Windows](#windows)
