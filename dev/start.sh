@@ -122,8 +122,8 @@ echo "$haproxy_cfg" >"$SWIFTWAVE_HAPROXY_FOLDER/haproxy.cfg"
 (cd "$SWIFTWAVE_REDIS_FOLDER" && echo "dbfilename dump.rdb" | redis-server -) > /dev/null 2>&1 &
 
 # Pull docker images
-sudo docker pull ghcr.io/swiftwave-org/swiftwave-dashboard:latest
-sudo docker pull haproxytech/haproxy-debian:2.9
+sudo docker load --input /app/.images/swiftwave-dashboard.tar
+sudo docker load --input /app/.images/haproxy-debian.tar
 # Start the services
 sudo docker stack deploy -c /app/dev/docker-compose.dev.yml $STACK_NAME
 

@@ -26,7 +26,20 @@ dockerfile_path="$base_path/dev/Dockerfile"
 # Remove ./data folder
 sudo rm -rf ./data
 
+# If .images folder does not exist, create it
+if [ ! -d "./.images" ]; then
+    mkdir ./.images
+fi
+
+# Fetch required images
+echo -e "${GREEN}Fetching required images...${NC}"
+sudo docker pull ghcr.io/swiftwave-org/swiftwave-dashboard:latest
+sudo docker pull haproxytech/haproxy-debian:2.9
+sudo docker save -o ./.images/swiftwave-dashboard.tar ghcr.io/swiftwave-org/swiftwave-dashboard:latest
+sudo docker save -o ./.images/haproxy-debian.tar haproxytech/haproxy-debian:2.9
+
 # build docker image
+echo "${GREEN}Building docker image...${NC}"
 sudo docker build -t swiftwave_dev_env:latest -f $dockerfile_path .
 
 # Remove existing container
@@ -42,9 +55,10 @@ sudo docker exec swiftwave_dev_env bash -c "cd /app && ./dev/start.sh" | tee -a 
 echo "Post installation tasks completed"
 # Print IP
 ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $container_id)
-echo -e "${GREEN}Swiftwave dev environment is running at $ip${NC}"
+echo -e "\n\n${GREEN}Swiftwave dev environment is started successfully${NC}"
+echo -e "Follow the steps below to start the server"
 echo -e "---------------------------------------------------------"
-echo -e "${GREEN}Access Bash Terminal${NC} : ${BLUE}http://$ip:7681${NC}"
+echo -e "${GREEN}Open Bash Terminal${NC} : ${BLUE}http://$ip:7681${NC}"
 echo -e "---------------------------------------------------------"
 echo -e "${GREEN}Start Swiftwave Server :${NC}"
 echo -e "  1. Open ${BLUE}http://$ip:7681${NC} in browser"
@@ -53,10 +67,9 @@ echo -e "  3. Wait for 3~4 minutes to start the server"
 echo -e "---------------------------------------------------------"
 echo -e "${GREEN}Access Swiftwave Dashboard :${NC}"
 echo -e "  1. Open ${BLUE}http://$ip:1212${NC} in browser"
-echo -e "  2. Configure server details from bottom bar -> Host ${ip} | Port 3333"
+echo -e "  2. Configure server details from bottom bar -> ${BLUE}Host ${ip}${NC} | ${BLUE}Port 3333${NC}"
 echo -e "  2. Login with ${BLUE}admin${NC} as username and ${BLUE}admin${NC} as password"
 echo -e "---------------------------------------------------------"
-
-# Stop the container
-# echo "Stopping the container..."
-# sudo docker stop swiftwave_dev_env > /dev/null 2>&1
+echo -e "${GREEN}Stop Development Container :${NC}"
+echo -e "${YELLOW}sudo docker stop swiftwave_dev_env${NC}"
+echo -e "---------------------------------------------------------"
