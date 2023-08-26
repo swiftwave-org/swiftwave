@@ -55,3 +55,7 @@ We would love to hear from you and brainstorm on ideas! We communicate on Slack:
 - Contribute to our codebase to make it great
 - You can also sponsor to keep development of this software running . 
    - Sponsor [@tanmoysrt](https://github.com/sponsors/tanmoysrt)
+
+### Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=swiftwave-org/swiftwave&type=Date)](https://star-history.com/#swiftwave-org/swiftwave&Date)
