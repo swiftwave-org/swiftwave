@@ -120,7 +120,10 @@ func (s Manager) replaceSSL(route string, domain string, file io.Reader) (*http.
 	// Prepare body
 	body := bytes.Buffer{}
 	// Add file
-	io.Copy(&body, file)
+	_, err := io.Copy(&body, file)
+	if err != nil {
+		return nil, errors.New("error copying file to body")
+	}
 
 	req, err := http.NewRequest("PUT", url, &body)
 	if err != nil {

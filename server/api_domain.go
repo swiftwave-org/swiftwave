@@ -31,10 +31,13 @@ func (server *Server) getDomains(c echo.Context) error {
 	var domains []Domain
 	tx := server.DB_CLIENT.Find(&domains)
 	if tx.Error != nil {
-		c.JSON(500, map[string]interface{}{
+		err := c.JSON(500, map[string]interface{}{
 			"error":   tx.Error.Error(),
 			"message": "Failed to fetch domains from database",
 		})
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 	// Return domains
@@ -44,18 +47,24 @@ func (server *Server) getDomains(c echo.Context) error {
 // GET /domains/:id
 func (server *Server) getDomain(c echo.Context) error {
 	if c.Param("id") == "" {
-		c.JSON(400, map[string]interface{}{
+		err := c.JSON(400, map[string]interface{}{
 			"message": "id parameter is required",
 		})
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 	var domain Domain
 	tx := server.DB_CLIENT.First(&domain, c.Param("id"))
 	if tx.Error != nil {
-		c.JSON(404, map[string]interface{}{
+		err := c.JSON(404, map[string]interface{}{
 			"error":   tx.Error.Error(),
 			"message": "domain not found",
 		})
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 	return c.JSON(200, domain)

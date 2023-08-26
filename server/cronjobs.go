@@ -194,7 +194,10 @@ func (s *Server) ProcessIngressRulesRequestCronjob() {
 				if backendDoesNotExist {
 					_, err := s.HAPROXY_MANAGER.AddBackend(transaction_id, ingressRule.ServiceName, int(ingressRule.ServicePort), 1)
 					if err != nil {
-						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						if err2 != nil {
+							log.Println(err2)
+						}
 						log.Println(err)
 						continue
 					}
@@ -203,14 +206,20 @@ func (s *Server) ProcessIngressRulesRequestCronjob() {
 				if ingressRule.Protocol == HTTPSProtcol {
 					err = s.HAPROXY_MANAGER.AddHTTPSLink(transaction_id, backend_name, ingressRule.DomainName)
 					if err != nil {
-						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						if err2 != nil {
+							log.Println(err2)
+						}
 						log.Println(err)
 						continue
 					}
 				} else if ingressRule.Protocol == HTTPProtcol && ingressRule.Port == 80 {
 					err = s.HAPROXY_MANAGER.AddHTTPLink(transaction_id, backend_name, ingressRule.DomainName)
 					if err != nil {
-						s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
+						if err2 != nil {
+							log.Println(err2)
+						}
 						log.Println(err)
 						continue
 					}

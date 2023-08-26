@@ -11,7 +11,10 @@ import (
 
 func (m Manager) CreateImage(dockerfile string, buildargs map[string]string, codepath string, imagename string) (*bufio.Scanner, error) {
 	// Move the dockerfile to the codepath
-	os.WriteFile(codepath+"/Dockerfile",[]byte(dockerfile), 0777)
+	err := os.WriteFile(codepath+"/Dockerfile",[]byte(dockerfile), 0777)
+	if err != nil {
+		return nil, errors.New("failed to write the dockerfile")
+	}
 	// Buildargs map
 	final_buildargs := map[string]*string{}
 	// convert buildargs map to final_buildargs map

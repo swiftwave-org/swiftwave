@@ -19,7 +19,10 @@ func (s *Manager) Init(ctx context.Context, db gorm.DB, options ManagerOptions) 
 	s.dbClient = db
 	s.options = options
 	// Migrate database
-	db.AutoMigrate(&KeyAuthorizationToken{})
+	err := db.AutoMigrate(&KeyAuthorizationToken{})
+	if err != nil {
+		return errors.New("error while migrating database")
+	}
 	// Initialize account
 	acmeDirectory := "https://acme-staging-v02.api.letsencrypt.org/directory"
 	if !options.IsStaging {
