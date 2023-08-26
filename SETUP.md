@@ -12,7 +12,7 @@
 |  Name | Version | Installation |
 | --- | --- | --- |
 | Git | Latest | [Download & Install](https://git-scm.com/downloads) |
-| Docker | Latest | [Follow this guide to install](https://docs.docker.com/engine/install/) |
+| Docker | Latest | [Follow this docs to install](https://docs.docker.com/engine/install/) |
 
 > **Note For Windows :** Supports only Hyper-V based docker installation. WSL-2 based docker installation is not supported yet.
 
