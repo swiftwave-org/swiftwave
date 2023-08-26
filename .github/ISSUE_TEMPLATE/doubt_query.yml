@@ -1,0 +1,11 @@
+name: 🤔 Doubt & Query
+description: Have a doubt or query? Ask here!
+title: "Feature "
+labels: ["🤔 doubt", "open", "pending"]
+body:
+- type: textarea
+  attributes:
+    label: What is your doubt or query?
+    description: Provide a detailed description of your doubt or query
+  validations:
+    required: true
