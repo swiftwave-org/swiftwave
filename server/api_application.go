@@ -222,7 +222,7 @@ func (server *Server) deployApplication(c echo.Context) error {
 		deployRequest.Volumes = make(map[string]string, 0)
 	}
 	for volume_name := range deployRequest.Volumes {
-		if server.DOCKER_MANAGER.ExistsVolume(volume_name) == false {
+		if !server.DOCKER_MANAGER.ExistsVolume(volume_name) {
 			return c.JSON(400, map[string]string{
 				"message": volume_name + " : volume not exists",
 			})
@@ -378,7 +378,13 @@ func (server *Server) deleteApplication(c echo.Context) error {
 		})
 	}
 	// Remove service
-	server.DOCKER_MANAGER.RemoveService(application.ServiceName)
+	err := server.DOCKER_MANAGER.RemoveService(application.ServiceName)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(500, map[string]string{
+			"message": "failed to delete application",
+		})
+	}
 	// Delete all logs
 	server.DB_CLIENT.Where("application_id = ?", applicationID).Delete(&ApplicationBuildLog{})
 	return c.JSON(200, map[string]string{

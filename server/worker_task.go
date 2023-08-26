@@ -1,6 +1,10 @@
 package server
 
-import "github.com/vmihailenco/taskq/v3"
+import (
+	"log"
+
+	"github.com/vmihailenco/taskq/v3"
+)
 
 func (s *Server) RegisterSSLGenerateTask(){
 	t := taskq.RegisterTask(&taskq.TaskOptions{
@@ -27,7 +31,10 @@ func (s *Server) RegisterDockerImageGenerationTask(){
 	t := taskq.RegisterTask(&taskq.TaskOptions{
 		Name:    "docker-image-preparationAddServiceToDockerImageGenerationQueue",
 		Handler: func(app_id uint, log_id string) error {
-			s.ProcessDockerImageGenerationRequestFromQueue(app_id, log_id)
+			err := s.ProcessDockerImageGenerationRequestFromQueue(app_id, log_id)
+			if err != nil {
+				log.Println(err)
+			}
 			return nil
 		},
 	})
@@ -38,7 +45,10 @@ func (s *Server) RegisterDeployServiceTask(){
 	t := taskq.RegisterTask(&taskq.TaskOptions{
 		Name:    "deploy-service",
 		Handler: func(app_id uint) error {
-			s.ProcessDeployServiceRequestFromQueue(app_id)
+			err := s.ProcessDeployServiceRequestFromQueue(app_id)
+			if err != nil {
+				log.Println(err)
+			}
 			return nil
 		},
 	})

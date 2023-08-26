@@ -112,7 +112,10 @@ func (server *Server) Init() {
 		AccountPrivateKeyFilePath: os.Getenv("ACCOUNT_PRIVATE_KEY_FILE_PATH"),
 	}
 	ssl_manager := SSL.Manager{}
-	ssl_manager.Init(context.Background(), *db_client, options)
+	err = ssl_manager.Init(context.Background(), *db_client, options)
+	if err != nil {
+		panic(err)
+	}
 
 	// Initiating HAPROXY Manager
 	var haproxy_manager = HAPROXY.Manager{}
@@ -130,7 +133,10 @@ func (server *Server) Init() {
 		panic(err)
 	}
 	docker_manager := DOCKER.Manager{}
-	docker_manager.Init(context.Background(), *docker_client)
+	err = docker_manager.Init(context.Background(), *docker_client)
+	if err != nil {
+		panic(err)
+	}
 
 	// Initiating Docker Image Manager
 	docker_config_generator := DOCKER_CONFIG_GENERATOR.Manager{}
