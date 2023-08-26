@@ -1,6 +1,6 @@
 name: 🐞 Bug
 description: Create a report to help us improve
-title: "🐞 Bug"
+title: "bug: <enter title>"
 labels: ["🐞 bug", "pending"]
 body:
 - type: checkboxes

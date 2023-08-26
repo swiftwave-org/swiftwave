@@ -1,6 +1,6 @@
 name: ⭐️ Feature request
 description: Suggest an idea for this project
-title: "Feature "
+title: "feature: <enter title>"
 labels: ["🌟 feature", "pending"]
 body:
 - type: textarea

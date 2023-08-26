@@ -1,6 +1,6 @@
 name: ⚒️ Installation Issue
 description: Having trouble installing Swiftwave? Ask here!
-title: "Installation Issue"
+title: "installation issue: <enter title>"
 labels: ["⚒️ installation", "open", "pending"]
 body:
 - type: dropdown
