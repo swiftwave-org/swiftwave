@@ -1,6 +1,6 @@
 name: 🤔 Doubt & Query
 description: Have a doubt or query? Ask here!
-title: "Feature "
+title: "doubt & query: <enter title>"
 labels: ["🤔 doubt", "open", "pending"]
 body:
 - type: textarea
