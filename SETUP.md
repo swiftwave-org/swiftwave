@@ -1,9 +1,5 @@
 # Setup Guide
 1. [Development Setup](#development-setup)
-    - [Prerequisites](#prerequisites)
-    - [Linux](#linux)
-    - [macOS](#macos)
-    - [Windows](#windows)
 2. [Production Setup](#production-setup)
 ---
 
@@ -16,8 +12,7 @@
 
 > **Note For Windows :** Supports only Hyper-V based docker installation. WSL-2 based docker installation is not supported yet.
 
-### Linux
-**Steps**
+### Steps
 1. Fork this repository [if you want to contribute]
 2. Clone the repository
     ```bash
@@ -28,51 +23,27 @@
     cd swiftwave
     ```
 4. Run the setup script
-    ```bash
-    ./dev.linux.sh
-    ```
+    - For  Linux
+      ```bash
+      ./dev.linux.sh
+      ```
+    - For macOS
+      ```bash
+      ./dev.mac.sh
+      ```
+    - For Windows [PowerShell]
+      ```bash
+      dev.windows.ps1
+      ```
 5. Then follow the instructions printed in the terminal after the script execution is completed.
 
-### macOS
-**Steps**
-1. Fork this repository [if you want to contribute]
-2. Clone the repository
-    ```bash
-    git clone git@github.com:<username>/swiftwave.git
-    ```
-3. Go to the cloned directory
-    ```bash
-    cd swiftwave
-    ```
-4. Run the setup script
-    ```bash
-    ./dev.mac.sh
-    ```
-5. Then follow the instructions printed in the terminal after the script execution is completed.
-
-### Windows
-**Steps**
-1. Fork this repository [if you want to contribute]
-2. Clone the repository
-    ```bash
-    git clone git@github.com:<username>/swiftwave.git
-    ```
-3. Go to the cloned directory
-    ```bash
-    cd swiftwave
-    ```
-4. Run the setup script in powershell
-    ```bash
-    dev.windows.ps1
-    ```
-5. Then follow the instructions printed in the terminal after the script execution is completed.
-
-
+---
 
 ## Production Setup
-#### Till now we have tested the setup on `Ubuntu` , `Debian` and `AWS Linux 2` . We are working towrads making the installer compatible with other linux distros as well.
+**Till now we have tested the setup on `Ubuntu` , `Debian` and `AWS Linux 2` . We are working towrads making the installer compatible with other linux distros as well.**
 
 `Swiftwave` can be installed at one click.
+> We recommend to use a fresh server for production setup. If you are using an existing server, please make sure that you have stopped all the services running on port 80 and 443.
 
 Run this command in bash
 ```bash
