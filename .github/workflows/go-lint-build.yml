@@ -1,4 +1,4 @@
-name: Lint
+name: Golang CI
 on:
   push:
     branches:
