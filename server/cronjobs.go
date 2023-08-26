@@ -244,9 +244,9 @@ func (s *Server) ProcessIngressRulesRequestCronjob() {
 				err = s.HAPROXY_MANAGER.CommitTransaction(transaction_id)
 				if err != nil {
 					err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
-						if err2 != nil {
-							log.Println(err2)
-						}
+					if err2 != nil {
+						log.Println(err2)
+					}
 					log.Println(err)
 					continue
 				}
@@ -316,9 +316,9 @@ func (s *Server) ProcessIngressRulesRequestCronjob() {
 				err = s.HAPROXY_MANAGER.CommitTransaction(transaction_id)
 				if err != nil {
 					err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
-						if err2 != nil {
-							log.Println(err2)
-						}
+					if err2 != nil {
+						log.Println(err2)
+					}
 					log.Println(err)
 					continue
 				}
@@ -410,9 +410,9 @@ func (s *Server) ProcessRedirectRulesRequestCronjob() {
 				err = s.HAPROXY_MANAGER.AddHTTPRedirectRule(transaction_id, redirectRule.DomainName, redirectRule.RedirectURL)
 				if err != nil {
 					err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
-						if err2 != nil {
-							log.Println(err2)
-						}
+					if err2 != nil {
+						log.Println(err2)
+					}
 					log.Println(err)
 					continue
 				}
@@ -420,9 +420,9 @@ func (s *Server) ProcessRedirectRulesRequestCronjob() {
 				err = s.HAPROXY_MANAGER.CommitTransaction(transaction_id)
 				if err != nil {
 					err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
-						if err2 != nil {
-							log.Println(err2)
-						}
+					if err2 != nil {
+						log.Println(err2)
+					}
 					log.Println(err)
 					continue
 				}
@@ -437,9 +437,9 @@ func (s *Server) ProcessRedirectRulesRequestCronjob() {
 				err = s.HAPROXY_MANAGER.DeleteHTTPRedirectRule(transaction_id, redirectRule.DomainName)
 				if err != nil {
 					err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
-						if err2 != nil {
-							log.Println(err2)
-						}
+					if err2 != nil {
+						log.Println(err2)
+					}
 					log.Println(err)
 					continue
 				}
@@ -447,9 +447,9 @@ func (s *Server) ProcessRedirectRulesRequestCronjob() {
 				err = s.HAPROXY_MANAGER.CommitTransaction(transaction_id)
 				if err != nil {
 					err2 := s.HAPROXY_MANAGER.DeleteTransaction(transaction_id)
-						if err2 != nil {
-							log.Println(err2)
-						}
+					if err2 != nil {
+						log.Println(err2)
+					}
 					log.Println(err)
 					continue
 				}
