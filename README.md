@@ -21,16 +21,7 @@
     > You can get free  cloud instance from AWS [1 year], Digitalocean[1 year with Github Education] & Oracle Cloud [Lifetime Free]
 
 ### 🤔 How to Install ?
-`Swiftwave` can be installed at one click.
-
-Run this command in bash
-```bash
- curl -L get.swiftwave.org | bash
-```
-
-That's all 🍻
-
-Wait for ⏰  few minutes and it will become online .
+**Checkout [`SETUP.MD`](https://github.com/swiftwave-org/swiftwave/blob/main/SETUP.md) for detailed installation steps**
 
 ### 👀 How to interact with Swiftwave ?
 #### Introducting `Swiftwave Dashboard` ([Source Code](https://github.com/swiftwave-org/swiftwave-dashboard))
