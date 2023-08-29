@@ -27,7 +27,7 @@ func ParseBuildArgsFromDockerfile(dockerfile string) map[string]Variable {
 		variables[argName] = Variable{
 			Type:        argName,
 			Default:     defaultValue,
-			Description: "",
+			Description: argName,
 		}
 	}
 
