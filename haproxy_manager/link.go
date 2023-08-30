@@ -280,7 +280,7 @@ func (s Manager) DeleteTCPLink(transaction_id string, backend_name string, port 
 
 // TODO: Support other http ports except 80 for Redirect Rules
 // Add HTTP Redirect Rule
-func (s Manager) AddHTTPRedirectRule(transaction_id string, match_domain string, redirect_url string ) error {
+func (s Manager) AddHTTPRedirectRule(transaction_id string, match_domain string, redirect_url string) error {
 	if strings.TrimSpace(match_domain) == "" {
 		return errors.New("match domain is required")
 	}
@@ -293,13 +293,13 @@ func (s Manager) AddHTTPRedirectRule(transaction_id string, match_domain string,
 	add_http_redirect_rule_request_query_params.add("parent_name", "fe_http")
 	add_http_redirect_rule_request_query_params.add("parent_type", "frontend")
 	add_http_redirect_rule_request_body := map[string]interface{}{
-		"type": "redirect",
-		"redir_code": 302,
-		"redir_type": "location",
+		"type":        "redirect",
+		"redir_code":  302,
+		"redir_type":  "location",
 		"redir_value": redirect_url,
-		"index": 0,
-		"cond": "if",
-		"cond_test": `{ hdr(host) -i ` + strings.TrimSpace(match_domain) + ` }`,
+		"index":       0,
+		"cond":        "if",
+		"cond_test":   `{ hdr(host) -i ` + strings.TrimSpace(match_domain) + ` }`,
 	}
 	// Create request bytes
 	add_http_redirect_rule_request_body_bytes, err := json.Marshal(add_http_redirect_rule_request_body)
@@ -345,7 +345,7 @@ func (s Manager) DeleteHTTPRedirectRule(transaction_id string, match_domain stri
 	get_http_redirect_rules := get_http_redirect_rules_res_body_json["data"].([]interface{})
 	for _, http_redirect_rule := range get_http_redirect_rules {
 		http_redirect_rule_item := http_redirect_rule.(map[string]interface{})
-		if http_redirect_rule_item["cond_test"] == `{ hdr(host) -i ` + strings.TrimSpace(match_domain) + ` }` {
+		if http_redirect_rule_item["cond_test"] == `{ hdr(host) -i `+strings.TrimSpace(match_domain)+` }` {
 			index = int(http_redirect_rule_item["index"].(float64))
 			break
 		}

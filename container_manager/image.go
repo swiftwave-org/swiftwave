@@ -11,7 +11,7 @@ import (
 
 func (m Manager) CreateImage(dockerfile string, buildargs map[string]string, codepath string, imagename string) (*bufio.Scanner, error) {
 	// Move the dockerfile to the codepath
-	err := os.WriteFile(codepath+"/Dockerfile",[]byte(dockerfile), 0777)
+	err := os.WriteFile(codepath+"/Dockerfile", []byte(dockerfile), 0777)
 	if err != nil {
 		return nil, errors.New("failed to write the dockerfile")
 	}
@@ -32,9 +32,9 @@ func (m Manager) CreateImage(dockerfile string, buildargs map[string]string, cod
 	// Build the image
 	response, err := m.client.ImageBuild(m.ctx, tar, types.ImageBuildOptions{
 		Dockerfile: "Dockerfile",
-		Remove:    true,
-		Tags: 	[]string{imagename},
-		BuildArgs: final_buildargs,
+		Remove:     true,
+		Tags:       []string{imagename},
+		BuildArgs:  final_buildargs,
 	})
 	if err != nil {
 		return nil, errors.New("failed to build the image")

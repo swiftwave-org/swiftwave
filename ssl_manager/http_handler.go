@@ -1,8 +1,8 @@
 package Manager
 
 import (
-	"io"
 	"github.com/labstack/echo/v4"
+	"io"
 )
 
 // Required for http-01 verification

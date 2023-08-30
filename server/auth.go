@@ -13,7 +13,7 @@ import (
 )
 
 // Init function
-func (server *Server) InitAuthRestAPI(){
+func (server *Server) InitAuthRestAPI() {
 	server.ECHO_SERVER.POST("/auth/login", server.authLogin)
 	server.ECHO_SERVER.POST("/auth/verify", server.authVerify)
 	server.ECHO_SERVER.POST("/auth/logout", server.authLogout)
@@ -67,7 +67,7 @@ func (server *Server) authLogin(c echo.Context) error {
 	c.SetCookie(cookie)
 	// return session token
 	return c.JSON(200, map[string]interface{}{
-		"token": randomToken,
+		"token":   randomToken,
 		"message": "login successful",
 	})
 }
@@ -83,7 +83,7 @@ func (server *Server) authVerify(c echo.Context) error {
 // POST /auth/logout
 func (server *Server) authLogout(c echo.Context) error {
 	token := ""
-	cookie, err :=  c.Cookie("authorization")
+	cookie, err := c.Cookie("authorization")
 	if err == nil {
 		token = cookie.Value
 	} else {
@@ -102,7 +102,7 @@ func (server *Server) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// get token from cookie
 		token := ""
-		cookie, err :=  c.Cookie("authorization")
+		cookie, err := c.Cookie("authorization")
 		if err == nil {
 			token = cookie.Value
 		} else {

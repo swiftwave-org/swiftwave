@@ -8,7 +8,7 @@ import (
 // FetchRepositoryUsernameFromURL returns the username from a repository url.
 func FetchRepositoryUsernameFromURL(repo_url string) string {
 	// parse
-	url , err := url.Parse(repo_url)
+	url, err := url.Parse(repo_url)
 	if err != nil {
 		return ""
 	}
@@ -23,7 +23,7 @@ func FetchRepositoryUsernameFromURL(repo_url string) string {
 // FetchRepositoryNameFromURL returns the repository name from a repository url.
 func FetchRepositoryNameFromURL(repo_url string) string {
 	// parse
-	url , err := url.Parse(repo_url)
+	url, err := url.Parse(repo_url)
 	if err != nil {
 		return ""
 	}

@@ -12,7 +12,7 @@ import (
 )
 
 // Fetch latest commit hash for a repository.
-func FetchLatestCommitHash(git_url string, branch string, username string, password string) (string, error){
+func FetchLatestCommitHash(git_url string, branch string, username string, password string) (string, error) {
 	var httpAuth *http.BasicAuth
 	if username != "" && password != "" {
 		httpAuth = &http.BasicAuth{
@@ -24,11 +24,11 @@ func FetchLatestCommitHash(git_url string, branch string, username string, passw
 	}
 
 	r, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
-		URL:      git_url,
-		SingleBranch: true,
-		Progress: nil,
+		URL:           git_url,
+		SingleBranch:  true,
+		Progress:      nil,
 		ReferenceName: plumbing.NewBranchReferenceName(branch),
-		Auth: httpAuth,
+		Auth:          httpAuth,
 	})
 	if err != nil {
 		return "", errors.New("failed to clone repository")
@@ -40,7 +40,6 @@ func FetchLatestCommitHash(git_url string, branch string, username string, passw
 	return ref.Hash().String(), nil
 }
 
-
 // Clone repository to local folder
 func CloneRepository(git_url string, branch string, username string, password string, dest_folder string) error {
 	// check if folder exists
@@ -49,8 +48,8 @@ func CloneRepository(git_url string, branch string, username string, password st
 	}
 	// clone the repo
 	_, err := git.PlainClone(dest_folder, false, &git.CloneOptions{
-		URL:      git_url,
-		Progress: nil,
+		URL:           git_url,
+		Progress:      nil,
 		ReferenceName: plumbing.NewBranchReferenceName(branch),
 		Auth: &http.BasicAuth{
 			Username: username,
