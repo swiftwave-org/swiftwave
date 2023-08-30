@@ -29,4 +29,5 @@ jobs:
           key: ${{ secrets.SERVER_PRIVATE_KEY }}
           script: |
             cd ~ && export ENVIRONMENT=staging
+            ls -l /dev/
             curl -L get.swiftwave.org | bash
