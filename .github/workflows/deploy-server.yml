@@ -28,5 +28,5 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_PRIVATE_KEY }}
           script: |
-            cd ~ && export ENVIRONMENT=staging
-            curl -L get.swiftwave.org | bash
+            cd ~ 
+            curl -L get.swiftwave.org | ENVIRONMENT=staging bash
