@@ -10,8 +10,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-
-
 // Init functions
 
 func (server *Server) InitDomainRestAPI() {

@@ -10,7 +10,7 @@ import (
 func (s Manager) GenerateBackendName(service_name string, port int) string {
 	return "be_" + service_name + "_" + strconv.Itoa(port)
 }
- 
+
 // Add Backend to HAProxy configuration
 // -- Manage server template with backend
 func (s Manager) AddBackend(transaction_id string, service_name string, port int, replicas int) (string, error) {

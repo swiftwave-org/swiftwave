@@ -15,7 +15,7 @@ func (server *Server) InitPersistentVolumeAPI() {
 
 // GET /volumes
 func (server *Server) GetVolumes(c echo.Context) error {
-	volumes , err := server.DOCKER_MANAGER.FetchVolumes()
+	volumes, err := server.DOCKER_MANAGER.FetchVolumes()
 	if err != nil {
 		return c.JSON(500, map[string]interface{}{
 			"message": "error fetching volumes. docker daemon not responding",

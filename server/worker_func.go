@@ -297,12 +297,11 @@ func (s *Server) ProcessDeployServiceRequestFromQueue(app_id uint) error {
 	var volumeMounts []DOCKER_MANAGER.VolumeMount = make([]DOCKER_MANAGER.VolumeMount, 0)
 	for volume_name := range volumeMountsJson {
 		volumeMounts = append(volumeMounts, DOCKER_MANAGER.VolumeMount{
-			Source: volume_name,
-			Target: volumeMountsJson[volume_name],
+			Source:   volume_name,
+			Target:   volumeMountsJson[volume_name],
 			ReadOnly: false,
 		})
 	}
-	
 
 	// Deploy service
 	service := DOCKER_MANAGER.Service{

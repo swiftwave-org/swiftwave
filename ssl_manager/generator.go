@@ -22,7 +22,7 @@ func (s Manager) ObtainCertificate(domain string, privateKeyStr string) (string,
 	if block == nil || block.Type != "RSA PRIVATE KEY" {
 		return "", errors.New("invalid PEM file or key type")
 	}
-	
+
 	// Parse the DER-encoded key data
 	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {

@@ -48,7 +48,7 @@ func ExtractTar(tarFile string, destFolder string) error {
 			return err
 		}
 	}
-	
+
 	// Create tar reader
 	tr := tar.NewReader(reader)
 
@@ -100,27 +100,26 @@ func ExtractTar(tarFile string, destFolder string) error {
 }
 
 func createDirectoriesIfNotExist(filePath string) error {
-    dir := filepath.Dir(filePath)
-    return os.MkdirAll(dir, 0755) // 0755 sets the permissions for the new directories
+	dir := filepath.Dir(filePath)
+	return os.MkdirAll(dir, 0755) // 0755 sets the permissions for the new directories
 }
 
 func createFileWithDirectories(filePath string, fileMode os.FileMode) (*os.File, error) {
-    if err := createDirectoriesIfNotExist(filePath); err != nil {
-        return nil, err
-    }
+	if err := createDirectoriesIfNotExist(filePath); err != nil {
+		return nil, err
+	}
 
-    file, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR, fileMode)
-    if err != nil {
-        return nil, err
-    }
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR, fileMode)
+	if err != nil {
+		return nil, err
+	}
 
-    return file, nil
+	return file, nil
 }
 
 func deleteDirectory(dir string) {
 	os.RemoveAll(dir)
 }
-
 
 // Check if a file exists in folder
 func existsInFolder(destFolder string, file string) bool {

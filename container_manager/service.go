@@ -77,9 +77,9 @@ func (m Manager) StatusService(serviceName string) (ServiceStatus, error) {
 		return ServiceStatus{}, errors.New("error getting service status")
 	}
 
-	var updateStatus ServiceUpdateStatus;
+	var updateStatus ServiceUpdateStatus
 	if serviceData.UpdateStatus != nil {
-		var state ServiceUpdateState;
+		var state ServiceUpdateState
 		switch serviceData.UpdateStatus.State {
 		case swarm.UpdateStateUpdating:
 			state = ServiceUpdateStateUpdating
@@ -97,7 +97,7 @@ func (m Manager) StatusService(serviceName string) (ServiceStatus, error) {
 			state = ServiceUpdateStateUnknown
 		}
 		updateStatus = ServiceUpdateStatus{
-			State: state,
+			State:   state,
 			Message: serviceData.UpdateStatus.Message,
 		}
 	}
@@ -122,9 +122,9 @@ func (m Manager) StatusService(serviceName string) (ServiceStatus, error) {
 		desiredReplicas = int(*serviceData.Spec.Mode.Replicated.Replicas)
 	}
 	return ServiceStatus{
-		DesiredReplicas: desiredReplicas,
-		RunningReplicas: runningReplicas,
-		LastUpdatedAt:   serviceData.UpdatedAt.String(),
+		DesiredReplicas:     desiredReplicas,
+		RunningReplicas:     runningReplicas,
+		LastUpdatedAt:       serviceData.UpdatedAt.String(),
 		ServiceUpdateStatus: updateStatus,
 	}, nil
 }
@@ -134,9 +134,9 @@ func (m Manager) LogsService(serviceName string, since string, until string) (io
 	logs, err := m.client.ServiceLogs(m.ctx, serviceName, types.ContainerLogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
-		Follow: false,
-		Since: since,
-		Until: until,
+		Follow:     false,
+		Since:      since,
+		Until:      until,
 	})
 	if err != nil {
 		return nil, errors.New("error getting service logs")
@@ -158,7 +158,7 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 	volumeMounts := []mount.Mount{}
 	for _, volumeMount := range service.VolumeMounts {
 		volumeMounts = append(volumeMounts, mount.Mount{
-			Type: mount.TypeVolume,
+			Type:     mount.TypeVolume,
 			Source:   volumeMount.Source,
 			Target:   volumeMount.Target,
 			ReadOnly: volumeMount.ReadOnly,

@@ -46,4 +46,4 @@ jobs:
         run: staticcheck ./...
       
       - name: Run format checks
-        run: gofmt -l -d .
+        run: gofmt -l -d -e .

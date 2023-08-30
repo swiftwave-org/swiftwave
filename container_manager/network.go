@@ -9,7 +9,7 @@ import (
 // Create a new network
 func (m Manager) CreateNetwork(name string) error {
 	_, err := m.client.NetworkCreate(m.ctx, name, types.NetworkCreate{
-		Driver: "overlay",
+		Driver:     "overlay",
 		Attachable: true,
 	})
 	if err != nil {

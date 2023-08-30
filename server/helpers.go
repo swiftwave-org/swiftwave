@@ -27,8 +27,7 @@ func (s *Server) AddLogToApplicationBuildLog(log_id string, message string, logl
 	s.DB_CLIENT.Save(&logRecord)
 }
 
-
-func (s *Server) CreateDefaultGitUser(){
+func (s *Server) CreateDefaultGitUser() {
 	var git_credential GitCredential
 	tx := s.DB_CLIENT.Where("name = ?", "default").First(&git_credential)
 	if tx.Error != nil {
@@ -43,7 +42,6 @@ func (s *Server) CreateDefaultGitUser(){
 		}
 	}
 }
-
 
 func (s ApplicationSource) GetSourceSummary() string {
 	if s.Type == ApplicationSourceTypeGit {

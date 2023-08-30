@@ -6,7 +6,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-
 // Init functions
 func (server *Server) InitRedirectRestAPI() {
 	server.ECHO_SERVER.GET("/mapping/redirects", server.getRedirectRules)

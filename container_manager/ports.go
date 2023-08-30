@@ -28,7 +28,7 @@ func (m Manager) UpdatePublishedHostPorts(service_name string, ports []swarm.Por
 	serviceData.Endpoint.Ports = ports
 	serviceData.Spec.EndpointSpec.Mode = swarm.ResolutionModeVIP
 	serviceData.Spec.EndpointSpec.Ports = ports
-	_, err= m.client.ServiceUpdate(m.ctx, service_name, serviceData.Version, serviceData.Spec, types.ServiceUpdateOptions{})
+	_, err = m.client.ServiceUpdate(m.ctx, service_name, serviceData.Version, serviceData.Spec, types.ServiceUpdateOptions{})
 	if err != nil {
 		return errors.New("error updating service")
 	}

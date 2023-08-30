@@ -1,8 +1,7 @@
 package server
 
-
 // Register the worker tasks
-func (s *Server) RegisteWorkerTasks(){
+func (s *Server) RegisteWorkerTasks() {
 	s.RegisterSSLGenerateTask()
 	s.RegisterUpdateSSLHAProxyTask()
 	s.RegisterDockerImageGenerationTask()

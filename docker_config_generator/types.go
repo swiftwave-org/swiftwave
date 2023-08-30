@@ -40,7 +40,7 @@ type IdentifierSelector struct {
 
 // DockerFile Config
 type DockerFileConfig struct {
-	DetectedService string `json:"detected_service"`
-	DockerFile string `json:"docker_file"`
-	Variables map[string]Variable `json:"variables"`
+	DetectedService string              `json:"detected_service"`
+	DockerFile      string              `json:"docker_file"`
+	Variables       map[string]Variable `json:"variables"`
 }

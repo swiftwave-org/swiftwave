@@ -6,9 +6,9 @@ import (
 	"github.com/vmihailenco/taskq/v3"
 )
 
-func (s *Server) RegisterSSLGenerateTask(){
+func (s *Server) RegisterSSLGenerateTask() {
 	t := taskq.RegisterTask(&taskq.TaskOptions{
-		Name:    "ssl-generate",
+		Name: "ssl-generate",
 		Handler: func(name string) error {
 			return s.ProcessGenerateSSLRequestFromQueue(name)
 		},
@@ -16,9 +16,9 @@ func (s *Server) RegisterSSLGenerateTask(){
 	s.TASK_MAP["ssl-generate"] = t
 }
 
-func (s *Server) RegisterUpdateSSLHAProxyTask(){
+func (s *Server) RegisterUpdateSSLHAProxyTask() {
 	t := taskq.RegisterTask(&taskq.TaskOptions{
-		Name:    "ssl-update-haproxy",
+		Name: "ssl-update-haproxy",
 		Handler: func(name string) error {
 			return s.ProcessUpdateSSLHAProxyRequestFromQueue(name)
 		},
@@ -27,9 +27,9 @@ func (s *Server) RegisterUpdateSSLHAProxyTask(){
 }
 
 // Application deployment tasks
-func (s *Server) RegisterDockerImageGenerationTask(){
+func (s *Server) RegisterDockerImageGenerationTask() {
 	t := taskq.RegisterTask(&taskq.TaskOptions{
-		Name:    "docker-image-preparationAddServiceToDockerImageGenerationQueue",
+		Name: "docker-image-preparationAddServiceToDockerImageGenerationQueue",
 		Handler: func(app_id uint, log_id string) error {
 			err := s.ProcessDockerImageGenerationRequestFromQueue(app_id, log_id)
 			if err != nil {
@@ -41,9 +41,9 @@ func (s *Server) RegisterDockerImageGenerationTask(){
 	s.TASK_MAP["docker-image-preparation"] = t
 }
 
-func (s *Server) RegisterDeployServiceTask(){
+func (s *Server) RegisterDeployServiceTask() {
 	t := taskq.RegisterTask(&taskq.TaskOptions{
-		Name:    "deploy-service",
+		Name: "deploy-service",
 		Handler: func(app_id uint) error {
 			err := s.ProcessDeployServiceRequestFromQueue(app_id)
 			if err != nil {
