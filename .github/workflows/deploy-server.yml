@@ -4,6 +4,9 @@ on:
 
 jobs:
   build-production:
+    permissions:
+      contents: read
+      packages: write
     uses: swiftwave-org/SwiftWave/.github/workflows/docker-publish.yml@main
 
   deploy-production:
