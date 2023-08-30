@@ -6,6 +6,10 @@ on:
   push:
     branches: [ "main" ]
 
+concurrency:
+  group: staging
+  cancel-in-progress: true
+  
 jobs:
   build-production:
     permissions:
@@ -24,7 +28,7 @@ jobs:
     steps:
       - name: Check Out Code
         uses: actions/checkout@v2
-      - name: Delete all cachae
+      - name: Delete all cache
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
