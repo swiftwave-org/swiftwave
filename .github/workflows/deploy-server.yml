@@ -2,7 +2,9 @@ name: Deploy to Server
 on:
   workflow_dispatch:
   schedule:
-    - cron: '* */6 * * *'
+    - cron: '* */3 * * *'
+  push:
+    branches: [ "main" ]
 
 jobs:
   build-production:
