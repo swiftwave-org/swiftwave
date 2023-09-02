@@ -53,3 +53,12 @@ func readPrivateKeyFromFile(keyFile string) (*rsa.PrivateKey, error) {
 	}
 	return privateKey, nil
 }
+
+// Fetch SSL Issuer's Name
+func (s Manager) FetchIssuerName() string {
+	if s.options.IsStaging {
+		return "Let's Encrypt (Staging)"
+	} else {
+		return "Let's Encrypt"
+	}
+}

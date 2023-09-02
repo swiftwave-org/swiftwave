@@ -32,7 +32,7 @@ func (s *Server) ProcessGenerateSSLRequestFromQueue(name string) error {
 	domainRecord.SSLStatus = DomainSSLStatusIssued
 	domainRecord.SSLFullChain = cert
 	domainRecord.SSLIssuedAt = time.Now()
-	domainRecord.SSLIssuer = "Let's Encrypt"
+	domainRecord.SSLIssuer = s.SSL_MANAGER.FetchIssuerName()
 	tx3 := s.DB_CLIENT.Save(&domainRecord)
 	if tx3.Error != nil {
 		log.Println("Failed to update domain ssl certificate in database")
