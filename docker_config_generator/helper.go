@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 // ParseBuildArgsFromDockerfile parses build arguments from dockerfile.
@@ -36,7 +37,7 @@ func ParseBuildArgsFromDockerfile(dockerfile string) map[string]Variable {
 
 // Extract tar file to a folder.
 func ExtractTar(tarFile string, destFolder string) error {
-	reader, err := os.Open(tarFile)
+	reader, err := os.Open(SanitizeFileName(tarFile))
 	if err != nil {
 		return err
 	}
@@ -128,4 +129,17 @@ func existsInFolder(destFolder string, file string) bool {
 		return true
 	}
 	return false
+}
+
+// Sanitize the fileName to remove potentially dangerous characters
+func SanitizeFileName(fileName string) string {
+	// Remove any path components and keep only the file name
+	fileName = filepath.Base(fileName)
+
+	// Remove potentially dangerous characters like ".."
+	fileName = strings.ReplaceAll(fileName, "..", "")
+
+	// You can add more sanitization rules as needed
+
+	return fileName
 }
