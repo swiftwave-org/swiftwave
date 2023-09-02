@@ -132,6 +132,7 @@ func (server *Server) generateDockerConfigFromTarball(c echo.Context) error {
 			"message": "file not found",
 		})
 	}
+	fileName = SanitizeFileName(fileName)
 	filePath := filepath.Join(server.CODE_TARBALL_DIR, fileName)
 	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
