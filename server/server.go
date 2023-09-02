@@ -107,7 +107,7 @@ func (server *Server) Init() {
 
 	// Initiating SSL Manager
 	options := SSL.ManagerOptions{
-		IsStaging:                 false,
+		IsStaging:                 !server.isProductionEnvironment(),
 		Email:                     os.Getenv("ACCOUNT_EMAIL_ID"),
 		AccountPrivateKeyFilePath: os.Getenv("ACCOUNT_PRIVATE_KEY_FILE_PATH"),
 	}
