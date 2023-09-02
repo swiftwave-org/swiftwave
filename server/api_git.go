@@ -2,6 +2,7 @@ package server
 
 import (
 	"log"
+	"math"
 	"net/http"
 	"strconv"
 	GIT "swiftwave/m/git_manager"
@@ -112,6 +113,11 @@ func (server *Server) updateGitCredential(c echo.Context) error {
 			"message": "id parameter is required",
 		})
 	}
+	if id > math.MaxUint32 {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "invalid id",
+		})
+	} 
 	gitCredential.ID = uint(id)
 
 	// Update git credential in database
