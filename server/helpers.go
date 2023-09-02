@@ -55,3 +55,8 @@ func (s ApplicationSource) GetSourceSummary() string {
 	}
 	return "Unknown"
 }
+
+
+func (s *Server) isProductionEnvironment() bool {
+	return strings.Compare(s.ENVIRONMENT, "production") == 0;
+}

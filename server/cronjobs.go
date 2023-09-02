@@ -351,7 +351,7 @@ func (s *Server) HAproxyExposedPortsProcessor() {
 		// add 80 and 443 to ports
 		portsmap[80] = true
 		portsmap[443] = true
-		if s.ENVIRONMENT == "development" {
+		if !s.isProductionEnvironment() {
 			portsmap[5555] = true
 		}
 		// Check if ports are changed
