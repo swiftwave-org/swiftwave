@@ -56,6 +56,9 @@ func SanitizeFileName(fileName string) string {
 	// Remove potentially dangerous characters like ".."
 	fileName = strings.ReplaceAll(fileName, "..", "")
 
+	// Remove potentially dangerous characters like "/"
+	fileName = strings.ReplaceAll(fileName, "/", "")
+
 	// You can add more sanitization rules as needed
 
 	return fileName

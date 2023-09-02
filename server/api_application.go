@@ -202,7 +202,7 @@ func (server *Server) deployApplication(c echo.Context) error {
 	}
 	// Check if tarball exists
 	if deployRequest.ApplicationSourceType == ApplicationSourceTypeTarball {
-		filePath := filepath.Join(server.CODE_TARBALL_DIR, deployRequest.TarballFile)
+		filePath := filepath.Join(server.CODE_TARBALL_DIR, SanitizeFileName(deployRequest.TarballFile))
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
 			return c.JSON(400, map[string]string{
 				"message": "tarball not found",
