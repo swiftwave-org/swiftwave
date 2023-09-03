@@ -136,11 +136,31 @@ func (server *Server) deleteDomain(c echo.Context) error {
 			"message": "domain not found",
 		})
 	}
+	// Check for ingress rules using this domain name
+	var ingressRule IngressRule
+	tx = server.DB_CLIENT.Where("domain_name = ?", domain.Name).First(&ingressRule)
+	if tx.Error == nil {
+		return c.JSON(409, map[string]interface{}{
+			"error":   tx.Error.Error(),
+			"message": "There are some ingress rules for "+domain.Name+". Delete the ingress rules and then retry",
+		})
+	}
+
+	// Check for redirection rules using this domain name
+	var redirectionRule RedirectRule
+	tx = server.DB_CLIENT.Where("domain_name = ?", domain.Name).First(&redirectionRule)
+	if tx.Error == nil {
+		return c.JSON(409, map[string]interface{}{
+			"error":   tx.Error.Error(),
+			"message": "There are some redirection rules for "+domain.Name+". Delete the redirection rules and then retry",
+		})
+	}
+
 	// Delete domain
-	tx2 := server.DB_CLIENT.Delete(&domain)
-	if tx2.Error != nil {
+	tx = server.DB_CLIENT.Delete(&domain)
+	if tx.Error != nil {
 		return c.JSON(500, map[string]interface{}{
-			"error":   tx2.Error.Error(),
+			"error":   tx.Error.Error(),
 			"message": "Failed to delete domain",
 		})
 	}
