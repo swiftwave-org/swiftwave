@@ -26,7 +26,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # -- args
-ARG PORT=80
+ARG PORT="80"
 ARG START_COMMAND="python -m uvicorn main:app --host=0.0.0.0"
 ARG PEX_WRAPPER="pex_wrapper"
 

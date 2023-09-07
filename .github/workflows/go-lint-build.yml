@@ -15,7 +15,7 @@ jobs:
   golangci:
     strategy:
       matrix:
-        go: ['1.20']
+        go: ["1.20"]
         os: [macos-latest, windows-latest, ubuntu-latest]
     name: lint
     runs-on: ${{ matrix.os }}
@@ -44,6 +44,13 @@ jobs:
 
       - name: Run staticcheck
         run: staticcheck ./...
-      
+
       - name: Run format checks
-        run: gofmt -l -d -e .
+        run: |
+          if [ $(gofmt -d -l -e . | wc -l) -eq 0 ]; then
+            printf 'Format Checks Have Passed!!!'
+          else
+            printf 'Format Checks Have Failed!\nPlease use gofmt in your system to format your code.'
+            gofmt -l -e -d . 
+            exit 1 
+          fi

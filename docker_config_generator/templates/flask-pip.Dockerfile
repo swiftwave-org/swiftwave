@@ -25,7 +25,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # -- args
-ARG PORT=80
+ARG PORT="80"
 ARG START_COMMAND="python -m flask --app main run --host=0.0.0.0"
 ARG PEX_WRAPPER="pex_wrapper"
 
