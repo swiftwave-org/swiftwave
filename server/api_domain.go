@@ -142,7 +142,7 @@ func (server *Server) deleteDomain(c echo.Context) error {
 	if tx.Error == nil {
 		return c.JSON(409, map[string]interface{}{
 			"error":   tx.Error.Error(),
-			"message": "There are some ingress rules for "+domain.Name+". Delete the ingress rules and then retry",
+			"message": "There are some ingress rules for " + domain.Name + ". Delete the ingress rules and then retry",
 		})
 	}
 
@@ -152,7 +152,7 @@ func (server *Server) deleteDomain(c echo.Context) error {
 	if tx.Error == nil {
 		return c.JSON(409, map[string]interface{}{
 			"error":   tx.Error.Error(),
-			"message": "There are some redirection rules for "+domain.Name+". Delete the redirection rules and then retry",
+			"message": "There are some redirection rules for " + domain.Name + ". Delete the redirection rules and then retry",
 		})
 	}
 

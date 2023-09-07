@@ -20,7 +20,7 @@ RUN python3 -m venv $POETRY_VENV \
 # Create a new stage from the base python image
 FROM python-base as final
 
-ARG PORT=80
+ARG PORT="80"
 ARG START_COMMAND="poetry run flask --app main run --host=0.0.0.0"
 # Copy Poetry to app image
 COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}

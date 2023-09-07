@@ -32,7 +32,7 @@ RUN ${BUILD_COMMAND} && npm prune --production
 FROM node:18.11-slim AS runner
 
 # Build args
-ARG PORT=80
+ARG PORT="80"
 
 WORKDIR /app
 ENV NODE_ENV production

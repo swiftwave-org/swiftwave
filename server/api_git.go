@@ -117,7 +117,7 @@ func (server *Server) updateGitCredential(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": "invalid id",
 		})
-	} 
+	}
 	gitCredential.ID = uint(id)
 
 	// Update git credential in database
