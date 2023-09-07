@@ -3,7 +3,7 @@ module swiftwave/m
 go 1.20
 
 require (
-	github.com/docker/docker v24.0.5+incompatible
+	github.com/docker/docker v24.0.6+incompatible
 	github.com/go-git/go-git/v5 v5.8.1
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/labstack/echo/v4 v4.11.1
