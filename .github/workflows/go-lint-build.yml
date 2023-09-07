@@ -47,10 +47,20 @@ jobs:
 
       - name: Run format checks
         run: |
-          if [ $(gofmt -d -l -e . | wc -l) -eq 0 ]; then
-            printf 'Format Checks Have Passed!!!'
+          if ["${{ matrix.os }}" == "windows-latest"]; then
+            if ((gofmt -d -l -e . | Measure-Object -Line).Lines -eq 0) {
+              Write-Host 'Format Checks Have Passed!!!'
+            } else {
+              Write-Host 'Format Checks Have Failed!'
+              gofmt -l -e -d .
+              exit 1
+            }
           else
-            printf 'Format Checks Have Failed!\nPlease use gofmt in your system to format your code.'
-            gofmt -l -e -d . 
-            exit 1 
+            if [ $(gofmt -d -l -e . | wc -l) -eq 0 ]; then
+              printf 'Format Checks Have Passed!!!'
+            else
+              printf 'Format Checks Have Failed!\nPlease use gofmt in your system to format your code.'
+              gofmt -l -e -d . 
+              exit 1 
+            fi
           fi
