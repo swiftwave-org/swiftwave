@@ -54,7 +54,7 @@ echo "Perform post installation tasks..."
 sudo docker exec swiftwave_dev_env bash -c "cd /app && ./dev/start.sh" | tee -a dev.log
 echo "Post installation tasks completed"
 # Print IP
-ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $container_id)
+ip=$(sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $container_id)
 echo -e "\n\n${GREEN}Swiftwave dev environment is started successfully${NC}"
 echo -e "Follow the steps below to start the server"
 echo -e "---------------------------------------------------------"
