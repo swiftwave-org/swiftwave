@@ -61,7 +61,7 @@ func (s *Server) MovePendingApplicationsToImageGenerationQueueCronjob() {
 					log.Println(err)
 					return err
 				}
-				s.AddLogToApplicationBuildLog(logRecord.ID, "Successfully enqueued for image generation", "info")
+				s.AddLogToApplicationBuildLog(logRecord.ID, "Successfully enqueued for image generation", "success", true)
 				return nil
 			})
 			if err != nil {
@@ -112,7 +112,7 @@ func (s *Server) MoveRedeployPendingApplicationsToImageGenerationQueueCronjob() 
 					log.Println(err)
 					return err
 				}
-				s.AddLogToApplicationBuildLog(logRecord.ID, "Successfully enqueued for image generation", "info")
+				s.AddLogToApplicationBuildLog(logRecord.ID, "Successfully enqueued for image generation", "success", true)
 				return nil
 			})
 			if err != nil {
