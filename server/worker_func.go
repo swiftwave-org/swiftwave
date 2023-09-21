@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	DOCKER_MANAGER "swiftwave/m/container_manager"
 	DOCKER_CONFIG_GENERATOR "swiftwave/m/docker_config_generator"
 	GIT_MANAGER "swiftwave/m/git_manager"
@@ -78,14 +79,14 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 	var application Application
 	if err := s.DB_CLIENT.Preload("Source.GitCredential").Preload(clause.Associations).Where("id = ?", app_id).First(&application).Error; err != nil {
 		log.Println("Failed to fetch application record from database")
-		s.AddLogToApplicationBuildLog(log_id, "Failed to fetch application record from database", "error")
+		s.AddLogToApplicationBuildLog(log_id, "Failed to fetch application record from database", "error", true)
 		return err
 	}
 	// Update application status
 	application.Status = ApplicationStatusBuildingImage
 	tx := s.DB_CLIENT.Save(&application)
 	if tx.Error != nil {
-		s.AddLogToApplicationBuildLog(log_id, "Failed to update application status in database", "warn")
+		s.AddLogToApplicationBuildLog(log_id, "Failed to update application status in database", "warn", true)
 		log.Println("Failed to update application status in database")
 	}
 
@@ -94,11 +95,11 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 	err := json.Unmarshal([]byte(application.BuildArgs), &buildargs)
 	if err != nil {
 		log.Println("Failed to unmarshal build args")
-		s.AddLogToApplicationBuildLog(log_id, "Failed to unmarshal build args", "error")
+		s.AddLogToApplicationBuildLog(log_id, "Failed to unmarshal build args", "error", true)
 		application.Status = ApplicationStatusBuildingImageFailed
 		tx := s.DB_CLIENT.Save(&application)
 		if tx.Error != nil {
-			s.AddLogToApplicationBuildLog(log_id, "Failed to update application status in database", "error")
+			s.AddLogToApplicationBuildLog(log_id, "Failed to update application status in database", "error", true)
 			log.Println("Failed to update application status in database")
 		}
 		return err
@@ -110,7 +111,7 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 		err := os.Mkdir(tempDirectory, 0777)
 		if err != nil {
 			failImageBuildUpdateStatus(&application, s.DB_CLIENT)
-			s.AddLogToApplicationBuildLog(log_id, "Failed to create temporary directory", "error")
+			s.AddLogToApplicationBuildLog(log_id, "Failed to create temporary directory", "error", true)
 			return err
 		}
 		// Defer remove temporary directory
@@ -119,17 +120,17 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 		err = GIT_MANAGER.CloneRepository(application.Source.RepositoryURL(), application.Source.Branch, application.Source.GitCredential.Username, application.Source.GitCredential.Password, tempDirectory)
 		if err != nil {
 			failImageBuildUpdateStatus(&application, s.DB_CLIENT)
-			s.AddLogToApplicationBuildLog(log_id, "Failed to clone git repository", "error")
+			s.AddLogToApplicationBuildLog(log_id, "Failed to clone git repository", "error", true)
 			return err
 		}
 		// Fetch latest commit hash
 		commitHash, err := GIT_MANAGER.FetchLatestCommitHash(application.Source.RepositoryURL(), application.Source.Branch, application.Source.GitCredential.Username, application.Source.GitCredential.Password)
 		if err != nil {
 			failImageBuildUpdateStatus(&application, s.DB_CLIENT)
-			s.AddLogToApplicationBuildLog(log_id, "Failed to fetch latest commit hash", "error")
+			s.AddLogToApplicationBuildLog(log_id, "Failed to fetch latest commit hash", "error", true)
 			return err
 		}
-		s.AddLogToApplicationBuildLog(log_id, "Fetched latest commit hash: "+commitHash, "info")
+		s.AddLogToApplicationBuildLog(log_id, "Fetched latest commit hash: "+commitHash, "success", true)
 		// Image name
 		imageName := application.ServiceName + ":" + commitHash
 		// Build docker image
@@ -146,7 +147,11 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 					continue
 				}
 				if data["stream"] != nil {
-					s.AddLogToApplicationBuildLog(log_id, data["stream"].(string), "info")
+					stream_data := data["stream"].(string)
+					trimmed_data := strings.TrimSpace(stream_data)
+					if trimmed_data != "" {
+						s.AddLogToApplicationBuildLog(log_id, trimmed_data, "info", true)
+					}
 				}
 			}
 		}
@@ -156,7 +161,7 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 		application.Status = ApplicationStatusBuildingImageCompleted
 		tx2 := s.DB_CLIENT.Save(&application)
 		if tx2.Error != nil {
-			s.AddLogToApplicationBuildLog(log_id, "Failed to update application status in database", "error")
+			s.AddLogToApplicationBuildLog(log_id, "Failed to update application status in database", "error", true)
 			log.Println("Failed to update application status in database")
 		}
 		// Update application commit hash
@@ -165,7 +170,7 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 		}
 		tx2 = s.DB_CLIENT.Model(&source).Update("last_commit", commitHash)
 		if tx2.Error != nil {
-			s.AddLogToApplicationBuildLog(log_id, "Failed to update application commit hash in database", "error")
+			s.AddLogToApplicationBuildLog(log_id, "Failed to update application commit hash in database", "error", true)
 			log.Println("Failed to update application commit hash in database")
 		}
 	} else if application.Source.Type == ApplicationSourceTypeTarball {
@@ -173,7 +178,7 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 		// Verify file exists
 		if _, err := os.Stat(tarballpath); os.IsNotExist(err) {
 			log.Println("Tarball file does not exist")
-			s.AddLogToApplicationBuildLog(log_id, "Tarball file does not exist", "error")
+			s.AddLogToApplicationBuildLog(log_id, "Tarball file does not exist", "error", true)
 			failImageBuildUpdateStatus(&application, s.DB_CLIENT)
 			return err
 		}
@@ -182,7 +187,7 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 		err = os.Mkdir(tempDirectory, 0777)
 		if err != nil {
 			log.Println("Failed to create temporary directory")
-			s.AddLogToApplicationBuildLog(log_id, "Failed to create temporary directory", "error")
+			s.AddLogToApplicationBuildLog(log_id, "Failed to create temporary directory", "error", true)
 			failImageBuildUpdateStatus(&application, s.DB_CLIENT)
 			return err
 		}
@@ -192,17 +197,17 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 		err = DOCKER_CONFIG_GENERATOR.ExtractTar(tarballpath, tempDirectory)
 		if err != nil {
 			log.Println("Failed to extract tarball")
-			s.AddLogToApplicationBuildLog(log_id, "Failed to extract tarball", "error")
+			s.AddLogToApplicationBuildLog(log_id, "Failed to extract tarball", "error", true)
 			failImageBuildUpdateStatus(&application, s.DB_CLIENT)
 			return err
 		}
 		// Image name
 		imageName := application.ServiceName + ":" + uuid.NewString()
 		// Build docker image
-		s.AddLogToApplicationBuildLog(log_id, "Building docker image", "info")
+		s.AddLogToApplicationBuildLog(log_id, "Building docker image", "info", true)
 		scanner, err := s.DOCKER_MANAGER.CreateImage(application.Dockerfile, buildargs, tempDirectory, imageName)
 		if err != nil {
-			s.AddLogToApplicationBuildLog(log_id, "Failed to build docker image", "error")
+			s.AddLogToApplicationBuildLog(log_id, "Failed to build docker image", "error", true)
 			failImageBuildUpdateStatus(&application, s.DB_CLIENT)
 			return err
 		}
@@ -214,7 +219,7 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 					continue
 				}
 				if data["stream"] != nil {
-					s.AddLogToApplicationBuildLog(log_id, data["stream"].(string), "info")
+					s.AddLogToApplicationBuildLog(log_id, data["stream"].(string), "info", true)
 				}
 			}
 		}
@@ -224,13 +229,13 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 		application.Status = ApplicationStatusBuildingImageCompleted
 		tx2 := s.DB_CLIENT.Save(&application)
 		if tx2.Error != nil {
-			s.AddLogToApplicationBuildLog(log_id, "Failed to update application status in database", "error")
+			s.AddLogToApplicationBuildLog(log_id, "Failed to update application status in database", "error", true)
 			log.Println("Failed to update application status in database")
 		}
 
 	} else if application.Source.Type == ApplicationSourceTypeImage {
 		log.Println("Application source type is image, skipping image generation")
-		s.AddLogToApplicationBuildLog(log_id, "Application source type is image, skipping image generation", "info")
+		s.AddLogToApplicationBuildLog(log_id, "Application source type is image, skipping image generation", "info", true)
 		// Update image name
 		application.Image = application.Source.DockerImage
 		// Update application status
@@ -240,7 +245,7 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 			log.Println("Failed to update application status in database")
 		}
 	}
-	s.AddLogToApplicationBuildLog(log_id, "Successfully built docker image"+application.Image, "info")
+	s.AddLogToApplicationBuildLog(log_id, "Successfully built docker image"+application.Image, "success", true)
 
 	// Deploy service
 	// Update application status to deploying_pending
