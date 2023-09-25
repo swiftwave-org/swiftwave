@@ -35,6 +35,9 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_PRIVATE_KEY }}
           script: |
+            sudo docker stop $(sudo docker ps -a -q)
+            sudo docker rm $(sudo docker ps -a -q)
+            sudo docker volume rm $(sudo docker volume ls -q)
             sudo rm -rf /var/lib/docker/*
       - name: Reinstall Swiftwave
         uses: appleboy/ssh-action@v1.0.0
