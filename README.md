@@ -46,10 +46,6 @@ We would love to hear from you and brainstorm on ideas! We communicate on Slack:
   <img src="https://contrib.rocks/image?repo=swiftwave-org/swiftwave" />
 </a>
 
-### Planned Upcoming Features
-- [ ] Make it robust to auto sync stats with containerization tool (docker, podman)
-- [ ] Lightweight CI support for Git Repo
-
 ### Support Us
 - Support our work by ⭐ this repo and share it in your community
 - Contribute to our codebase to make it great
