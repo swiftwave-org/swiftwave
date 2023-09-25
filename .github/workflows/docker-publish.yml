@@ -53,8 +53,8 @@ jobs:
 
     # Build and push Docker image with Buildx (don't push on PR)
     # https://github.com/docker/build-push-action
-    - name: Build and push Docker image for AMD64 
-      id: build-and-push-amd64
+    - name: Build and push Docker image
+      id: build-and-push
       uses: docker/build-push-action@v3
       with:
         file: Dockerfile
@@ -62,18 +62,6 @@ jobs:
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ env.REGISTRY }}/${{ env.IMAGE_REPOSITORY }}:latest
         labels: ${{ steps.meta.outputs.labels }}
-        platforms: linux/amd64
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-    - name: Build and push Docker image for ARM64 
-      id: build-and-push-arm64
-      uses: docker/build-push-action@v3
-      with:
-        file: Dockerfile
-        context: .
-        push: ${{ github.event_name != 'pull_request' }}
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_REPOSITORY }}:latest
-        labels: ${{ steps.meta.outputs.labels }}
-        platforms: linux/arm64
+        platforms: linux/amd64, linux/arm64
         cache-from: type=gha
         cache-to: type=gha,mode=max
