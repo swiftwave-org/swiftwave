@@ -65,7 +65,7 @@ jobs:
         platforms: linux/amd64
         cache-from: type=gha
         cache-to: type=gha,mode=max
-    - name: Build and push Docker image for AMD64 
+    - name: Build and push Docker image for ARM64 
       id: build-and-push-arm64
       uses: docker/build-push-action@v3
       with:
