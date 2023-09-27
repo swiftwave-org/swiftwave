@@ -35,6 +35,8 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_PRIVATE_KEY }}
           script: |
+            sudo docker service rm $(sudo docker service ls -q)
+            sleep 10
             sudo docker stop $(sudo docker ps -a -q)
             sudo docker rm $(sudo docker ps -a -q)
             sudo docker volume rm $(sudo docker volume ls -q)
