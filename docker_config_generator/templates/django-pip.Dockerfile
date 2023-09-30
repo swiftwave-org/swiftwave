@@ -1,5 +1,5 @@
 # -- build stager --
-FROM python:3.10-alpine3.18 AS build
+FROM python:3.11-bullseye AS build
 
 # Args
 ARG DEPENDENCY_FILE=requirements.txt
@@ -15,7 +15,7 @@ RUN pip install gunicorn
 RUN pip install -r /app/requirements.txt
 
 # -- release stager --
-FROM python:3.10-alpine3.18 AS final
+FROM python:3.11-bullseye AS final
 RUN apk upgrade --no-cache
 RUN apk add libpq
 
