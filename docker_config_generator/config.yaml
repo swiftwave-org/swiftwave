@@ -215,10 +215,14 @@ templates:
   nodejs:
     name: nodejs.Dockerfile
     variables:
-      PORT:
+      SETUP_COMMAND:
         type: string
-        description: Exposed Port [Ignore if not required]
-        default: 80
+        description: Setup and install dependencies
+        default: npm install
+      START_COMMAND:
+        type: string
+        description: Start command for nodejs application
+        default: npm run start
   django-pip:
     name: django-pip.Dockerfile
     variables:
