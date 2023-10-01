@@ -1,40 +1,55 @@
-FROM golang:1.20-alpine AS builder
+FROM golang:1.21.1-bullseye AS builder
 
-# -- Args
+# Build Args
 ARG BUILD_COMMAND="go build -o app ."
-ARG NAME="app"
-ARG PORT="80"
+ARG BINARY_NAME="app"
+ARG CGO_ENABLED="0"
+# Env setup
+ENV CGO_ENABLED=${CGO_ENABLED}
 
-# -- build env setup --
-ENV CGO_ENABLED=0
-RUN apk update && apk --no-cache upgrade
-RUN apk --no-cache add ca-certificates git
+# Setup workdir
 WORKDIR /build
 
-# -- Fetch dependencies --
-COPY go.mod go.sum ./
+# Copy source code
+COPY . .
+
+# Copy AptFile [optional]
+RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || true
+
+# Copy SetupCommand [optional]
+RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
+
+# Fetch dependencies
 RUN go mod download
 
-COPY . .
 RUN ${BUILD_COMMAND}
 
-# -- Runner stage --
-FROM alpine:latest AS runner
+# Runner stage
+FROM golang:1.21.1-bullseye AS runner
 
-# -- env setup --
-ARG NAME="app"
-RUN apk --no-cache upgrade
-RUN mkdir /user  \
-    && adduser -D user --shell /usr/sbin/nologin \
-    && chown -R user:user /user
+# Build Args
+ARG BINARY_NAME="app"
+ARG START_COMMAND="./app"
+
+# Setup workdir
 WORKDIR /user
 
-COPY --from=builder /build/${NAME} .
-EXPOSE ${PORT}
-ENV PORT ${PORT}
+# Copy binary
+COPY --from=builder /build/${BINARY_NAME} .
 
-RUN echo "/user/${NAME}" > /user/entrypoint.sh
+# Install OS dependencies
+
+# Copy AptFile [optional]
+COPY AptFile* ./
+RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || true
+
+# Copy SetupCommand [optional]
+COPY SetupCommand* ./
+RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
+
+# Create entrypoint
+RUN echo ${START_COMMAND} > /user/entrypoint.sh
 RUN chmod +x /user/entrypoint.sh
-USER user
 
+# Setup Entrypoint
 ENTRYPOINT ["sh", "-c", "/user/entrypoint.sh"]
