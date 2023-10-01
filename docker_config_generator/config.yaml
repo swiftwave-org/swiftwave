@@ -157,8 +157,12 @@ templates:
         description: Exposed Port [Ignore if not required]
         default: 80
   reactjs:
-    name: reactjs.Dockerfile
+    name: frontend.Dockerfile
     variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: npm install
       BUILD_COMMAND:
         type: string
         description: Build command for reactjs
@@ -166,10 +170,14 @@ templates:
       BUILD_DIRECTORY:
         type: string
         description: Build directory for reactjs
-        default: build
+        default: dist
   vuejs:
-    name: vuejs.Dockerfile
+    name: frontend.Dockerfile
     variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: npm install
       BUILD_COMMAND:
         type: string
         description: Build command for vuejs
@@ -177,10 +185,14 @@ templates:
       BUILD_DIRECTORY:
         type: string
         description: Build directory for vuejs
-        default: build
+        default: dist
   preactjs:
-    name: preactjs.Dockerfile
+    name: frontend.Dockerfile
     variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: npm install
       BUILD_COMMAND:
         type: string
         description: Build command for preactjs
@@ -188,7 +200,7 @@ templates:
       BUILD_DIRECTORY:
         type: string
         description: Build directory for preactjs
-        default: build
+        default: dist
   nextjs:
     name: nextjs.Dockerfile
     variables:
