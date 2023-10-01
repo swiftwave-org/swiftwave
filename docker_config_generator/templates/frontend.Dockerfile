@@ -25,7 +25,7 @@ RUN ${BUILD_COMMAND}
 FROM nginx:stable-bullseye
 
 # Build args
-ARG BUILD_DIRECTORY="build"
+ARG BUILD_DIRECTORY="dist"
 
 COPY --from=builder /app/${BUILD_DIRECTORY} /usr/share/nginx/html
 

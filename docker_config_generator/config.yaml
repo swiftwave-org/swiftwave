@@ -170,7 +170,7 @@ templates:
       BUILD_DIRECTORY:
         type: string
         description: Build directory for reactjs
-        default: build
+        default: dist
   vuejs:
     name: frontend.Dockerfile
     variables:
@@ -185,7 +185,7 @@ templates:
       BUILD_DIRECTORY:
         type: string
         description: Build directory for vuejs
-        default: build
+        default: dist
   preactjs:
     name: frontend.Dockerfile
     variables:
@@ -200,7 +200,7 @@ templates:
       BUILD_DIRECTORY:
         type: string
         description: Build directory for preactjs
-        default: build
+        default: dist
   nextjs:
     name: nextjs.Dockerfile
     variables:
