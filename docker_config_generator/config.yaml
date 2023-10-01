@@ -228,7 +228,7 @@ templates:
         description: Start command for nodejs application
         default: npm run start
   django-pip:
-    name: django-pip.Dockerfile
+    name: python-pip.Dockerfile
     variables:
       DEPENDENCY_FILE:
         type: string
@@ -239,7 +239,7 @@ templates:
         description: Start command [Include migrations as well]
         default: python manage.py makemigrations && python manage.py migrate && gunicorn <project_name>.wsgi:application --bind 0.0.0.0:80
   django-poetry:
-    name: django-poetry.Dockerfile
+    name: python-poetry.Dockerfile
     variables:
       START_COMMAND:
         type: string
@@ -260,7 +260,6 @@ templates:
         type: string
         description: Start command for flask app
         default: python app.py
-
   flask-poetry:
     name: python-poetry.Dockerfile
     variables:
@@ -277,7 +276,7 @@ templates:
         description: Start command for flask app
         default: poetry run python app.py
   fastapi-poetry:
-    name: fastapi-poetry.Dockerfile
+    name: python-poetry.Dockerfile
     variables:
       PORT:
         type: string
@@ -292,7 +291,7 @@ templates:
         description: Poetry version
         default: 1.4.2
   fastapi-pip:
-    name: fastapi-pip.Dockerfile
+    name: python-pip.Dockerfile
     variables:
       PORT:
         type: string
@@ -307,7 +306,7 @@ templates:
         description: Pex Wrapper Name [Dont' modify]
         default: pex_wrapper
   streamlit-poetry:
-    name: streamlit-poetry.Dockerfile
+    name: python-poetry.Dockerfile
     variables:
       PORT:
         type: string
@@ -322,7 +321,7 @@ templates:
         description: Poetry version
         default: 1.4.2
   streamlit-pip:
-    name: streamlit-pip.Dockerfile
+    name: python-pip.Dockerfile
     variables:
       PORT:
         type: string
