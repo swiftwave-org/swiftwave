@@ -244,41 +244,38 @@ templates:
       START_COMMAND:
         type: string
         description: Start command [Include migrations as well]
-        default: poetry run python manage.py makemigrations && poetry run python manage.py migrate && poetry run gunicorn <project_name>.wsgi:application --bind  0.0.0.0:80
+        default: poetry run python manage.py makemigrations && poetry run python manage.py migrate && poetry run gunicorn <project>.wsgi:application --bind  0.0.0.0:80
       POETRY_VERSION:
         type: string
         description: Poetry version
         default: 1.4.2
   flask-pip:
-    name: flask-pip.Dockerfile
+    name: python-pip.Dockerfile
     variables:
-      PORT:
+      SETUP_COMMAND:
         type: string
-        description: Port for flask
-        default: 80
+        description: Setup and install dependencies
+        default: pip install -r requirements.txt
       START_COMMAND:
         type: string
-        description: Start command for flask
-        default: python -m flask --app main run --host=0.0.0.0
-      PEX_WRAPPER:
-        type: string
-        description: Pex Wrapper Name [Dont' modify]
-        default: pex_wrapper
+        description: Start command for flask app
+        default: python app.py
+
   flask-poetry:
-    name: flask-poetry.Dockerfile
+    name: python-poetry.Dockerfile
     variables:
-      PORT:
-        type: string
-        description: Port for flask
-        default: 80
-      START_COMMAND:
-        type: string
-        description: Start command for flask
-        default: poetry run flask --app main run --host=0.0.0.0
       POETRY_VERSION:
         type: string
         description: Poetry version
-        default: 1.4.2
+        default: "1.4.2"
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: poetry install --no-interaction --no-cache --without dev
+      START_COMMAND:
+        type: string
+        description: Start command for flask app
+        default: poetry run python app.py
   fastapi-poetry:
     name: fastapi-poetry.Dockerfile
     variables:
