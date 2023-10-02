@@ -8,6 +8,7 @@
 |  Name | Version | Installation |
 | --- | --- | --- |
 | Git | Latest | [Download & Install](https://git-scm.com/downloads) |
+| NodeJS | v18.0 atleast | [Install NodeJS](https://deb.nodesource.com/) |
 | Docker | Latest | [Follow this docs to install](https://docs.docker.com/engine/install/) |
 
 > **Note For Windows :** Supports only Hyper-V based docker installation. WSL-2 based docker installation is not supported yet.
@@ -22,7 +23,8 @@
     ```bash
     cd swiftwave
     ```
-4. Run the setup script
+4. Run `npm install`
+5. Run the setup script
     - For  Linux
       ```bash
       ./dev.linux.sh
@@ -35,15 +37,15 @@
       ```bash
       dev.windows.ps1
       ```
-5. Then follow the instructions printed in the terminal after the script execution is completed.
+6. Then follow the instructions printed in the terminal after the script execution is completed.
 
 ---
 
 ## Production Setup
-**Till now we have tested the setup on `Ubuntu` , `Debian` and `AWS Linux 2` . We are working towrads making the installer compatible with other linux distros as well.**
+**We have tested the setup on `Ubuntu`, `Debian` and `AWS Linux 2`. We are working toward making the installer compatible with other Linux distros as well.**
 
-`Swiftwave` can be installed at one click.
-> We recommend to use a fresh server for production setup. If you are using an existing server, please make sure that you have stopped all the services running on port 80 and 443.
+`Swiftwave` can be installed with one click.
+> We recommend using a fresh server for production setup. If you are using an existing server, please ensure you have stopped all the services running on ports 80 and 443.
 
 Run this command in bash
 ```bash
@@ -52,4 +54,4 @@ Run this command in bash
 
 That's all 🍻
 
-Wait for ⏰  few minutes and it will become online .
+Wait for ⏰  few minutes, and it will become online.
