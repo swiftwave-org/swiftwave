@@ -1,4 +1,4 @@
-FROM python:3.10-bullseye as python-base
+FROM python:3.11.5-bullseye as python-base
 
 # https://python-poetry.org/docs#ci-recommendations
 ARG POETRY_VERSION="1.4.2"
