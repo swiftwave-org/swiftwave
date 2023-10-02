@@ -42,13 +42,8 @@ RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || t
 # Copy SetupCommand [optional]
 RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
 
-# [OPTIONAL] Validate the project is properly configured
-RUN poetry check
-
 # Install Dependencies
 RUN ${SETUP_COMMAND}
-
-
 
 # Setup entrypoint
 RUN echo ${START_COMMAND} >> /app/entrypoint.sh

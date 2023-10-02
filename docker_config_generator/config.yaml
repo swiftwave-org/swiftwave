@@ -270,7 +270,7 @@ templates:
       SETUP_COMMAND:
         type: string
         description: Setup and install dependencies
-        default: poetry install --no-interaction --no-cache --without dev
+        default: poetry install --no-interaction --no-cache
       START_COMMAND:
         type: string
         description: Start command for flask app
@@ -278,10 +278,6 @@ templates:
   fastapi-poetry:
     name: python-poetry.Dockerfile
     variables:
-      PORT:
-        type: string
-        description: Port for fastapi
-        default: 80
       START_COMMAND:
         type: string
         description: Start command for fastapi
@@ -293,10 +289,6 @@ templates:
   fastapi-pip:
     name: python-pip.Dockerfile
     variables:
-      PORT:
-        type: string
-        description: Port for fastapi
-        default: 80
       START_COMMAND:
         type: string
         description: Start command for fastapi
@@ -308,10 +300,6 @@ templates:
   streamlit-poetry:
     name: python-poetry.Dockerfile
     variables:
-      PORT:
-        type: string
-        description: Port for streamlit
-        default: 80
       START_COMMAND:
         type: string
         description: Start command for streamlit
@@ -323,10 +311,6 @@ templates:
   streamlit-pip:
     name: python-pip.Dockerfile
     variables:
-      PORT:
-        type: string
-        description: Port for streamlit
-        default: 80
       START_COMMAND:
         type: string
         description: Start command for streamlit
