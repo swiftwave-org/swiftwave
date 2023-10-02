@@ -10,3 +10,5 @@ swiftwave-server
 .env
 dev.log
 .images
+.idea
+node_modules
