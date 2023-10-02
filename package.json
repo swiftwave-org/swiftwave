@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "prepare": "husky install && chmod ug+x .husky/*"
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.7.2",
