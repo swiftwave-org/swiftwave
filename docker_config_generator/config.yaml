@@ -230,25 +230,29 @@ templates:
   django-pip:
     name: python-pip.Dockerfile
     variables:
-      DEPENDENCY_FILE:
+      SETUP_COMMAND:
         type: string
-        description: Dependency file for django
-        default: requirements.txt
+        description: Setup and install dependencies
+        default: pip install -r requirements.txt
       START_COMMAND:
         type: string
-        description: Start command [Include migrations as well]
-        default: python manage.py makemigrations && python manage.py migrate && gunicorn <project_name>.wsgi:application --bind 0.0.0.0:80
+        description: Start command for django app
+        default: python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8080
   django-poetry:
     name: python-poetry.Dockerfile
     variables:
-      START_COMMAND:
-        type: string
-        description: Start command [Include migrations as well]
-        default: poetry run python manage.py makemigrations && poetry run python manage.py migrate && poetry run gunicorn <project>.wsgi:application --bind  0.0.0.0:80
       POETRY_VERSION:
         type: string
         description: Poetry version
-        default: 1.4.2
+        default: "1.4.2"
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: poetry install --no-interaction --no-cache
+      START_COMMAND:
+        type: string
+        description: Start command for django app
+        default: poetry run python manage.py makemigrations && poetry run python manage.py migrate && poetry run python manage.py runserver 0.0.0.0:8080
   flask-pip:
     name: python-pip.Dockerfile
     variables:
