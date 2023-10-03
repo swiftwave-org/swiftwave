@@ -282,25 +282,29 @@ templates:
   fastapi-poetry:
     name: python-poetry.Dockerfile
     variables:
-      START_COMMAND:
-        type: string
-        description: Start command for fastapi
-        default: poetry run python -m uvicorn main:app --host=0.0.0.0
       POETRY_VERSION:
         type: string
         description: Poetry version
-        default: 1.4.2
+        default: "1.4.2"
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: poetry install --no-interaction --no-cache
+      START_COMMAND:
+        type: string
+        description: Start command for fastapi app
+        default: poetry run uvicorn main:app --host 0.0.0.0 --port 8080 --workers 3
   fastapi-pip:
     name: python-pip.Dockerfile
     variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: pip install -r requirements.txt
       START_COMMAND:
         type: string
-        description: Start command for fastapi
-        default: python -m uvicorn main:app --host=0.0.0.0
-      PEX_WRAPPER:
-        type: string
-        description: Pex Wrapper Name [Dont' modify]
-        default: pex_wrapper
+        description: Start command for streamlit app
+        default: uvicorn main:app --host 0.0.0.0 --port 8080 --workers 3
   streamlit-poetry:
     name: python-poetry.Dockerfile
     variables:
