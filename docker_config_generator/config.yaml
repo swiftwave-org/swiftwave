@@ -228,118 +228,154 @@ templates:
         description: Start command for nodejs application
         default: npm run start
   django-pip:
-    name: django-pip.Dockerfile
+    name: python-pip.Dockerfile
     variables:
-      DEPENDENCY_FILE:
+      SETUP_COMMAND:
         type: string
-        description: Dependency file for django
-        default: requirements.txt
+        description: Setup and install dependencies
+        default: pip install -r requirements.txt
       START_COMMAND:
         type: string
-        description: Start command [Include migrations as well]
-        default: python manage.py makemigrations && python manage.py migrate && gunicorn <project_name>.wsgi:application --bind 0.0.0.0:80
+        description: Start command for django app
+        default: python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8080
+  django-pipenv:
+    name: python-pipenv.Dockerfile
+    variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: pipenv install --dev --system --deploy
+      START_COMMAND:
+        type: string
+        description: Start command for django app
+        default: python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8080
   django-poetry:
-    name: django-poetry.Dockerfile
+    name: python-poetry.Dockerfile
     variables:
-      START_COMMAND:
-        type: string
-        description: Start command [Include migrations as well]
-        default: poetry run python manage.py makemigrations && poetry run python manage.py migrate && poetry run gunicorn <project_name>.wsgi:application --bind  0.0.0.0:80
       POETRY_VERSION:
         type: string
         description: Poetry version
-        default: 1.4.2
+        default: "1.4.2"
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: poetry install --no-interaction --no-cache
+      START_COMMAND:
+        type: string
+        description: Start command for django app
+        default: poetry run python manage.py makemigrations && poetry run python manage.py migrate && poetry run python manage.py runserver 0.0.0.0:8080
   flask-pip:
-    name: flask-pip.Dockerfile
+    name: python-pip.Dockerfile
     variables:
-      PORT:
+      SETUP_COMMAND:
         type: string
-        description: Port for flask
-        default: 80
+        description: Setup and install dependencies
+        default: pip install -r requirements.txt
       START_COMMAND:
         type: string
-        description: Start command for flask
-        default: python -m flask --app main run --host=0.0.0.0
-      PEX_WRAPPER:
+        description: Start command for flask app
+        default: python main.py
+  flask-pipenv:
+    name: python-pipenv.Dockerfile
+    variables:
+      SETUP_COMMAND:
         type: string
-        description: Pex Wrapper Name [Dont' modify]
-        default: pex_wrapper
+        description: Setup and install dependencies
+        default: pipenv install --dev --system --deploy
+      START_COMMAND:
+        type: string
+        description: Start command for flask app
+        default: python main.py
   flask-poetry:
-    name: flask-poetry.Dockerfile
+    name: python-poetry.Dockerfile
     variables:
-      PORT:
-        type: string
-        description: Port for flask
-        default: 80
-      START_COMMAND:
-        type: string
-        description: Start command for flask
-        default: poetry run flask --app main run --host=0.0.0.0
       POETRY_VERSION:
         type: string
         description: Poetry version
-        default: 1.4.2
+        default: "1.4.2"
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: poetry install --no-interaction --no-cache
+      START_COMMAND:
+        type: string
+        description: Start command for flask app
+        default: poetry run python main.py
   fastapi-poetry:
-    name: fastapi-poetry.Dockerfile
+    name: python-poetry.Dockerfile
     variables:
-      PORT:
-        type: string
-        description: Port for fastapi
-        default: 80
-      START_COMMAND:
-        type: string
-        description: Start command for fastapi
-        default: poetry run python -m uvicorn main:app --host=0.0.0.0
       POETRY_VERSION:
         type: string
         description: Poetry version
-        default: 1.4.2
+        default: "1.4.2"
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: poetry install --no-interaction --no-cache
+      START_COMMAND:
+        type: string
+        description: Start command for fastapi app
+        default: poetry run uvicorn main:app --host 0.0.0.0 --port 8080 --workers 3
   fastapi-pip:
-    name: fastapi-pip.Dockerfile
+    name: python-pip.Dockerfile
     variables:
-      PORT:
+      SETUP_COMMAND:
         type: string
-        description: Port for fastapi
-        default: 80
+        description: Setup and install dependencies
+        default: pip install -r requirements.txt
       START_COMMAND:
         type: string
-        description: Start command for fastapi
-        default: python -m uvicorn main:app --host=0.0.0.0
-      PEX_WRAPPER:
+        description: Start command for streamlit app
+        default: uvicorn main:app --host 0.0.0.0 --port 8080 --workers 3
+  fastapi-pipenv:
+    name: python-pipenv.Dockerfile
+    variables:
+      SETUP_COMMAND:
         type: string
-        description: Pex Wrapper Name [Dont' modify]
-        default: pex_wrapper
+        description: Setup and install dependencies
+        default: pipenv install --dev --system --deploy
+      START_COMMAND:
+        type: string
+        description: Start command for streamlit app
+        default: uvicorn main:app --host 0.0.0.0 --port 8080 --workers 3
   streamlit-poetry:
-    name: streamlit-poetry.Dockerfile
+    name: python-poetry.Dockerfile
     variables:
-      PORT:
-        type: string
-        description: Port for streamlit
-        default: 80
-      START_COMMAND:
-        type: string
-        description: Start command for streamlit
-        default: poetry run streamlit run main.py --server.port $PORT
       POETRY_VERSION:
         type: string
         description: Poetry version
-        default: 1.4.2
-  streamlit-pip:
-    name: streamlit-pip.Dockerfile
-    variables:
-      PORT:
+        default: "1.4.2"
+      SETUP_COMMAND:
         type: string
-        description: Port for streamlit
-        default: 80
+        description: Setup and install dependencies
+        default: poetry install --no-interaction --no-cache
       START_COMMAND:
         type: string
-        description: Start command for streamlit
-        default: streamlit run main.py --server.port $PORT
-      PEX_WRAPPER:
+        description: Start command for streamlit app
+        default: poetry run streamlit run main.py --server.port 8080
+  streamlit-pip:
+    name: python-pip.Dockerfile
+    variables:
+      SETUP_COMMAND:
         type: string
-        description: Pex Wrapper Name [Dont' modify]
-        default: pex_wrapper
-        
+        description: Setup and install dependencies
+        default: pip install -r requirements.txt
+      START_COMMAND:
+        type: string
+        description: Start command for streamlit app
+        default: streamlit run main.py --server.port 8080
+  streamlit-pipenv:
+    name: python-pipenv.Dockerfile
+    variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: pipenv install --dev --system --deploy
+      START_COMMAND:
+        type: string
+        description: Start command for streamlit app
+        default: streamlit run main.py --server.port 8080
+
 identifiers:
   nextjs:
   - selector:
@@ -372,6 +408,15 @@ identifiers:
         - Flask
   - selector:
     - file: requirements.txt
+      keywords:
+        - flask
+  flask-pipenv:
+  - selector:
+    - file: Pipfile
+      keywords:
+        - Flask
+  - selector:
+    - file: Pipfile
       keywords:
         - flask
   - selector:
@@ -408,6 +453,15 @@ identifiers:
     - file: requirements.txt
       keywords:
         - django
+  django-pipenv:
+  - selector:
+    - file: Pipfile
+      keywords:
+        - Django
+  - selector:
+    - file: Pipfile
+      keywords:
+        - django
   - selector:
     - file: Pipfile.lock
       keywords:
@@ -438,6 +492,11 @@ identifiers:
     - file: requirements.txt
       keywords:
         - fastapi
+  fastapi-pipenv:
+  - selector:
+    - file: Pipfile
+      keywords:
+        - fastapi
   - selector:
     - file: Pipfile.lock
       keywords:
@@ -454,6 +513,11 @@ identifiers:
   streamlit-pip:
   - selector:
     - file: requirements.txt
+      keywords:
+        - streamlit
+  streamlit-pipenv:
+  - selector:
+    - file: Pipfile
       keywords:
         - streamlit
   - selector:

@@ -1,7 +1,7 @@
-FROM python:3.10 as python-base
+FROM python:3.11.5-bullseye as python-base
 
 # https://python-poetry.org/docs#ci-recommendations
-ARG POETRY_VERSION=1.4.2
+ARG POETRY_VERSION="1.4.2"
 ENV POETRY_VERSION=${POETRY_VERSION}
 ENV POETRY_HOME=/opt/poetry
 ENV POETRY_VENV=/opt/poetry-venv
@@ -20,41 +20,34 @@ RUN python3 -m venv $POETRY_VENV \
 # Create a new stage from the base python image
 FROM python-base as final
 
-ARG PORT="80"
-ARG START_COMMAND="poetry run flask --app main run --host=0.0.0.0"
-# Copy Poetry to app image
+# Copy Poetry to final image
 COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
 
 # Add Poetry to PATH
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
 
+# Build Args
+ARG SETUP_COMMAND
+ARG START_COMMAND
+
+# Setup Workdir
 WORKDIR /app
 
-# Copy Dependencies
-COPY poetry.lock pyproject.toml ./
+# Copy Project
+COPY . .
 
-# [OPTIONAL] Validate the project is properly configured
-RUN poetry check
+# Copy AptFile [optional]
+RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || true
+
+# Copy SetupCommand [optional]
+RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
 
 # Install Dependencies
-RUN poetry install --no-interaction --no-cache --without dev
-
-# Create user
-RUN useradd -m -s /usr/sbin/nologin user && chown -R user:user /app
-
-# Copy Application
-COPY . /app
-
-# Run Application
-ENV PORT=${PORT}
-EXPOSE ${PORT}
+RUN ${SETUP_COMMAND}
 
 # Setup entrypoint
 RUN echo ${START_COMMAND} >> /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
-
-# Switch to non-root user
-USER user
 
 # Run app
 CMD ["sh", "-c", "/app/entrypoint.sh"]
