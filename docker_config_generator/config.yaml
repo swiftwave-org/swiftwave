@@ -238,6 +238,17 @@ templates:
         type: string
         description: Start command for django app
         default: python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8080
+  django-pipenv:
+    name: python-pipenv.Dockerfile
+    variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: pipenv install --dev --system --deploy
+      START_COMMAND:
+        type: string
+        description: Start command for django app
+        default: python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8080
   django-poetry:
     name: python-poetry.Dockerfile
     variables:
@@ -260,6 +271,17 @@ templates:
         type: string
         description: Setup and install dependencies
         default: pip install -r requirements.txt
+      START_COMMAND:
+        type: string
+        description: Start command for flask app
+        default: python main.py
+  flask-pipenv:
+    name: python-pipenv.Dockerfile
+    variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: pipenv install --dev --system --deploy
       START_COMMAND:
         type: string
         description: Start command for flask app
@@ -305,6 +327,17 @@ templates:
         type: string
         description: Start command for streamlit app
         default: uvicorn main:app --host 0.0.0.0 --port 8080 --workers 3
+  fastapi-pipenv:
+    name: python-pipenv.Dockerfile
+    variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: pipenv install --dev --system --deploy
+      START_COMMAND:
+        type: string
+        description: Start command for streamlit app
+        default: uvicorn main:app --host 0.0.0.0 --port 8080 --workers 3
   streamlit-poetry:
     name: python-poetry.Dockerfile
     variables:
@@ -327,6 +360,17 @@ templates:
         type: string
         description: Setup and install dependencies
         default: pip install -r requirements.txt
+      START_COMMAND:
+        type: string
+        description: Start command for streamlit app
+        default: streamlit run main.py --server.port 8080
+  streamlit-pipenv:
+    name: python-pipenv.Dockerfile
+    variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: pipenv install --dev --system --deploy
       START_COMMAND:
         type: string
         description: Start command for streamlit app
@@ -366,6 +410,15 @@ identifiers:
     - file: requirements.txt
       keywords:
         - flask
+  flask-pipenv:
+  - selector:
+    - file: Pipfile
+      keywords:
+        - Flask
+  - selector:
+    - file: Pipfile
+      keywords:
+        - flask
   - selector:
     - file: Pipfile.lock
       keywords:
@@ -400,6 +453,15 @@ identifiers:
     - file: requirements.txt
       keywords:
         - django
+  django-pipenv:
+  - selector:
+    - file: Pipfile
+      keywords:
+        - Django
+  - selector:
+    - file: Pipfile
+      keywords:
+        - django
   - selector:
     - file: Pipfile.lock
       keywords:
@@ -430,6 +492,11 @@ identifiers:
     - file: requirements.txt
       keywords:
         - fastapi
+  fastapi-pipenv:
+  - selector:
+    - file: Pipfile
+      keywords:
+        - fastapi
   - selector:
     - file: Pipfile.lock
       keywords:
@@ -446,6 +513,11 @@ identifiers:
   streamlit-pip:
   - selector:
     - file: requirements.txt
+      keywords:
+        - streamlit
+  streamlit-pipenv:
+  - selector:
+    - file: Pipfile
       keywords:
         - streamlit
   - selector:
