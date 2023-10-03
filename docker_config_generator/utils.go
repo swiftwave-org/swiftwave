@@ -75,13 +75,15 @@ func (m Manager) generateConfigFromSourceCodeDirectory(directory string) (Docker
 		}
 	}
 
+	// detect service
 	for _, serviceName := range m.Config.ServiceOrder {
 		// Fetch service selectors
 		identifiers := m.Config.Identifiers[serviceName]
 		for _, identifier := range identifiers {
 			// Fetch file content for each selector
 			isIdentifierMatched := false
-			for _, selector := range identifier.Selector {
+			// check keywords for each selector
+			for _, selector := range identifier.Selectors {
 				isMatched := true
 				// Check if file content contains keywords
 				for _, keyword := range selector.Keywords {
@@ -89,7 +91,17 @@ func (m Manager) generateConfigFromSourceCodeDirectory(directory string) (Docker
 				}
 				isIdentifierMatched = isIdentifierMatched || isMatched
 			}
-			if isIdentifierMatched {
+			// if identifiers is not matched, continue to check extension files if specified
+			isFileExtensionMatched := false
+			if !isIdentifierMatched {
+				for _, extension := range identifier.Extensions {
+					if hasFileWithExtension(directory, extension) {
+						isFileExtensionMatched = true
+						break
+					}
+				}
+			}
+			if isIdentifierMatched || isFileExtensionMatched {
 				// Fetch docker file
 				dockerConfig := DockerFileConfig{}
 				dockerConfig.DetectedService = serviceName

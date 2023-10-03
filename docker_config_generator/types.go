@@ -30,7 +30,8 @@ type Variable struct {
 }
 
 type Identifier struct {
-	Selector []IdentifierSelector `yaml:"selector"`
+	Selectors  []IdentifierSelector `yaml:"selectors"`
+	Extensions []string             `yaml:"extensions"`
 }
 
 type IdentifierSelector struct {

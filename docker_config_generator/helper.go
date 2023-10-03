@@ -131,6 +131,29 @@ func existsInFolder(destFolder string, file string) bool {
 	return false
 }
 
+// Check if any file exists in folder with the provided extensions
+func hasFileWithExtension(destFolderPath string, extension string) bool {
+	// Get all files and directories in rootPath
+	entries, err := os.ReadDir(destFolderPath)
+	if err != nil {
+		return false
+	}
+
+	// Check if any file has the provided extension
+	for _, entry := range entries {
+		if entry.IsDir() {
+			// Recursively check subdirectories
+			if hasFileWithExtension(filepath.Join(destFolderPath, entry.Name()), extension) {
+				return true
+			}
+		} else if strings.HasSuffix(entry.Name(), extension) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Sanitize the fileName to remove potentially dangerous characters
 func SanitizeFileName(fileName string) string {
 	// Remove any path components and keep only the file name
