@@ -15,8 +15,8 @@ service_order:
   - preactjs
   - reactjs
   - vuejs
-  - nodejs
   - golang
+  - nodejs
 
 lookup_files:
   - package.json
@@ -376,197 +376,241 @@ templates:
         description: Start command for streamlit app
         default: streamlit run main.py --server.port 8080
 
+# In the identifiers section, selectors get first priority and then extensions 
 identifiers:
   nextjs:
-  - selector:
+  - extensions:
+    selectors:
     - file: package.json
       keywords:
         - next
   preactjs:
-  - selector:
+  - extensions:
+    selectors:
     - file: package.json
       keywords:
         - preact
   reactjs:
-  - selector:
+  - extensions:
+    selectors:
     - file: package.json
       keywords:
         - react
   vuejs:
-  - selector:
+  - extensions:
+    selectors:
     - file: package.json
       keywords:
         - vue
   nodejs:
-  - selector:
+  - extensions:
+    selectors:
     - file: package.json
       keywords:
   flask-pip:
-  - selector:
+  - extensions:
+    selectors:
     - file: requirements.txt
       keywords:
         - Flask
-  - selector:
+  - extensions:
+    selectors:
     - file: requirements.txt
       keywords:
         - flask
   flask-pipenv:
-  - selector:
+  - extensions:
+    selectors:
     - file: Pipfile
       keywords:
         - Flask
-  - selector:
+  - extensions:
+    selectors:
     - file: Pipfile
       keywords:
         - flask
-  - selector:
+  - extensions:
+    selectors:
     - file: Pipfile.lock
       keywords:
         - Flask
-  - selector:
+  - extensions:
+    selectors:
     - file: Pipfile.lock
       keywords:
         - flask
   flask-poetry:
-  - selector:
+  - extensions:
+    selectors:
     - file: pyproject.toml
       keywords:
         - Flask
-  - selector:
+  - extensions:
+    selectors:
     - file: pyproject.toml
       keywords:
         - flask
-  - selector:
+  - extensions:
+    selectors:
     - file: poetry.lock
       keywords:
         - Flask
-  - selector:
+  - extensions:
+    selectors:
     - file: poetry.lock
       keywords:
         - flask
   django-pip:
-  - selector:
+  - extensions:
+    selectors:
     - file: requirements.txt
       keywords:
         - Django
-  - selector:
+  - extensions:
+    selectors:
     - file: requirements.txt
       keywords:
         - django
   django-pipenv:
-  - selector:
+  - extensions:
+    selectors:
     - file: Pipfile
       keywords:
         - Django
-  - selector:
+  - extensions:
+    selectors:
     - file: Pipfile
       keywords:
         - django
-  - selector:
+  - extensions:
+    selectors:
     - file: Pipfile.lock
       keywords:
         - Django
-  - selector:
+  - extensions:
+    selectors:
     - file: Pipfile.lock
       keywords:
         - django
   django-poetry:
-  - selector:
+  - extensions:
+    selectors:
     - file: pyproject.toml
       keywords:
         - Django
-  - selector:
+  - extensions:
+    selectors:
     - file: pyproject.toml
       keywords:
         - django
-  - selector:
+  - extensions:
+    selectors:
     - file: poetry.lock
       keywords:
         - Django
-  - selector:
+  - extensions:
+    selectors:
     - file: poetry.lock
       keywords:
         - django
   fastapi-pip:
-  - selector:
+  - extensions:
+    selectors:
     - file: requirements.txt
       keywords:
         - fastapi
   fastapi-pipenv:
-  - selector:
+  - extensions:
+    selectors:
     - file: Pipfile
       keywords:
         - fastapi
-  - selector:
+  - extensions:
+    selectors:
     - file: Pipfile.lock
       keywords:
         - fastapi
   fastapi-poetry:
-  - selector:
+  - extensions:
+    selectors:
     - file: pyproject.toml
       keywords:
         - fastapi
-  - selector:
+  - extensions:
+    selectors:
     - file: poetry.lock
       keywords:
         - fastapi
   streamlit-pip:
-  - selector:
+  - extensions:
+    selectors:
     - file: requirements.txt
       keywords:
         - streamlit
   streamlit-pipenv:
-  - selector:
+  - extensions:
+    selectors:
     - file: Pipfile
       keywords:
         - streamlit
-  - selector:
+  - extensions:
+    selectors:
     - file: Pipfile.lock
       keywords:
         - streamlit
   streamlit-poetry:
-  - selector:
+  - extensions:
+    selectors:
     - file: pyproject.toml
       keywords:
         - streamlit
-  - selector:
+  - extensions:
+    selectors:
     - file: poetry.lock
       keywords:
         - streamlit
   sinatra:
-  - selector:
+  - extensions:
+    selectors:
     - file: Gemfile
       keywords:
         - sinatra
-  - selector:
+  - extensions:
+    selectors:
     - file: Gemfile.lock
       keywords:
         - sinatra
   rails:
-  - selector:
+  - extensions:
+    selectors:
     - file: Gemfile
       keywords:
         - rails
-  - selector:
+  - extensions:
+    selectors:
     - file: Gemfile.lock
       keywords:
         - rails
   springboot-gradle:
-  - selector:
+  - extensions:
+    selectors:
     - file: build.gradle
       keywords:
         - org.springframework
-  - selector:
+  - extensions:
+    selectors:
     - file: build.gradle.kts
       keywords:
         - org.springframework
   springboot-maven:
-  - selector:
+  - extensions:
+    selectors:
     - file: pom.xml
       keywords:
         - org.springframework
   golang:
-  - selector:
+  - extensions:
+    selectors:
     - file: go.mod
       keywords:
         - module
