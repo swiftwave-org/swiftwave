@@ -86,7 +86,7 @@ services:
     description: Spring Boot based web application with Maven
   golang:
     name: Golang
-    description: Golang based web application
+    description: Golang based application
 
 templates:
   sinatra:
@@ -144,21 +144,29 @@ templates:
   golang:
     name: golang.Dockerfile
     variables:
-      NAME: 
+      BINARY_NAME: 
         type: string
-        description: Name for the golang module
+        description: Name for the golang application (No Space)
         default: app
+      CGO_ENABLED:
+        type: string
+        description: CGO_ENABLED for golang
+        default: "0"
       BUILD_COMMAND:
         type: string
-        description: Build command for golang
+        description: Build command for golang app
         default: go build -o app .
-      PORT:
+      START_COMMAND:
         type: string
-        description: Exposed Port [Ignore if not required]
-        default: 80
+        description: Start command for golang app
+        default: ./app
   reactjs:
-    name: reactjs.Dockerfile
+    name: frontend.Dockerfile
     variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: npm install
       BUILD_COMMAND:
         type: string
         description: Build command for reactjs
@@ -166,10 +174,14 @@ templates:
       BUILD_DIRECTORY:
         type: string
         description: Build directory for reactjs
-        default: build
+        default: dist
   vuejs:
-    name: vuejs.Dockerfile
+    name: frontend.Dockerfile
     variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: npm install
       BUILD_COMMAND:
         type: string
         description: Build command for vuejs
@@ -177,10 +189,14 @@ templates:
       BUILD_DIRECTORY:
         type: string
         description: Build directory for vuejs
-        default: build
+        default: dist
   preactjs:
-    name: preactjs.Dockerfile
+    name: frontend.Dockerfile
     variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: npm install
       BUILD_COMMAND:
         type: string
         description: Build command for preactjs
@@ -188,25 +204,29 @@ templates:
       BUILD_DIRECTORY:
         type: string
         description: Build directory for preactjs
-        default: build
+        default: dist
   nextjs:
     name: nextjs.Dockerfile
     variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: npm install
       BUILD_COMMAND:
         type: string
         description: Build command for nextjs
         default: npm run build
-      PORT:
-        type: string
-        description: Port for nextjs
-        default: 80
   nodejs:
     name: nodejs.Dockerfile
     variables:
-      PORT:
+      SETUP_COMMAND:
         type: string
-        description: Exposed Port [Ignore if not required]
-        default: 80
+        description: Setup and install dependencies
+        default: npm install
+      START_COMMAND:
+        type: string
+        description: Start command for nodejs application
+        default: npm run start
   django-pip:
     name: django-pip.Dockerfile
     variables:
