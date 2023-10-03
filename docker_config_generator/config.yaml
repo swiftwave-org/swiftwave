@@ -304,26 +304,30 @@ templates:
   streamlit-poetry:
     name: python-poetry.Dockerfile
     variables:
-      START_COMMAND:
-        type: string
-        description: Start command for streamlit
-        default: poetry run streamlit run main.py --server.port $PORT
       POETRY_VERSION:
         type: string
         description: Poetry version
-        default: 1.4.2
+        default: "1.4.2"
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: poetry install --no-interaction --no-cache
+      START_COMMAND:
+        type: string
+        description: Start command for streamlit app
+        default: poetry run streamlit run main.py --server.port 8080
   streamlit-pip:
     name: python-pip.Dockerfile
     variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: pip install -r requirements.txt
       START_COMMAND:
         type: string
-        description: Start command for streamlit
-        default: streamlit run main.py --server.port $PORT
-      PEX_WRAPPER:
-        type: string
-        description: Pex Wrapper Name [Dont' modify]
-        default: pex_wrapper
-        
+        description: Start command for streamlit app
+        default: streamlit run main.py --server.port 8080
+
 identifiers:
   nextjs:
   - selector:
