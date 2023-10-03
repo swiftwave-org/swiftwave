@@ -263,7 +263,7 @@ templates:
       START_COMMAND:
         type: string
         description: Start command for flask app
-        default: python app.py
+        default: python main.py
   flask-poetry:
     name: python-poetry.Dockerfile
     variables:
@@ -278,7 +278,7 @@ templates:
       START_COMMAND:
         type: string
         description: Start command for flask app
-        default: poetry run python app.py
+        default: poetry run python main.py
   fastapi-poetry:
     name: python-poetry.Dockerfile
     variables:
