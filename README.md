@@ -47,6 +47,13 @@ Thanks go to these wonderful people
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/tanmoysrt"><img src="https://avatars.githubusercontent.com/u/57363826?v=4?s=100" width="100px;" alt="Tanmoy Sarkar"/><br /><sub><b>Tanmoy Sarkar</b></sub></a><br /><a href="#maintenance-tanmoysrt" title="Maintenance">🚧</a></td>
+    </tr>
+  </tbody>
+</table>
 
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
