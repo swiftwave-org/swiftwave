@@ -41,10 +41,27 @@ We would love to hear from you and brainstorm on ideas! We communicate on Slack:
 [![Slack](https://img.shields.io/badge/chat-on_slack-purple.svg?style=for-the-badge&logo=slack)](https://join.slack.com/t/swiftwave-team/shared_invite/zt-21n86aslx-aAvBi3hv1GigVA_XoXiu4Q)
 
 
-### 🎉 Thanks to all our contributors
-<a href="https://github.com/swiftwave-org/swiftwave/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=swiftwave-org/swiftwave" />
-</a>
+### ✨ Contributors
+Thanks go to these wonderful people
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/tanmoysrt"><img src="https://avatars.githubusercontent.com/u/57363826?v=4?s=100" width="100px;" alt="Tanmoy Sarkar"/><br /><sub><b>Tanmoy Sarkar</b></sub></a><br /><a href="#maintenance-tanmoysrt" title="Maintenance">🚧</a> <a href="#review-tanmoysrt" title="Reviewed Pull Requests">👀</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/The-Debarghya"><img src="https://avatars.githubusercontent.com/u/79015784?v=4?s=100" width="100px;" alt="Debarghya Maitra"/><br /><sub><b>Debarghya Maitra</b></sub></a><br /><a href="#maintenance-The-Debarghya" title="Maintenance">🚧</a> <a href="#review-The-Debarghya" title="Reviewed Pull Requests">👀</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/flushthemoney"><img src="https://avatars.githubusercontent.com/u/122557313?v=4?s=100" width="100px;" alt="Kaviraj Sankameeswaran"/><br /><sub><b>Kaviraj Sankameeswaran</b></sub></a><br /><a href="#infra-flushthemoney" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/cAmartya"><img src="https://avatars.githubusercontent.com/u/80196675?v=4?s=100" width="100px;" alt="cAmartya"/><br /><sub><b>cAmartya</b></sub></a><br /><a href="#review-cAmartya" title="Reviewed Pull Requests">👀</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 ### Support Us
 - Support our work by ⭐ this repo and share it in your community

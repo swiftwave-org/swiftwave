@@ -1,0 +1,50 @@
+{
+  "projectName": "swiftwave",
+  "projectOwner": "swiftwave-org",
+  "files": [
+    "README.md"
+  ],
+  "commitType": "docs",
+  "commitConvention": "angular",
+  "contributorsPerLine": 7,
+  "contributors": [
+    {
+      "login": "tanmoysrt",
+      "name": "Tanmoy Sarkar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/57363826?v=4",
+      "profile": "https://github.com/tanmoysrt",
+      "contributions": [
+        "maintenance",
+        "review"
+      ]
+    },
+    {
+      "login": "The-Debarghya",
+      "name": "Debarghya Maitra",
+      "avatar_url": "https://avatars.githubusercontent.com/u/79015784?v=4",
+      "profile": "https://github.com/The-Debarghya",
+      "contributions": [
+        "maintenance",
+        "review"
+      ]
+    },
+    {
+      "login": "flushthemoney",
+      "name": "Kaviraj Sankameeswaran",
+      "avatar_url": "https://avatars.githubusercontent.com/u/122557313?v=4",
+      "profile": "https://github.com/flushthemoney",
+      "contributions": [
+        "infra"
+      ]
+    },
+    {
+      "login": "cAmartya",
+      "name": "cAmartya",
+      "avatar_url": "https://avatars.githubusercontent.com/u/80196675?v=4",
+      "profile": "https://github.com/cAmartya",
+      "contributions": [
+        "review"
+      ]
+    }
+  ]
+}
