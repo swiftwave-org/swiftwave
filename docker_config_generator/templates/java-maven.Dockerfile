@@ -1,7 +1,7 @@
 FROM eclipse-temurin:17-jdk-jammy AS builder
 
 # Build args
-ARG BUILD_COMMAND="./mvnw clean install"
+ARG BUILD_COMMAND
 
 # Setup Workdir
 WORKDIR /opt/app
