@@ -147,10 +147,14 @@ templates:
   springboot-maven:
     name: java-maven.Dockerfile
     variables:
+      DOWNLOAD_DEPENDENCY_COMMAND:
+        type: string
+        description: Download dependencies
+        default: ./mvnw dependency:go-offline
       BUILD_COMMAND:
         type: string
         description: Build command for springboot
-        default: mvnw clean install
+        default: ./mvnw clean install
       OUTPUT_JAR_FILE:
         type: string
         description: Output jar file for springboot
@@ -162,10 +166,14 @@ templates:
   springboot-gradle:
     name: java-gradle.Dockerfile
     variables:
+      DOWNLOAD_DEPENDENCY_COMMAND:
+        type: string
+        description: Download dependencies
+        default: ./gradlew dependencies
       BUILD_COMMAND:
         type: string
         description: Build command for springboot
-        default: gradlew clean build
+        default: ./gradlew clean build --exclude-task test
       OUTPUT_JAR_FILE:
         type: string
         description: Output jar file for springboot

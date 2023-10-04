@@ -1,6 +1,7 @@
-FROM eclipse-temurin:17-jdk-jammy AS builder
+FROM eclipse-temurin:19-jdk-jammy AS builder
 
 # Build args
+ARG DOWNLOAD_DEPENDENCY_COMMAND
 ARG BUILD_COMMAND
 
 # Setup Workdir
@@ -10,7 +11,7 @@ WORKDIR /opt/app
 COPY . .
 
 # Update file permissions
-RUN chmod +x gradlew
+RUN chmod +x ./gradlew
 
 # Install OS dependencies
 RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || true
@@ -19,13 +20,13 @@ RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || t
 RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
 
 # Run gradle dependencies
-RUN gradlew dependencies
+RUN ${DOWNLOAD_DEPENDENCY_COMMAND}
 
 # Build app
 RUN ${BUILD_COMMAND}
 
 ## Runner
-FROM eclipse-temurin:17-jre-alpine AS runner
+FROM eclipse-temurin:19-jre-alpine AS runner
 
 # Build args
 ARG OUTPUT_JAR_FILE
