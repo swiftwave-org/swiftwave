@@ -1,12 +1,19 @@
 service_order:
   - flask-pip
   - flask-poetry
+  - flask-pipenv
   - django-pip
   - django-poetry
+  - django-pipenv
   - fastapi-pip
   - fastapi-poetry
+  - fastapi-pipenv
   - streamlit-pip
   - streamlit-poetry
+  - streamlit-pipenv
+  - python-poetry
+  - python-pipenv
+  - python-pip
   - springboot-gradle
   - springboot-maven
   - rails
@@ -17,9 +24,11 @@ service_order:
   - vuejs
   - golang
   - nodejs
+  - static-site
 
 lookup_files:
   - package.json
+  - package-lock.json
   - requirements.txt
   - Pipfile.lock
   - pyproject.toml
@@ -54,24 +63,45 @@ services:
   flask-poetry:
     name: Flask + Poetry
     description: Flask based web application with poetry
+  flask-pipenv:
+    name: Flask + Pipenv
+    description: Flask based web application with pipenv
   django-pip:
     name: Django + Pip
     description: Django based web application with pip
   django-poetry:
     name: Django + Poetry
     description: Django based web application with poetry
+  django-pipenv:
+    name: Django + Pipenv
+    description: Django based web application with pipenv
   fastapi-pip:
     name: FastAPI + Pip
     description: FastAPI based web application with pip
   fastapi-poetry:
     name: FastAPI + Poetry
     description: FastAPI based web application with poetry
+  fastapi-pipenv:
+    name: FastAPI + Pipenv
+    description: FastAPI based web application with pipenv
   streamlit-pip:
     name: Streamlit + Pip
     description: Streamlit based web application with pip
   streamlit-poetry:
     name: Streamlit + Poetry
     description: Streamlit based web application with poetry
+  streamlit-pipenv:
+    name: Streamlit + Pipenv
+    description: Streamlit based web application with pipenv
+  python-pip:
+    name: Python + Pip
+    description: Python based application with pip
+  python-poetry:
+    name: Python + Poetry
+    description: Python based application with poetry
+  python-pipenv:
+    name: Python + Pipenv
+    description: Python based application with pipenv
   sinatra:
     name: Sinatra
     description: Sinatra based web application
@@ -87,6 +117,9 @@ services:
   golang:
     name: Golang
     description: Golang based application
+  static-site:
+    name: Static Site
+    description: Static site [HTML, CSS, JS]
 
 templates:
   sinatra:
@@ -227,6 +260,43 @@ templates:
         type: string
         description: Start command for nodejs application
         default: npm run start
+  python-pip:
+    name: python-pip.Dockerfile
+    variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: pip install -r requirements.txt
+      START_COMMAND:
+        type: string
+        description: Start command for python app
+        default: python main.py
+  python-pipenv:
+    name: python-pipenv.Dockerfile
+    variables:
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: pipenv install --dev --system --deploy
+      START_COMMAND:
+        type: string
+        description: Start command for python app
+        default: python main.py
+  python-poetry:
+    name: python-poetry.Dockerfile
+    variables:
+      POETRY_VERSION:
+        type: string
+        description: Poetry version
+        default: "1.4.2"
+      SETUP_COMMAND:
+        type: string
+        description: Setup and install dependencies
+        default: poetry install --no-interaction --no-cache
+      START_COMMAND:
+        type: string
+        description: Start command for python app
+        default: poetry run python main.py
   django-pip:
     name: python-pip.Dockerfile
     variables:
@@ -375,6 +445,9 @@ templates:
         type: string
         description: Start command for streamlit app
         default: streamlit run main.py --server.port 8080
+  static-site:
+    name: static-site.Dockerfile
+    variables:
 
 # In the identifiers section, selectors get first priority and then extensions 
 identifiers:
@@ -406,6 +479,33 @@ identifiers:
   - extensions:
     selectors:
     - file: package.json
+      keywords:
+  python-pip:
+  - extensions:
+    - py
+    selectors:
+  - extensions:
+    selectors:
+    - file: requirements.txt
+      keywords:
+        - python
+  python-pipenv:
+  - extensions:
+    selectors:
+    - file: Pipfile
+      keywords:
+  - extensions:
+    selectors:
+    - file: Pipfile.lock
+      keywords:
+  python-poetry:
+  - extensions:
+    selectors:
+    - file: pyproject.toml
+      keywords:
+  - extensions:
+    selectors:
+    - file: poetry.lock
       keywords:
   flask-pip:
   - extensions:
@@ -610,7 +710,15 @@ identifiers:
         - org.springframework
   golang:
   - extensions:
+    - go
     selectors:
     - file: go.mod
       keywords:
         - module
+  static-site:
+  - extensions:
+    - html
+    selectors:
+  - extensions:
+    - css
+    selectors:
