@@ -51,6 +51,7 @@ Thanks go to these wonderful people
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/tanmoysrt"><img src="https://avatars.githubusercontent.com/u/57363826?v=4?s=100" width="100px;" alt="Tanmoy Sarkar"/><br /><sub><b>Tanmoy Sarkar</b></sub></a><br /><a href="#maintenance-tanmoysrt" title="Maintenance">🚧</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/The-Debarghya"><img src="https://avatars.githubusercontent.com/u/79015784?v=4?s=100" width="100px;" alt="Debarghya Maitra"/><br /><sub><b>Debarghya Maitra</b></sub></a><br /><a href="#maintenance-The-Debarghya" title="Maintenance">🚧</a></td>
     </tr>
   </tbody>
 </table>
