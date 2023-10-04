@@ -103,7 +103,7 @@ services:
   python-pipenv:
     name: Python + Pipenv
     description: Python based application with pipenv
-  sinatra:d
+  sinatra:
     name: Sinatra
     description: Sinatra based web application
   rails:
