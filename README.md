@@ -41,10 +41,17 @@ We would love to hear from you and brainstorm on ideas! We communicate on Slack:
 [![Slack](https://img.shields.io/badge/chat-on_slack-purple.svg?style=for-the-badge&logo=slack)](https://join.slack.com/t/swiftwave-team/shared_invite/zt-21n86aslx-aAvBi3hv1GigVA_XoXiu4Q)
 
 
-### 🎉 Thanks to all our contributors
-<a href="https://github.com/swiftwave-org/swiftwave/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=swiftwave-org/swiftwave" />
-</a>
+### ✨ Contributors
+Thanks go to these wonderful people
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 ### Support Us
 - Support our work by ⭐ this repo and share it in your community
