@@ -24,6 +24,8 @@ service_order:
   - vuejs
   - golang
   - nodejs
+  - java-gradle
+  - java-maven
   - static-site
 
 lookup_files:
@@ -36,7 +38,6 @@ lookup_files:
   - Gemfile
   - Gemfile.lock
   - build.gradle
-  - build.gradle.kts
   - pom.xml
   - go.mod
   - go.sum
@@ -102,7 +103,7 @@ services:
   python-pipenv:
     name: Python + Pipenv
     description: Python based application with pipenv
-  sinatra:
+  sinatra:d
     name: Sinatra
     description: Sinatra based web application
   rails:
@@ -117,6 +118,12 @@ services:
   golang:
     name: Golang
     description: Golang based application
+  java-gradle:
+    name: Java + Gradle
+    description: Java based application with Gradle
+  java-maven:
+    name: Java + Maven
+    description: Java based application with Maven
   static-site:
     name: Static Site
     description: Static site [HTML, CSS, JS]
@@ -181,6 +188,44 @@ templates:
       START_COMMAND:
         type: string
         description: Start command for springboot
+        default: java -jar app.jar
+  java-maven:
+    name: java-maven.Dockerfile
+    variables:
+      DOWNLOAD_DEPENDENCY_COMMAND:
+        type: string
+        description: Download dependencies
+        default: ./mvnw dependency:go-offline
+      BUILD_COMMAND:
+        type: string
+        description: Build command for java app
+        default: ./mvnw clean install
+      OUTPUT_JAR_FILE:
+        type: string
+        description: Output jar file for java app
+        default: app.jar
+      START_COMMAND:
+        type: string
+        description: Start command for java app
+        default: java -jar app.jar
+  java-gradle:
+    name: java-gradle.Dockerfile
+    variables:
+      DOWNLOAD_DEPENDENCY_COMMAND:
+        type: string
+        description: Download dependencies
+        default: ./gradlew dependencies
+      BUILD_COMMAND:
+        type: string
+        description: Build command for java app
+        default: ./gradlew clean build --exclude-task test
+      OUTPUT_JAR_FILE:
+        type: string
+        description: Output jar file for java app
+        default: app.jar
+      START_COMMAND:
+        type: string
+        description: Start command for java app
         default: java -jar app.jar
   golang:
     name: golang.Dockerfile
@@ -705,11 +750,6 @@ identifiers:
     - file: build.gradle
       keywords:
         - org.springframework
-  - extensions:
-    selectors:
-    - file: build.gradle.kts
-      keywords:
-        - org.springframework
   springboot-maven:
   - extensions:
     selectors:
@@ -723,6 +763,16 @@ identifiers:
     - file: go.mod
       keywords:
         - module
+  java-gradle:
+  - extensions:
+    selectors:
+    - file: build.gradle
+      keywords:
+  java-maven:
+  - extensions:
+    selectors:
+    - file: pom.xml
+      keywords:
   static-site:
   - extensions:
     - html
