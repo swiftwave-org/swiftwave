@@ -1,7 +1,7 @@
 FROM eclipse-temurin:17-jdk-jammy AS builder
 
 # Build args
-ARG BUILD_COMMAND
+ARG BUILD_COMMAND="./mvnw clean install"
 
 # Setup Workdir
 WORKDIR /opt/app
@@ -10,7 +10,7 @@ WORKDIR /opt/app
 COPY . .
 
 # Update file permissions
-RUN chmod +x gradlew
+RUN chmod +x mvnw
 
 # Install OS dependencies
 RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || true
@@ -18,8 +18,8 @@ RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || t
 # Run SetupCommand
 RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
 
-# Run gradle dependencies
-RUN gradlew dependencies
+# Download dependencies
+RUN mvnw dependency:go-offline
 
 # Build app
 RUN ${BUILD_COMMAND}
@@ -43,7 +43,7 @@ COPY SetupCommand* ./
 RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
 
 # Copy jar file
-COPY --from=builder /opt/app/build/libs/*.jar ./${OUTPUT_JAR_FILE}
+COPY --from=builder /opt/app/target/*.jar ./${OUTPUT_JAR_FILE}
 
 # Create entrypoint
 RUN echo ${START_COMMAND} > /home/entrypoint.sh
