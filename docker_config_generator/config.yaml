@@ -24,6 +24,7 @@ service_order:
   - vuejs
   - golang
   - nodejs
+  - static-site
 
 lookup_files:
   - package.json
@@ -116,6 +117,9 @@ services:
   golang:
     name: Golang
     description: Golang based application
+  static-site:
+    name: Static Site
+    description: Static site [HTML, CSS, JS]
 
 templates:
   sinatra:
@@ -441,6 +445,9 @@ templates:
         type: string
         description: Start command for streamlit app
         default: streamlit run main.py --server.port 8080
+  static-site:
+    name: static-site.Dockerfile
+    variables:
 
 # In the identifiers section, selectors get first priority and then extensions 
 identifiers:
@@ -708,3 +715,10 @@ identifiers:
     - file: go.mod
       keywords:
         - module
+  static-site:
+  - extensions:
+    - html
+    selectors:
+  - extensions:
+    - css
+    selectors:
