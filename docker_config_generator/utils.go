@@ -97,6 +97,11 @@ func (m Manager) generateConfigFromSourceCodeDirectory(directory string) (Docker
 					break
 				}
 				isMatched := true
+				// check if file exists
+				if lookupFiles[selector.File] == "" {
+					isMatched = false
+					break
+				}
 				// Check if file content contains keywords
 				for _, keyword := range selector.Keywords {
 					isMatched = isMatched && strings.Contains(lookupFiles[selector.File], keyword)
