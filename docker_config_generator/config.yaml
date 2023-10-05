@@ -130,26 +130,34 @@ services:
 
 templates:
   sinatra:
-    name: sinatra.Dockerfile
+    name: ruby.Dockerfile
     variables:
-      PORT:
+      NODE_MAJOR:
         type: string
-        description: Port for sinatra
-        default: 4567
-      BUILDPLATFORM:
+        description: Node major version for rails
+        default: 18
+      INSTALL_COMMAND:
         type: string
-        description: Build platform for sinatra
-        default: x86_64-linux
-      SERVER: 
-        type: string
-        description: Server for sinatra
-        default: thin
-  rails:
-    name: rails.Dockerfile
-    variables:
+        description: Install dependencies
+        default: bundle install --without production
       START_COMMAND:
         type: string
-        description: Start command for rails
+        description: Start command for app
+        default: ruby app.rb -o '0.0.0.0'
+  rails:
+    name: ruby.Dockerfile
+    variables:
+      NODE_MAJOR:
+        type: string
+        description: Node major version for rails
+        default: 18
+      INSTALL_COMMAND:
+        type: string
+        description: Install dependencies
+        default: bundle install --without production
+      START_COMMAND:
+        type: string
+        description: Start command for app
         default: bundle exec rails server -p 3000 -b '0.0.0.0'
   springboot-maven:
     name: java-maven.Dockerfile
