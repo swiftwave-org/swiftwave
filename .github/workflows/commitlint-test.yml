@@ -14,7 +14,7 @@ jobs:
           sudo apt-get update
           sudo apt install -y 
           sudo apt install -y git curl
-          curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+          curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -
           sudo DEBIAN_FRONTEND=noninteractive apt install -y nodejs
       - name: Print versions
         run: |
