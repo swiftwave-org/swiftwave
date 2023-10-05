@@ -1,8 +1,9 @@
 # build stage
 FROM --platform=$BUILDPLATFORM golang:1.21-rc-bookworm AS build-env
 ENV CGO_ENABLED=1
-ADD . /src
-RUN cd /src && --mount=type=cache,target=/root/.cache/go-build go build -o goapp .
+WORKDIR /src
+COPY . .
+RUN --mount=type=cache,target=/root/.cache/go-build go build -o goapp .
 
 # final stage
 FROM --platform=$BUILDPLATFORM ubuntu:22.04
