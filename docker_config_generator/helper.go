@@ -37,7 +37,7 @@ func ParseBuildArgsFromDockerfile(dockerfile string) map[string]Variable {
 
 // Extract tar file to a folder.
 func ExtractTar(tarFile string, destFolder string) error {
-	reader, err := os.Open(SanitizeFileName(tarFile))
+	reader, err := os.Open(tarFile)
 	if err != nil {
 		return err
 	}
