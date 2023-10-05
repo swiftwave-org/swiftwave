@@ -34,33 +34,11 @@ jobs:
               gofmt -l -e -d . 
               exit 1 
           fi
-  gofmt-windows:
-    strategy:
-      matrix:
-        go: ["1.20"]
-        os: [windows-latest]
-    name: gofmt
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-        with:
-          go-version: ${{ matrix.go }}
-          cache: true
-      - name: Run format checks
-        run: |
-          if ((gofmt -d -l -e . | Measure-Object -Line).Lines -eq 0) {
-            Write-Host 'Format Checks Have Passed!!!'
-          } else {
-            Write-Host 'Format Checks Have Failed!'
-            gofmt -l -e -d .
-            exit 1
-          }
   golangci:
     strategy:
       matrix:
         go: ["1.20"]
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest]
     name: lint
     runs-on: ${{ matrix.os }}
     steps:
