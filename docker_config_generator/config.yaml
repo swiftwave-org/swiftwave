@@ -22,11 +22,11 @@ service_order:
   - preactjs
   - reactjs
   - vuejs
+  - ruby
   - golang
   - nodejs
   - java-gradle
   - java-maven
-  - ruby
   - static-site
 
 lookup_files:
