@@ -2,6 +2,7 @@ package dockerconfiggenerator
 
 import (
 	"errors"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -57,6 +58,9 @@ func (m Manager) generateConfigFromSourceCodeDirectory(directory string) (Docker
 		dockerConfig.DetectedService = "Dockerfile from source code"
 		dockerConfig.DockerFile = string(file)
 		dockerConfig.Variables = ParseBuildArgsFromDockerfile(string(file))
+		if dockerConfig.Variables == nil {
+			dockerConfig.Variables = map[string]Variable{}
+		}
 		return dockerConfig, nil
 	}
 
@@ -65,7 +69,11 @@ func (m Manager) generateConfigFromSourceCodeDirectory(directory string) (Docker
 	var lookupFiles map[string]string = map[string]string{}
 	for _, lookupFile := range m.Config.LookupFiles {
 		if existsInFolder(directory, lookupFile) {
-			file, err := os.ReadFile(directory + "/" + lookupFile)
+			f, err := os.Open(directory + "/" + lookupFile)
+			if err != nil {
+				return DockerFileConfig{}, errors.New("failed to open file " + lookupFile + "")
+			}
+			file, err := io.ReadAll(f)
 			if err != nil {
 				return DockerFileConfig{}, errors.New("failed to fetch file content for " + lookupFile + "")
 			}
@@ -85,6 +93,11 @@ func (m Manager) generateConfigFromSourceCodeDirectory(directory string) (Docker
 			// check keywords for each selector
 			for _, selector := range identifier.Selectors {
 				isMatched := true
+				// check if file exists
+				if lookupFiles[selector.File] == "" {
+					isMatched = false
+					break
+				}
 				// Check if file content contains keywords
 				for _, keyword := range selector.Keywords {
 					isMatched = isMatched && strings.Contains(lookupFiles[selector.File], keyword)
@@ -107,6 +120,9 @@ func (m Manager) generateConfigFromSourceCodeDirectory(directory string) (Docker
 				dockerConfig.DetectedService = serviceName
 				dockerConfig.DockerFile = m.DockerTemplates[serviceName]
 				dockerConfig.Variables = m.Config.Templates[serviceName].Variables
+				if dockerConfig.Variables == nil {
+					dockerConfig.Variables = map[string]Variable{}
+				}
 				return dockerConfig, nil
 			}
 		}
@@ -121,6 +137,9 @@ func (m Manager) GenerateConfigFromCustomDocker(dockerfile string) DockerFileCon
 	dockerConfig.DetectedService = "Custom Dockerfile"
 	dockerConfig.DockerFile = dockerfile
 	dockerConfig.Variables = ParseBuildArgsFromDockerfile(dockerfile)
+	if dockerConfig.Variables == nil {
+		dockerConfig.Variables = map[string]Variable{}
+	}
 	return dockerConfig
 }
 
