@@ -1,4 +1,4 @@
-name: CI
+name: Commitlint Check
 
 on: [push, pull_request]
 
