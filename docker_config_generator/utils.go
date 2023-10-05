@@ -2,6 +2,7 @@ package dockerconfiggenerator
 
 import (
 	"errors"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -65,7 +66,11 @@ func (m Manager) generateConfigFromSourceCodeDirectory(directory string) (Docker
 	var lookupFiles map[string]string = map[string]string{}
 	for _, lookupFile := range m.Config.LookupFiles {
 		if existsInFolder(directory, lookupFile) {
-			file, err := os.ReadFile(directory + "/" + lookupFile)
+			f, err := os.Open(directory + "/" + lookupFile)
+			if err != nil {
+				return DockerFileConfig{}, errors.New("failed to open file " + lookupFile + "")
+			}
+			file, err := io.ReadAll(f)
 			if err != nil {
 				return DockerFileConfig{}, errors.New("failed to fetch file content for " + lookupFile + "")
 			}
@@ -85,6 +90,11 @@ func (m Manager) generateConfigFromSourceCodeDirectory(directory string) (Docker
 			// check keywords for each selector
 			for _, selector := range identifier.Selectors {
 				isMatched := true
+				// check if file exists
+				if lookupFiles[selector.File] == "" {
+					isMatched = false
+					break
+				}
 				// Check if file content contains keywords
 				for _, keyword := range selector.Keywords {
 					isMatched = isMatched && strings.Contains(lookupFiles[selector.File], keyword)
