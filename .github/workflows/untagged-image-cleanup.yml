@@ -13,4 +13,4 @@ jobs:
           owner: swiftwave-org
           name: swiftwave
           token: ${{ secrets.SWIFTWAVE_DELETE_PACKAGE }}
-          untagged: all
+          untagged-keep-latest: 1
