@@ -26,6 +26,7 @@ service_order:
   - nodejs
   - java-gradle
   - java-maven
+  - ruby
   - static-site
 
 lookup_files:
@@ -127,6 +128,9 @@ services:
   static-site:
     name: Static Site
     description: Static site [HTML, CSS, JS]
+  ruby:
+    name: Ruby
+    description: Ruby based application
 
 templates:
   sinatra:
@@ -159,6 +163,21 @@ templates:
         type: string
         description: Start command for app
         default: bundle exec rails server -p 3000 -b '0.0.0.0'
+  ruby:
+    name: ruby.Dockerfile
+    variables:
+      NODE_MAJOR:
+        type: string
+        description: Node major version for rails
+        default: 18
+      INSTALL_COMMAND:
+        type: string
+        description: Install dependencies
+        default: bundle install --without production
+      START_COMMAND:
+        type: string
+        description: Start command for app
+        default:
   springboot-maven:
     name: java-maven.Dockerfile
     variables:
@@ -780,6 +799,17 @@ identifiers:
   - extensions:
     selectors:
     - file: pom.xml
+      keywords:
+  ruby:
+  - extensions:
+    - rb
+    selectors:
+    - file: Gemfile
+      keywords:
+  - extensions:
+    - rb
+    selectors:
+    - file: Gemfile.lock
       keywords:
   static-site:
   - extensions:
