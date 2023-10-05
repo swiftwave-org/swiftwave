@@ -52,3 +52,5 @@ jobs:
             curl -L get.swiftwave.org | ENVIRONMENT=staging bash
   cleanup-untagged-images:
     uses: swiftwave-org/SwiftWave/.github/workflows/untagged-image-cleanup.yml@main
+    secrets:
+      SWIFTWAVE_DELETE_PACKAGE: ${{ secrets.SWIFTWAVE_DELETE_PACKAGE }}
