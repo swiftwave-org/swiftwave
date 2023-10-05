@@ -58,6 +58,9 @@ func (m Manager) generateConfigFromSourceCodeDirectory(directory string) (Docker
 		dockerConfig.DetectedService = "Dockerfile from source code"
 		dockerConfig.DockerFile = string(file)
 		dockerConfig.Variables = ParseBuildArgsFromDockerfile(string(file))
+		if dockerConfig.Variables == nil {
+			dockerConfig.Variables = map[string]Variable{}
+		}
 		return dockerConfig, nil
 	}
 
@@ -117,6 +120,9 @@ func (m Manager) generateConfigFromSourceCodeDirectory(directory string) (Docker
 				dockerConfig.DetectedService = serviceName
 				dockerConfig.DockerFile = m.DockerTemplates[serviceName]
 				dockerConfig.Variables = m.Config.Templates[serviceName].Variables
+				if dockerConfig.Variables == nil {
+					dockerConfig.Variables = map[string]Variable{}
+				}
 				return dockerConfig, nil
 			}
 		}
@@ -131,6 +137,9 @@ func (m Manager) GenerateConfigFromCustomDocker(dockerfile string) DockerFileCon
 	dockerConfig.DetectedService = "Custom Dockerfile"
 	dockerConfig.DockerFile = dockerfile
 	dockerConfig.Variables = ParseBuildArgsFromDockerfile(dockerfile)
+	if dockerConfig.Variables == nil {
+		dockerConfig.Variables = map[string]Variable{}
+	}
 	return dockerConfig
 }
 
