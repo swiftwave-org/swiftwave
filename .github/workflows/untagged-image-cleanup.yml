@@ -1,0 +1,16 @@
+name: Cleanup Untagged Images
+
+on:
+  workflow_dispatch:
+  workflow_call:
+jobs:
+  delete-untagged-images:
+    name: Delete Untagged Images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: bots-house/ghcr-delete-image-action@v1.1.0
+        with:
+          owner: swiftwave-org
+          name: swiftwave
+          token: ${{ secrets.SWIFTWAVE_DELETE_PACKAGE }}
+          untagged-keep-latest: 0
