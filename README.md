@@ -69,9 +69,9 @@ Thanks go to these wonderful people
 
 ### Support Us
 - Support our work by ⭐ this repo and share it in your community
-- Contribute to our codebase to make it great
-- You can also sponsor to keep development of this software running . 
-   - Sponsor [@tanmoysrt](https://github.com/sponsors/tanmoysrt)
+- Contribute to our codebase to make it stable and have a great software in hand
+<!--  - You can also sponsor to keep development of this software running . 
+   - Sponsor [@tanmoysrt](https://github.com/sponsors/tanmoysrt) -->
 
 ### Star History
 
