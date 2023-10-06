@@ -14,6 +14,9 @@
     * Upload Source Code
     * Docker Image URL
 
+### 💻 Architecture of SwiftWave
+![design](https://github.com/swiftwave-org/swiftwave/assets/57363826/1bd8e0a6-77d3-4393-95d9-bbb2733c1826)
+
 ### 🥅 Our Goals
 * Keep it open-source and maintained by the community
 * As easy as Heroku but flexible and scalable as manual deployment in AWS, GCP, Digitalocean with no vendor locking
