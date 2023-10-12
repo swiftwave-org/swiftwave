@@ -91,7 +91,6 @@ func (s *Server) isProductionEnvironment() bool {
 	return strings.Compare(s.ENVIRONMENT, "production") == 0
 }
 
-
 func (a *ApplicationBuildLog) GetRedisPubSubChannel() string {
 	return "log_update/" + a.ID
 }
