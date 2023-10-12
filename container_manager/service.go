@@ -130,13 +130,11 @@ func (m Manager) StatusService(serviceName string) (ServiceStatus, error) {
 }
 
 // Get service logs
-func (m Manager) LogsService(serviceName string, since string, until string) (io.ReadCloser, error) {
+func (m Manager) LogsService(serviceName string) (io.ReadCloser, error) {
 	logs, err := m.client.ServiceLogs(m.ctx, serviceName, types.ContainerLogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
-		Follow:     false,
-		Since:      since,
-		Until:      until,
+		Follow:     true,
 	})
 	if err != nil {
 		return nil, errors.New("error getting service logs")

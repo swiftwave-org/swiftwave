@@ -14,6 +14,7 @@ import (
 
 	DOCKER_CLIENT "github.com/docker/docker/client"
 	"github.com/go-redis/redis/v8"
+	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/vmihailenco/taskq/v3"
@@ -33,6 +34,7 @@ type Server struct {
 	DB_CLIENT                    gorm.DB
 	REDIS_CLIENT                 redis.Client
 	ECHO_SERVER                  echo.Echo
+	WEBSOCKET_UPGRADER           websocket.Upgrader
 	PORT                         int
 	HAPROXY_SERVICE              string
 	CODE_TARBALL_DIR             string
@@ -153,6 +155,7 @@ func (server *Server) Init() {
 	server.DOCKER_CLIENT = *docker_client
 	server.DB_CLIENT = *db_client
 	server.ECHO_SERVER = *echo.New()
+	server.WEBSOCKET_UPGRADER = websocket.Upgrader{}
 
 	// Initiating middlewares
 	server.ECHO_SERVER.Pre(middleware.RemoveTrailingSlash())
