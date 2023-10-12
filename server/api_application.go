@@ -2,6 +2,7 @@ package server
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -35,7 +36,7 @@ func (server *Server) InitApplicationRestAPI() {
 	server.ECHO_SERVER.POST("/applications/:id/redeploy", server.redeployApplication)
 	server.ECHO_SERVER.DELETE("/applications/:id", server.deleteApplication)
 	server.ECHO_SERVER.GET("/applications/:id/logs/build", server.getApplicationBuildLogs)
-	server.ECHO_SERVER.GET("/applications/:id/logs/build/:log_id", server.getApplicationBuildLog)
+	server.ECHO_SERVER.GET("/ws/applications/:id/logs/build/:log_id", server.getApplicationBuildLog)
 	server.ECHO_SERVER.GET("/ws/applications/:id/logs/runtime", server.getApplicationRuntimeLogs)
 	server.ECHO_SERVER.GET("/applications/availiblity/service_name", server.checkApplicationServiceNameAvailability)
 	server.ECHO_SERVER.GET("/applications/servicenames", server.getApplicationServiceNames)
@@ -410,7 +411,7 @@ func (server *Server) getApplicationBuildLogs(c echo.Context) error {
 	return c.JSON(200, applicationBuildLogs)
 }
 
-// GET /application/:id/logs/build/:log_id
+// GET /ws/application/:id/logs/build/:log_id
 func (server *Server) getApplicationBuildLog(c echo.Context) error {
 	var applicationBuildLog ApplicationBuildLog
 	logID := c.Param("log_id")
@@ -425,7 +426,68 @@ func (server *Server) getApplicationBuildLog(c echo.Context) error {
 			"message": "failed to get application log",
 		})
 	}
-	return c.JSON(200, applicationBuildLog.Logs)
+	// Upgrade connection to websocket
+	ws, err := server.WEBSOCKET_UPGRADER.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		log.Println(err)
+		return c.String(500, "failed to upgrade connection to websocket")
+	}
+
+	// Close connection
+	defer ws.Close()
+	closed := false
+
+	// Listen to redis subscriber
+	pubsub := server.REDIS_CLIENT.Subscribe(context.Background(), applicationBuildLog.GetRedisPubSubChannel())
+	defer pubsub.Close()
+	ch := pubsub.Channel()
+
+	// waitgroup for goroutines
+	wg := sync.WaitGroup{}
+
+	// listen for close message from client
+	wg.Add(1)
+	go func() {
+		for {
+			messageType, _, err := ws.ReadMessage()
+			if err != nil {
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+					c.Logger().Error(err)
+				}
+				closed = true
+				break
+			}
+			if messageType == websocket.CloseMessage {
+				// Peer has sent a close message, indicating they want to disconnect
+				log.Println("Peer has sent a close message, indicating they want to disconnect")
+				break
+			}
+		}
+		wg.Done()
+	}()
+
+	// send logs to client
+	wg.Add(1)
+	go func() {
+		// Write initial logs
+		err := ws.WriteMessage(websocket.TextMessage, []byte(applicationBuildLog.Logs))
+		if err != nil {
+			log.Println("failed to write initial logs to websocket")
+		}
+		// Listen to redis channel and send logs to client
+		for msg := range ch {
+			if closed {
+				break
+			}
+			err := ws.WriteMessage(websocket.TextMessage, []byte(msg.Payload))
+			if err != nil {
+				log.Println("failed to write logs to websocket")
+			}
+		}
+		wg.Done()
+	}()
+	wg.Wait()
+	return nil
 }
 
 // GET /ws/application/:id/logs/runtime

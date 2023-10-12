@@ -160,7 +160,7 @@ func (server *Server) Init() {
 	// Initiating middlewares
 	server.ECHO_SERVER.Pre(middleware.RemoveTrailingSlash())
 	server.ECHO_SERVER.Use(middleware.CORS())
-	server.ECHO_SERVER.Pre(server.authMiddleware)
+	// server.ECHO_SERVER.Pre(server.authMiddleware)
 
 	// Migrating database
 	server.MigrateDatabaseTables()
