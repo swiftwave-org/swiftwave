@@ -23,6 +23,7 @@ func (s *Server) InitCronJobs() {
 
 // Move `pending` applications to `image generation queue` for building docker image
 func (s *Server) MovePendingApplicationsToImageGenerationQueueCronjob() {
+	var logRecord ApplicationBuildLog
 	for {
 		// Get all pending applications
 		var applications []Application
@@ -36,6 +37,8 @@ func (s *Server) MovePendingApplicationsToImageGenerationQueueCronjob() {
 		for _, application := range applications {
 			log.Println("Moving application to image generation queue: ", application.ServiceName)
 			err := s.DB_CLIENT.Transaction(func(tx *gorm.DB) error {
+				// reset log record
+				logRecord = ApplicationBuildLog{}
 				// Update status
 				application.Status = ApplicationStatusBuildingImageQueued
 				tx2 := tx.Save(&application)
@@ -44,10 +47,10 @@ func (s *Server) MovePendingApplicationsToImageGenerationQueueCronjob() {
 					return tx2.Error
 				}
 				// Create log record
-				logRecord := ApplicationBuildLog{
+				logRecord = ApplicationBuildLog{
 					ID:            uuid.New().String(),
 					ApplicationID: application.ID,
-					Logs:          "Queued for image generation",
+					Logs:          "Queued for image generation\n",
 					Time:          time.Now(),
 				}
 				tx3 := tx.Create(&logRecord)
@@ -55,17 +58,19 @@ func (s *Server) MovePendingApplicationsToImageGenerationQueueCronjob() {
 					log.Println(tx3.Error)
 					return tx3.Error
 				}
-				// Enqueue
-				err := s.AddServiceToDockerImageGenerationQueue(application.ServiceName, logRecord.ID)
-				if err != nil {
-					log.Println(err)
-					return err
-				}
-				s.AddLogToApplicationBuildLog(logRecord.ID, "Successfully enqueued for image generation", "success", true)
 				return nil
 			})
+			if err == nil {
+				// Enqueue
+				err = s.AddServiceToDockerImageGenerationQueue(application.ServiceName, logRecord.ID)
+				if err != nil {
+					log.Println("failed to enqueue application to image generation task queue: ", err)
+				}
+			}
 			if err != nil {
 				log.Println("Error while moving pending applications to image generation queue: ", err)
+			} else {
+				s.AddLogToApplicationBuildLog(logRecord.ID, "Successfully enqueued for image generation", "success", true)
 			}
 		}
 		time.Sleep(10 * time.Second)
@@ -74,6 +79,7 @@ func (s *Server) MovePendingApplicationsToImageGenerationQueueCronjob() {
 
 // Move `redeploy_pending` applications to `image generation queue` for building docker image
 func (s *Server) MoveRedeployPendingApplicationsToImageGenerationQueueCronjob() {
+	var logRecord ApplicationBuildLog
 	for {
 		// Get all pending applications
 		var applications []Application
@@ -87,6 +93,8 @@ func (s *Server) MoveRedeployPendingApplicationsToImageGenerationQueueCronjob() 
 		for _, application := range applications {
 			log.Println("Moving application to image generation queue: ", application.ServiceName)
 			err := s.DB_CLIENT.Transaction(func(tx *gorm.DB) error {
+				// reset log record
+				logRecord = ApplicationBuildLog{}
 				// Update status
 				application.Status = ApplicationStatusBuildingImageQueued
 				tx2 := tx.Save(&application)
@@ -95,10 +103,10 @@ func (s *Server) MoveRedeployPendingApplicationsToImageGenerationQueueCronjob() 
 					return tx2.Error
 				}
 				// Create log record
-				logRecord := ApplicationBuildLog{
+				logRecord = ApplicationBuildLog{
 					ID:            uuid.New().String(),
 					ApplicationID: application.ID,
-					Logs:          "Queued for image generation",
+					Logs:          "Queued for image generation\n",
 					Time:          time.Now(),
 				}
 				tx3 := tx.Create(&logRecord)
@@ -106,17 +114,17 @@ func (s *Server) MoveRedeployPendingApplicationsToImageGenerationQueueCronjob() 
 					log.Println(tx3.Error)
 					return tx3.Error
 				}
-				// Enqueue
-				err := s.AddServiceToDockerImageGenerationQueue(application.ServiceName, logRecord.ID)
-				if err != nil {
-					log.Println(err)
-					return err
-				}
-				s.AddLogToApplicationBuildLog(logRecord.ID, "Successfully enqueued for image generation", "success", true)
 				return nil
 			})
+			if err == nil {
+				// Enqueue
+				err = s.AddServiceToDockerImageGenerationQueue(application.ServiceName, logRecord.ID)
+				if err != nil {
+					log.Println("failed to enqueue application to image generation task queue: ", err)
+				}
+			}
 			if err != nil {
-				log.Println("Error while moving pending applications to image generation queue: ", err)
+				log.Println("Error while moving redeploy_pending applications to image generation queue: ", err)
 			}
 		}
 		time.Sleep(10 * time.Second)

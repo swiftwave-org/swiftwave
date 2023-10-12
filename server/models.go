@@ -98,6 +98,7 @@ type ApplicationBuildLog struct {
 	ApplicationID uint        `json:"application_id"`
 	Application   Application `json:"-"`
 	Logs          string      `json:"-"`
+	Completed     bool        `json:"completed" gorm:"default:false"`
 	Time          time.Time   `json:"time"`
 }
 
