@@ -557,7 +557,10 @@ func (server *Server) getApplicationRuntimeLogs(c echo.Context) error {
 			if len(log_text) > 8 {
 				log_text = log_text[8:]
 			}
-			ws.WriteMessage(websocket.TextMessage, log_text)
+			err = ws.WriteMessage(websocket.TextMessage, log_text)
+			if err != nil {
+				log.Println("failed to write logs to websocket")
+			}
 		}
 		wg.Done()
 	}()
