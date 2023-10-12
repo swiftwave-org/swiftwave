@@ -262,7 +262,6 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 	}
 	s.AddLogToApplicationBuildLog(log_id, "Successfully built docker image"+application.Image, "success", true)
 	s.MarkBuildLogAsCompleted(log_id)
-	
 	// Deploy service
 	// Update application status to deploying_pending
 	application.Status = ApplicationStatusDeployingPending

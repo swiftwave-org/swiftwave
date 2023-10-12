@@ -20,7 +20,7 @@ func (src ApplicationSource) RepositoryURL() string {
 func (s *Server) AddLogToApplicationBuildLog(log_id string, message string, loglevel string, add_newline bool) {
 	// push all the logs to redis topic for realtime log streaming
 	// topic -> log_update/<log_id>
-	
+
 	var logRecord ApplicationBuildLog
 	tx := s.DB_CLIENT.Where("id = ?", log_id).First(&logRecord)
 	if tx.Error != nil {
