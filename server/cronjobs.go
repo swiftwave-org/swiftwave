@@ -50,7 +50,7 @@ func (s *Server) MovePendingApplicationsToImageGenerationQueueCronjob() {
 				logRecord = ApplicationBuildLog{
 					ID:            uuid.New().String(),
 					ApplicationID: application.ID,
-					Logs:          "Queued for image generation",
+					Logs:          "Queued for image generation\n",
 					Time:          time.Now(),
 				}
 				tx3 := tx.Create(&logRecord)
@@ -106,7 +106,7 @@ func (s *Server) MoveRedeployPendingApplicationsToImageGenerationQueueCronjob() 
 				logRecord = ApplicationBuildLog{
 					ID:            uuid.New().String(),
 					ApplicationID: application.ID,
-					Logs:          "Queued for image generation",
+					Logs:          "Queued for image generation\n",
 					Time:          time.Now(),
 				}
 				tx3 := tx.Create(&logRecord)
