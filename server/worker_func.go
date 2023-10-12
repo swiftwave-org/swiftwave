@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	DOCKER_MANAGER "swiftwave/m/container_manager"
 	DOCKER_CONFIG_GENERATOR "swiftwave/m/docker_config_generator"
 	GIT_MANAGER "swiftwave/m/git_manager"
@@ -155,11 +154,7 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 					continue
 				}
 				if data["stream"] != nil {
-					stream_data := data["stream"].(string)
-					trimmed_data := strings.TrimSpace(stream_data)
-					if trimmed_data != "" {
-						s.AddLogToApplicationBuildLog(log_id, trimmed_data, "info", true)
-					}
+					s.AddLogToApplicationBuildLog(log_id, data["stream"].(string), "info", false)
 				}
 			}
 		}
@@ -235,7 +230,7 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 					continue
 				}
 				if data["stream"] != nil {
-					s.AddLogToApplicationBuildLog(log_id, data["stream"].(string), "info", true)
+					s.AddLogToApplicationBuildLog(log_id, data["stream"].(string), "info", false)
 				}
 			}
 		}
