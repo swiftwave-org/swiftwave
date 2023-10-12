@@ -103,7 +103,7 @@ func (s *Server) MoveRedeployPendingApplicationsToImageGenerationQueueCronjob() 
 					return tx2.Error
 				}
 				// Create log record
-				logRecord := ApplicationBuildLog{
+				logRecord = ApplicationBuildLog{
 					ID:            uuid.New().String(),
 					ApplicationID: application.ID,
 					Logs:          "Queued for image generation",
