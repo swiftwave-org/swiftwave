@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -159,7 +160,12 @@ func (server *Server) Init() {
 	server.DOCKER_CLIENT = *docker_client
 	server.DB_CLIENT = *db_client
 	server.ECHO_SERVER = *echo.New()
-	server.WEBSOCKET_UPGRADER = websocket.Upgrader{}
+	server.WEBSOCKET_UPGRADER = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			// TODO: allow to set origin via config
+			return true
+		},
+	}
 
 	// Initiating middlewares
 	server.ECHO_SERVER.Pre(middleware.RemoveTrailingSlash())

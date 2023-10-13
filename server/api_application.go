@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 	GIT_MANAGER "swiftwave/m/git_manager"
-	"sync"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -417,7 +416,7 @@ func (server *Server) getApplicationBuildLog(c echo.Context) error {
 	var applicationBuildLog ApplicationBuildLog
 	logID := c.Param("log_id")
 	applicationID := c.Param("id")
-	tx := server.DB_CLIENT.Model(&ApplicationBuildLog{}).Select("logs").Where(map[string]interface{}{
+	tx := server.DB_CLIENT.Model(&ApplicationBuildLog{}).Select("completed", "logs").Where(map[string]interface{}{
 		"id":             logID,
 		"application_id": applicationID,
 	}).Find(&applicationBuildLog)
@@ -437,56 +436,62 @@ func (server *Server) getApplicationBuildLog(c echo.Context) error {
 	closed := false
 
 	// Listen to redis subscriber
-	pubsub := server.REDIS_CLIENT.Subscribe(context.Background(), applicationBuildLog.GetRedisPubSubChannel())
+	ctx := context.Background()
+	channel := "log_update/" + logID
+	pubsub := server.REDIS_CLIENT.Subscribe(ctx, channel)
 	defer pubsub.Close()
-	ch := pubsub.Channel()
 
-	// waitgroup for goroutines
-	wg := sync.WaitGroup{}
-
-	// listen for close message from client
-	wg.Add(1)
-	go func() {
-		for {
-			messageType, _, err := ws.ReadMessage()
-			if err != nil {
-				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-					c.Logger().Error(err)
+	if !applicationBuildLog.Completed {
+		// listen for close message from client
+		go func() {
+			for {
+				messageType, _, err := ws.ReadMessage()
+				if err != nil {
+					if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+						c.Logger().Error(err)
+					}
+					closed = true
+					return
 				}
-				closed = true
-				break
+				if messageType == websocket.CloseMessage {
+					// Peer has sent a close message, indicating they want to disconnect
+					log.Println("Peer has sent a close message, indicating they want to disconnect")
+					return
+				}
 			}
-			if messageType == websocket.CloseMessage {
-				// Peer has sent a close message, indicating they want to disconnect
-				log.Println("Peer has sent a close message, indicating they want to disconnect")
-				break
-			}
-		}
-		wg.Done()
-	}()
+		}()
+	}
 
 	// send logs to client
-	wg.Add(1)
 	go func() {
 		// Write initial logs
 		err := ws.WriteMessage(websocket.TextMessage, []byte(applicationBuildLog.Logs))
 		if err != nil {
 			log.Println("failed to write initial logs to websocket")
 		}
-		// Listen to redis channel and send logs to client
-		for msg := range ch {
-			if closed {
-				break
-			}
-			err := ws.WriteMessage(websocket.TextMessage, []byte(msg.Payload))
-			if err != nil {
-				log.Println("failed to write logs to websocket")
+		if !applicationBuildLog.Completed {
+			// Listen to redis channel and send logs to client
+			for {
+				if closed {
+					return
+				}
+				msg, err := pubsub.ReceiveMessage(ctx)
+				if err != nil {
+					log.Println(err)
+					return
+				} else {
+					if strings.Compare(msg.Payload, "SWIFTWAVE_EOF_LOG") == 0 {
+						return
+					}
+					err := ws.WriteMessage(websocket.TextMessage, []byte(msg.Payload))
+					if err != nil {
+						log.Println("failed to write logs to websocket")
+					}
+				}
 			}
 		}
-		wg.Done()
 	}()
-	wg.Wait()
-	return nil
+	select {}
 }
 
 // GET /ws/application/:id/logs/runtime
@@ -518,11 +523,7 @@ func (server *Server) getApplicationRuntimeLogs(c echo.Context) error {
 
 	closed := false
 
-	// waitgroup for goroutines
-	wg := sync.WaitGroup{}
-
 	// listen for close message from client
-	wg.Add(1)
 	go func() {
 		for {
 			messageType, _, err := ws.ReadMessage()
@@ -531,24 +532,22 @@ func (server *Server) getApplicationRuntimeLogs(c echo.Context) error {
 					c.Logger().Error(err)
 				}
 				closed = true
-				break
+				return
 			}
 			if messageType == websocket.CloseMessage {
 				// Peer has sent a close message, indicating they want to disconnect
 				log.Println("Peer has sent a close message, indicating they want to disconnect")
-				break
+				return
 			}
 		}
-		wg.Done()
 	}()
 
 	// send logs to client
-	wg.Add(1)
 	go func() {
 		// Write
 		for scanner.Scan() {
 			if closed {
-				break
+				return
 			}
 			// Specific format for raw-stream logs
 			// docs : https://docs.docker.com/engine/api/v1.42/#tag/Container/operation/ContainerAttach
@@ -556,17 +555,15 @@ func (server *Server) getApplicationRuntimeLogs(c echo.Context) error {
 			if len(log_text) > 8 {
 				log_text = log_text[8:]
 			}
+			// add new line
+			log_text = append(log_text, []byte("\n")...)
 			err = ws.WriteMessage(websocket.TextMessage, log_text)
 			if err != nil {
 				log.Println("failed to write logs to websocket")
 			}
 		}
-		wg.Done()
 	}()
-
-	// wait for goroutines to finish
-	wg.Wait()
-	return nil
+	select {}
 }
 
 // PUT /application/:id
