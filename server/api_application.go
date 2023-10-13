@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -422,15 +423,13 @@ func (server *Server) getApplicationBuildLog(c echo.Context) error {
 	}).Find(&applicationBuildLog)
 	if tx.Error != nil {
 		log.Println(tx.Error)
-		return c.JSON(404, map[string]string{
-			"message": "failed to get application log",
-		})
+		return c.NoContent(http.StatusNotFound)
 	}
 	// Upgrade connection to websocket
 	ws, err := server.WEBSOCKET_UPGRADER.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		log.Println(err)
-		return c.String(500, "failed to upgrade connection to websocket")
+		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	// Close connection
@@ -497,20 +496,20 @@ func (server *Server) getApplicationRuntimeLogs(c echo.Context) error {
 	tx := server.DB_CLIENT.Where("id = ?", applicationID).First(&application)
 	if tx.Error != nil {
 		log.Println(tx.Error)
-		return c.String(404, "failed to get application")
+		return c.NoContent(http.StatusNotFound)
 	}
 	// Get logs
 	logsReader, err := server.DOCKER_MANAGER.LogsService(application.ServiceName)
 	if err != nil {
 		log.Println(err)
-		return c.String(500, "failed to get application logs")
+		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	scanner := bufio.NewScanner(logsReader)
 	ws, err := server.WEBSOCKET_UPGRADER.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		log.Println(err)
-		return c.String(500, "failed to upgrade connection to websocket")
+		return c.NoContent(http.StatusInternalServerError)
 	}
 	// Close connection
 	defer ws.Close()
