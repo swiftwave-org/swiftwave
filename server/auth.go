@@ -177,15 +177,15 @@ func generateLongRandomString(length int) (string, error) {
 
 // Verify if Websocket token is valid
 func (server *Server) verifyWebsocketToken(token string) bool {
-	if _, ok := server.SESSION_TOKENS[token]; ok {
+	if _, ok := server.WEBSOCKET_TOKENS[token]; ok {
 		// check if token is expired
-		if time.Now().After(server.SESSION_TOKENS[token]) {
+		if time.Now().After(server.WEBSOCKET_TOKENS[token]) {
 			// delete token
-			delete(server.SESSION_TOKENS, token)
+			delete(server.WEBSOCKET_TOKENS, token)
 			return false
 		}
 		// delete token
-		delete(server.SESSION_TOKENS, token)
+		delete(server.WEBSOCKET_TOKENS, token)
 		return true
 	}
 	return false
@@ -193,7 +193,7 @@ func (server *Server) verifyWebsocketToken(token string) bool {
 
 // Generate websocket token
 func (server *Server) generateWebsocketToken() (string, error) {
-	randomToken, err := generateLongRandomString(64)
+	randomToken, err := generateLongRandomString(32)
 	if err != nil {
 		return "", err
 	}
