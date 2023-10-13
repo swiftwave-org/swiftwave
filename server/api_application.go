@@ -480,7 +480,7 @@ func (server *Server) getApplicationBuildLog(c echo.Context) error {
 					log.Println(err)
 					return
 				} else {
-					if msg.Payload == "SWIFTWAVE_EOF_LOG" {
+					if strings.Compare(msg.Payload, "SWIFTWAVE_EOF_LOG") == 0 {
 						return
 					}
 					err := ws.WriteMessage(websocket.TextMessage, []byte(msg.Payload))
