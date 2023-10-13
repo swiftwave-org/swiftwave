@@ -54,6 +54,7 @@ func (s *Server) MarkBuildLogAsCompleted(log_id string) {
 	if tx.Error != nil {
 		return
 	}
+	s.REDIS_CLIENT.Publish(context.Background(), "log_update/"+log_id, "SWIFTWAVE_EOF_LOG")
 	logRecord.Completed = true
 	s.DB_CLIENT.Save(&logRecord)
 }
@@ -89,8 +90,4 @@ func (s ApplicationSource) GetSourceSummary() string {
 
 func (s *Server) isProductionEnvironment() bool {
 	return strings.Compare(s.ENVIRONMENT, "production") == 0
-}
-
-func (a *ApplicationBuildLog) GetRedisPubSubChannel() string {
-	return "log_update/" + a.ID
 }
