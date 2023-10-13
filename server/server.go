@@ -26,22 +26,24 @@ import (
 
 // Server struct
 type Server struct {
-	SSL_MANAGER                  SSL.Manager
-	HAPROXY_MANAGER              HAPROXY.Manager
-	DOCKER_MANAGER               DOCKER.Manager
-	DOCKER_CONFIG_GENERATOR      DOCKER_CONFIG_GENERATOR.Manager
-	DOCKER_CLIENT                DOCKER_CLIENT.Client
-	DB_CLIENT                    gorm.DB
-	REDIS_CLIENT                 redis.Client
-	ECHO_SERVER                  echo.Echo
-	WEBSOCKET_UPGRADER           websocket.Upgrader
-	PORT                         int
-	HAPROXY_SERVICE              string
-	CODE_TARBALL_DIR             string
-	SWARM_NETWORK                string
-	RESTRICTED_PORTS             []int
-	SESSION_TOKENS               map[string]time.Time
-	SESSION_TOKEN_EXPIRY_MINUTES int
+	SSL_MANAGER                    SSL.Manager
+	HAPROXY_MANAGER                HAPROXY.Manager
+	DOCKER_MANAGER                 DOCKER.Manager
+	DOCKER_CONFIG_GENERATOR        DOCKER_CONFIG_GENERATOR.Manager
+	DOCKER_CLIENT                  DOCKER_CLIENT.Client
+	DB_CLIENT                      gorm.DB
+	REDIS_CLIENT                   redis.Client
+	ECHO_SERVER                    echo.Echo
+	WEBSOCKET_UPGRADER             websocket.Upgrader
+	WEBSOCKET_TOKENS               map[string]time.Time // uuid -> timestamp
+	WEBSOCKET_TOKEN_EXPIRY_MINUTES int
+	PORT                           int
+	HAPROXY_SERVICE                string
+	CODE_TARBALL_DIR               string
+	SWARM_NETWORK                  string
+	RESTRICTED_PORTS               []int
+	SESSION_TOKENS                 map[string]time.Time
+	SESSION_TOKEN_EXPIRY_MINUTES   int
 	// Worker related
 	QUEUE_FACTORY         taskq.Factory
 	TASK_QUEUE            taskq.Queue
@@ -82,6 +84,8 @@ func (server *Server) Init() {
 	if err != nil {
 		panic(err)
 	}
+	server.WEBSOCKET_TOKENS = make(map[string]time.Time)
+	server.WEBSOCKET_TOKEN_EXPIRY_MINUTES = token_expiry_minutes // have different expiry for websocket tokens
 	server.SESSION_TOKENS = make(map[string]time.Time)
 	server.SESSION_TOKEN_EXPIRY_MINUTES = token_expiry_minutes
 	// Initiating database client
