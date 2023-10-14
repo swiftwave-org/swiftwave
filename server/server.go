@@ -7,11 +7,12 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
+
 	DOCKER "github.com/swiftwave-org/swiftwave/container_manager"
 	DOCKER_CONFIG_GENERATOR "github.com/swiftwave-org/swiftwave/docker_config_generator"
 	HAPROXY "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
-	"time"
 
 	DOCKER_CLIENT "github.com/docker/docker/client"
 	"github.com/go-redis/redis/v8"

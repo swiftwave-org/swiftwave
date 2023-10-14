@@ -3,8 +3,9 @@ package server
 import (
 	"log"
 	"reflect"
-	HAPROXY_MANAGER "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"time"
+
+	HAPROXY_MANAGER "github.com/swiftwave-org/swiftwave/haproxy_manager"
 
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/google/uuid"

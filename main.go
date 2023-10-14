@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
 	"log"
+
+	"github.com/joho/godotenv"
 	SERVER "github.com/swiftwave-org/swiftwave/server"
 )
 

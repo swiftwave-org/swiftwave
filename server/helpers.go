@@ -137,6 +137,7 @@ func (s ApplicationSource) GetSourceSummary() string {
 func (s *Server) isProductionEnvironment() bool {
 	return strings.Compare(s.ENVIRONMENT, "production") == 0
 }
+
 /*
 Function to set application status to `building_image_failed` and update in database
 Used when the image build fails
