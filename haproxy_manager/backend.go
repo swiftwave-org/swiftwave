@@ -7,6 +7,7 @@ import (
 	"strconv"
 )
 
+// Generate Backend name for HAProxy
 func (s Manager) GenerateBackendName(service_name string, port int) string {
 	return "be_" + service_name + "_" + strconv.Itoa(port)
 }
@@ -60,7 +61,7 @@ func (s Manager) AddBackend(transaction_id string, service_name string, port int
 	if err != nil {
 		return "", errors.New("failed to marshal add_server_template_request_body")
 	}
-
+	// Send POST request to haproxy to add server
 	server_template_res, server_template_err := s.postRequest("/services/haproxy/configuration/server_templates", add_server_template_request_query_params, bytes.NewReader(add_server_template_request_body_bytes))
 	if server_template_err != nil || !isValidStatusCode(server_template_res.StatusCode) {
 		return "", errors.New("failed to add server template")
@@ -74,7 +75,7 @@ func (s Manager) DeleteBackend(transaction_id string, backend_name string) error
 	// Build query parameterss
 	add_backend_request_query_params := QueryParameters{}
 	add_backend_request_query_params.add("transaction_id", transaction_id)
-	// Delete backend request
+	// Send request to delete backend from HAProxy
 	backend_res, backend_err := s.deleteRequest("/services/haproxy/configuration/backends/"+backend_name, add_backend_request_query_params)
 	if backend_err != nil || !isValidStatusCode(backend_res.StatusCode) {
 		return errors.New("failed to delete backend")
