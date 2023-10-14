@@ -9,7 +9,8 @@ import (
 	"strings"
 )
 
-// ParseBuildArgsFromDockerfile parses build arguments from dockerfile.
+// Parses build arguments from dockerfile.
+// Accepts a dockerfile as a string and returns a map of build arguments.
 func ParseBuildArgsFromDockerfile(dockerfile string) map[string]Variable {
 	variables := map[string]Variable{}
 
@@ -100,11 +101,20 @@ func ExtractTar(tarFilePath string, destFolder string) error {
 	}
 }
 
+/*
+Creates directories for the given file path if they do not exist.
+It returns an error if it fails to create the directories.
+*/
 func createDirectoriesIfNotExist(filePath string) error {
 	dir := filepath.Dir(filePath)
 	return os.MkdirAll(dir, 0755) // 0755 sets the permissions for the new directories
 }
 
+/*
+Creates a file with the given file path and file mode.
+If the directories in the file path do not exist, it creates them.
+Returns a pointer to the created file and any error encountered during the process.
+*/
 func createFileWithDirectories(filePath string, fileMode os.FileMode) (*os.File, error) {
 	if err := createDirectoriesIfNotExist(filePath); err != nil {
 		return nil, err
@@ -118,6 +128,7 @@ func createFileWithDirectories(filePath string, fileMode os.FileMode) (*os.File,
 	return file, nil
 }
 
+// Delete a directory
 func deleteDirectory(dir string) {
 	os.RemoveAll(dir)
 }
@@ -164,8 +175,6 @@ func SanitizeFileName(fileName string) string {
 
 	// Remove potentially dangerous characters like "/"
 	fileName = strings.ReplaceAll(fileName, "/", "")
-
-	// You can add more sanitization rules as needed
-
+	
 	return fileName
 }
