@@ -1,6 +1,21 @@
 package server
 
-import "time"
+import (
+	"context"
+	DOCKER "github.com/swiftwave-org/swiftwave/container_manager"
+	DOCKER_CONFIG_GENERATOR "github.com/swiftwave-org/swiftwave/docker_config_generator"
+	HAPROXY "github.com/swiftwave-org/swiftwave/haproxy_manager"
+	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
+	"time"
+
+	DOCKER_CLIENT "github.com/docker/docker/client"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/gorilla/websocket"
+	"github.com/labstack/echo/v4"
+	"github.com/vmihailenco/taskq/v3"
+	"gorm.io/gorm"
+)
 
 // Domains
 type Domain struct {
@@ -149,38 +164,6 @@ const (
 	RedirectRuleStatusDeletePending RedirectRuleStatus = "delete_pending"
 )
 
-// Migrate database
-func (server *Server) MigrateDatabaseTables() {
-	err := server.DB_CLIENT.AutoMigrate(&Domain{})
-	if err != nil {
-		panic(err)
-	}
-	err = server.DB_CLIENT.AutoMigrate(&GitCredential{})
-	if err != nil {
-		panic(err)
-	}
-	err = server.DB_CLIENT.AutoMigrate(&ApplicationSource{})
-	if err != nil {
-		panic(err)
-	}
-	err = server.DB_CLIENT.AutoMigrate(&Application{})
-	if err != nil {
-		panic(err)
-	}
-	err = server.DB_CLIENT.AutoMigrate(&ApplicationBuildLog{})
-	if err != nil {
-		panic(err)
-	}
-	err = server.DB_CLIENT.AutoMigrate(&IngressRule{})
-	if err != nil {
-		panic(err)
-	}
-	err = server.DB_CLIENT.AutoMigrate(&RedirectRule{})
-	if err != nil {
-		panic(err)
-	}
-}
-
 // Application deploy request
 type ApplicationDeployRequest struct {
 	ServiceName           string                `json:"service_name" validate:"required"`
@@ -213,4 +196,34 @@ type ApplicationSummary struct {
 	Source      string            `json:"source"`
 	Replicas    uint              `json:"replicas"`
 	Status      ApplicationStatus `json:"status"`
+}
+
+// Server struct
+type Server struct {
+	SSL_MANAGER                    SSL.Manager
+	HAPROXY_MANAGER                HAPROXY.Manager
+	DOCKER_MANAGER                 DOCKER.Manager
+	DOCKER_CONFIG_GENERATOR        DOCKER_CONFIG_GENERATOR.Manager
+	DOCKER_CLIENT                  DOCKER_CLIENT.Client
+	DB_CLIENT                      gorm.DB
+	REDIS_CLIENT                   redis.Client
+	ECHO_SERVER                    echo.Echo
+	WEBSOCKET_UPGRADER             websocket.Upgrader
+	WEBSOCKET_TOKENS               map[string]time.Time // uuid -> timestamp
+	WEBSOCKET_TOKEN_EXPIRY_MINUTES int
+	PORT                           int
+	HAPROXY_SERVICE                string
+	CODE_TARBALL_DIR               string
+	SWARM_NETWORK                  string
+	RESTRICTED_PORTS               []int
+	SESSION_TOKENS                 map[string]time.Time
+	SESSION_TOKEN_EXPIRY_MINUTES   int
+	// Worker related
+	QUEUE_FACTORY         taskq.Factory
+	TASK_QUEUE            taskq.Queue
+	TASK_MAP              map[string]*taskq.Task
+	WORKER_CONTEXT        context.Context
+	WORKER_CONTEXT_CANCEL context.CancelFunc
+	// ENVIRONMENT
+	ENVIRONMENT string
 }

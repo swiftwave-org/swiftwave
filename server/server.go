@@ -7,11 +7,12 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	DOCKER "swiftwave/m/container_manager"
-	DOCKER_CONFIG_GENERATOR "swiftwave/m/docker_config_generator"
-	HAPROXY "swiftwave/m/haproxy_manager"
-	SSL "swiftwave/m/ssl_manager"
 	"time"
+
+	DOCKER "github.com/swiftwave-org/swiftwave/container_manager"
+	DOCKER_CONFIG_GENERATOR "github.com/swiftwave-org/swiftwave/docker_config_generator"
+	HAPROXY "github.com/swiftwave-org/swiftwave/haproxy_manager"
+	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
 
 	DOCKER_CLIENT "github.com/docker/docker/client"
 	"github.com/go-redis/redis/v8"
@@ -25,37 +26,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Server struct
-type Server struct {
-	SSL_MANAGER                    SSL.Manager
-	HAPROXY_MANAGER                HAPROXY.Manager
-	DOCKER_MANAGER                 DOCKER.Manager
-	DOCKER_CONFIG_GENERATOR        DOCKER_CONFIG_GENERATOR.Manager
-	DOCKER_CLIENT                  DOCKER_CLIENT.Client
-	DB_CLIENT                      gorm.DB
-	REDIS_CLIENT                   redis.Client
-	ECHO_SERVER                    echo.Echo
-	WEBSOCKET_UPGRADER             websocket.Upgrader
-	WEBSOCKET_TOKENS               map[string]time.Time // uuid -> timestamp
-	WEBSOCKET_TOKEN_EXPIRY_MINUTES int
-	PORT                           int
-	HAPROXY_SERVICE                string
-	CODE_TARBALL_DIR               string
-	SWARM_NETWORK                  string
-	RESTRICTED_PORTS               []int
-	SESSION_TOKENS                 map[string]time.Time
-	SESSION_TOKEN_EXPIRY_MINUTES   int
-	// Worker related
-	QUEUE_FACTORY         taskq.Factory
-	TASK_QUEUE            taskq.Queue
-	TASK_MAP              map[string]*taskq.Task
-	WORKER_CONTEXT        context.Context
-	WORKER_CONTEXT_CANCEL context.CancelFunc
-	// ENVIRONMENT
-	ENVIRONMENT string
-}
-
-// Init function
+// Initialize all the components of the server
 func (server *Server) Init() {
 	server_port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
@@ -167,7 +138,7 @@ func (server *Server) Init() {
 		},
 	}
 
-	// Initiating middlewares
+	// Set middlewares
 	server.ECHO_SERVER.Pre(middleware.RemoveTrailingSlash())
 	server.ECHO_SERVER.Use(middleware.CORS())
 	server.ECHO_SERVER.Pre(server.authMiddleware)
@@ -181,10 +152,12 @@ func (server *Server) Init() {
 	// Worker related
 	server.WORKER_CONTEXT, server.WORKER_CONTEXT_CANCEL = context.WithCancel(context.Background())
 	server.QUEUE_FACTORY = redisq.NewFactory()
+	// Registering main queue to push tasks
 	server.TASK_QUEUE = server.QUEUE_FACTORY.RegisterQueue(&taskq.QueueOptions{
 		Name:  "main-queue",
 		Redis: &server.REDIS_CLIENT,
 	})
+	// Map of task name to task
 	server.TASK_MAP = make(map[string]*taskq.Task)
 	// Registering worker tasks
 	server.RegisteWorkerTasks()

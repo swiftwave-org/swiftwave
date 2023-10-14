@@ -9,6 +9,11 @@ import (
 	"github.com/docker/docker/pkg/archive"
 )
 
+/*
+`CreateImage` builds a Docker image from a Dockerfile and returns a scanner to read the build logs.
+It takes the Dockerfile content as a string, a map of build arguments, the path to the code directory, and the name of the image to be built.
+It returns a scanner to read the build logs and an error if any.
+*/
 func (m Manager) CreateImage(dockerfile string, buildargs map[string]string, codepath string, imagename string) (*bufio.Scanner, error) {
 	// Move the dockerfile to the codepath
 	err := os.WriteFile(codepath+"/Dockerfile", []byte(dockerfile), 0777)
@@ -39,6 +44,7 @@ func (m Manager) CreateImage(dockerfile string, buildargs map[string]string, cod
 	if err != nil {
 		return nil, errors.New("failed to build the image")
 	}
+	// Return scanner to read the build logs
 	scanner := bufio.NewScanner(response.Body)
 	return scanner, nil
 }

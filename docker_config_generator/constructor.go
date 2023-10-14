@@ -13,7 +13,9 @@ var fileByte []byte
 //go:embed templates/*
 var templateFolder embed.FS
 
+// Initialize the docker config generator manager
 func (m *Manager) Init() error {
+	// Load configuration
 	err := yaml.Unmarshal([]byte(fileByte), &m.Config)
 	if err != nil {
 		return errors.New("failed to unmarshal config.yaml")

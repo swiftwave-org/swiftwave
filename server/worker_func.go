@@ -6,16 +6,17 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	DOCKER_MANAGER "swiftwave/m/container_manager"
-	DOCKER_CONFIG_GENERATOR "swiftwave/m/docker_config_generator"
-	GIT_MANAGER "swiftwave/m/git_manager"
 	"time"
 
+	DOCKER_MANAGER "github.com/swiftwave-org/swiftwave/container_manager"
+	DOCKER_CONFIG_GENERATOR "github.com/swiftwave-org/swiftwave/docker_config_generator"
+	GIT_MANAGER "github.com/swiftwave-org/swiftwave/git_manager"
+
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
+// Take SSL certificate generation request from queue and obtain certificate from Let's Encrypt
 func (s *Server) ProcessGenerateSSLRequestFromQueue(name string) error {
 	var domainRecord Domain
 	if err := s.DB_CLIENT.Where("name = ?", name).First(&domainRecord).Error; err != nil {
@@ -46,6 +47,7 @@ func (s *Server) ProcessGenerateSSLRequestFromQueue(name string) error {
 	return nil
 }
 
+// Take SSL update request from queue and update that domain's SSL certificate in HAProxy
 func (s *Server) ProcessUpdateSSLHAProxyRequestFromQueue(name string) error {
 	var domainRecord Domain
 	if err := s.DB_CLIENT.Where("name = ?", name).First(&domainRecord).Error; err != nil {
@@ -73,7 +75,7 @@ func (s *Server) ProcessUpdateSSLHAProxyRequestFromQueue(name string) error {
 	return nil
 }
 
-// Application deployment tasks
+// Process application build request from queue and build docker image
 func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_id string) error {
 	var application Application
 	if err := s.DB_CLIENT.Preload("Source.GitCredential").Preload(clause.Associations).Where("id = ?", app_id).First(&application).Error; err != nil {
@@ -272,6 +274,7 @@ func (s *Server) ProcessDockerImageGenerationRequestFromQueue(app_id uint, log_i
 	return nil
 }
 
+// Process application deployment request from queue
 func (s *Server) ProcessDeployServiceRequestFromQueue(app_id uint) error {
 	// Fetch application from database
 	var application Application
@@ -355,20 +358,4 @@ func (s *Server) ProcessDeployServiceRequestFromQueue(app_id uint) error {
 		}
 	}
 	return err
-}
-
-func failImageBuildUpdateStatus(application *Application, db_client gorm.DB) {
-	application.Status = ApplicationStatusBuildingImageFailed
-	tx := db_client.Save(&application)
-	if tx.Error != nil {
-		log.Println("Failed to update application status in database")
-	}
-}
-
-func failApplicationDeployUpdateStatus(application *Application, db_client gorm.DB) {
-	application.Status = ApplicationStatusDeployingFailed
-	tx := db_client.Save(&application)
-	if tx.Error != nil {
-		log.Println("Failed to update application status in database")
-	}
 }

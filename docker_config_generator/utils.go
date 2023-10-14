@@ -6,7 +6,8 @@ import (
 	"log"
 	"os"
 	"strings"
-	GIT "swiftwave/m/git_manager"
+
+	GIT "github.com/swiftwave-org/swiftwave/git_manager"
 
 	"github.com/google/uuid"
 )

@@ -10,8 +10,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 )
 
-// Service manager
-
 // Create a new service
 func (m Manager) CreateService(service Service) error {
 	_, err := m.client.ServiceCreate(m.ctx, m.serviceToServiceSpec(service), types.ServiceCreateOptions{})
