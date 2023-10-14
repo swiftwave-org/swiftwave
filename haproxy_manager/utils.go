@@ -22,7 +22,6 @@ func IsPortRestrictedForManualConfig(port int, restrictedPorts []int) bool {
 	return false
 }
 
-
 // Convert QueryParameters -> List <QueryParameter> to query string
 func queryParamsToString(queryParams QueryParameters) string {
 	tmp := "?"

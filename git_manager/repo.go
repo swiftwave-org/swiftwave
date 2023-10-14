@@ -64,7 +64,7 @@ func CloneRepository(git_url string, branch string, username string, password st
 		URL:           git_url,
 		Progress:      nil,
 		ReferenceName: plumbing.NewBranchReferenceName(branch),
-		Auth: httpAuth,
+		Auth:          httpAuth,
 	})
 	if err != nil {
 		log.Println(err)
