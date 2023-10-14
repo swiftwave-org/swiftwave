@@ -20,12 +20,11 @@ func (server *Server) TestDomainReachibility(c echo.Context) error {
 			"message": "domain query parameter is required",
 		})
 	}
-	// call domain:3333 /ping endpoint
 	// set timeout to 5 seconds
 	http_client := http.Client{
 		Timeout: 5 * time.Second,
 	}
-	resp, err := http_client.Get("http://" + domain + "/.well-known/pre-authorize/")
+	resp, err := http_client.Get("http://" + domain + "/.well-known/pre-authorize")
 	if err != nil {
 		return c.JSON(500, map[string]interface{}{
 			"message": "domain is not reachable",
