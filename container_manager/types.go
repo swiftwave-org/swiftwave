@@ -11,8 +11,6 @@ type Manager struct {
 	client *client.Client
 }
 
-// Service
-
 type Service struct {
 	Name         string            `json:"name"`
 	Image        string            `json:"image"`
