@@ -175,6 +175,6 @@ func SanitizeFileName(fileName string) string {
 
 	// Remove potentially dangerous characters like "/"
 	fileName = strings.ReplaceAll(fileName, "/", "")
-	
+
 	return fileName
 }
