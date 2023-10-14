@@ -11,7 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	GIT_MANAGER "swiftwave/m/git_manager"
+	GIT_MANAGER "github.com/swiftwave-org/swiftwave/git_manager"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"

@@ -6,9 +6,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	DOCKER_MANAGER "swiftwave/m/container_manager"
-	DOCKER_CONFIG_GENERATOR "swiftwave/m/docker_config_generator"
-	GIT_MANAGER "swiftwave/m/git_manager"
+	DOCKER_MANAGER "github.com/swiftwave-org/swiftwave/container_manager"
+	DOCKER_CONFIG_GENERATOR "github.com/swiftwave-org/swiftwave/docker_config_generator"
+	GIT_MANAGER "github.com/swiftwave-org/swiftwave/git_manager"
 	"time"
 
 	"github.com/google/uuid"

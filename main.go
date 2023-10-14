@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/joho/godotenv"
 	"log"
-	SERVER "swiftwave/m/server"
+	SERVER "github.com/swiftwave-org/swiftwave/server"
 )
 
 func main() {

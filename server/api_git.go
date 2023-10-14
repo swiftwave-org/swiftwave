@@ -5,13 +5,12 @@ import (
 	"math"
 	"net/http"
 	"strconv"
-	GIT "swiftwave/m/git_manager"
+	GIT "github.com/swiftwave-org/swiftwave/git_manager"
 
 	"github.com/labstack/echo/v4"
 )
 
-// Init functions
-
+// Init function
 func (server *Server) InitGitRestAPI() {
 	server.ECHO_SERVER.GET("/git/credentials", server.getGitCredentials)
 	server.ECHO_SERVER.GET("/git/credentials/:id", server.getGitCredential)

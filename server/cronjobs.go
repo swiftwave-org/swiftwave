@@ -3,7 +3,7 @@ package server
 import (
 	"log"
 	"reflect"
-	HAPROXY_MANAGER "swiftwave/m/haproxy_manager"
+	HAPROXY_MANAGER "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"time"
 
 	"github.com/docker/docker/api/types/swarm"

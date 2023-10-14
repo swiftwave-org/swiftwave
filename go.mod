@@ -1,4 +1,4 @@
-module swiftwave/m
+module github.com/swiftwave-org/swiftwave
 
 go 1.20
 

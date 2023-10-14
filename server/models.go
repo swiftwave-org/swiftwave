@@ -2,10 +2,10 @@ package server
 
 import (
 	"context"
-	DOCKER "swiftwave/m/container_manager"
-	DOCKER_CONFIG_GENERATOR "swiftwave/m/docker_config_generator"
-	HAPROXY "swiftwave/m/haproxy_manager"
-	SSL "swiftwave/m/ssl_manager"
+	DOCKER "github.com/swiftwave-org/swiftwave/container_manager"
+	DOCKER_CONFIG_GENERATOR "github.com/swiftwave-org/swiftwave/docker_config_generator"
+	HAPROXY "github.com/swiftwave-org/swiftwave/haproxy_manager"
+	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
 	"time"
 
 	DOCKER_CLIENT "github.com/docker/docker/client"

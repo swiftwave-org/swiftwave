@@ -2,7 +2,7 @@ package server
 
 import (
 	"strconv"
-	HAPROXY_MANAGER "swiftwave/m/haproxy_manager"
+	HAPROXY_MANAGER "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"time"
 
 	"github.com/labstack/echo/v4"
