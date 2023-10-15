@@ -10,6 +10,44 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 )
 
+// Get Service
+func (m Manager) GetService(serviceName string) (Service, error) {
+	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
+	if err != nil {
+		return Service{}, errors.New("error getting service")
+	}
+	// Create service object
+	service := Service{
+		Name:     serviceData.Spec.Name,
+		Image:    serviceData.Spec.TaskTemplate.ContainerSpec.Image,
+		Command:  serviceData.Spec.TaskTemplate.ContainerSpec.Command,
+		Env:      make(map[string]string),
+		Networks: []string{},
+		Replicas: 0,
+	}
+	// Set env
+	for _, env := range serviceData.Spec.TaskTemplate.ContainerSpec.Env {
+		service.Env[env] = ""
+	}
+	// Set volume mounts
+	for _, volumeMount := range serviceData.Spec.TaskTemplate.ContainerSpec.Mounts {
+		service.VolumeMounts = append(service.VolumeMounts, VolumeMount{
+			Source:   volumeMount.Source,
+			Target:   volumeMount.Target,
+			ReadOnly: volumeMount.ReadOnly,
+		})
+	}
+	// Set networks
+	for _, network := range serviceData.Spec.TaskTemplate.Networks {
+		service.Networks = append(service.Networks, network.Target)
+	}
+	// Set replicas
+	if serviceData.Spec.Mode.Replicated != nil {
+		service.Replicas = *serviceData.Spec.Mode.Replicated.Replicas
+	}
+	return service, nil
+}
+
 // Create a new service
 func (m Manager) CreateService(service Service) error {
 	_, err := m.client.ServiceCreate(m.ctx, m.serviceToServiceSpec(service), types.ServiceCreateOptions{})
@@ -66,65 +104,79 @@ func (m Manager) RemoveService(servicename string) error {
 	return nil
 }
 
-// Get status of a service
-func (m Manager) StatusService(serviceName string) (ServiceStatus, error) {
-	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{
-		InsertDefaults: true,
-	})
+// Fetch Realtime Info of a services in bulk
+func (m Manager) RealtimeInfoRunningServices() (map[string]ServiceRealtimeInfo, error) {
+	// fetch all nodes and store in map > nodeID:nodeDetails
+	nodes, err := m.client.NodeList(m.ctx, types.NodeListOptions{})
 	if err != nil {
-		return ServiceStatus{}, errors.New("error getting service status")
+		return nil, errors.New("error getting node list")
 	}
-
-	var updateStatus ServiceUpdateStatus
-	if serviceData.UpdateStatus != nil {
-		var state ServiceUpdateState
-		switch serviceData.UpdateStatus.State {
-		case swarm.UpdateStateUpdating:
-			state = ServiceUpdateStateUpdating
-		case swarm.UpdateStatePaused:
-			state = ServiceUpdateStatePaused
-		case swarm.UpdateStateCompleted:
-			state = ServiceUpdateStateCompleted
-		case swarm.UpdateStateRollbackStarted:
-			state = ServiceUpdateStateRollbackStarted
-		case swarm.UpdateStateRollbackPaused:
-			state = ServiceUpdateStateRollbackPaused
-		case swarm.UpdateStateRollbackCompleted:
-			state = ServiceUpdateStateRollbackCompleted
-		default:
-			state = ServiceUpdateStateUnknown
-		}
-		updateStatus = ServiceUpdateStatus{
-			State:   state,
-			Message: serviceData.UpdateStatus.Message,
-		}
+	nodeMap := make(map[string]swarm.Node)
+	for _, node := range nodes {
+		nodeMap[node.ID] = node
 	}
-
-	runningReplicas := 0
-	// query task list
-	tasks, err := m.client.TaskList(m.ctx, types.TaskListOptions{
-		Filters: filters.NewArgs(
-			filters.Arg("desired-state", "running"),
-			filters.Arg("name", serviceName),
-		),
-	})
-
+	// fetch all services and store in map > serviceName:serviceDetails
+	services, err := m.client.ServiceList(m.ctx, types.ServiceListOptions{})
 	if err != nil {
-		return ServiceStatus{}, errors.New("error getting service status")
+		return nil, errors.New("error getting service list")
 	}
+	// create map of service name to service realtime info
+	serviceRealtimeInfoMap := make(map[string]ServiceRealtimeInfo)
+	// analyze each service
+	for _, service := range services {
+		runningCount := 0
 
-	runningReplicas = len(tasks)
+		// inspect service to get desired count
+		serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, service.ID, types.ServiceInspectOptions{})
+		if err != nil {
+			continue
+		}
+		// create service realtime info
+		serviceRealtimeInfo := ServiceRealtimeInfo{}
+		serviceRealtimeInfo.Name = serviceData.Spec.Name
+		serviceRealtimeInfo.PlacementInfos = []ServiceTaskPlacementInfo{}
+		// set desired count
+		if serviceData.Spec.Mode.Replicated != nil {
+			serviceRealtimeInfo.DesiredReplicas = int(*serviceData.Spec.Mode.Replicated.Replicas)
+			serviceRealtimeInfo.ReplicatedService = true
+		} else {
+			serviceRealtimeInfo.DesiredReplicas = -1
+			serviceRealtimeInfo.ReplicatedService = false
+		}
 
-	desiredReplicas := -1
-	if serviceData.Spec.Mode.Replicated != nil {
-		desiredReplicas = int(*serviceData.Spec.Mode.Replicated.Replicas)
+		// query task list
+		tasks, err := m.client.TaskList(m.ctx, types.TaskListOptions{
+			Filters: filters.NewArgs(
+				filters.Arg("desired-state", "running"),
+				filters.Arg("name", serviceData.Spec.Name),
+			),
+		})
+		// set running count
+		if err != nil {
+			continue
+		}
+		runningCount = len(tasks)
+		serviceRealtimeInfo.RunningReplicas = runningCount
+		servicePlacementCountMap := make(map[string]int) // nodeID:count
+		// set placement infos > how many replicas are running in each node
+		for _, task := range tasks {
+			servicePlacementCountMap[task.NodeID]++
+		}
+		for nodeID, count := range servicePlacementCountMap {
+			node := nodeMap[nodeID]
+			serviceRealtimeInfo.PlacementInfos = append(serviceRealtimeInfo.PlacementInfos, ServiceTaskPlacementInfo{
+				NodeID:          nodeID,
+				NodeName:        node.Description.Hostname,
+				IsManagerNode:   node.Spec.Role != swarm.NodeRoleManager,
+				RunningReplicas: count,
+			})
+			runningCount += count
+		}
+		// set service realtime info in map
+		serviceRealtimeInfo.RunningReplicas = runningCount
+		serviceRealtimeInfoMap[serviceRealtimeInfo.Name] = serviceRealtimeInfo
 	}
-	return ServiceStatus{
-		DesiredReplicas:     desiredReplicas,
-		RunningReplicas:     runningReplicas,
-		LastUpdatedAt:       serviceData.UpdatedAt.String(),
-		ServiceUpdateStatus: updateStatus,
-	}, nil
+	return serviceRealtimeInfoMap, nil
 }
 
 // Get service logs
@@ -139,6 +191,7 @@ func (m Manager) LogsService(serviceName string) (io.ReadCloser, error) {
 	}
 	return logs, nil
 }
+
 
 // Private functions
 func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
