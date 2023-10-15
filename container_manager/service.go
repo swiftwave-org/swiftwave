@@ -192,7 +192,6 @@ func (m Manager) LogsService(serviceName string) (io.ReadCloser, error) {
 	return logs, nil
 }
 
-
 // Private functions
 func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 	// Create swarm attachment config from network names array
