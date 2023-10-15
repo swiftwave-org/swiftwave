@@ -21,29 +21,20 @@ type Service struct {
 	Replicas     uint64            `json:"replicas"`
 }
 
-type ServiceStatus struct {
-	DesiredReplicas     int                 `json:"desiredreplicas"`
-	RunningReplicas     int                 `json:"runningreplicas"`
-	LastUpdatedAt       string              `json:"lastupdatedat"`
-	ServiceUpdateStatus ServiceUpdateStatus `json:"serviceupdatestatus,omitempty"`
+type ServiceRealtimeInfo struct {
+	Name              string                     `json:"name"`
+	PlacementInfos    []ServiceTaskPlacementInfo `json:"placementinfos"`
+	DesiredReplicas   int                        `json:"desiredreplicas"`
+	RunningReplicas   int                        `json:"runningreplicas"`
+	ReplicatedService bool                       `json:"replicatedservice"`
 }
 
-type ServiceUpdateStatus struct {
-	State   ServiceUpdateState `json:"state"`
-	Message string             `json:"message"`
+type ServiceTaskPlacementInfo struct {
+	NodeID          string `json:"nodeid"`
+	NodeName        string `json:"nodename"`
+	IsManagerNode   bool   `json:"ismanagernode"`
+	RunningReplicas int    `json:"runningreplicas"`
 }
-
-type ServiceUpdateState string
-
-const (
-	ServiceUpdateStateUpdating          ServiceUpdateState = "updating"
-	ServiceUpdateStatePaused            ServiceUpdateState = "paused"
-	ServiceUpdateStateCompleted         ServiceUpdateState = "completed"
-	ServiceUpdateStateRollbackStarted   ServiceUpdateState = "rollback_started"
-	ServiceUpdateStateRollbackPaused    ServiceUpdateState = "rollback_paused"
-	ServiceUpdateStateRollbackCompleted ServiceUpdateState = "rollback_completed"
-	ServiceUpdateStateUnknown           ServiceUpdateState = "unknown"
-)
 
 // Volume Mount
 type VolumeMount struct {
