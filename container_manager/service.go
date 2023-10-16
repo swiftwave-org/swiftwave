@@ -151,12 +151,9 @@ func (m Manager) RealtimeInfoRunningServices() (map[string]ServiceRealtimeInfo, 
 				filters.Arg("name", serviceData.Spec.Name),
 			),
 		})
-		// set running count
 		if err != nil {
 			continue
 		}
-		runningCount = len(tasks)
-		serviceRealtimeInfo.RunningReplicas = runningCount
 		servicePlacementCountMap := make(map[string]int) // nodeID:count
 		// set placement infos > how many replicas are running in each node
 		for _, task := range tasks {
