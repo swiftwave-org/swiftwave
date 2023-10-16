@@ -30,9 +30,9 @@
 #### Introducting `Swiftwave Dashboard` ([Source Code](https://github.com/swiftwave-org/swiftwave-dashboard))
 ![Swiftwave Dashboard](https://github.com/swiftwave-org/swiftwave/assets/57363826/a85c2b14-dd32-448d-a5a1-81bc01d97ef5)
 #### Steps
-- Go to [Swiftwave Dashboard](https://dashboard.swiftwave.org/)
+- Go to `server_ip:9999`
 - At the bottom of the page, from the tab update IP address of your server and port (default port 3333)
-- Enter the `username` and `password` you have set during installation of software
+- Enter the `username` and `password` you have set during the installation of the software
 - That's all 🍻
 
 ### Documentation
