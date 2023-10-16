@@ -47,11 +47,6 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-    - name: LowerCase repository name
-      run: echo IMAGE_REPOSITORY=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
-
-    # Build and push Docker image with Buildx (don't push on PR)
-    # https://github.com/docker/build-push-action
     - name: Build and push Docker image
       id: build-and-push
       uses: docker/build-push-action@v3
@@ -59,7 +54,7 @@ jobs:
         file: Dockerfile
         context: .
         push: ${{ github.event_name != 'pull_request' }}
-        tags: ${{ env.IMAGE_NAME }}
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         labels: ${{ steps.meta.outputs.labels }}
         platforms: linux/amd64, linux/arm64
         cache-from: type=gha
