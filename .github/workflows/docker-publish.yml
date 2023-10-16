@@ -59,7 +59,7 @@ jobs:
         file: Dockerfile
         context: .
         push: ${{ github.event_name != 'pull_request' }}
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_REPOSITORY }}:latest
+        tags: ${{ env.IMAGE_NAME }}
         labels: ${{ steps.meta.outputs.labels }}
         platforms: linux/amd64, linux/arm64
         cache-from: type=gha
