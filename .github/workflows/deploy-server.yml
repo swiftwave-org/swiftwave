@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '0 */3 * * *'
   push:
-    branches: [ "main" ]
+    branches: [ "develop" ]
 
 concurrency:
   group: staging
@@ -15,7 +15,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: swiftwave-org/SwiftWave/.github/workflows/docker-publish.yml@main
+    uses: swiftwave-org/SwiftWave/.github/workflows/docker-publish.yml@develop
 
   deploy-production:
     needs: build-production
@@ -53,6 +53,6 @@ jobs:
 
   cleanup-untagged-images:
     needs: build-production
-    uses: swiftwave-org/SwiftWave/.github/workflows/untagged-image-cleanup.yml@main
+    uses: swiftwave-org/SwiftWave/.github/workflows/untagged-image-cleanup.yml@develop
     secrets:
       SWIFTWAVE_DELETE_PACKAGE: ${{ secrets.SWIFTWAVE_DELETE_PACKAGE }}
