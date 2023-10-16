@@ -489,3 +489,29 @@ func (s *Server) CleanExpiredSessionTokensCronjob() {
 		time.Sleep(10 * time.Second)
 	}
 }
+
+// Sync service running status
+func (s *Server) SyncServiceRunningStatusCronjob() {
+	for {
+		// Fetch all services realtime info
+		servicesRealtimeInfo, err := s.DOCKER_MANAGER.RealtimeInfoRunningServices()
+		if err != nil {
+			log.Println(err)
+		} else {
+			// Fetch all applications from db > ID, ServiceName, Status
+			var applications []Application = make([]Application, 0)
+			tx := s.DB_CLIENT.Select("id, service_name, status").Find(&applications)
+			if tx.Error != nil {
+				log.Println("Failed to fetch applications from db")
+				log.Println(tx.Error)
+			} else {
+				for _, application := range applications {
+					// check if service is found
+					// TODO
+				}
+			}
+		}
+
+		time.Sleep(5 * time.Second)
+	}
+}
