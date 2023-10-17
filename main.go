@@ -14,11 +14,5 @@ func main() {
 	}
 	server := SERVER.Server{}
 	server.Init()
-	data, err := server.DOCKER_MANAGER.RealtimeInfoRunningServices()
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	log.Println(data)
-	// server.Start()
+	server.Start()
 }
