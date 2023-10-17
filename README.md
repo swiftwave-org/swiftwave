@@ -1,6 +1,6 @@
 # 🚀 Swiftwave [🚧 Alpha]
 
-[![Publish Docker](https://github.com/swiftwave-org/swiftwave/actions/workflows/docker-publish.yml/badge.svg?branch=main)](https://github.com/swiftwave-org/swiftwave/actions/workflows/docker-publish.yml) [![Deploy Dashboard](https://github.com/swiftwave-org/swiftwave-dashboard/actions/workflows/deploy-website.yml/badge.svg?branch=master)](https://github.com/swiftwave-org/swiftwave-dashboard/actions/workflows/deploy-website.yml) ![Dashboard Uptime](https://img.shields.io/endpoint?labelColor=394149&label=Dashboard+Uptime&url=https://raw.githubusercontent.com/swiftwave-org/upptime/master/api/swiftwave-dashboard/uptime.json) ![Dashboard Response Time](https://img.shields.io/endpoint?labelColor=394149&label=Dashboard+Response+Time&url=https://raw.githubusercontent.com/swiftwave-org/upptime/master/api/swiftwave-dashboard/response-time.json) ![Proxy Uptime](https://img.shields.io/endpoint?labelColor=394149&label=Proxy+Uptime&url=https://raw.githubusercontent.com/swiftwave-org/upptime/master/api/secured-proxy/uptime.json) ![Proxy Response Time](https://img.shields.io/endpoint?labelColor=394149&label=Proxy+Response+Time&url=https://raw.githubusercontent.com/swiftwave-org/upptime/master/api/secured-proxy/response-time.json)
+[![Publish Docker](https://github.com/swiftwave-org/swiftwave/actions/workflows/docker-publish.yml/badge.svg?branch=main)](https://github.com/swiftwave-org/swiftwave/actions/workflows/docker-publish.yml)
 
 <img align="right" src="https://avatars.githubusercontent.com/u/140562189?s=100&v=4" height="100px"/>
 
@@ -30,9 +30,9 @@
 #### Introducting `Swiftwave Dashboard` ([Source Code](https://github.com/swiftwave-org/swiftwave-dashboard))
 ![Swiftwave Dashboard](https://github.com/swiftwave-org/swiftwave/assets/57363826/a85c2b14-dd32-448d-a5a1-81bc01d97ef5)
 #### Steps
-- Go to [Swiftwave Dashboard](https://dashboard.swiftwave.org/)
+- Go to `server_ip:9999`
 - At the bottom of the page, from the tab update IP address of your server and port (default port 3333)
-- Enter the `username` and `password` you have set during installation of software
+- Enter the `username` and `password` you have set during the installation of the software
 - That's all 🍻
 
 ### Documentation
