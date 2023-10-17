@@ -754,7 +754,7 @@ func (server *Server) checkApplicationServiceNameAvailability(c echo.Context) er
 			isAvailable = isAvailable && false
 		}
 		// Check from docker
-		_, err := server.DOCKER_MANAGER.StatusService(name)
+		_, err := server.DOCKER_MANAGER.GetService(name)
 		isAvailable = isAvailable && (err != nil)
 	} else {
 		isAvailable = false
