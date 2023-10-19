@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/joho/godotenv"
-	SERVER "github.com/swiftwave-org/swiftwave/server"
+	// SERVER "github.com/swiftwave-org/swiftwave/server"
 )
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
 	if err != nil {
 		log.Println("Error loading .env file. Ignoring")
 	}
-	server := SERVER.Server{}
-	server.Init()
-	server.Start()
+	// server := SERVER.Server{}
+	// server.Init()
+	// server.Start()
 }
