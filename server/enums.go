@@ -32,7 +32,6 @@ type DeploymentStatus string
 const (
 	DeploymentStatusQueued    DeploymentStatus = "queued"
 	DeploymentStatusDeploying DeploymentStatus = "deploying"
-	DeploymentStatusDeployed  DeploymentStatus = "deployed"
 	DeploymentStatusFailed    DeploymentStatus = "failed"
 	DeploymentStatusRunning   DeploymentStatus = "running"
 	DeploymentStatusStopped   DeploymentStatus = "stopped"
