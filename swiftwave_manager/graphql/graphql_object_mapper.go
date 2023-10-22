@@ -19,15 +19,6 @@ func gitCredentialToGraphqlObject(record *dbmodel.GitCredential) *model.GitCrede
 	}
 }
 
-// gitCredentialToDatabaseObject : converts GitCredential to GitCredentialDatabaseObject
-func gitCredentialToDatabaseObject(record *model.GitCredential) *dbmodel.GitCredential {
-	return &dbmodel.GitCredential{
-		Name:     record.Name,
-		Username: record.Username,
-		Password: record.Password,
-	}
-}
-
 // gitCredentialInputToDatabaseObject : converts GitCredentialInput to GitCredentialDatabaseObject
 func gitCredentialInputToDatabaseObject(record *model.GitCredentialInput) *dbmodel.GitCredential {
 	return &dbmodel.GitCredential{
