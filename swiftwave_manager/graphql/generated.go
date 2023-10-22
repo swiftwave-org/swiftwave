@@ -56,24 +56,24 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		CreateGitCredential func(childComplexity int, input model.GitCredentialInput) int
-		DeleteGitCredential func(childComplexity int, id string) int
-		UpdateGitCredential func(childComplexity int, id string, input model.GitCredentialInput) int
+		DeleteGitCredential func(childComplexity int, id int) int
+		UpdateGitCredential func(childComplexity int, id int, input model.GitCredentialInput) int
 	}
 
 	Query struct {
-		GitCredential  func(childComplexity int, id string) int
+		GitCredential  func(childComplexity int, id int) int
 		GitCredentials func(childComplexity int) int
 	}
 }
 
 type MutationResolver interface {
 	CreateGitCredential(ctx context.Context, input model.GitCredentialInput) (*model.GitCredential, error)
-	UpdateGitCredential(ctx context.Context, id string, input model.GitCredentialInput) (*model.GitCredential, error)
-	DeleteGitCredential(ctx context.Context, id string) (*model.GitCredential, error)
+	UpdateGitCredential(ctx context.Context, id int, input model.GitCredentialInput) (*model.GitCredential, error)
+	DeleteGitCredential(ctx context.Context, id int) (*model.GitCredential, error)
 }
 type QueryResolver interface {
 	GitCredentials(ctx context.Context) ([]*model.GitCredential, error)
-	GitCredential(ctx context.Context, id string) (*model.GitCredential, error)
+	GitCredential(ctx context.Context, id int) (*model.GitCredential, error)
 }
 
 type executableSchema struct {
@@ -145,7 +145,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteGitCredential(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteGitCredential(childComplexity, args["id"].(int)), true
 
 	case "Mutation.updateGitCredential":
 		if e.complexity.Mutation.UpdateGitCredential == nil {
@@ -157,7 +157,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateGitCredential(childComplexity, args["id"].(string), args["input"].(model.GitCredentialInput)), true
+		return e.complexity.Mutation.UpdateGitCredential(childComplexity, args["id"].(int), args["input"].(model.GitCredentialInput)), true
 
 	case "Query.gitCredential":
 		if e.complexity.Query.GitCredential == nil {
@@ -169,7 +169,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GitCredential(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.GitCredential(childComplexity, args["id"].(int)), true
 
 	case "Query.gitCredentials":
 		if e.complexity.Query.GitCredentials == nil {
@@ -283,7 +283,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema.graphqls"
+//go:embed "schema/base.graphqls" "schema/git_credential.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -295,7 +295,8 @@ func sourceData(filename string) string {
 }
 
 var sources = []*ast.Source{
-	{Name: "schema.graphqls", Input: sourceData("schema.graphqls"), BuiltIn: false},
+	{Name: "schema/base.graphqls", Input: sourceData("schema/base.graphqls"), BuiltIn: false},
+	{Name: "schema/git_credential.graphqls", Input: sourceData("schema/git_credential.graphqls"), BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -321,10 +322,10 @@ func (ec *executionContext) field_Mutation_createGitCredential_args(ctx context.
 func (ec *executionContext) field_Mutation_deleteGitCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -336,10 +337,10 @@ func (ec *executionContext) field_Mutation_deleteGitCredential_args(ctx context.
 func (ec *executionContext) field_Mutation_updateGitCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -375,10 +376,10 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Query_gitCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -451,9 +452,9 @@ func (ec *executionContext) _GitCredential_id(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_GitCredential_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -463,7 +464,7 @@ func (ec *executionContext) fieldContext_GitCredential_id(ctx context.Context, f
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -680,7 +681,7 @@ func (ec *executionContext) _Mutation_updateGitCredential(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateGitCredential(rctx, fc.Args["id"].(string), fc.Args["input"].(model.GitCredentialInput))
+		return ec.resolvers.Mutation().UpdateGitCredential(rctx, fc.Args["id"].(int), fc.Args["input"].(model.GitCredentialInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -745,7 +746,7 @@ func (ec *executionContext) _Mutation_deleteGitCredential(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteGitCredential(rctx, fc.Args["id"].(string))
+		return ec.resolvers.Mutation().DeleteGitCredential(rctx, fc.Args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -864,7 +865,7 @@ func (ec *executionContext) _Query_gitCredential(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GitCredential(rctx, fc.Args["id"].(string))
+		return ec.resolvers.Query().GitCredential(rctx, fc.Args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3487,13 +3488,13 @@ func (ec *executionContext) unmarshalNGitCredentialInput2githubᚗcomᚋswiftwav
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
-	res, err := graphql.UnmarshalID(v)
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalID(v)
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

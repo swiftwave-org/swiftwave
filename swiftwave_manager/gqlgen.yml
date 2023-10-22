@@ -1,16 +1,11 @@
 # Where are all the schema files located? globs are supported eg  src/**/*.graphqls
 schema:
-  - graphql/*.graphqls
+  - graphql/schema/*.graphqls
 
 # Where should the generated server code go?
 exec:
   filename: graphql/generated.go
   package: graphql
-
-# Uncomment to enable federation
-# federation:
-#   filename: graphql/federation.go
-#   package: graphql
 
 # Where should any generated models go?
 model:
@@ -23,8 +18,6 @@ resolver:
   dir: graphql
   package: graphql
   filename_template: "{name}.resolvers.go"
-  # Optional: turn on to not generate template comments above resolvers
-  # omit_template_comment: false
 
 autobind:
 #  - "github.com/swiftwave-org/swiftwave/server/graphql/model"

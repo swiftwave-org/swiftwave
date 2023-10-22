@@ -26,11 +26,11 @@ type ImageRegistryCredential struct {
 type Domain struct {
 	ID            uint            `json:"id" gorm:"primaryKey"`
 	Name          string          `json:"name" gorm:"unique"`
-	SSLStatus     DomainSSLStatus `json:"SSLStatus"`
-	SSLPrivateKey string          `json:"SSLPrivateKey"`
-	SSLFullChain  string          `json:"SSLFullChain"`
-	SSLIssuedAt   time.Time       `json:"SSLIssuedAt"`
-	SSLIssuer     string          `json:"SSLIssuer"`
+	SSLStatus     DomainSSLStatus `json:"sslStatus"`
+	SSLPrivateKey string          `json:"sslPrivateKey"`
+	SSLFullChain  string          `json:"sslFullChain"`
+	SSLIssuedAt   time.Time       `json:"sslIssuedAt"`
+	SSLIssuer     string          `json:"sslIssuer"`
 	IngressRules  []IngressRule   `json:"ingressRules" gorm:"foreignKey:DomainID"`
 	RedirectRules []RedirectRule  `json:"redirectRules" gorm:"foreignKey:DomainID"`
 }
@@ -38,9 +38,7 @@ type Domain struct {
 // IngressRule : hold information about Ingress rule for service
 type IngressRule struct {
 	ID            uint              `json:"id" gorm:"primaryKey"`
-	Domain        Domain            `json:"-"`
 	DomainID      uint              `json:"domainID"`
-	Application   Application       `json:"-"`
 	ApplicationID string            `json:"applicationID"`
 	Protocol      ProtocolType      `json:"protocol"`
 	Port          uint              `json:"port"`
@@ -53,7 +51,6 @@ type IngressRule struct {
 // RedirectRule : hold information about Redirect rules for domain
 type RedirectRule struct {
 	ID          uint               `json:"id" gorm:"primaryKey"`
-	Domain      Domain             `json:"-"`
 	DomainID    uint               `json:"domainID"`
 	Port        uint               `json:"port"`
 	RedirectURL string             `json:"redirectURL"`
@@ -77,17 +74,15 @@ type Application struct {
 // Deployment : hold information about deployment of application
 type Deployment struct {
 	ID            string       `json:"id" gorm:"primaryKey"`
-	Application   Application  `json:"-"`
 	ApplicationID uint         `json:"applicationID"`
 	UpstreamType  UpstreamType `json:"upstreamType"`
 	// Fields for UpstreamType = Git
-	GitCredential    GitCredential `json:"-"`
-	GitCredentialID  uint          `json:"gitCredentialID"`
-	GitProvider      GitProvider   `json:"gitProvider"`
-	RepositoryOwner  string        `json:"repositoryOwner"`
-	RepositoryName   string        `json:"repositoryName"`
-	RepositoryBranch string        `json:"repositoryBranch"`
-	CommitHash       string        `json:"commitHash"`
+	GitCredentialID  uint        `json:"gitCredentialID"`
+	GitProvider      GitProvider `json:"gitProvider"`
+	RepositoryOwner  string      `json:"repositoryOwner"`
+	RepositoryName   string      `json:"repositoryName"`
+	RepositoryBranch string      `json:"repositoryBranch"`
+	CommitHash       string      `json:"commitHash"`
 	// Fields for UpstreamType = SourceCode
 	SourceCodeCompressedFileName string `json:"sourceCodeCompressedFileName"`
 	// Fields for UpstreamType = Image
@@ -109,9 +104,8 @@ type Deployment struct {
 
 // DeploymentLog : hold logs of deployment
 type DeploymentLog struct {
-	ID           uint       `json:"id" gorm:"primaryKey"`
-	Deployment   Deployment `json:"-"`
-	DeploymentID string     `json:"deploymentID"`
-	Content      string     `json:"content"`
-	CreatedAt    time.Time  `json:"createdAt"`
+	ID           uint      `json:"id" gorm:"primaryKey"`
+	DeploymentID string    `json:"deploymentID"`
+	Content      string    `json:"content"`
+	CreatedAt    time.Time `json:"createdAt"`
 }
