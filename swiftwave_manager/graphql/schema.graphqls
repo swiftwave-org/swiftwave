@@ -1,0 +1,23 @@
+type GitCredential {
+  id: ID!
+  name: String!
+  username: String!
+  password: String!
+}
+
+input GitCredentialInput {
+  name: String!
+  username: String!
+  password: String!
+}
+
+type Query {
+  gitCredentials: [GitCredential!]!
+  gitCredential(id: ID!): GitCredential!
+}
+
+type Mutation {
+  createGitCredential(input: GitCredentialInput!): GitCredential!
+  updateGitCredential(id: ID!, input: GitCredentialInput!): GitCredential!
+  deleteGitCredential(id: ID!): GitCredential!
+}

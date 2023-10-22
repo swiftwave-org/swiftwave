@@ -1,0 +1,43 @@
+# Where are all the schema files located? globs are supported eg  src/**/*.graphqls
+schema:
+  - graphql/*.graphqls
+
+# Where should the generated server code go?
+exec:
+  filename: graphql/generated.go
+  package: graphql
+
+# Uncomment to enable federation
+# federation:
+#   filename: graphql/federation.go
+#   package: graphql
+
+# Where should any generated models go?
+model:
+  filename: graphql/model/models_gen.go
+  package: model
+
+# Where should the resolver implementations go?
+resolver:
+  layout: follow-schema
+  dir: graphql
+  package: graphql
+  filename_template: "{name}.resolvers.go"
+  # Optional: turn on to not generate template comments above resolvers
+  # omit_template_comment: false
+
+autobind:
+#  - "github.com/swiftwave-org/swiftwave/server/graphql/model"
+
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.ID
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Int32
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Int32
