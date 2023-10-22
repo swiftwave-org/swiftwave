@@ -7,7 +7,6 @@ require (
 	github.com/docker/docker v24.0.6+incompatible
 	github.com/go-git/go-git/v5 v5.9.0
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/gorilla/websocket v1.5.0
 	github.com/labstack/echo/v4 v4.11.2
 	github.com/mholt/acmez v1.2.0
 	github.com/vektah/gqlparser/v2 v2.5.10
@@ -35,6 +34,7 @@ require (
 	github.com/go-git/go-billy/v5 v5.5.0 // indirect
 	github.com/go-redis/redis_rate/v9 v9.1.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.3 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
