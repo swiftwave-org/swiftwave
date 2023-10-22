@@ -14,3 +14,16 @@ type GitCredentialInput struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
+
+type ImageRegistryCredential struct {
+	ID       int    `json:"id"`
+	URL      string `json:"url"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type ImageRegistryCredentialInput struct {
+	URL      string `json:"url"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}

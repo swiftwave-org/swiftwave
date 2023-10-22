@@ -27,3 +27,22 @@ func gitCredentialInputToDatabaseObject(record *model.GitCredentialInput) *dbmod
 		Password: record.Password,
 	}
 }
+
+// imageRegistryCredentialToGraphqlObject : converts ImageRegistryCredential to ImageRegistryCredentialGraphqlObject
+func imageRegistryCredentialToGraphqlObject(record *dbmodel.ImageRegistryCredential) *model.ImageRegistryCredential {
+	return &model.ImageRegistryCredential{
+		ID:       int(record.ID),
+		URL:      record.Url,
+		Username: record.Username,
+		Password: record.Password,
+	}
+}
+
+// imageRegistryCredentialInputToDatabaseObject : converts ImageRegistryCredentialInput to ImageRegistryCredentialDatabaseObject
+func imageRegistryCredentialInputToDatabaseObject(record *model.ImageRegistryCredentialInput) *dbmodel.ImageRegistryCredential {
+	return &dbmodel.ImageRegistryCredential{
+		Url:      record.URL,
+		Username: record.Username,
+		Password: record.Password,
+	}
+}

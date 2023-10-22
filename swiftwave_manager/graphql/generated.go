@@ -54,15 +54,27 @@ type ComplexityRoot struct {
 		Username func(childComplexity int) int
 	}
 
+	ImageRegistryCredential struct {
+		ID       func(childComplexity int) int
+		Password func(childComplexity int) int
+		URL      func(childComplexity int) int
+		Username func(childComplexity int) int
+	}
+
 	Mutation struct {
-		CreateGitCredential func(childComplexity int, input model.GitCredentialInput) int
-		DeleteGitCredential func(childComplexity int, id int) int
-		UpdateGitCredential func(childComplexity int, id int, input model.GitCredentialInput) int
+		CreateGitCredential           func(childComplexity int, input model.GitCredentialInput) int
+		CreateImageRegistryCredential func(childComplexity int, input model.ImageRegistryCredentialInput) int
+		DeleteGitCredential           func(childComplexity int, id int) int
+		DeleteImageRegistryCredential func(childComplexity int, id int) int
+		UpdateGitCredential           func(childComplexity int, id int, input model.GitCredentialInput) int
+		UpdateImageRegistryCredential func(childComplexity int, id int, input model.ImageRegistryCredentialInput) int
 	}
 
 	Query struct {
-		GitCredential  func(childComplexity int, id int) int
-		GitCredentials func(childComplexity int) int
+		GitCredential            func(childComplexity int, id int) int
+		GitCredentials           func(childComplexity int) int
+		ImageRegistryCredential  func(childComplexity int, id int) int
+		ImageRegistryCredentials func(childComplexity int) int
 	}
 }
 
@@ -70,10 +82,15 @@ type MutationResolver interface {
 	CreateGitCredential(ctx context.Context, input model.GitCredentialInput) (*model.GitCredential, error)
 	UpdateGitCredential(ctx context.Context, id int, input model.GitCredentialInput) (*model.GitCredential, error)
 	DeleteGitCredential(ctx context.Context, id int) (*model.GitCredential, error)
+	CreateImageRegistryCredential(ctx context.Context, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error)
+	UpdateImageRegistryCredential(ctx context.Context, id int, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error)
+	DeleteImageRegistryCredential(ctx context.Context, id int) (*model.ImageRegistryCredential, error)
 }
 type QueryResolver interface {
 	GitCredentials(ctx context.Context) ([]*model.GitCredential, error)
 	GitCredential(ctx context.Context, id int) (*model.GitCredential, error)
+	ImageRegistryCredentials(ctx context.Context) ([]*model.ImageRegistryCredential, error)
+	ImageRegistryCredential(ctx context.Context, id int) (*model.ImageRegistryCredential, error)
 }
 
 type executableSchema struct {
@@ -123,6 +140,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GitCredential.Username(childComplexity), true
 
+	case "ImageRegistryCredential.id":
+		if e.complexity.ImageRegistryCredential.ID == nil {
+			break
+		}
+
+		return e.complexity.ImageRegistryCredential.ID(childComplexity), true
+
+	case "ImageRegistryCredential.password":
+		if e.complexity.ImageRegistryCredential.Password == nil {
+			break
+		}
+
+		return e.complexity.ImageRegistryCredential.Password(childComplexity), true
+
+	case "ImageRegistryCredential.url":
+		if e.complexity.ImageRegistryCredential.URL == nil {
+			break
+		}
+
+		return e.complexity.ImageRegistryCredential.URL(childComplexity), true
+
+	case "ImageRegistryCredential.username":
+		if e.complexity.ImageRegistryCredential.Username == nil {
+			break
+		}
+
+		return e.complexity.ImageRegistryCredential.Username(childComplexity), true
+
 	case "Mutation.createGitCredential":
 		if e.complexity.Mutation.CreateGitCredential == nil {
 			break
@@ -134,6 +179,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateGitCredential(childComplexity, args["input"].(model.GitCredentialInput)), true
+
+	case "Mutation.createImageRegistryCredential":
+		if e.complexity.Mutation.CreateImageRegistryCredential == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createImageRegistryCredential_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateImageRegistryCredential(childComplexity, args["input"].(model.ImageRegistryCredentialInput)), true
 
 	case "Mutation.deleteGitCredential":
 		if e.complexity.Mutation.DeleteGitCredential == nil {
@@ -147,6 +204,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteGitCredential(childComplexity, args["id"].(int)), true
 
+	case "Mutation.deleteImageRegistryCredential":
+		if e.complexity.Mutation.DeleteImageRegistryCredential == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteImageRegistryCredential_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteImageRegistryCredential(childComplexity, args["id"].(int)), true
+
 	case "Mutation.updateGitCredential":
 		if e.complexity.Mutation.UpdateGitCredential == nil {
 			break
@@ -158,6 +227,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateGitCredential(childComplexity, args["id"].(int), args["input"].(model.GitCredentialInput)), true
+
+	case "Mutation.updateImageRegistryCredential":
+		if e.complexity.Mutation.UpdateImageRegistryCredential == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateImageRegistryCredential_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateImageRegistryCredential(childComplexity, args["id"].(int), args["input"].(model.ImageRegistryCredentialInput)), true
 
 	case "Query.gitCredential":
 		if e.complexity.Query.GitCredential == nil {
@@ -178,6 +259,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GitCredentials(childComplexity), true
 
+	case "Query.imageRegistryCredential":
+		if e.complexity.Query.ImageRegistryCredential == nil {
+			break
+		}
+
+		args, err := ec.field_Query_imageRegistryCredential_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ImageRegistryCredential(childComplexity, args["id"].(int)), true
+
+	case "Query.imageRegistryCredentials":
+		if e.complexity.Query.ImageRegistryCredentials == nil {
+			break
+		}
+
+		return e.complexity.Query.ImageRegistryCredentials(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -187,6 +287,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputGitCredentialInput,
+		ec.unmarshalInputImageRegistryCredentialInput,
 	)
 	first := true
 
@@ -283,7 +384,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/base.graphqls" "schema/git_credential.graphqls"
+//go:embed "schema/base.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -297,6 +398,7 @@ func sourceData(filename string) string {
 var sources = []*ast.Source{
 	{Name: "schema/base.graphqls", Input: sourceData("schema/base.graphqls"), BuiltIn: false},
 	{Name: "schema/git_credential.graphqls", Input: sourceData("schema/git_credential.graphqls"), BuiltIn: false},
+	{Name: "schema/image_registry_credential.graphqls", Input: sourceData("schema/image_registry_credential.graphqls"), BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -319,7 +421,37 @@ func (ec *executionContext) field_Mutation_createGitCredential_args(ctx context.
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createImageRegistryCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.ImageRegistryCredentialInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNImageRegistryCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredentialInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteGitCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteImageRegistryCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -358,6 +490,30 @@ func (ec *executionContext) field_Mutation_updateGitCredential_args(ctx context.
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateImageRegistryCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 model.ImageRegistryCredentialInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNImageRegistryCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredentialInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -374,6 +530,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 }
 
 func (ec *executionContext) field_Query_gitCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_imageRegistryCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -602,6 +773,182 @@ func (ec *executionContext) fieldContext_GitCredential_password(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _ImageRegistryCredential_id(ctx context.Context, field graphql.CollectedField, obj *model.ImageRegistryCredential) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ImageRegistryCredential_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ImageRegistryCredential_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ImageRegistryCredential",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ImageRegistryCredential_url(ctx context.Context, field graphql.CollectedField, obj *model.ImageRegistryCredential) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ImageRegistryCredential_url(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ImageRegistryCredential_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ImageRegistryCredential",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ImageRegistryCredential_username(ctx context.Context, field graphql.CollectedField, obj *model.ImageRegistryCredential) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ImageRegistryCredential_username(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Username, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ImageRegistryCredential_username(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ImageRegistryCredential",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ImageRegistryCredential_password(ctx context.Context, field graphql.CollectedField, obj *model.ImageRegistryCredential) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ImageRegistryCredential_password(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Password, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ImageRegistryCredential_password(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ImageRegistryCredential",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createGitCredential(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createGitCredential(ctx, field)
 	if err != nil {
@@ -797,6 +1144,201 @@ func (ec *executionContext) fieldContext_Mutation_deleteGitCredential(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createImageRegistryCredential(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createImageRegistryCredential(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateImageRegistryCredential(rctx, fc.Args["input"].(model.ImageRegistryCredentialInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ImageRegistryCredential)
+	fc.Result = res
+	return ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createImageRegistryCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ImageRegistryCredential_id(ctx, field)
+			case "url":
+				return ec.fieldContext_ImageRegistryCredential_url(ctx, field)
+			case "username":
+				return ec.fieldContext_ImageRegistryCredential_username(ctx, field)
+			case "password":
+				return ec.fieldContext_ImageRegistryCredential_password(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ImageRegistryCredential", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createImageRegistryCredential_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateImageRegistryCredential(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateImageRegistryCredential(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateImageRegistryCredential(rctx, fc.Args["id"].(int), fc.Args["input"].(model.ImageRegistryCredentialInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ImageRegistryCredential)
+	fc.Result = res
+	return ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateImageRegistryCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ImageRegistryCredential_id(ctx, field)
+			case "url":
+				return ec.fieldContext_ImageRegistryCredential_url(ctx, field)
+			case "username":
+				return ec.fieldContext_ImageRegistryCredential_username(ctx, field)
+			case "password":
+				return ec.fieldContext_ImageRegistryCredential_password(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ImageRegistryCredential", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateImageRegistryCredential_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteImageRegistryCredential(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteImageRegistryCredential(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteImageRegistryCredential(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ImageRegistryCredential)
+	fc.Result = res
+	return ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteImageRegistryCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ImageRegistryCredential_id(ctx, field)
+			case "url":
+				return ec.fieldContext_ImageRegistryCredential_url(ctx, field)
+			case "username":
+				return ec.fieldContext_ImageRegistryCredential_username(ctx, field)
+			case "password":
+				return ec.fieldContext_ImageRegistryCredential_password(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ImageRegistryCredential", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteImageRegistryCredential_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_gitCredentials(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_gitCredentials(ctx, field)
 	if err != nil {
@@ -910,6 +1452,125 @@ func (ec *executionContext) fieldContext_Query_gitCredential(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_gitCredential_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_imageRegistryCredentials(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_imageRegistryCredentials(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ImageRegistryCredentials(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ImageRegistryCredential)
+	fc.Result = res
+	return ec.marshalNImageRegistryCredential2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredentialᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_imageRegistryCredentials(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ImageRegistryCredential_id(ctx, field)
+			case "url":
+				return ec.fieldContext_ImageRegistryCredential_url(ctx, field)
+			case "username":
+				return ec.fieldContext_ImageRegistryCredential_username(ctx, field)
+			case "password":
+				return ec.fieldContext_ImageRegistryCredential_password(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ImageRegistryCredential", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_imageRegistryCredential(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_imageRegistryCredential(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ImageRegistryCredential(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ImageRegistryCredential)
+	fc.Result = res
+	return ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_imageRegistryCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ImageRegistryCredential_id(ctx, field)
+			case "url":
+				return ec.fieldContext_ImageRegistryCredential_url(ctx, field)
+			case "username":
+				return ec.fieldContext_ImageRegistryCredential_username(ctx, field)
+			case "password":
+				return ec.fieldContext_ImageRegistryCredential_password(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ImageRegistryCredential", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_imageRegistryCredential_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -2865,6 +3526,53 @@ func (ec *executionContext) unmarshalInputGitCredentialInput(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputImageRegistryCredentialInput(ctx context.Context, obj interface{}) (model.ImageRegistryCredentialInput, error) {
+	var it model.ImageRegistryCredentialInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"url", "username", "password"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "url":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.URL = data
+		case "username":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Username = data
+		case "password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Password = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -2927,6 +3635,60 @@ func (ec *executionContext) _GitCredential(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var imageRegistryCredentialImplementors = []string{"ImageRegistryCredential"}
+
+func (ec *executionContext) _ImageRegistryCredential(ctx context.Context, sel ast.SelectionSet, obj *model.ImageRegistryCredential) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, imageRegistryCredentialImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ImageRegistryCredential")
+		case "id":
+			out.Values[i] = ec._ImageRegistryCredential_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "url":
+			out.Values[i] = ec._ImageRegistryCredential_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "username":
+			out.Values[i] = ec._ImageRegistryCredential_username(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "password":
+			out.Values[i] = ec._ImageRegistryCredential_password(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -2963,6 +3725,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "deleteGitCredential":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteGitCredential(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createImageRegistryCredential":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createImageRegistryCredential(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateImageRegistryCredential":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateImageRegistryCredential(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteImageRegistryCredential":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteImageRegistryCredential(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -3041,6 +3824,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_gitCredential(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "imageRegistryCredentials":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_imageRegistryCredentials(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "imageRegistryCredential":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_imageRegistryCredential(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -3485,6 +4312,69 @@ func (ec *executionContext) marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑ
 
 func (ec *executionContext) unmarshalNGitCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialInput(ctx context.Context, v interface{}) (model.GitCredentialInput, error) {
 	res, err := ec.unmarshalInputGitCredentialInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNImageRegistryCredential2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx context.Context, sel ast.SelectionSet, v model.ImageRegistryCredential) graphql.Marshaler {
+	return ec._ImageRegistryCredential(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNImageRegistryCredential2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredentialᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ImageRegistryCredential) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx context.Context, sel ast.SelectionSet, v *model.ImageRegistryCredential) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ImageRegistryCredential(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNImageRegistryCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredentialInput(ctx context.Context, v interface{}) (model.ImageRegistryCredentialInput, error) {
+	res, err := ec.unmarshalInputImageRegistryCredentialInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
