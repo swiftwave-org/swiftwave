@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
 	"log"
-	SERVER "swiftwave/m/server"
+
+	"github.com/joho/godotenv"
+	SERVER "github.com/swiftwave-org/swiftwave/server"
 )
 
 func main() {

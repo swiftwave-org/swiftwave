@@ -17,9 +17,27 @@ func (server *Server) InitAuthRestAPI() {
 	server.ECHO_SERVER.POST("/auth/login", server.authLogin)
 	server.ECHO_SERVER.POST("/auth/verify", server.authVerify)
 	server.ECHO_SERVER.POST("/auth/logout", server.authLogout)
+	server.ECHO_SERVER.GET("/auth/ws/token", server.authWsToken)
 }
 
 // REST API functions
+
+// GET /auth/ws/token
+func (server *Server) authWsToken(c echo.Context) error {
+	// generate websocket token
+	token, err := server.generateWebsocketToken()
+	if err != nil {
+		return c.JSON(500, map[string]interface{}{
+			"error":   "internal server error",
+			"message": "internal server error",
+		})
+	}
+	// return token
+	return c.JSON(200, map[string]interface{}{
+		"token":   token,
+		"message": "token generated successfully",
+	})
+}
 
 // POST /auth/login
 func (server *Server) authLogin(c echo.Context) error {
@@ -123,10 +141,19 @@ func (server *Server) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if _, ok := server.SESSION_TOKENS[token]; ok {
 			return next(c)
 		}
+		// check if websocket endpoint
+		if strings.HasPrefix(path, "/ws") {
+			// fetch token from query params
+			token := c.QueryParam("token")
+			// validate token
+			if server.verifyWebsocketToken(token) {
+				return next(c)
+			}
+		}
 		// return error
 		return c.JSON(401, map[string]interface{}{
-			"error":   "unauthorized",
-			"message": "unauthorized",
+			"error":   "unauthorized access",
+			"message": "unauthorized access",
 		})
 	}
 }
@@ -146,4 +173,31 @@ func generateLongRandomString(length int) (string, error) {
 	}
 
 	return randomString[:length], nil
+}
+
+// Verify if Websocket token is valid
+func (server *Server) verifyWebsocketToken(token string) bool {
+	if _, ok := server.WEBSOCKET_TOKENS[token]; ok {
+		// check if token is expired
+		if time.Now().After(server.WEBSOCKET_TOKENS[token]) {
+			// delete token
+			delete(server.WEBSOCKET_TOKENS, token)
+			return false
+		}
+		// delete token
+		delete(server.WEBSOCKET_TOKENS, token)
+		return true
+	}
+	return false
+}
+
+// Generate websocket token
+func (server *Server) generateWebsocketToken() (string, error) {
+	randomToken, err := generateLongRandomString(32)
+	if err != nil {
+		return "", err
+	}
+	// store session token in memory
+	server.WEBSOCKET_TOKENS[randomToken] = time.Time.Add(time.Now(), time.Duration(server.WEBSOCKET_TOKEN_EXPIRY_MINUTES)*time.Minute)
+	return randomToken, nil
 }

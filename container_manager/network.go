@@ -6,7 +6,10 @@ import (
 	"github.com/docker/docker/api/types"
 )
 
-// Create a new network
+/*
+Create a new network with the given name
+It will create an overlay network with the given name and allow to attach containers to it
+*/
 func (m Manager) CreateNetwork(name string) error {
 	_, err := m.client.NetworkCreate(m.ctx, name, types.NetworkCreate{
 		Driver:     "overlay",

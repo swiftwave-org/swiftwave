@@ -6,6 +6,14 @@ import (
 	"github.com/vmihailenco/taskq/v3"
 )
 
+/*
+This file contains functions to store in tasks in `TASK_MAP`
+This helps to fetch the task from `TASK_MAP` with the task name
+
+Thid functions are called in `server/wroker.go` file
+*/
+
+// SSL Genration tasks
 func (s *Server) RegisterSSLGenerateTask() {
 	t := taskq.RegisterTask(&taskq.TaskOptions{
 		Name: "ssl-generate",
@@ -16,6 +24,7 @@ func (s *Server) RegisterSSLGenerateTask() {
 	s.TASK_MAP["ssl-generate"] = t
 }
 
+// SSL Update in HaProxy tasks
 func (s *Server) RegisterUpdateSSLHAProxyTask() {
 	t := taskq.RegisterTask(&taskq.TaskOptions{
 		Name: "ssl-update-haproxy",

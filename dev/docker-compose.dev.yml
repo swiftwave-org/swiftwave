@@ -17,7 +17,7 @@ services:
         protocol: tcp
         mode: host
   dashboard:
-    image: "ghcr.io/swiftwave-org/swiftwave-dashboard:latest"
+    image: "ghcr.io/swiftwave-org/dashboard:develop"
     deploy:
       mode: global
       placement:

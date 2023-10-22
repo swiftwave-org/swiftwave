@@ -33,9 +33,9 @@ fi
 
 # Fetch required images
 echo -e "${GREEN}Fetching required images...${NC}"
-docker pull ghcr.io/swiftwave-org/swiftwave-dashboard:latest
+docker pull ghcr.io/swiftwave-org/dashboard:develop
 docker pull haproxytech/haproxy-debian:2.9
-docker save -o ./.images/swiftwave-dashboard.tar ghcr.io/swiftwave-org/swiftwave-dashboard:latest
+docker save -o ./.images/swiftwave-dashboard.tar ghcr.io/swiftwave-org/dashboard:develop
 docker save -o ./.images/haproxy-debian.tar haproxytech/haproxy-debian:2.9
 
 # build docker image

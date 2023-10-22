@@ -2,16 +2,20 @@ package server
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-	GIT_MANAGER "swiftwave/m/git_manager"
+
+	GIT_MANAGER "github.com/swiftwave-org/swiftwave/git_manager"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -33,8 +37,8 @@ func (server *Server) InitApplicationRestAPI() {
 	server.ECHO_SERVER.POST("/applications/:id/redeploy", server.redeployApplication)
 	server.ECHO_SERVER.DELETE("/applications/:id", server.deleteApplication)
 	server.ECHO_SERVER.GET("/applications/:id/logs/build", server.getApplicationBuildLogs)
-	server.ECHO_SERVER.GET("/applications/:id/logs/build/:log_id", server.getApplicationBuildLog)
-	server.ECHO_SERVER.GET("/applications/:id/logs/runtime", server.getApplicationRuntimeLogs)
+	server.ECHO_SERVER.GET("/ws/applications/:id/logs/build/:log_id", server.getApplicationBuildLog)
+	server.ECHO_SERVER.GET("/ws/applications/:id/logs/runtime", server.getApplicationRuntimeLogs)
 	server.ECHO_SERVER.GET("/applications/availiblity/service_name", server.checkApplicationServiceNameAvailability)
 	server.ECHO_SERVER.GET("/applications/servicenames", server.getApplicationServiceNames)
 }
@@ -408,62 +412,159 @@ func (server *Server) getApplicationBuildLogs(c echo.Context) error {
 	return c.JSON(200, applicationBuildLogs)
 }
 
-// GET /application/:id/logs/build/:log_id
+// GET /ws/application/:id/logs/build/:log_id
 func (server *Server) getApplicationBuildLog(c echo.Context) error {
 	var applicationBuildLog ApplicationBuildLog
 	logID := c.Param("log_id")
 	applicationID := c.Param("id")
-	tx := server.DB_CLIENT.Model(&ApplicationBuildLog{}).Select("logs").Where(map[string]interface{}{
+	tx := server.DB_CLIENT.Model(&ApplicationBuildLog{}).Select("completed", "logs").Where(map[string]interface{}{
 		"id":             logID,
 		"application_id": applicationID,
 	}).Find(&applicationBuildLog)
 	if tx.Error != nil {
 		log.Println(tx.Error)
-		return c.JSON(404, map[string]string{
-			"message": "failed to get application log",
-		})
+		return c.NoContent(http.StatusNotFound)
 	}
-	return c.JSON(200, applicationBuildLog.Logs)
+	// Upgrade connection to websocket
+	ws, err := server.WEBSOCKET_UPGRADER.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	// Close connection
+	defer ws.Close()
+	closed := false
+
+	// Listen to redis subscriber
+	ctx := context.Background()
+	channel := "log_update/" + logID
+	pubsub := server.REDIS_CLIENT.Subscribe(ctx, channel)
+	defer pubsub.Close()
+
+	if !applicationBuildLog.Completed {
+		// listen for close message from client
+		go func() {
+			for {
+				messageType, _, err := ws.ReadMessage()
+				if err != nil {
+					if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+						c.Logger().Error(err)
+					}
+					closed = true
+					return
+				}
+				if messageType == websocket.CloseMessage {
+					// Peer has sent a close message, indicating they want to disconnect
+					log.Println("Peer has sent a close message, indicating they want to disconnect")
+					return
+				}
+			}
+		}()
+	}
+
+	// send logs to client
+	go func() {
+		// Write initial logs
+		err := ws.WriteMessage(websocket.TextMessage, []byte(applicationBuildLog.Logs))
+		if err != nil {
+			log.Println("failed to write initial logs to websocket")
+		}
+		if !applicationBuildLog.Completed {
+			// Listen to redis channel and send logs to client
+			for {
+				if closed {
+					return
+				}
+				msg, err := pubsub.ReceiveMessage(ctx)
+				if err != nil {
+					log.Println(err)
+					return
+				} else {
+					if strings.Compare(msg.Payload, "SWIFTWAVE_EOF_LOG") == 0 {
+						return
+					}
+					err := ws.WriteMessage(websocket.TextMessage, []byte(msg.Payload))
+					if err != nil {
+						log.Println("failed to write logs to websocket")
+					}
+				}
+			}
+		}
+	}()
+	select {}
 }
 
-// GET /application/:id/logs/runtime
+// GET /ws/application/:id/logs/runtime
 func (server *Server) getApplicationRuntimeLogs(c echo.Context) error {
 	applicationID := c.Param("id")
 	var application Application
 	tx := server.DB_CLIENT.Where("id = ?", applicationID).First(&application)
 	if tx.Error != nil {
 		log.Println(tx.Error)
-		return c.JSON(404, map[string]string{
-			"message": "failed to get application",
-		})
+		return c.NoContent(http.StatusNotFound)
 	}
-	// if since or until is not provided, it will act as default
-	since := c.QueryParam("since")
-	until := c.QueryParam("until")
 	// Get logs
-	logsReader, err := server.DOCKER_MANAGER.LogsService(application.ServiceName, since, until)
+	logsReader, err := server.DOCKER_MANAGER.LogsService(application.ServiceName)
 	if err != nil {
 		log.Println(err)
-		return c.JSON(500, map[string]string{
-			"message": "failed to get application logs",
-		})
+		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	scanner := bufio.NewScanner(logsReader)
-	text := ""
-	for scanner.Scan() {
-		// Specific format for raw-stream logs
-		// docs : https://docs.docker.com/engine/api/v1.42/#tag/Container/operation/ContainerAttach
-		d := scanner.Bytes()
-		if len(d) > 8 {
-			text += string(d[8:]) + "\n"
-		}
+	ws, err := server.WEBSOCKET_UPGRADER.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
 	}
-	return c.JSON(200, map[string]string{
-		"logs":  text,
-		"since": since,
-		"until": until,
-	})
+	// Close connection
+	defer ws.Close()
+	// Close logs reader
+	defer logsReader.Close()
+
+	closed := false
+
+	// listen for close message from client
+	go func() {
+		for {
+			messageType, _, err := ws.ReadMessage()
+			if err != nil {
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+					c.Logger().Error(err)
+				}
+				closed = true
+				return
+			}
+			if messageType == websocket.CloseMessage {
+				// Peer has sent a close message, indicating they want to disconnect
+				log.Println("Peer has sent a close message, indicating they want to disconnect")
+				return
+			}
+		}
+	}()
+
+	// send logs to client
+	go func() {
+		// Write
+		for scanner.Scan() {
+			if closed {
+				return
+			}
+			// Specific format for raw-stream logs
+			// docs : https://docs.docker.com/engine/api/v1.42/#tag/Container/operation/ContainerAttach
+			log_text := scanner.Bytes()
+			if len(log_text) > 8 {
+				log_text = log_text[8:]
+			}
+			// add new line
+			log_text = append(log_text, []byte("\n")...)
+			err = ws.WriteMessage(websocket.TextMessage, log_text)
+			if err != nil {
+				log.Println("failed to write logs to websocket")
+			}
+		}
+	}()
+	select {}
 }
 
 // PUT /application/:id
@@ -653,7 +754,7 @@ func (server *Server) checkApplicationServiceNameAvailability(c echo.Context) er
 			isAvailable = isAvailable && false
 		}
 		// Check from docker
-		_, err := server.DOCKER_MANAGER.StatusService(name)
+		_, err := server.DOCKER_MANAGER.GetService(name)
 		isAvailable = isAvailable && (err != nil)
 	} else {
 		isAvailable = false
