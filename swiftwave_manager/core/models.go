@@ -59,12 +59,47 @@ type RedirectRule struct {
 	UpdatedAt   time.Time          `json:"updatedAt"`
 }
 
+// PersistentVolume : hold information about persistent volume
+type PersistentVolume struct {
+	ID                       uint                      `json:"id" gorm:"primaryKey"`
+	Name                     string                    `json:"name" gorm:"unique"`
+	PersistentVolumeBindings []PersistentVolumeBinding `json:"persistentVolumeBindings" gorm:"foreignKey:PersistentVolumeID"`
+}
+
+// PersistentVolumeBinding : hold information about persistent volume binding
+type PersistentVolumeBinding struct {
+	ID                 uint   `json:"id" gorm:"primaryKey"`
+	ApplicationID      uint   `json:"applicationID"`
+	PersistentVolumeID uint   `json:"persistentVolumeID"`
+	MountingPath       string `json:"mountingPath"`
+}
+
+// EnvironmentVariable : hold information about environment variable
+type EnvironmentVariable struct {
+	ID            uint   `json:"id" gorm:"primaryKey"`
+	ApplicationID uint   `json:"applicationID"`
+	Key           string `json:"key"`
+	Value         string `json:"value"`
+}
+
+// BuildArg : hold information about build args
+type BuildArg struct {
+	ID           uint   `json:"id" gorm:"primaryKey"`
+	DeploymentID string `json:"deploymentID"`
+	Key          string `json:"key"`
+	Value        string `json:"value"`
+}
+
 // Application : hold information about application
 type Application struct {
-	ID                   string `json:"id" gorm:"primaryKey"`
-	Name                 string `json:"name" gorm:"unique"`
-	EnvironmentVariables string `json:"environmentVariables"` // JSON string
-	Volumes              string `json:"volumes"`              // JSON string
+	ID   string `json:"id" gorm:"primaryKey"`
+	Name string `json:"name" gorm:"unique"`
+	// Environment Variables
+	// On change of environment variables, deployment will be triggered by force update
+	EnvironmentVariables []EnvironmentVariable `json:"environmentVariables" gorm:"foreignKey:ApplicationID"`
+	// Persistent Volumes
+	// On change of persistent volumes, deployment will be triggered by force update
+	PersistentVolumeBindings []PersistentVolumeBinding `json:"persistentVolumeBindings" gorm:"foreignKey:ApplicationID"`
 	// Deployment
 	Deployments []Deployment `json:"deployments" gorm:"foreignKey:ApplicationID"`
 	// Ingress Rules
@@ -89,8 +124,8 @@ type Deployment struct {
 	DockerImage               string `json:"dockerImage"`
 	ImageRegistryCredentialID uint   `json:"ImageRegistryCredentialID"`
 	// Common Fields
-	BuildArgs  string `json:"build_args"` // JSON string
-	Dockerfile string `json:"dockerfile"`
+	BuildArgs  []BuildArg `json:"buildArgs" gorm:"foreignKey:DeploymentID"`
+	Dockerfile string     `json:"dockerfile"`
 	// No of replicas to be deployed
 	DeploymentMode DeploymentMode `json:"deploymentMode"`
 	Replicas       uint           `json:"replicas"`
