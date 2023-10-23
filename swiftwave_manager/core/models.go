@@ -62,7 +62,7 @@ type RedirectRule struct {
 // Application : hold information about application
 type Application struct {
 	ID                   string `json:"id" gorm:"primaryKey"`
-	ServiceName          string `json:"serviceName" gorm:"unique"`
+	Name                 string `json:"name" gorm:"unique"`
 	EnvironmentVariables string `json:"environmentVariables"` // JSON string
 	Volumes              string `json:"volumes"`              // JSON string
 	// Deployment
