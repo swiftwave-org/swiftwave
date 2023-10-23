@@ -10,7 +10,7 @@ input PersistentVolumeInput {
 extend type Query {
     persistentVolumes: [PersistentVolume]
     persistentVolume(id: Int!): PersistentVolume
-    isExistsPersistentVolume(name: String!): Boolean
+    isExistPersistentVolume(name: String!): Boolean
 }
 
 extend type Mutation {

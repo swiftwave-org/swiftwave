@@ -152,7 +152,7 @@ type ComplexityRoot struct {
 		GitCredentials                     func(childComplexity int) int
 		ImageRegistryCredential            func(childComplexity int, id int) int
 		ImageRegistryCredentials           func(childComplexity int) int
-		IsExistsPersistentVolume           func(childComplexity int, name string) int
+		IsExistPersistentVolume            func(childComplexity int, name string) int
 		PersistentVolume                   func(childComplexity int, id int) int
 		PersistentVolumes                  func(childComplexity int) int
 	}
@@ -179,7 +179,7 @@ type QueryResolver interface {
 	ImageRegistryCredential(ctx context.Context, id int) (*model.ImageRegistryCredential, error)
 	PersistentVolumes(ctx context.Context) ([]*model.PersistentVolume, error)
 	PersistentVolume(ctx context.Context, id int) (*model.PersistentVolume, error)
-	IsExistsPersistentVolume(ctx context.Context, name string) (*bool, error)
+	IsExistPersistentVolume(ctx context.Context, name string) (*bool, error)
 }
 
 type executableSchema struct {
@@ -768,17 +768,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ImageRegistryCredentials(childComplexity), true
 
-	case "Query.isExistsPersistentVolume":
-		if e.complexity.Query.IsExistsPersistentVolume == nil {
+	case "Query.isExistPersistentVolume":
+		if e.complexity.Query.IsExistPersistentVolume == nil {
 			break
 		}
 
-		args, err := ec.field_Query_isExistsPersistentVolume_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_isExistPersistentVolume_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.IsExistsPersistentVolume(childComplexity, args["name"].(string)), true
+		return e.complexity.Query.IsExistPersistentVolume(childComplexity, args["name"].(string)), true
 
 	case "Query.persistentVolume":
 		if e.complexity.Query.PersistentVolume == nil {
@@ -1192,7 +1192,7 @@ func (ec *executionContext) field_Query_imageRegistryCredential_args(ctx context
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_isExistsPersistentVolume_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_isExistPersistentVolume_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -4983,8 +4983,8 @@ func (ec *executionContext) fieldContext_Query_persistentVolume(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_isExistsPersistentVolume(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_isExistsPersistentVolume(ctx, field)
+func (ec *executionContext) _Query_isExistPersistentVolume(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_isExistPersistentVolume(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4997,7 +4997,7 @@ func (ec *executionContext) _Query_isExistsPersistentVolume(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().IsExistsPersistentVolume(rctx, fc.Args["name"].(string))
+		return ec.resolvers.Query().IsExistPersistentVolume(rctx, fc.Args["name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5011,7 +5011,7 @@ func (ec *executionContext) _Query_isExistsPersistentVolume(ctx context.Context,
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_isExistsPersistentVolume(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_isExistPersistentVolume(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -5028,7 +5028,7 @@ func (ec *executionContext) fieldContext_Query_isExistsPersistentVolume(ctx cont
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_isExistsPersistentVolume_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_isExistPersistentVolume_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -8279,7 +8279,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "isExistsPersistentVolume":
+		case "isExistPersistentVolume":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -8288,7 +8288,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_isExistsPersistentVolume(ctx, field)
+				res = ec._Query_isExistPersistentVolume(ctx, field)
 				return res
 			}
 

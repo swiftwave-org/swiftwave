@@ -6,32 +6,61 @@ package graphql
 
 import (
 	"context"
-	"fmt"
-
+	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
 )
 
 // CreatePersistentVolume is the resolver for the createPersistentVolume field.
 func (r *mutationResolver) CreatePersistentVolume(ctx context.Context, input model.PersistentVolumeInput) (*model.PersistentVolume, error) {
-	panic(fmt.Errorf("not implemented: CreatePersistentVolume - createPersistentVolume"))
+	record := persistentVolumeInputToDatabaseObject(&input)
+	err := record.Create(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
+	if err != nil {
+		return nil, err
+	}
+	return persistentVolumeToGraphqlObject(record), nil
 }
 
 // DeletePersistentVolume is the resolver for the deletePersistentVolume field.
 func (r *mutationResolver) DeletePersistentVolume(ctx context.Context, id int) (*model.PersistentVolume, error) {
-	panic(fmt.Errorf("not implemented: DeletePersistentVolume - deletePersistentVolume"))
+	// fetch record
+	var record dbmodel.PersistentVolume
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	// delete record
+	err = record.Delete(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
+	if err != nil {
+		return nil, err
+	}
+	return persistentVolumeToGraphqlObject(&record), nil
 }
 
 // PersistentVolumes is the resolver for the persistentVolumes field.
 func (r *queryResolver) PersistentVolumes(ctx context.Context) ([]*model.PersistentVolume, error) {
-	panic(fmt.Errorf("not implemented: PersistentVolumes - persistentVolumes"))
+	records, err := dbmodel.FindAllPersistentVolumes(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	var result []*model.PersistentVolume
+	for _, record := range records {
+		result = append(result, persistentVolumeToGraphqlObject(record))
+	}
+	return result, nil
 }
 
 // PersistentVolume is the resolver for the persistentVolume field.
 func (r *queryResolver) PersistentVolume(ctx context.Context, id int) (*model.PersistentVolume, error) {
-	panic(fmt.Errorf("not implemented: PersistentVolume - persistentVolume"))
+	var record dbmodel.PersistentVolume
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	return persistentVolumeToGraphqlObject(&record), nil
 }
 
-// IsExistsPersistentVolume is the resolver for the isExistsPersistentVolume field.
-func (r *queryResolver) IsExistsPersistentVolume(ctx context.Context, name string) (*bool, error) {
-	panic(fmt.Errorf("not implemented: IsExistsPersistentVolume - isExistsPersistentVolume"))
+// IsExistPersistentVolume is the resolver for the isExistPersistentVolume field.
+func (r *queryResolver) IsExistPersistentVolume(ctx context.Context, name string) (*bool, error) {
+	isExists, err := dbmodel.IsExistPersistentVolume(ctx, r.ServiceManager.DbClient, name, r.ServiceManager.DockerManager)
+	return &isExists, err
 }
