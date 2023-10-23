@@ -54,6 +54,15 @@ type ComplexityRoot struct {
 		Username func(childComplexity int) int
 	}
 
+	GitCredentialRepositoryAccessResult struct {
+		Error            func(childComplexity int) int
+		GitCredential    func(childComplexity int) int
+		GitCredentialID  func(childComplexity int) int
+		RepositoryBranch func(childComplexity int) int
+		RepositoryURL    func(childComplexity int) int
+		Success          func(childComplexity int) int
+	}
+
 	ImageRegistryCredential struct {
 		ID       func(childComplexity int) int
 		Password func(childComplexity int) int
@@ -71,10 +80,11 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GitCredential            func(childComplexity int, id int) int
-		GitCredentials           func(childComplexity int) int
-		ImageRegistryCredential  func(childComplexity int, id int) int
-		ImageRegistryCredentials func(childComplexity int) int
+		CheckGitCredentialRepositoryAccess func(childComplexity int, input model.GitCredentialRepositoryAccessInput) int
+		GitCredential                      func(childComplexity int, id int) int
+		GitCredentials                     func(childComplexity int) int
+		ImageRegistryCredential            func(childComplexity int, id int) int
+		ImageRegistryCredentials           func(childComplexity int) int
 	}
 }
 
@@ -89,6 +99,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	GitCredentials(ctx context.Context) ([]*model.GitCredential, error)
 	GitCredential(ctx context.Context, id int) (*model.GitCredential, error)
+	CheckGitCredentialRepositoryAccess(ctx context.Context, input model.GitCredentialRepositoryAccessInput) (*model.GitCredentialRepositoryAccessResult, error)
 	ImageRegistryCredentials(ctx context.Context) ([]*model.ImageRegistryCredential, error)
 	ImageRegistryCredential(ctx context.Context, id int) (*model.ImageRegistryCredential, error)
 }
@@ -139,6 +150,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.GitCredential.Username(childComplexity), true
+
+	case "GitCredentialRepositoryAccessResult.error":
+		if e.complexity.GitCredentialRepositoryAccessResult.Error == nil {
+			break
+		}
+
+		return e.complexity.GitCredentialRepositoryAccessResult.Error(childComplexity), true
+
+	case "GitCredentialRepositoryAccessResult.gitCredential":
+		if e.complexity.GitCredentialRepositoryAccessResult.GitCredential == nil {
+			break
+		}
+
+		return e.complexity.GitCredentialRepositoryAccessResult.GitCredential(childComplexity), true
+
+	case "GitCredentialRepositoryAccessResult.gitCredentialId":
+		if e.complexity.GitCredentialRepositoryAccessResult.GitCredentialID == nil {
+			break
+		}
+
+		return e.complexity.GitCredentialRepositoryAccessResult.GitCredentialID(childComplexity), true
+
+	case "GitCredentialRepositoryAccessResult.repositoryBranch":
+		if e.complexity.GitCredentialRepositoryAccessResult.RepositoryBranch == nil {
+			break
+		}
+
+		return e.complexity.GitCredentialRepositoryAccessResult.RepositoryBranch(childComplexity), true
+
+	case "GitCredentialRepositoryAccessResult.repositoryUrl":
+		if e.complexity.GitCredentialRepositoryAccessResult.RepositoryURL == nil {
+			break
+		}
+
+		return e.complexity.GitCredentialRepositoryAccessResult.RepositoryURL(childComplexity), true
+
+	case "GitCredentialRepositoryAccessResult.success":
+		if e.complexity.GitCredentialRepositoryAccessResult.Success == nil {
+			break
+		}
+
+		return e.complexity.GitCredentialRepositoryAccessResult.Success(childComplexity), true
 
 	case "ImageRegistryCredential.id":
 		if e.complexity.ImageRegistryCredential.ID == nil {
@@ -240,6 +293,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateImageRegistryCredential(childComplexity, args["id"].(int), args["input"].(model.ImageRegistryCredentialInput)), true
 
+	case "Query.checkGitCredentialRepositoryAccess":
+		if e.complexity.Query.CheckGitCredentialRepositoryAccess == nil {
+			break
+		}
+
+		args, err := ec.field_Query_checkGitCredentialRepositoryAccess_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CheckGitCredentialRepositoryAccess(childComplexity, args["input"].(model.GitCredentialRepositoryAccessInput)), true
+
 	case "Query.gitCredential":
 		if e.complexity.Query.GitCredential == nil {
 			break
@@ -287,6 +352,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputGitCredentialInput,
+		ec.unmarshalInputGitCredentialRepositoryAccessInput,
 		ec.unmarshalInputImageRegistryCredentialInput,
 	)
 	first := true
@@ -529,6 +595,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_checkGitCredentialRepositoryAccess_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.GitCredentialRepositoryAccessInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNGitCredentialRepositoryAccessInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_gitCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -763,6 +844,280 @@ func (ec *executionContext) _GitCredential_password(ctx context.Context, field g
 func (ec *executionContext) fieldContext_GitCredential_password(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "GitCredential",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GitCredentialRepositoryAccessResult_gitCredentialId(ctx context.Context, field graphql.CollectedField, obj *model.GitCredentialRepositoryAccessResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GitCredentialRepositoryAccessResult_gitCredentialId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GitCredentialID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GitCredentialRepositoryAccessResult_gitCredentialId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GitCredentialRepositoryAccessResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GitCredentialRepositoryAccessResult_gitCredential(ctx context.Context, field graphql.CollectedField, obj *model.GitCredentialRepositoryAccessResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GitCredentialRepositoryAccessResult_gitCredential(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GitCredential, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.GitCredential)
+	fc.Result = res
+	return ec.marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredential(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GitCredentialRepositoryAccessResult_gitCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GitCredentialRepositoryAccessResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_GitCredential_id(ctx, field)
+			case "name":
+				return ec.fieldContext_GitCredential_name(ctx, field)
+			case "username":
+				return ec.fieldContext_GitCredential_username(ctx, field)
+			case "password":
+				return ec.fieldContext_GitCredential_password(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GitCredential", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GitCredentialRepositoryAccessResult_repositoryUrl(ctx context.Context, field graphql.CollectedField, obj *model.GitCredentialRepositoryAccessResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GitCredentialRepositoryAccessResult_repositoryUrl(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RepositoryURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GitCredentialRepositoryAccessResult_repositoryUrl(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GitCredentialRepositoryAccessResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GitCredentialRepositoryAccessResult_repositoryBranch(ctx context.Context, field graphql.CollectedField, obj *model.GitCredentialRepositoryAccessResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GitCredentialRepositoryAccessResult_repositoryBranch(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RepositoryBranch, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GitCredentialRepositoryAccessResult_repositoryBranch(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GitCredentialRepositoryAccessResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GitCredentialRepositoryAccessResult_success(ctx context.Context, field graphql.CollectedField, obj *model.GitCredentialRepositoryAccessResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GitCredentialRepositoryAccessResult_success(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Success, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GitCredentialRepositoryAccessResult_success(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GitCredentialRepositoryAccessResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GitCredentialRepositoryAccessResult_error(ctx context.Context, field graphql.CollectedField, obj *model.GitCredentialRepositoryAccessResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GitCredentialRepositoryAccessResult_error(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Error, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GitCredentialRepositoryAccessResult_error(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GitCredentialRepositoryAccessResult",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1452,6 +1807,75 @@ func (ec *executionContext) fieldContext_Query_gitCredential(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_gitCredential_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_checkGitCredentialRepositoryAccess(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_checkGitCredentialRepositoryAccess(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CheckGitCredentialRepositoryAccess(rctx, fc.Args["input"].(model.GitCredentialRepositoryAccessInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.GitCredentialRepositoryAccessResult)
+	fc.Result = res
+	return ec.marshalNGitCredentialRepositoryAccessResult2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_checkGitCredentialRepositoryAccess(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "gitCredentialId":
+				return ec.fieldContext_GitCredentialRepositoryAccessResult_gitCredentialId(ctx, field)
+			case "gitCredential":
+				return ec.fieldContext_GitCredentialRepositoryAccessResult_gitCredential(ctx, field)
+			case "repositoryUrl":
+				return ec.fieldContext_GitCredentialRepositoryAccessResult_repositoryUrl(ctx, field)
+			case "repositoryBranch":
+				return ec.fieldContext_GitCredentialRepositoryAccessResult_repositoryBranch(ctx, field)
+			case "success":
+				return ec.fieldContext_GitCredentialRepositoryAccessResult_success(ctx, field)
+			case "error":
+				return ec.fieldContext_GitCredentialRepositoryAccessResult_error(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GitCredentialRepositoryAccessResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_checkGitCredentialRepositoryAccess_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3526,6 +3950,53 @@ func (ec *executionContext) unmarshalInputGitCredentialInput(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputGitCredentialRepositoryAccessInput(ctx context.Context, obj interface{}) (model.GitCredentialRepositoryAccessInput, error) {
+	var it model.GitCredentialRepositoryAccessInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"gitCredentialId", "repositoryUrl", "repositoryBranch"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "gitCredentialId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gitCredentialId"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GitCredentialID = data
+		case "repositoryUrl":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryUrl"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RepositoryURL = data
+		case "repositoryBranch":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryBranch"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RepositoryBranch = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputImageRegistryCredentialInput(ctx context.Context, obj interface{}) (model.ImageRegistryCredentialInput, error) {
 	var it model.ImageRegistryCredentialInput
 	asMap := map[string]interface{}{}
@@ -3609,6 +4080,70 @@ func (ec *executionContext) _GitCredential(ctx context.Context, sel ast.Selectio
 			}
 		case "password":
 			out.Values[i] = ec._GitCredential_password(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var gitCredentialRepositoryAccessResultImplementors = []string{"GitCredentialRepositoryAccessResult"}
+
+func (ec *executionContext) _GitCredentialRepositoryAccessResult(ctx context.Context, sel ast.SelectionSet, obj *model.GitCredentialRepositoryAccessResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, gitCredentialRepositoryAccessResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GitCredentialRepositoryAccessResult")
+		case "gitCredentialId":
+			out.Values[i] = ec._GitCredentialRepositoryAccessResult_gitCredentialId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "gitCredential":
+			out.Values[i] = ec._GitCredentialRepositoryAccessResult_gitCredential(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "repositoryUrl":
+			out.Values[i] = ec._GitCredentialRepositoryAccessResult_repositoryUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "repositoryBranch":
+			out.Values[i] = ec._GitCredentialRepositoryAccessResult_repositoryBranch(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "success":
+			out.Values[i] = ec._GitCredentialRepositoryAccessResult_success(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "error":
+			out.Values[i] = ec._GitCredentialRepositoryAccessResult_error(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -3824,6 +4359,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_gitCredential(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "checkGitCredentialRepositoryAccess":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkGitCredentialRepositoryAccess(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -4313,6 +4870,25 @@ func (ec *executionContext) marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑ
 func (ec *executionContext) unmarshalNGitCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialInput(ctx context.Context, v interface{}) (model.GitCredentialInput, error) {
 	res, err := ec.unmarshalInputGitCredentialInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNGitCredentialRepositoryAccessInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessInput(ctx context.Context, v interface{}) (model.GitCredentialRepositoryAccessInput, error) {
+	res, err := ec.unmarshalInputGitCredentialRepositoryAccessInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNGitCredentialRepositoryAccessResult2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessResult(ctx context.Context, sel ast.SelectionSet, v model.GitCredentialRepositoryAccessResult) graphql.Marshaler {
+	return ec._GitCredentialRepositoryAccessResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNGitCredentialRepositoryAccessResult2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessResult(ctx context.Context, sel ast.SelectionSet, v *model.GitCredentialRepositoryAccessResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._GitCredentialRepositoryAccessResult(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNImageRegistryCredential2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx context.Context, sel ast.SelectionSet, v model.ImageRegistryCredential) graphql.Marshaler {

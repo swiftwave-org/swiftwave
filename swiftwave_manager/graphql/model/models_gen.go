@@ -15,6 +15,21 @@ type GitCredentialInput struct {
 	Password string `json:"password"`
 }
 
+type GitCredentialRepositoryAccessInput struct {
+	GitCredentialID  int    `json:"gitCredentialId"`
+	RepositoryURL    string `json:"repositoryUrl"`
+	RepositoryBranch string `json:"repositoryBranch"`
+}
+
+type GitCredentialRepositoryAccessResult struct {
+	GitCredentialID  int            `json:"gitCredentialId"`
+	GitCredential    *GitCredential `json:"gitCredential"`
+	RepositoryURL    string         `json:"repositoryUrl"`
+	RepositoryBranch string         `json:"repositoryBranch"`
+	Success          bool           `json:"success"`
+	Error            string         `json:"error"`
+}
+
 type ImageRegistryCredential struct {
 	ID       int    `json:"id"`
 	URL      string `json:"url"`
