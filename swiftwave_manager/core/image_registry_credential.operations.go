@@ -18,21 +18,21 @@ func FindAllImageRegistryCredentials(ctx context.Context, db gorm.DB) ([]*ImageR
 }
 
 func (imageRegistryCredential *ImageRegistryCredential) FindById(ctx context.Context, db gorm.DB, id int) error {
-	tx := db.First(imageRegistryCredential, id)
+	tx := db.First(&imageRegistryCredential, id)
 	return tx.Error
 }
 
 func (imageRegistryCredential *ImageRegistryCredential) Create(ctx context.Context, db gorm.DB) error {
-	tx := db.Create(imageRegistryCredential)
+	tx := db.Create(&imageRegistryCredential)
 	return tx.Error
 }
 
 func (imageRegistryCredential *ImageRegistryCredential) Update(ctx context.Context, db gorm.DB) error {
-	tx := db.Save(imageRegistryCredential)
+	tx := db.Save(&imageRegistryCredential)
 	return tx.Error
 }
 
 func (imageRegistryCredential *ImageRegistryCredential) Delete(ctx context.Context, db gorm.DB) error {
-	tx := db.Delete(imageRegistryCredential)
+	tx := db.Delete(&imageRegistryCredential)
 	return tx.Error
 }
