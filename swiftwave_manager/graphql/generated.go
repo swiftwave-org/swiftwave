@@ -48,9 +48,46 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Application struct {
-		EnvironmentVariables func(childComplexity int) int
-		ID                   func(childComplexity int) int
-		Name                 func(childComplexity int) int
+		CurrentDeployment        func(childComplexity int) int
+		DeploymentMode           func(childComplexity int) int
+		Deployments              func(childComplexity int) int
+		EnvironmentVariables     func(childComplexity int) int
+		ID                       func(childComplexity int) int
+		Name                     func(childComplexity int) int
+		PersistentVolumeBindings func(childComplexity int) int
+		Replicas                 func(childComplexity int) int
+	}
+
+	BuildArg struct {
+		Key   func(childComplexity int) int
+		Value func(childComplexity int) int
+	}
+
+	Deployment struct {
+		Application                  func(childComplexity int) int
+		ApplicationID                func(childComplexity int) int
+		BuildArgs                    func(childComplexity int) int
+		CommitHash                   func(childComplexity int) int
+		CreatedAt                    func(childComplexity int) int
+		DeploymentLogs               func(childComplexity int) int
+		DockerImage                  func(childComplexity int) int
+		Dockerfile                   func(childComplexity int) int
+		GitCredential                func(childComplexity int) int
+		GitCredentialID              func(childComplexity int) int
+		ID                           func(childComplexity int) int
+		ImageRegistryCredential      func(childComplexity int) int
+		ImageRegistryCredentialID    func(childComplexity int) int
+		RepositoryBranch             func(childComplexity int) int
+		RepositoryName               func(childComplexity int) int
+		RepositoryOwner              func(childComplexity int) int
+		SourceCodeCompressedFileName func(childComplexity int) int
+		Status                       func(childComplexity int) int
+		UpstreamType                 func(childComplexity int) int
+	}
+
+	DeploymentLog struct {
+		Content   func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
 	}
 
 	EnvironmentVariable struct {
@@ -82,12 +119,31 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		CreateApplication             func(childComplexity int, input model.ApplicationInput) int
 		CreateGitCredential           func(childComplexity int, input model.GitCredentialInput) int
 		CreateImageRegistryCredential func(childComplexity int, input model.ImageRegistryCredentialInput) int
+		CreatePersistentVolume        func(childComplexity int, input model.PersistentVolumeInput) int
+		DeleteApplication             func(childComplexity int, id int) int
 		DeleteGitCredential           func(childComplexity int, id int) int
 		DeleteImageRegistryCredential func(childComplexity int, id int) int
+		DeletePersistentVolume        func(childComplexity int, id int) int
+		UpdateApplication             func(childComplexity int, id int, input model.ApplicationInput) int
 		UpdateGitCredential           func(childComplexity int, id int, input model.GitCredentialInput) int
 		UpdateImageRegistryCredential func(childComplexity int, id int, input model.ImageRegistryCredentialInput) int
+	}
+
+	PersistentVolume struct {
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
+	}
+
+	PersistentVolumeBinding struct {
+		Application        func(childComplexity int) int
+		ApplicationID      func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		MountingPath       func(childComplexity int) int
+		PersistentVolume   func(childComplexity int) int
+		PersistentVolumeID func(childComplexity int) int
 	}
 
 	Query struct {
@@ -96,16 +152,24 @@ type ComplexityRoot struct {
 		GitCredentials                     func(childComplexity int) int
 		ImageRegistryCredential            func(childComplexity int, id int) int
 		ImageRegistryCredentials           func(childComplexity int) int
+		IsExistsPersistentVolume           func(childComplexity int, name string) int
+		PersistentVolume                   func(childComplexity int, id int) int
+		PersistentVolumes                  func(childComplexity int) int
 	}
 }
 
 type MutationResolver interface {
+	CreateApplication(ctx context.Context, input model.ApplicationInput) (*model.Application, error)
+	UpdateApplication(ctx context.Context, id int, input model.ApplicationInput) (*model.Application, error)
+	DeleteApplication(ctx context.Context, id int) (bool, error)
 	CreateGitCredential(ctx context.Context, input model.GitCredentialInput) (*model.GitCredential, error)
 	UpdateGitCredential(ctx context.Context, id int, input model.GitCredentialInput) (*model.GitCredential, error)
 	DeleteGitCredential(ctx context.Context, id int) (*model.GitCredential, error)
 	CreateImageRegistryCredential(ctx context.Context, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error)
 	UpdateImageRegistryCredential(ctx context.Context, id int, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error)
 	DeleteImageRegistryCredential(ctx context.Context, id int) (*model.ImageRegistryCredential, error)
+	CreatePersistentVolume(ctx context.Context, input model.PersistentVolumeInput) (*model.PersistentVolume, error)
+	DeletePersistentVolume(ctx context.Context, id int) (*model.PersistentVolume, error)
 }
 type QueryResolver interface {
 	GitCredentials(ctx context.Context) ([]*model.GitCredential, error)
@@ -113,6 +177,9 @@ type QueryResolver interface {
 	CheckGitCredentialRepositoryAccess(ctx context.Context, input model.GitCredentialRepositoryAccessInput) (*model.GitCredentialRepositoryAccessResult, error)
 	ImageRegistryCredentials(ctx context.Context) ([]*model.ImageRegistryCredential, error)
 	ImageRegistryCredential(ctx context.Context, id int) (*model.ImageRegistryCredential, error)
+	PersistentVolumes(ctx context.Context) ([]*model.PersistentVolume, error)
+	PersistentVolume(ctx context.Context, id int) (*model.PersistentVolume, error)
+	IsExistsPersistentVolume(ctx context.Context, name string) (*bool, error)
 }
 
 type executableSchema struct {
@@ -134,6 +201,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "Application.currentDeployment":
+		if e.complexity.Application.CurrentDeployment == nil {
+			break
+		}
+
+		return e.complexity.Application.CurrentDeployment(childComplexity), true
+
+	case "Application.deploymentMode":
+		if e.complexity.Application.DeploymentMode == nil {
+			break
+		}
+
+		return e.complexity.Application.DeploymentMode(childComplexity), true
+
+	case "Application.deployments":
+		if e.complexity.Application.Deployments == nil {
+			break
+		}
+
+		return e.complexity.Application.Deployments(childComplexity), true
+
 	case "Application.environmentVariables":
 		if e.complexity.Application.EnvironmentVariables == nil {
 			break
@@ -154,6 +242,181 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Application.Name(childComplexity), true
+
+	case "Application.persistentVolumeBindings":
+		if e.complexity.Application.PersistentVolumeBindings == nil {
+			break
+		}
+
+		return e.complexity.Application.PersistentVolumeBindings(childComplexity), true
+
+	case "Application.replicas":
+		if e.complexity.Application.Replicas == nil {
+			break
+		}
+
+		return e.complexity.Application.Replicas(childComplexity), true
+
+	case "BuildArg.key":
+		if e.complexity.BuildArg.Key == nil {
+			break
+		}
+
+		return e.complexity.BuildArg.Key(childComplexity), true
+
+	case "BuildArg.value":
+		if e.complexity.BuildArg.Value == nil {
+			break
+		}
+
+		return e.complexity.BuildArg.Value(childComplexity), true
+
+	case "Deployment.application":
+		if e.complexity.Deployment.Application == nil {
+			break
+		}
+
+		return e.complexity.Deployment.Application(childComplexity), true
+
+	case "Deployment.applicationID":
+		if e.complexity.Deployment.ApplicationID == nil {
+			break
+		}
+
+		return e.complexity.Deployment.ApplicationID(childComplexity), true
+
+	case "Deployment.buildArgs":
+		if e.complexity.Deployment.BuildArgs == nil {
+			break
+		}
+
+		return e.complexity.Deployment.BuildArgs(childComplexity), true
+
+	case "Deployment.commitHash":
+		if e.complexity.Deployment.CommitHash == nil {
+			break
+		}
+
+		return e.complexity.Deployment.CommitHash(childComplexity), true
+
+	case "Deployment.createdAt":
+		if e.complexity.Deployment.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Deployment.CreatedAt(childComplexity), true
+
+	case "Deployment.deploymentLogs":
+		if e.complexity.Deployment.DeploymentLogs == nil {
+			break
+		}
+
+		return e.complexity.Deployment.DeploymentLogs(childComplexity), true
+
+	case "Deployment.dockerImage":
+		if e.complexity.Deployment.DockerImage == nil {
+			break
+		}
+
+		return e.complexity.Deployment.DockerImage(childComplexity), true
+
+	case "Deployment.dockerfile":
+		if e.complexity.Deployment.Dockerfile == nil {
+			break
+		}
+
+		return e.complexity.Deployment.Dockerfile(childComplexity), true
+
+	case "Deployment.gitCredential":
+		if e.complexity.Deployment.GitCredential == nil {
+			break
+		}
+
+		return e.complexity.Deployment.GitCredential(childComplexity), true
+
+	case "Deployment.gitCredentialID":
+		if e.complexity.Deployment.GitCredentialID == nil {
+			break
+		}
+
+		return e.complexity.Deployment.GitCredentialID(childComplexity), true
+
+	case "Deployment.id":
+		if e.complexity.Deployment.ID == nil {
+			break
+		}
+
+		return e.complexity.Deployment.ID(childComplexity), true
+
+	case "Deployment.imageRegistryCredential":
+		if e.complexity.Deployment.ImageRegistryCredential == nil {
+			break
+		}
+
+		return e.complexity.Deployment.ImageRegistryCredential(childComplexity), true
+
+	case "Deployment.imageRegistryCredentialID":
+		if e.complexity.Deployment.ImageRegistryCredentialID == nil {
+			break
+		}
+
+		return e.complexity.Deployment.ImageRegistryCredentialID(childComplexity), true
+
+	case "Deployment.repositoryBranch":
+		if e.complexity.Deployment.RepositoryBranch == nil {
+			break
+		}
+
+		return e.complexity.Deployment.RepositoryBranch(childComplexity), true
+
+	case "Deployment.repositoryName":
+		if e.complexity.Deployment.RepositoryName == nil {
+			break
+		}
+
+		return e.complexity.Deployment.RepositoryName(childComplexity), true
+
+	case "Deployment.repositoryOwner":
+		if e.complexity.Deployment.RepositoryOwner == nil {
+			break
+		}
+
+		return e.complexity.Deployment.RepositoryOwner(childComplexity), true
+
+	case "Deployment.sourceCodeCompressedFileName":
+		if e.complexity.Deployment.SourceCodeCompressedFileName == nil {
+			break
+		}
+
+		return e.complexity.Deployment.SourceCodeCompressedFileName(childComplexity), true
+
+	case "Deployment.status":
+		if e.complexity.Deployment.Status == nil {
+			break
+		}
+
+		return e.complexity.Deployment.Status(childComplexity), true
+
+	case "Deployment.upstreamType":
+		if e.complexity.Deployment.UpstreamType == nil {
+			break
+		}
+
+		return e.complexity.Deployment.UpstreamType(childComplexity), true
+
+	case "DeploymentLog.content":
+		if e.complexity.DeploymentLog.Content == nil {
+			break
+		}
+
+		return e.complexity.DeploymentLog.Content(childComplexity), true
+
+	case "DeploymentLog.createdAt":
+		if e.complexity.DeploymentLog.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.DeploymentLog.CreatedAt(childComplexity), true
 
 	case "EnvironmentVariable.key":
 		if e.complexity.EnvironmentVariable.Key == nil {
@@ -267,6 +530,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ImageRegistryCredential.Username(childComplexity), true
 
+	case "Mutation.createApplication":
+		if e.complexity.Mutation.CreateApplication == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createApplication_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateApplication(childComplexity, args["input"].(model.ApplicationInput)), true
+
 	case "Mutation.createGitCredential":
 		if e.complexity.Mutation.CreateGitCredential == nil {
 			break
@@ -290,6 +565,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateImageRegistryCredential(childComplexity, args["input"].(model.ImageRegistryCredentialInput)), true
+
+	case "Mutation.createPersistentVolume":
+		if e.complexity.Mutation.CreatePersistentVolume == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createPersistentVolume_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreatePersistentVolume(childComplexity, args["input"].(model.PersistentVolumeInput)), true
+
+	case "Mutation.deleteApplication":
+		if e.complexity.Mutation.DeleteApplication == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteApplication_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteApplication(childComplexity, args["id"].(int)), true
 
 	case "Mutation.deleteGitCredential":
 		if e.complexity.Mutation.DeleteGitCredential == nil {
@@ -315,6 +614,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteImageRegistryCredential(childComplexity, args["id"].(int)), true
 
+	case "Mutation.deletePersistentVolume":
+		if e.complexity.Mutation.DeletePersistentVolume == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deletePersistentVolume_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeletePersistentVolume(childComplexity, args["id"].(int)), true
+
+	case "Mutation.updateApplication":
+		if e.complexity.Mutation.UpdateApplication == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateApplication_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateApplication(childComplexity, args["id"].(int), args["input"].(model.ApplicationInput)), true
+
 	case "Mutation.updateGitCredential":
 		if e.complexity.Mutation.UpdateGitCredential == nil {
 			break
@@ -338,6 +661,62 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateImageRegistryCredential(childComplexity, args["id"].(int), args["input"].(model.ImageRegistryCredentialInput)), true
+
+	case "PersistentVolume.id":
+		if e.complexity.PersistentVolume.ID == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolume.ID(childComplexity), true
+
+	case "PersistentVolume.name":
+		if e.complexity.PersistentVolume.Name == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolume.Name(childComplexity), true
+
+	case "PersistentVolumeBinding.application":
+		if e.complexity.PersistentVolumeBinding.Application == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolumeBinding.Application(childComplexity), true
+
+	case "PersistentVolumeBinding.applicationID":
+		if e.complexity.PersistentVolumeBinding.ApplicationID == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolumeBinding.ApplicationID(childComplexity), true
+
+	case "PersistentVolumeBinding.id":
+		if e.complexity.PersistentVolumeBinding.ID == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolumeBinding.ID(childComplexity), true
+
+	case "PersistentVolumeBinding.mountingPath":
+		if e.complexity.PersistentVolumeBinding.MountingPath == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolumeBinding.MountingPath(childComplexity), true
+
+	case "PersistentVolumeBinding.persistentVolume":
+		if e.complexity.PersistentVolumeBinding.PersistentVolume == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolumeBinding.PersistentVolume(childComplexity), true
+
+	case "PersistentVolumeBinding.persistentVolumeID":
+		if e.complexity.PersistentVolumeBinding.PersistentVolumeID == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolumeBinding.PersistentVolumeID(childComplexity), true
 
 	case "Query.checkGitCredentialRepositoryAccess":
 		if e.complexity.Query.CheckGitCredentialRepositoryAccess == nil {
@@ -389,6 +768,37 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ImageRegistryCredentials(childComplexity), true
 
+	case "Query.isExistsPersistentVolume":
+		if e.complexity.Query.IsExistsPersistentVolume == nil {
+			break
+		}
+
+		args, err := ec.field_Query_isExistsPersistentVolume_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.IsExistsPersistentVolume(childComplexity, args["name"].(string)), true
+
+	case "Query.persistentVolume":
+		if e.complexity.Query.PersistentVolume == nil {
+			break
+		}
+
+		args, err := ec.field_Query_persistentVolume_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.PersistentVolume(childComplexity, args["id"].(int)), true
+
+	case "Query.persistentVolumes":
+		if e.complexity.Query.PersistentVolumes == nil {
+			break
+		}
+
+		return e.complexity.Query.PersistentVolumes(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -397,9 +807,14 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputApplicationInput,
+		ec.unmarshalInputBuildArgInput,
+		ec.unmarshalInputEnvironmentVariableInput,
 		ec.unmarshalInputGitCredentialInput,
 		ec.unmarshalInputGitCredentialRepositoryAccessInput,
 		ec.unmarshalInputImageRegistryCredentialInput,
+		ec.unmarshalInputPersistentVolumeBindingInput,
+		ec.unmarshalInputPersistentVolumeInput,
 	)
 	first := true
 
@@ -496,7 +911,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls"
+//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/deployment.graphqls.graphqls" "schema/deployment_log.graphqls" "schema/environment_variable.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_binding.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -510,14 +925,35 @@ func sourceData(filename string) string {
 var sources = []*ast.Source{
 	{Name: "schema/application.graphqls", Input: sourceData("schema/application.graphqls"), BuiltIn: false},
 	{Name: "schema/base.graphqls", Input: sourceData("schema/base.graphqls"), BuiltIn: false},
+	{Name: "schema/build_arg.graphqls", Input: sourceData("schema/build_arg.graphqls"), BuiltIn: false},
+	{Name: "schema/deployment.graphqls.graphqls", Input: sourceData("schema/deployment.graphqls.graphqls"), BuiltIn: false},
+	{Name: "schema/deployment_log.graphqls", Input: sourceData("schema/deployment_log.graphqls"), BuiltIn: false},
+	{Name: "schema/environment_variable.graphqls", Input: sourceData("schema/environment_variable.graphqls"), BuiltIn: false},
 	{Name: "schema/git_credential.graphqls", Input: sourceData("schema/git_credential.graphqls"), BuiltIn: false},
 	{Name: "schema/image_registry_credential.graphqls", Input: sourceData("schema/image_registry_credential.graphqls"), BuiltIn: false},
+	{Name: "schema/persistent_volume.graphqls", Input: sourceData("schema/persistent_volume.graphqls"), BuiltIn: false},
+	{Name: "schema/persistent_volume_binding.graphqls", Input: sourceData("schema/persistent_volume_binding.graphqls"), BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_createApplication_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.ApplicationInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNApplicationInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplicationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createGitCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -549,6 +985,36 @@ func (ec *executionContext) field_Mutation_createImageRegistryCredential_args(ct
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createPersistentVolume_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.PersistentVolumeInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNPersistentVolumeInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteApplication_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteGitCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -576,6 +1042,45 @@ func (ec *executionContext) field_Mutation_deleteImageRegistryCredential_args(ct
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deletePersistentVolume_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateApplication_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 model.ApplicationInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNApplicationInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplicationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -673,6 +1178,36 @@ func (ec *executionContext) field_Query_gitCredential_args(ctx context.Context, 
 }
 
 func (ec *executionContext) field_Query_imageRegistryCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_isExistsPersistentVolume_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_persistentVolume_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -858,6 +1393,1382 @@ func (ec *executionContext) fieldContext_Application_environmentVariables(ctx co
 				return ec.fieldContext_EnvironmentVariable_value(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type EnvironmentVariable", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Application_persistentVolumeBindings(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PersistentVolumeBindings, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.PersistentVolumeBinding)
+	fc.Result = res
+	return ec.marshalNPersistentVolumeBinding2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBindingᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_persistentVolumeBindings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PersistentVolumeBinding_id(ctx, field)
+			case "persistentVolumeID":
+				return ec.fieldContext_PersistentVolumeBinding_persistentVolumeID(ctx, field)
+			case "persistentVolume":
+				return ec.fieldContext_PersistentVolumeBinding_persistentVolume(ctx, field)
+			case "applicationID":
+				return ec.fieldContext_PersistentVolumeBinding_applicationID(ctx, field)
+			case "application":
+				return ec.fieldContext_PersistentVolumeBinding_application(ctx, field)
+			case "mountingPath":
+				return ec.fieldContext_PersistentVolumeBinding_mountingPath(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersistentVolumeBinding", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Application_currentDeployment(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_currentDeployment(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CurrentDeployment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Deployment)
+	fc.Result = res
+	return ec.marshalNDeployment2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeployment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_currentDeployment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Deployment_id(ctx, field)
+			case "applicationID":
+				return ec.fieldContext_Deployment_applicationID(ctx, field)
+			case "application":
+				return ec.fieldContext_Deployment_application(ctx, field)
+			case "upstreamType":
+				return ec.fieldContext_Deployment_upstreamType(ctx, field)
+			case "gitCredentialID":
+				return ec.fieldContext_Deployment_gitCredentialID(ctx, field)
+			case "gitCredential":
+				return ec.fieldContext_Deployment_gitCredential(ctx, field)
+			case "repositoryOwner":
+				return ec.fieldContext_Deployment_repositoryOwner(ctx, field)
+			case "repositoryName":
+				return ec.fieldContext_Deployment_repositoryName(ctx, field)
+			case "repositoryBranch":
+				return ec.fieldContext_Deployment_repositoryBranch(ctx, field)
+			case "commitHash":
+				return ec.fieldContext_Deployment_commitHash(ctx, field)
+			case "sourceCodeCompressedFileName":
+				return ec.fieldContext_Deployment_sourceCodeCompressedFileName(ctx, field)
+			case "dockerImage":
+				return ec.fieldContext_Deployment_dockerImage(ctx, field)
+			case "imageRegistryCredentialID":
+				return ec.fieldContext_Deployment_imageRegistryCredentialID(ctx, field)
+			case "imageRegistryCredential":
+				return ec.fieldContext_Deployment_imageRegistryCredential(ctx, field)
+			case "buildArgs":
+				return ec.fieldContext_Deployment_buildArgs(ctx, field)
+			case "dockerfile":
+				return ec.fieldContext_Deployment_dockerfile(ctx, field)
+			case "deploymentLogs":
+				return ec.fieldContext_Deployment_deploymentLogs(ctx, field)
+			case "status":
+				return ec.fieldContext_Deployment_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Deployment_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Deployment", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Application_deployments(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_deployments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Deployments, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Deployment)
+	fc.Result = res
+	return ec.marshalNDeployment2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_deployments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Deployment_id(ctx, field)
+			case "applicationID":
+				return ec.fieldContext_Deployment_applicationID(ctx, field)
+			case "application":
+				return ec.fieldContext_Deployment_application(ctx, field)
+			case "upstreamType":
+				return ec.fieldContext_Deployment_upstreamType(ctx, field)
+			case "gitCredentialID":
+				return ec.fieldContext_Deployment_gitCredentialID(ctx, field)
+			case "gitCredential":
+				return ec.fieldContext_Deployment_gitCredential(ctx, field)
+			case "repositoryOwner":
+				return ec.fieldContext_Deployment_repositoryOwner(ctx, field)
+			case "repositoryName":
+				return ec.fieldContext_Deployment_repositoryName(ctx, field)
+			case "repositoryBranch":
+				return ec.fieldContext_Deployment_repositoryBranch(ctx, field)
+			case "commitHash":
+				return ec.fieldContext_Deployment_commitHash(ctx, field)
+			case "sourceCodeCompressedFileName":
+				return ec.fieldContext_Deployment_sourceCodeCompressedFileName(ctx, field)
+			case "dockerImage":
+				return ec.fieldContext_Deployment_dockerImage(ctx, field)
+			case "imageRegistryCredentialID":
+				return ec.fieldContext_Deployment_imageRegistryCredentialID(ctx, field)
+			case "imageRegistryCredential":
+				return ec.fieldContext_Deployment_imageRegistryCredential(ctx, field)
+			case "buildArgs":
+				return ec.fieldContext_Deployment_buildArgs(ctx, field)
+			case "dockerfile":
+				return ec.fieldContext_Deployment_dockerfile(ctx, field)
+			case "deploymentLogs":
+				return ec.fieldContext_Deployment_deploymentLogs(ctx, field)
+			case "status":
+				return ec.fieldContext_Deployment_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Deployment_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Deployment", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Application_deploymentMode(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_deploymentMode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeploymentMode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_deploymentMode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Application_replicas(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_replicas(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Replicas, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_replicas(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BuildArg_key(ctx context.Context, field graphql.CollectedField, obj *model.BuildArg) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BuildArg_key(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BuildArg_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BuildArg",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BuildArg_value(ctx context.Context, field graphql.CollectedField, obj *model.BuildArg) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BuildArg_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BuildArg_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BuildArg",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_id(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_applicationID(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_applicationID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ApplicationID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_applicationID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_application(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_application(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Application, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Application)
+	fc.Result = res
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_application(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Application_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Application_name(ctx, field)
+			case "environmentVariables":
+				return ec.fieldContext_Application_environmentVariables(ctx, field)
+			case "persistentVolumeBindings":
+				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "currentDeployment":
+				return ec.fieldContext_Application_currentDeployment(ctx, field)
+			case "deployments":
+				return ec.fieldContext_Application_deployments(ctx, field)
+			case "deploymentMode":
+				return ec.fieldContext_Application_deploymentMode(ctx, field)
+			case "replicas":
+				return ec.fieldContext_Application_replicas(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_upstreamType(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_upstreamType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpstreamType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_upstreamType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_gitCredentialID(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_gitCredentialID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GitCredentialID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_gitCredentialID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_gitCredential(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_gitCredential(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GitCredential, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.GitCredential)
+	fc.Result = res
+	return ec.marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredential(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_gitCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_GitCredential_id(ctx, field)
+			case "name":
+				return ec.fieldContext_GitCredential_name(ctx, field)
+			case "username":
+				return ec.fieldContext_GitCredential_username(ctx, field)
+			case "password":
+				return ec.fieldContext_GitCredential_password(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GitCredential", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_repositoryOwner(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_repositoryOwner(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RepositoryOwner, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_repositoryOwner(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_repositoryName(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_repositoryName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RepositoryName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_repositoryName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_repositoryBranch(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_repositoryBranch(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RepositoryBranch, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_repositoryBranch(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_commitHash(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_commitHash(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CommitHash, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_commitHash(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_sourceCodeCompressedFileName(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_sourceCodeCompressedFileName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SourceCodeCompressedFileName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_sourceCodeCompressedFileName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_dockerImage(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_dockerImage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DockerImage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_dockerImage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_imageRegistryCredentialID(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_imageRegistryCredentialID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ImageRegistryCredentialID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_imageRegistryCredentialID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_imageRegistryCredential(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_imageRegistryCredential(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ImageRegistryCredential, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ImageRegistryCredential)
+	fc.Result = res
+	return ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_imageRegistryCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ImageRegistryCredential_id(ctx, field)
+			case "url":
+				return ec.fieldContext_ImageRegistryCredential_url(ctx, field)
+			case "username":
+				return ec.fieldContext_ImageRegistryCredential_username(ctx, field)
+			case "password":
+				return ec.fieldContext_ImageRegistryCredential_password(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ImageRegistryCredential", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_buildArgs(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_buildArgs(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BuildArgs, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.BuildArg)
+	fc.Result = res
+	return ec.marshalNBuildArg2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArgᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_buildArgs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "key":
+				return ec.fieldContext_BuildArg_key(ctx, field)
+			case "value":
+				return ec.fieldContext_BuildArg_value(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BuildArg", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_dockerfile(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_dockerfile(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Dockerfile, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_dockerfile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_deploymentLogs(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_deploymentLogs(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeploymentLogs, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.DeploymentLog)
+	fc.Result = res
+	return ec.marshalNDeploymentLog2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentLogᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_deploymentLogs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "content":
+				return ec.fieldContext_DeploymentLog_content(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_DeploymentLog_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DeploymentLog", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_status(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeploymentLog_content(ctx context.Context, field graphql.CollectedField, obj *model.DeploymentLog) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeploymentLog_content(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Content, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeploymentLog_content(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeploymentLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeploymentLog_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.DeploymentLog) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeploymentLog_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeploymentLog_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeploymentLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1577,6 +3488,207 @@ func (ec *executionContext) fieldContext_ImageRegistryCredential_password(ctx co
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createApplication(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createApplication(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateApplication(rctx, fc.Args["input"].(model.ApplicationInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Application)
+	fc.Result = res
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createApplication(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Application_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Application_name(ctx, field)
+			case "environmentVariables":
+				return ec.fieldContext_Application_environmentVariables(ctx, field)
+			case "persistentVolumeBindings":
+				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "currentDeployment":
+				return ec.fieldContext_Application_currentDeployment(ctx, field)
+			case "deployments":
+				return ec.fieldContext_Application_deployments(ctx, field)
+			case "deploymentMode":
+				return ec.fieldContext_Application_deploymentMode(ctx, field)
+			case "replicas":
+				return ec.fieldContext_Application_replicas(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createApplication_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateApplication(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateApplication(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateApplication(rctx, fc.Args["id"].(int), fc.Args["input"].(model.ApplicationInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Application)
+	fc.Result = res
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateApplication(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Application_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Application_name(ctx, field)
+			case "environmentVariables":
+				return ec.fieldContext_Application_environmentVariables(ctx, field)
+			case "persistentVolumeBindings":
+				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "currentDeployment":
+				return ec.fieldContext_Application_currentDeployment(ctx, field)
+			case "deployments":
+				return ec.fieldContext_Application_deployments(ctx, field)
+			case "deploymentMode":
+				return ec.fieldContext_Application_deploymentMode(ctx, field)
+			case "replicas":
+				return ec.fieldContext_Application_replicas(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateApplication_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteApplication(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteApplication(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteApplication(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteApplication(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteApplication_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createGitCredential(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createGitCredential(ctx, field)
 	if err != nil {
@@ -1967,6 +4079,498 @@ func (ec *executionContext) fieldContext_Mutation_deleteImageRegistryCredential(
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createPersistentVolume(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createPersistentVolume(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreatePersistentVolume(rctx, fc.Args["input"].(model.PersistentVolumeInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.PersistentVolume)
+	fc.Result = res
+	return ec.marshalOPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createPersistentVolume(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PersistentVolume_id(ctx, field)
+			case "name":
+				return ec.fieldContext_PersistentVolume_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createPersistentVolume_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deletePersistentVolume(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deletePersistentVolume(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeletePersistentVolume(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.PersistentVolume)
+	fc.Result = res
+	return ec.marshalOPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deletePersistentVolume(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PersistentVolume_id(ctx, field)
+			case "name":
+				return ec.fieldContext_PersistentVolume_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deletePersistentVolume_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolume_id(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolume) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolume_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolume_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolume",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolume_name(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolume) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolume_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolume_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolume",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolumeBinding_id(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolumeBinding) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolumeBinding_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolumeBinding_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolumeBinding",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolumeBinding_persistentVolumeID(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolumeBinding) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolumeBinding_persistentVolumeID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PersistentVolumeID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolumeBinding_persistentVolumeID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolumeBinding",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolumeBinding_persistentVolume(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolumeBinding) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolumeBinding_persistentVolume(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PersistentVolume, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PersistentVolume)
+	fc.Result = res
+	return ec.marshalNPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolumeBinding_persistentVolume(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolumeBinding",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PersistentVolume_id(ctx, field)
+			case "name":
+				return ec.fieldContext_PersistentVolume_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolumeBinding_applicationID(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolumeBinding) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolumeBinding_applicationID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ApplicationID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolumeBinding_applicationID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolumeBinding",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolumeBinding_application(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolumeBinding) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolumeBinding_application(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Application, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Application)
+	fc.Result = res
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolumeBinding_application(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolumeBinding",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Application_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Application_name(ctx, field)
+			case "environmentVariables":
+				return ec.fieldContext_Application_environmentVariables(ctx, field)
+			case "persistentVolumeBindings":
+				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "currentDeployment":
+				return ec.fieldContext_Application_currentDeployment(ctx, field)
+			case "deployments":
+				return ec.fieldContext_Application_deployments(ctx, field)
+			case "deploymentMode":
+				return ec.fieldContext_Application_deploymentMode(ctx, field)
+			case "replicas":
+				return ec.fieldContext_Application_replicas(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolumeBinding_mountingPath(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolumeBinding) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolumeBinding_mountingPath(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MountingPath, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolumeBinding_mountingPath(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolumeBinding",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_gitCredentials(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_gitCredentials(ctx, field)
 	if err != nil {
@@ -2268,6 +4872,163 @@ func (ec *executionContext) fieldContext_Query_imageRegistryCredential(ctx conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_imageRegistryCredential_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_persistentVolumes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_persistentVolumes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().PersistentVolumes(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.PersistentVolume)
+	fc.Result = res
+	return ec.marshalOPersistentVolume2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_persistentVolumes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PersistentVolume_id(ctx, field)
+			case "name":
+				return ec.fieldContext_PersistentVolume_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_persistentVolume(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_persistentVolume(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().PersistentVolume(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.PersistentVolume)
+	fc.Result = res
+	return ec.marshalOPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_persistentVolume(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PersistentVolume_id(ctx, field)
+			case "name":
+				return ec.fieldContext_PersistentVolume_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_persistentVolume_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_isExistsPersistentVolume(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_isExistsPersistentVolume(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IsExistsPersistentVolume(rctx, fc.Args["name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_isExistsPersistentVolume(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_isExistsPersistentVolume_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4176,6 +6937,237 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, obj interface{}) (model.ApplicationInput, error) {
+	var it model.ApplicationInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "dockerfile", "buildArgs", "deploymentMode", "replicas", "upstreamType", "gitCredentialID", "repositoryOwner", "repositoryName", "repositoryBranch", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "environmentVariables":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environmentVariables"))
+			data, err := ec.unmarshalNEnvironmentVariableInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐEnvironmentVariableInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EnvironmentVariables = data
+		case "persistentVolumeBindings":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("persistentVolumeBindings"))
+			data, err := ec.unmarshalNPersistentVolumeBindingInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBindingInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PersistentVolumeBindings = data
+		case "dockerfile":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dockerfile"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Dockerfile = data
+		case "buildArgs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buildArgs"))
+			data, err := ec.unmarshalNBuildArgInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArgInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BuildArgs = data
+		case "deploymentMode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deploymentMode"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DeploymentMode = data
+		case "replicas":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("replicas"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Replicas = data
+		case "upstreamType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("upstreamType"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UpstreamType = data
+		case "gitCredentialID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gitCredentialID"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GitCredentialID = data
+		case "repositoryOwner":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryOwner"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RepositoryOwner = data
+		case "repositoryName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryName"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RepositoryName = data
+		case "repositoryBranch":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryBranch"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RepositoryBranch = data
+		case "sourceCodeCompressedFileName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceCodeCompressedFileName"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SourceCodeCompressedFileName = data
+		case "dockerImage":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dockerImage"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DockerImage = data
+		case "imageRegistryCredentialID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageRegistryCredentialID"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ImageRegistryCredentialID = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputBuildArgInput(ctx context.Context, obj interface{}) (model.BuildArgInput, error) {
+	var it model.BuildArgInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"key", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "key":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Key = data
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputEnvironmentVariableInput(ctx context.Context, obj interface{}) (model.EnvironmentVariableInput, error) {
+	var it model.EnvironmentVariableInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"key", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "key":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Key = data
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputGitCredentialInput(ctx context.Context, obj interface{}) (model.GitCredentialInput, error) {
 	var it model.GitCredentialInput
 	asMap := map[string]interface{}{}
@@ -4317,6 +7309,73 @@ func (ec *executionContext) unmarshalInputImageRegistryCredentialInput(ctx conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputPersistentVolumeBindingInput(ctx context.Context, obj interface{}) (model.PersistentVolumeBindingInput, error) {
+	var it model.PersistentVolumeBindingInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"persistentVolumeID", "mountingPath"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "persistentVolumeID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("persistentVolumeID"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PersistentVolumeID = data
+		case "mountingPath":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mountingPath"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MountingPath = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPersistentVolumeInput(ctx context.Context, obj interface{}) (model.PersistentVolumeInput, error) {
+	var it model.PersistentVolumeInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -4348,6 +7407,248 @@ func (ec *executionContext) _Application(ctx context.Context, sel ast.SelectionS
 			}
 		case "environmentVariables":
 			out.Values[i] = ec._Application_environmentVariables(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "persistentVolumeBindings":
+			out.Values[i] = ec._Application_persistentVolumeBindings(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "currentDeployment":
+			out.Values[i] = ec._Application_currentDeployment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deployments":
+			out.Values[i] = ec._Application_deployments(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deploymentMode":
+			out.Values[i] = ec._Application_deploymentMode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "replicas":
+			out.Values[i] = ec._Application_replicas(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var buildArgImplementors = []string{"BuildArg"}
+
+func (ec *executionContext) _BuildArg(ctx context.Context, sel ast.SelectionSet, obj *model.BuildArg) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, buildArgImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BuildArg")
+		case "key":
+			out.Values[i] = ec._BuildArg_key(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "value":
+			out.Values[i] = ec._BuildArg_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var deploymentImplementors = []string{"Deployment"}
+
+func (ec *executionContext) _Deployment(ctx context.Context, sel ast.SelectionSet, obj *model.Deployment) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deploymentImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Deployment")
+		case "id":
+			out.Values[i] = ec._Deployment_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "applicationID":
+			out.Values[i] = ec._Deployment_applicationID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "application":
+			out.Values[i] = ec._Deployment_application(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "upstreamType":
+			out.Values[i] = ec._Deployment_upstreamType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "gitCredentialID":
+			out.Values[i] = ec._Deployment_gitCredentialID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "gitCredential":
+			out.Values[i] = ec._Deployment_gitCredential(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "repositoryOwner":
+			out.Values[i] = ec._Deployment_repositoryOwner(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "repositoryName":
+			out.Values[i] = ec._Deployment_repositoryName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "repositoryBranch":
+			out.Values[i] = ec._Deployment_repositoryBranch(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "commitHash":
+			out.Values[i] = ec._Deployment_commitHash(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sourceCodeCompressedFileName":
+			out.Values[i] = ec._Deployment_sourceCodeCompressedFileName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "dockerImage":
+			out.Values[i] = ec._Deployment_dockerImage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "imageRegistryCredentialID":
+			out.Values[i] = ec._Deployment_imageRegistryCredentialID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "imageRegistryCredential":
+			out.Values[i] = ec._Deployment_imageRegistryCredential(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "buildArgs":
+			out.Values[i] = ec._Deployment_buildArgs(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "dockerfile":
+			out.Values[i] = ec._Deployment_dockerfile(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deploymentLogs":
+			out.Values[i] = ec._Deployment_deploymentLogs(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._Deployment_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._Deployment_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var deploymentLogImplementors = []string{"DeploymentLog"}
+
+func (ec *executionContext) _DeploymentLog(ctx context.Context, sel ast.SelectionSet, obj *model.DeploymentLog) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deploymentLogImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeploymentLog")
+		case "content":
+			out.Values[i] = ec._DeploymentLog_content(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._DeploymentLog_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -4609,6 +7910,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "createApplication":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createApplication(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateApplication":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateApplication(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteApplication":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteApplication(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createGitCredential":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createGitCredential(ctx, field)
@@ -4648,6 +7970,122 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteImageRegistryCredential(ctx, field)
 			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createPersistentVolume":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createPersistentVolume(ctx, field)
+			})
+		case "deletePersistentVolume":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deletePersistentVolume(ctx, field)
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var persistentVolumeImplementors = []string{"PersistentVolume"}
+
+func (ec *executionContext) _PersistentVolume(ctx context.Context, sel ast.SelectionSet, obj *model.PersistentVolume) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, persistentVolumeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PersistentVolume")
+		case "id":
+			out.Values[i] = ec._PersistentVolume_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._PersistentVolume_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var persistentVolumeBindingImplementors = []string{"PersistentVolumeBinding"}
+
+func (ec *executionContext) _PersistentVolumeBinding(ctx context.Context, sel ast.SelectionSet, obj *model.PersistentVolumeBinding) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, persistentVolumeBindingImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PersistentVolumeBinding")
+		case "id":
+			out.Values[i] = ec._PersistentVolumeBinding_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "persistentVolumeID":
+			out.Values[i] = ec._PersistentVolumeBinding_persistentVolumeID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "persistentVolume":
+			out.Values[i] = ec._PersistentVolumeBinding_persistentVolume(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "applicationID":
+			out.Values[i] = ec._PersistentVolumeBinding_applicationID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "application":
+			out.Values[i] = ec._PersistentVolumeBinding_application(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mountingPath":
+			out.Values[i] = ec._PersistentVolumeBinding_mountingPath(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -4794,6 +8232,63 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "persistentVolumes":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_persistentVolumes(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "persistentVolume":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_persistentVolume(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "isExistsPersistentVolume":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_isExistsPersistentVolume(ctx, field)
 				return res
 			}
 
@@ -5160,6 +8655,25 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) marshalNApplication2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx context.Context, sel ast.SelectionSet, v model.Application) graphql.Marshaler {
+	return ec._Application(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx context.Context, sel ast.SelectionSet, v *model.Application) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Application(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNApplicationInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplicationInput(ctx context.Context, v interface{}) (model.ApplicationInput, error) {
+	res, err := ec.unmarshalInputApplicationInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5173,6 +8687,190 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNBuildArg2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArgᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BuildArg) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNBuildArg2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArg(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNBuildArg2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArg(ctx context.Context, sel ast.SelectionSet, v *model.BuildArg) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._BuildArg(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNBuildArgInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArgInputᚄ(ctx context.Context, v interface{}) ([]*model.BuildArgInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.BuildArgInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNBuildArgInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArgInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNBuildArgInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArgInput(ctx context.Context, v interface{}) (*model.BuildArgInput, error) {
+	res, err := ec.unmarshalInputBuildArgInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDeployment2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Deployment) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNDeployment2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeployment(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDeployment2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeployment(ctx context.Context, sel ast.SelectionSet, v *model.Deployment) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Deployment(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDeploymentLog2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentLogᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DeploymentLog) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNDeploymentLog2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentLog(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDeploymentLog2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentLog(ctx context.Context, sel ast.SelectionSet, v *model.DeploymentLog) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DeploymentLog(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNEnvironmentVariable2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐEnvironmentVariableᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.EnvironmentVariable) graphql.Marshaler {
@@ -5227,6 +8925,28 @@ func (ec *executionContext) marshalNEnvironmentVariable2ᚖgithubᚗcomᚋswiftw
 		return graphql.Null
 	}
 	return ec._EnvironmentVariable(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNEnvironmentVariableInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐEnvironmentVariableInputᚄ(ctx context.Context, v interface{}) ([]*model.EnvironmentVariableInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.EnvironmentVariableInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNEnvironmentVariableInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐEnvironmentVariableInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNEnvironmentVariableInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐEnvironmentVariableInput(ctx context.Context, v interface{}) (*model.EnvironmentVariableInput, error) {
+	res, err := ec.unmarshalInputEnvironmentVariableInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNGitCredential2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredential(ctx context.Context, sel ast.SelectionSet, v model.GitCredential) graphql.Marshaler {
@@ -5387,6 +9107,97 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v *model.PersistentVolume) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PersistentVolume(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPersistentVolumeBinding2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBindingᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PersistentVolumeBinding) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPersistentVolumeBinding2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBinding(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPersistentVolumeBinding2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBinding(ctx context.Context, sel ast.SelectionSet, v *model.PersistentVolumeBinding) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PersistentVolumeBinding(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPersistentVolumeBindingInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBindingInputᚄ(ctx context.Context, v interface{}) ([]*model.PersistentVolumeBindingInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.PersistentVolumeBindingInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNPersistentVolumeBindingInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBindingInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNPersistentVolumeBindingInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBindingInput(ctx context.Context, v interface{}) (*model.PersistentVolumeBindingInput, error) {
+	res, err := ec.unmarshalInputPersistentVolumeBindingInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNPersistentVolumeInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeInput(ctx context.Context, v interface{}) (model.PersistentVolumeInput, error) {
+	res, err := ec.unmarshalInputPersistentVolumeInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -5681,6 +9492,54 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOPersistentVolume2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v []*model.PersistentVolume) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v *model.PersistentVolume) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PersistentVolume(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

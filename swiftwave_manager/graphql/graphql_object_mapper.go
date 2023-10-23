@@ -9,6 +9,9 @@ import (
 // 1. Convert Database models to GraphQL models > <type>ToGraphqlObject.go
 // 2. Convert GraphQL models to Database models > <type>ToDatabaseObject.go
 
+// Why _ToDatabaseObject() dont adding ID field?
+// Because ID field is provided directly to Mutation or Query function
+
 // gitCredentialToGraphqlObject : converts GitCredential to GitCredentialGraphqlObject
 func gitCredentialToGraphqlObject(record *dbmodel.GitCredential) *model.GitCredential {
 	return &model.GitCredential{
@@ -44,5 +47,20 @@ func imageRegistryCredentialInputToDatabaseObject(record *model.ImageRegistryCre
 		Url:      record.URL,
 		Username: record.Username,
 		Password: record.Password,
+	}
+}
+
+// persistentVolumeToGraphqlObject : converts PersistentVolume to PersistentVolumeGraphqlObject
+func persistentVolumeToGraphqlObject(record *dbmodel.PersistentVolume) *model.PersistentVolume {
+	return &model.PersistentVolume{
+		ID:   int(record.ID),
+		Name: record.Name,
+	}
+}
+
+// persistentVolumeInputToDatabaseObject : converts PersistentVolumeInput to PersistentVolumeDatabaseObject
+func persistentVolumeInputToDatabaseObject(record *model.PersistentVolumeInput) *dbmodel.PersistentVolume {
+	return &dbmodel.PersistentVolume{
+		Name: record.Name,
 	}
 }

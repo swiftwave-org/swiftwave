@@ -1,0 +1,27 @@
+type Deployment {
+    id: String!
+    applicationID: Int!
+    application: Application!
+    upstreamType: String!
+    # required for upstreamType = "git"
+    gitCredentialID: Int!
+    gitCredential: GitCredential!
+    repositoryOwner: String!
+    repositoryName: String!
+    repositoryBranch: String!
+    commitHash: String!
+    # required for upstreamType = "SourceCode"
+    sourceCodeCompressedFileName: String!
+    # required for upstreamType = "Image"
+    dockerImage: String!
+    imageRegistryCredentialID: Int!
+    imageRegistryCredential: ImageRegistryCredential!
+    # Common Fields
+    buildArgs: [BuildArg!]!
+    dockerfile: String!
+    # logs
+    deploymentLogs: [DeploymentLog!]!
+    # meta
+    status: String!
+    createdAt: String!
+}

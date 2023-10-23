@@ -1,11 +1,40 @@
-type EnvironmentVariable {
-    key: String!
-    value: String!
-}
-
 type Application {
     id: String!
     name: String!
     environmentVariables: [EnvironmentVariable!]!
+    persistentVolumeBindings: [PersistentVolumeBinding!]!
+    currentDeployment: Deployment!
+    deployments: [Deployment!]!
+    deploymentMode: String!
+    replicas: Int!
+    # TODO ingress rules
 }
 
+input ApplicationInput {
+    name: String!
+    environmentVariables: [EnvironmentVariableInput!]! # dont change with each deployment
+    persistentVolumeBindings: [PersistentVolumeBindingInput!]! # dont change with each deployment
+    dockerfile: String! # required for upstreamType = "git" or "SourceCode"
+    buildArgs: [BuildArgInput!]!
+    deploymentMode: String! # dont change with each deployment
+    replicas: Int! # dont change with each deployment
+    upstreamType: String!
+    # required for upstreamType = "git"
+    gitCredentialID: Int!
+    repositoryOwner: String!
+    repositoryName: String!
+    repositoryBranch: String!
+    # required for upstreamType = "SourceCode"
+    sourceCodeCompressedFileName: String!
+    # required for upstreamType = "Image"
+    dockerImage: String!
+    imageRegistryCredentialID: Int!
+}
+
+
+
+extend type Mutation {
+    createApplication(input: ApplicationInput!): Application!
+    updateApplication(id: Int!, input: ApplicationInput!): Application!
+    deleteApplication(id: Int!): Boolean!
+}

@@ -3,12 +3,77 @@
 package model
 
 type Application struct {
-	ID                   string                 `json:"id"`
-	Name                 string                 `json:"name"`
-	EnvironmentVariables []*EnvironmentVariable `json:"environmentVariables"`
+	ID                       string                     `json:"id"`
+	Name                     string                     `json:"name"`
+	EnvironmentVariables     []*EnvironmentVariable     `json:"environmentVariables"`
+	PersistentVolumeBindings []*PersistentVolumeBinding `json:"persistentVolumeBindings"`
+	CurrentDeployment        *Deployment                `json:"currentDeployment"`
+	Deployments              []*Deployment              `json:"deployments"`
+	DeploymentMode           string                     `json:"deploymentMode"`
+	Replicas                 int                        `json:"replicas"`
+}
+
+type ApplicationInput struct {
+	Name                         string                          `json:"name"`
+	EnvironmentVariables         []*EnvironmentVariableInput     `json:"environmentVariables"`
+	PersistentVolumeBindings     []*PersistentVolumeBindingInput `json:"persistentVolumeBindings"`
+	Dockerfile                   string                          `json:"dockerfile"`
+	BuildArgs                    []*BuildArgInput                `json:"buildArgs"`
+	DeploymentMode               string                          `json:"deploymentMode"`
+	Replicas                     int                             `json:"replicas"`
+	UpstreamType                 string                          `json:"upstreamType"`
+	GitCredentialID              int                             `json:"gitCredentialID"`
+	RepositoryOwner              string                          `json:"repositoryOwner"`
+	RepositoryName               string                          `json:"repositoryName"`
+	RepositoryBranch             string                          `json:"repositoryBranch"`
+	SourceCodeCompressedFileName string                          `json:"sourceCodeCompressedFileName"`
+	DockerImage                  string                          `json:"dockerImage"`
+	ImageRegistryCredentialID    int                             `json:"imageRegistryCredentialID"`
+}
+
+type BuildArg struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type BuildArgInput struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type Deployment struct {
+	ID                           string                   `json:"id"`
+	ApplicationID                int                      `json:"applicationID"`
+	Application                  *Application             `json:"application"`
+	UpstreamType                 string                   `json:"upstreamType"`
+	GitCredentialID              int                      `json:"gitCredentialID"`
+	GitCredential                *GitCredential           `json:"gitCredential"`
+	RepositoryOwner              string                   `json:"repositoryOwner"`
+	RepositoryName               string                   `json:"repositoryName"`
+	RepositoryBranch             string                   `json:"repositoryBranch"`
+	CommitHash                   string                   `json:"commitHash"`
+	SourceCodeCompressedFileName string                   `json:"sourceCodeCompressedFileName"`
+	DockerImage                  string                   `json:"dockerImage"`
+	ImageRegistryCredentialID    int                      `json:"imageRegistryCredentialID"`
+	ImageRegistryCredential      *ImageRegistryCredential `json:"imageRegistryCredential"`
+	BuildArgs                    []*BuildArg              `json:"buildArgs"`
+	Dockerfile                   string                   `json:"dockerfile"`
+	DeploymentLogs               []*DeploymentLog         `json:"deploymentLogs"`
+	Status                       string                   `json:"status"`
+	CreatedAt                    string                   `json:"createdAt"`
+}
+
+type DeploymentLog struct {
+	Content   string `json:"content"`
+	CreatedAt string `json:"createdAt"`
 }
 
 type EnvironmentVariable struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type EnvironmentVariableInput struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
@@ -52,4 +117,27 @@ type ImageRegistryCredentialInput struct {
 	URL      string `json:"url"`
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+type PersistentVolume struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+type PersistentVolumeBinding struct {
+	ID                 int               `json:"id"`
+	PersistentVolumeID int               `json:"persistentVolumeID"`
+	PersistentVolume   *PersistentVolume `json:"persistentVolume"`
+	ApplicationID      int               `json:"applicationID"`
+	Application        *Application      `json:"application"`
+	MountingPath       string            `json:"mountingPath"`
+}
+
+type PersistentVolumeBindingInput struct {
+	PersistentVolumeID int    `json:"persistentVolumeID"`
+	MountingPath       string `json:"mountingPath"`
+}
+
+type PersistentVolumeInput struct {
+	Name string `json:"name"`
 }

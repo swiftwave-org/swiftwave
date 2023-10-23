@@ -1,0 +1,19 @@
+type PersistentVolume {
+    id: Int!
+    name: String!
+}
+
+input PersistentVolumeInput {
+    name: String!
+}
+
+extend type Query {
+    persistentVolumes: [PersistentVolume]
+    persistentVolume(id: Int!): PersistentVolume
+    isExistsPersistentVolume(name: String!): Boolean
+}
+
+extend type Mutation {
+    createPersistentVolume(input: PersistentVolumeInput!): PersistentVolume
+    deletePersistentVolume(id: Int!): PersistentVolume
+}

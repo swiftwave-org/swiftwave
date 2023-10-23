@@ -100,6 +100,9 @@ type Application struct {
 	// Persistent Volumes
 	// On change of persistent volumes, deployment will be triggered by force update
 	PersistentVolumeBindings []PersistentVolumeBinding `json:"persistentVolumeBindings" gorm:"foreignKey:ApplicationID"`
+	// No of replicas to be deployed
+	DeploymentMode DeploymentMode `json:"deploymentMode"`
+	Replicas       uint           `json:"replicas"`
 	// Deployment
 	Deployments []Deployment `json:"deployments" gorm:"foreignKey:ApplicationID"`
 	// Ingress Rules
@@ -122,13 +125,10 @@ type Deployment struct {
 	SourceCodeCompressedFileName string `json:"sourceCodeCompressedFileName"`
 	// Fields for UpstreamType = Image
 	DockerImage               string `json:"dockerImage"`
-	ImageRegistryCredentialID uint   `json:"ImageRegistryCredentialID"`
+	ImageRegistryCredentialID uint   `json:"imageRegistryCredentialID"`
 	// Common Fields
 	BuildArgs  []BuildArg `json:"buildArgs" gorm:"foreignKey:DeploymentID"`
 	Dockerfile string     `json:"dockerfile"`
-	// No of replicas to be deployed
-	DeploymentMode DeploymentMode `json:"deploymentMode"`
-	Replicas       uint           `json:"replicas"`
 	// Logs
 	Logs []DeploymentLog `json:"logs" gorm:"foreignKey:DeploymentID"`
 	// Deployment Status

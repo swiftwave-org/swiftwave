@@ -1,0 +1,9 @@
+type EnvironmentVariable {
+    key: String!
+    value: String!
+}
+
+input EnvironmentVariableInput {
+    key: String!
+    value: String!
+}
