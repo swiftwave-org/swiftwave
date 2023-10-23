@@ -14,9 +14,9 @@ import (
 // CreateImageRegistryCredential is the resolver for the createImageRegistryCredential field.
 func (r *mutationResolver) CreateImageRegistryCredential(ctx context.Context, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error) {
 	record := imageRegistryCredentialInputToDatabaseObject(&input)
-	tx := r.ServiceManager.DbClient.Create(&record)
-	if tx.Error != nil {
-		return nil, tx.Error
+	err := record.Create(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
 	}
 	return imageRegistryCredentialToGraphqlObject(record), nil
 }
@@ -25,17 +25,17 @@ func (r *mutationResolver) CreateImageRegistryCredential(ctx context.Context, in
 func (r *mutationResolver) UpdateImageRegistryCredential(ctx context.Context, id int, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error) {
 	// fetch record
 	var record dbmodel.ImageRegistryCredential
-	tx := r.ServiceManager.DbClient.First(&record, id)
-	if tx.Error != nil {
-		return nil, tx.Error
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
 	}
 	// update record
 	record.Url = input.URL
 	record.Username = input.Username
 	record.Password = input.Password
-	tx = r.ServiceManager.DbClient.Save(&record)
-	if tx.Error != nil {
-		return nil, tx.Error
+	err = record.Update(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
 	}
 	return imageRegistryCredentialToGraphqlObject(&record), nil
 }
@@ -44,28 +44,27 @@ func (r *mutationResolver) UpdateImageRegistryCredential(ctx context.Context, id
 func (r *mutationResolver) DeleteImageRegistryCredential(ctx context.Context, id int) (*model.ImageRegistryCredential, error) {
 	// fetch record
 	var record dbmodel.ImageRegistryCredential
-	tx := r.ServiceManager.DbClient.First(&record, id)
-	if tx.Error != nil {
-		return nil, tx.Error
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
 	}
 	// delete record
-	tx = r.ServiceManager.DbClient.Delete(&record)
-	if tx.Error != nil {
-		return nil, tx.Error
+	err = record.Delete(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
 	}
 	return imageRegistryCredentialToGraphqlObject(&record), nil
 }
 
 // ImageRegistryCredentials is the resolver for the imageRegistryCredentials field.
 func (r *queryResolver) ImageRegistryCredentials(ctx context.Context) ([]*model.ImageRegistryCredential, error) {
-	var records []dbmodel.ImageRegistryCredential
-	tx := r.ServiceManager.DbClient.Find(&records)
-	if tx.Error != nil {
-		return nil, tx.Error
+	records, err := dbmodel.FindAllImageRegistryCredentials(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
 	}
 	var result []*model.ImageRegistryCredential
 	for _, record := range records {
-		result = append(result, imageRegistryCredentialToGraphqlObject(&record))
+		result = append(result, imageRegistryCredentialToGraphqlObject(record))
 	}
 	return result, nil
 }
@@ -73,9 +72,9 @@ func (r *queryResolver) ImageRegistryCredentials(ctx context.Context) ([]*model.
 // ImageRegistryCredential is the resolver for the imageRegistryCredential field.
 func (r *queryResolver) ImageRegistryCredential(ctx context.Context, id int) (*model.ImageRegistryCredential, error) {
 	var record dbmodel.ImageRegistryCredential
-	tx := r.ServiceManager.DbClient.First(&record, id)
-	if tx.Error != nil {
-		return nil, tx.Error
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
 	}
 	return imageRegistryCredentialToGraphqlObject(&record), nil
 }
