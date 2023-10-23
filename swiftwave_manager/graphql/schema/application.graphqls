@@ -1,0 +1,11 @@
+type EnvironmentVariable {
+    key: String!
+    value: String!
+}
+
+type Application {
+    id: String!
+    name: String!
+    environmentVariables: [EnvironmentVariable!]!
+}
+

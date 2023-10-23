@@ -6,8 +6,8 @@ package graphql
 
 import (
 	"context"
-	GIT "github.com/swiftwave-org/swiftwave/git_manager"
 
+	GIT "github.com/swiftwave-org/swiftwave/git_manager"
 	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
 )
@@ -15,9 +15,9 @@ import (
 // CreateGitCredential is the resolver for the createGitCredential field.
 func (r *mutationResolver) CreateGitCredential(ctx context.Context, input model.GitCredentialInput) (*model.GitCredential, error) {
 	record := gitCredentialInputToDatabaseObject(&input)
-	tx := r.ServiceManager.DbClient.Create(&record)
-	if tx.Error != nil {
-		return nil, tx.Error
+	err := record.Create(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
 	}
 	return gitCredentialToGraphqlObject(record), nil
 }
@@ -26,17 +26,17 @@ func (r *mutationResolver) CreateGitCredential(ctx context.Context, input model.
 func (r *mutationResolver) UpdateGitCredential(ctx context.Context, id int, input model.GitCredentialInput) (*model.GitCredential, error) {
 	// fetch record
 	var record dbmodel.GitCredential
-	tx := r.ServiceManager.DbClient.First(&record, id)
-	if tx.Error != nil {
-		return nil, tx.Error
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
 	}
 	// update record
 	record.Name = input.Name
 	record.Username = input.Username
 	record.Password = input.Password
-	tx = r.ServiceManager.DbClient.Save(&record)
-	if tx.Error != nil {
-		return nil, tx.Error
+	err = record.Update(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
 	}
 	return gitCredentialToGraphqlObject(&record), nil
 }
@@ -45,28 +45,27 @@ func (r *mutationResolver) UpdateGitCredential(ctx context.Context, id int, inpu
 func (r *mutationResolver) DeleteGitCredential(ctx context.Context, id int) (*model.GitCredential, error) {
 	// fetch record
 	var record dbmodel.GitCredential
-	tx := r.ServiceManager.DbClient.First(&record, id)
-	if tx.Error != nil {
-		return nil, tx.Error
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
 	}
 	// delete record
-	tx = r.ServiceManager.DbClient.Delete(&record)
-	if tx.Error != nil {
-		return nil, tx.Error
+	err = record.Delete(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
 	}
 	return gitCredentialToGraphqlObject(&record), nil
 }
 
 // GitCredentials is the resolver for the GitCredentials field.
 func (r *queryResolver) GitCredentials(ctx context.Context) ([]*model.GitCredential, error) {
-	var records []dbmodel.GitCredential
-	tx := r.ServiceManager.DbClient.Find(&records)
-	if tx.Error != nil {
-		return nil, tx.Error
+	records, err := dbmodel.FindAllGitCredentials(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
 	}
 	var gitCredentials []*model.GitCredential
 	for _, record := range records {
-		gitCredentials = append(gitCredentials, gitCredentialToGraphqlObject(&record))
+		gitCredentials = append(gitCredentials, gitCredentialToGraphqlObject(record))
 	}
 	return gitCredentials, nil
 }
@@ -74,9 +73,9 @@ func (r *queryResolver) GitCredentials(ctx context.Context) ([]*model.GitCredent
 // GitCredential is the resolver for the GitCredential field.
 func (r *queryResolver) GitCredential(ctx context.Context, id int) (*model.GitCredential, error) {
 	var record dbmodel.GitCredential
-	tx := r.ServiceManager.DbClient.First(&record, id)
-	if tx.Error != nil {
-		return nil, tx.Error
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
 	}
 	return gitCredentialToGraphqlObject(&record), nil
 }

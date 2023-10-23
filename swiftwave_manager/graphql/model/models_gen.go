@@ -2,6 +2,17 @@
 
 package model
 
+type Application struct {
+	ID                   string                 `json:"id"`
+	Name                 string                 `json:"name"`
+	EnvironmentVariables []*EnvironmentVariable `json:"environmentVariables"`
+}
+
+type EnvironmentVariable struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
 type GitCredential struct {
 	ID       int    `json:"id"`
 	Name     string `json:"name"`
