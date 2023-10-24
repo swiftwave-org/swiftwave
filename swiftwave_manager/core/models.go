@@ -69,7 +69,7 @@ type PersistentVolume struct {
 // PersistentVolumeBinding : hold information about persistent volume binding
 type PersistentVolumeBinding struct {
 	ID                 uint   `json:"id" gorm:"primaryKey"`
-	ApplicationID      uint   `json:"applicationID"`
+	ApplicationID      string `json:"applicationID"`
 	PersistentVolumeID uint   `json:"persistentVolumeID"`
 	MountingPath       string `json:"mountingPath"`
 }
@@ -77,7 +77,7 @@ type PersistentVolumeBinding struct {
 // EnvironmentVariable : hold information about environment variable
 type EnvironmentVariable struct {
 	ID            uint   `json:"id" gorm:"primaryKey"`
-	ApplicationID uint   `json:"applicationID"`
+	ApplicationID string `json:"applicationID"`
 	Key           string `json:"key"`
 	Value         string `json:"value"`
 }
@@ -116,7 +116,7 @@ type Application struct {
 // Deployment : hold information about deployment of application
 type Deployment struct {
 	ID            string       `json:"id" gorm:"primaryKey"`
-	ApplicationID uint         `json:"applicationID"`
+	ApplicationID string       `json:"applicationID"`
 	UpstreamType  UpstreamType `json:"upstreamType"`
 	// Fields for UpstreamType = Git
 	GitCredentialID  uint        `json:"gitCredentialID"`
