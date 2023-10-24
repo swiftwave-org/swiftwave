@@ -17,7 +17,7 @@ func IsExistPersistentVolume(ctx context.Context, db gorm.DB, name string, docke
 	// verify from database
 	var count int64
 	tx := db.Model(&PersistentVolume{}).Where("name = ?", name).Count(&count)
-	if tx != nil {
+	if tx.Error != nil {
 		return false, tx.Error
 	}
 	if count > 0 {
