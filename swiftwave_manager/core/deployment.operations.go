@@ -23,7 +23,17 @@ func (deployment *Deployment) Create(ctx context.Context, db gorm.DB, dockerMana
 }
 
 func (deployment *Deployment) Delete(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
-	tx := db.Delete(&deployment)
-	// TODO: delete build args, logs and other related data
+	// delete all build args
+	tx := db.Where("deployment_id = ?", deployment.ID).Delete(&BuildArg{})
+	if tx.Error != nil {
+		return tx.Error
+	}
+	// delete all logs
+	tx = db.Where("deployment_id = ?", deployment.ID).Delete(&DeploymentLog{})
+	if tx.Error != nil {
+		return tx.Error
+	}
+	// delete deployment
+	tx = db.Delete(&deployment)
 	return tx.Error
 }

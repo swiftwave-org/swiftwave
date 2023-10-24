@@ -7,6 +7,8 @@ import (
 	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
 	"gorm.io/gorm"
+	"os"
+	"path/filepath"
 )
 
 // This file contains the operations for the Application model.
@@ -51,8 +53,7 @@ func (application *Application) FindById(ctx context.Context, db gorm.DB, id str
 	return nil
 }
 
-func (application *Application) Create(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
-	// TODO: add validation, create new deployment
+func (application *Application) Create(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager, codeTarballDir string) error {
 	// verify if there is no application with same name
 	isExist, err := IsExistApplicationName(ctx, db, dockerManager, application.Name)
 	if err != nil {
@@ -61,8 +62,32 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	if isExist {
 		return errors.New("application name not available")
 	}
-	// create transaction
-	transaction := db.Begin()
+	// For UpstreamType = Git, verify git record id
+	if application.LatestDeployment.UpstreamType == UpstreamTypeGit {
+		var gitCredential GitCredential
+		err := gitCredential.FindById(ctx, db, int(application.LatestDeployment.GitCredentialID))
+		if err != nil {
+			return err
+		}
+	}
+	// For UpstreamType = Image, verify image registry credential id
+	if application.LatestDeployment.UpstreamType == UpstreamTypeImage {
+		if application.LatestDeployment.ImageRegistryCredentialID != 0 {
+			var imageRegistryCredential ImageRegistryCredential
+			err := imageRegistryCredential.FindById(ctx, db, int(application.LatestDeployment.ImageRegistryCredentialID))
+			if err != nil {
+				return err
+			}
+		}
+	}
+	// For UpstreamType = SourceCode, verify source code compressed file exists
+	if application.LatestDeployment.UpstreamType == UpstreamTypeSourceCode {
+		tarballPath := filepath.Join(codeTarballDir, application.LatestDeployment.SourceCodeCompressedFileName)
+		// Verify file exists
+		if _, err := os.Stat(tarballPath); os.IsNotExist(err) {
+			return errors.New("source code not found")
+		}
+	}
 	// create application
 	createdApplication := model.Application{
 		ID:             uuid.NewString(),
@@ -70,7 +95,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		DeploymentMode: string(application.DeploymentMode),
 		Replicas:       int(application.Replicas),
 	}
-	tx := transaction.Create(&createdApplication)
+	tx := db.Create(&createdApplication)
 	if tx.Error != nil {
 		return tx.Error
 	}
@@ -84,7 +109,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		}
 		createdEnvironmentVariables = append(createdEnvironmentVariables, createdEnvironmentVariable)
 	}
-	tx = transaction.Create(&createdEnvironmentVariables)
+	tx = db.Create(&createdEnvironmentVariables)
 	if tx.Error != nil {
 		return tx.Error
 	}
@@ -98,7 +123,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		}
 		createdPersistentVolumeBindings = append(createdPersistentVolumeBindings, createdPersistentVolumeBinding)
 	}
-	tx = transaction.Create(&createdPersistentVolumeBindings)
+	tx = db.Create(&createdPersistentVolumeBindings)
 	if tx.Error != nil {
 		return tx.Error
 	}
@@ -135,11 +160,11 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		}
 		createdBuildArgs = append(createdBuildArgs, createdBuildArg)
 	}
-	tx = transaction.Create(&createdBuildArgs)
+	tx = db.Create(&createdBuildArgs)
 	if tx.Error != nil {
 		return tx.Error
 	}
-	return transaction.Commit().Error
+	return nil
 	// TODO: push to queue for deployment
 }
 

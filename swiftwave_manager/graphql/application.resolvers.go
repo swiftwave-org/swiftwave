@@ -14,8 +14,11 @@ import (
 // CreateApplication is the resolver for the createApplication field.
 func (r *mutationResolver) CreateApplication(ctx context.Context, input model.ApplicationInput) (*model.Application, error) {
 	record := applicationInputToDatabaseObject(&input)
-	err := record.Create(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
+	// create transaction
+	transaction := r.ServiceManager.DbClient.Begin()
+	err := record.Create(ctx, *transaction, r.ServiceManager.DockerManager, r.ServiceConfig.CodeTarballDir)
 	if err != nil {
+		transaction.Rollback()
 		return nil, err
 	}
 	return applicationToGraphqlObject(record), nil
