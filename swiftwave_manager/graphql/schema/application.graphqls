@@ -1,3 +1,8 @@
+enum DeploymentMode {
+    replicated
+    global
+}
+
 type Application {
     id: String!
     name: String!
@@ -5,7 +10,7 @@ type Application {
     persistentVolumeBindings: [PersistentVolumeBinding!]!
     latestDeployment: Deployment!
     deployments: [Deployment!]!
-    deploymentMode: String!
+    deploymentMode: DeploymentMode!
     replicas: Int!
     # TODO ingress rules
 }
@@ -16,12 +21,12 @@ input ApplicationInput {
     persistentVolumeBindings: [PersistentVolumeBindingInput!]! # dont change with each deployment
     dockerfile: String! # required for upstreamType = "git" or "SourceCode"
     buildArgs: [BuildArgInput!]!
-    deploymentMode: String! # dont change with each deployment
+    deploymentMode: DeploymentMode! # dont change with each deployment
     replicas: Int! # dont change with each deployment
-    upstreamType: String!
+    upstreamType: UpstreamType!
     # required for upstreamType = "git"
     gitCredentialID: Int!
-    gitProvider: String!
+    gitProvider: GitProvider!
     repositoryOwner: String!
     repositoryName: String!
     repositoryBranch: String!

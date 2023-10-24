@@ -2,6 +2,12 @@
 
 package model
 
+import (
+	"fmt"
+	"io"
+	"strconv"
+)
+
 type Application struct {
 	ID                       string                     `json:"id"`
 	Name                     string                     `json:"name"`
@@ -9,7 +15,7 @@ type Application struct {
 	PersistentVolumeBindings []*PersistentVolumeBinding `json:"persistentVolumeBindings"`
 	LatestDeployment         *Deployment                `json:"latestDeployment"`
 	Deployments              []*Deployment              `json:"deployments"`
-	DeploymentMode           string                     `json:"deploymentMode"`
+	DeploymentMode           DeploymentMode             `json:"deploymentMode"`
 	Replicas                 int                        `json:"replicas"`
 }
 
@@ -19,11 +25,11 @@ type ApplicationInput struct {
 	PersistentVolumeBindings     []*PersistentVolumeBindingInput `json:"persistentVolumeBindings"`
 	Dockerfile                   string                          `json:"dockerfile"`
 	BuildArgs                    []*BuildArgInput                `json:"buildArgs"`
-	DeploymentMode               string                          `json:"deploymentMode"`
+	DeploymentMode               DeploymentMode                  `json:"deploymentMode"`
 	Replicas                     int                             `json:"replicas"`
-	UpstreamType                 string                          `json:"upstreamType"`
+	UpstreamType                 UpstreamType                    `json:"upstreamType"`
 	GitCredentialID              int                             `json:"gitCredentialID"`
-	GitProvider                  string                          `json:"gitProvider"`
+	GitProvider                  GitProvider                     `json:"gitProvider"`
 	RepositoryOwner              string                          `json:"repositoryOwner"`
 	RepositoryName               string                          `json:"repositoryName"`
 	RepositoryBranch             string                          `json:"repositoryBranch"`
@@ -46,9 +52,10 @@ type Deployment struct {
 	ID                           string                   `json:"id"`
 	ApplicationID                int                      `json:"applicationID"`
 	Application                  *Application             `json:"application"`
-	UpstreamType                 string                   `json:"upstreamType"`
+	UpstreamType                 UpstreamType             `json:"upstreamType"`
 	GitCredentialID              int                      `json:"gitCredentialID"`
 	GitCredential                *GitCredential           `json:"gitCredential"`
+	GitProvider                  GitProvider              `json:"gitProvider"`
 	RepositoryOwner              string                   `json:"repositoryOwner"`
 	RepositoryName               string                   `json:"repositoryName"`
 	RepositoryBranch             string                   `json:"repositoryBranch"`
@@ -60,7 +67,7 @@ type Deployment struct {
 	BuildArgs                    []*BuildArg              `json:"buildArgs"`
 	Dockerfile                   string                   `json:"dockerfile"`
 	DeploymentLogs               []*DeploymentLog         `json:"deploymentLogs"`
-	Status                       string                   `json:"status"`
+	Status                       DeploymentStatus         `json:"status"`
 	CreatedAt                    string                   `json:"createdAt"`
 }
 
@@ -141,4 +148,178 @@ type PersistentVolumeBindingInput struct {
 
 type PersistentVolumeInput struct {
 	Name string `json:"name"`
+}
+
+type DeploymentMode string
+
+const (
+	DeploymentModeReplicated DeploymentMode = "replicated"
+	DeploymentModeGlobal     DeploymentMode = "global"
+)
+
+var AllDeploymentMode = []DeploymentMode{
+	DeploymentModeReplicated,
+	DeploymentModeGlobal,
+}
+
+func (e DeploymentMode) IsValid() bool {
+	switch e {
+	case DeploymentModeReplicated, DeploymentModeGlobal:
+		return true
+	}
+	return false
+}
+
+func (e DeploymentMode) String() string {
+	return string(e)
+}
+
+func (e *DeploymentMode) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DeploymentMode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DeploymentMode", str)
+	}
+	return nil
+}
+
+func (e DeploymentMode) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type DeploymentStatus string
+
+const (
+	DeploymentStatusPending   DeploymentStatus = "pending"
+	DeploymentStatusQueued    DeploymentStatus = "queued"
+	DeploymentStatusDeploying DeploymentStatus = "deploying"
+	DeploymentStatusRunning   DeploymentStatus = "running"
+	DeploymentStatusStopped   DeploymentStatus = "stopped"
+	DeploymentStatusFailed    DeploymentStatus = "failed"
+)
+
+var AllDeploymentStatus = []DeploymentStatus{
+	DeploymentStatusPending,
+	DeploymentStatusQueued,
+	DeploymentStatusDeploying,
+	DeploymentStatusRunning,
+	DeploymentStatusStopped,
+	DeploymentStatusFailed,
+}
+
+func (e DeploymentStatus) IsValid() bool {
+	switch e {
+	case DeploymentStatusPending, DeploymentStatusQueued, DeploymentStatusDeploying, DeploymentStatusRunning, DeploymentStatusStopped, DeploymentStatusFailed:
+		return true
+	}
+	return false
+}
+
+func (e DeploymentStatus) String() string {
+	return string(e)
+}
+
+func (e *DeploymentStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DeploymentStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DeploymentStatus", str)
+	}
+	return nil
+}
+
+func (e DeploymentStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type GitProvider string
+
+const (
+	GitProviderGithub GitProvider = "github"
+	GitProviderGitlab GitProvider = "gitlab"
+)
+
+var AllGitProvider = []GitProvider{
+	GitProviderGithub,
+	GitProviderGitlab,
+}
+
+func (e GitProvider) IsValid() bool {
+	switch e {
+	case GitProviderGithub, GitProviderGitlab:
+		return true
+	}
+	return false
+}
+
+func (e GitProvider) String() string {
+	return string(e)
+}
+
+func (e *GitProvider) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = GitProvider(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid GitProvider", str)
+	}
+	return nil
+}
+
+func (e GitProvider) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type UpstreamType string
+
+const (
+	UpstreamTypeGit        UpstreamType = "git"
+	UpstreamTypeSourceCode UpstreamType = "sourceCode"
+	UpstreamTypeImage      UpstreamType = "image"
+)
+
+var AllUpstreamType = []UpstreamType{
+	UpstreamTypeGit,
+	UpstreamTypeSourceCode,
+	UpstreamTypeImage,
+}
+
+func (e UpstreamType) IsValid() bool {
+	switch e {
+	case UpstreamTypeGit, UpstreamTypeSourceCode, UpstreamTypeImage:
+		return true
+	}
+	return false
+}
+
+func (e UpstreamType) String() string {
+	return string(e)
+}
+
+func (e *UpstreamType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = UpstreamType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid UpstreamType", str)
+	}
+	return nil
+}
+
+func (e UpstreamType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

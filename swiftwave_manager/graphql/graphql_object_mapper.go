@@ -167,7 +167,7 @@ func applicationToGraphqlObject(record *dbmodel.Application) *model.Application 
 	return &model.Application{
 		ID:             record.ID,
 		Name:           record.Name,
-		DeploymentMode: string(record.DeploymentMode),
+		DeploymentMode: model.DeploymentMode(record.DeploymentMode),
 		Replicas:       int(record.Replicas),
 	}
 }

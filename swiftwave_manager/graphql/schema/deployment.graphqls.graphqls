@@ -1,11 +1,32 @@
+enum UpstreamType {
+    git
+    sourceCode
+    image
+}
+
+enum DeploymentStatus {
+    pending
+    queued
+    deploying
+    running
+    stopped
+    failed
+}
+
+enum GitProvider {
+    github
+    gitlab
+}
+
 type Deployment {
     id: String!
     applicationID: Int!
     application: Application!
-    upstreamType: String!
+    upstreamType: UpstreamType!
     # required for upstreamType = "git"
     gitCredentialID: Int!
     gitCredential: GitCredential!
+    gitProvider: GitProvider!
     repositoryOwner: String!
     repositoryName: String!
     repositoryBranch: String!
@@ -22,6 +43,6 @@ type Deployment {
     # logs
     deploymentLogs: [DeploymentLog!]!
     # meta
-    status: String!
+    status: DeploymentStatus!
     createdAt: String!
 }

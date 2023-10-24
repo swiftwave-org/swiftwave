@@ -92,7 +92,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	createdApplication := model.Application{
 		ID:             uuid.NewString(),
 		Name:           application.Name,
-		DeploymentMode: string(application.DeploymentMode),
+		DeploymentMode: model.DeploymentMode(application.DeploymentMode),
 		Replicas:       int(application.Replicas),
 	}
 	tx := db.Create(&createdApplication)
@@ -185,6 +185,7 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 	// update deployment -- if required
 	// reload application -- if changed
 	return transaction.Commit().Error
+	// TODO: push to queue for update
 }
 
 func (application *Application) Delete(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
@@ -199,6 +200,7 @@ func (application *Application) Delete(ctx context.Context, db gorm.DB, dockerMa
 	// do soft delete
 	tx := db.Model(&application).Update("is_deleted", true)
 	return tx.Error
+	// TODO: push to queue for deletion
 }
 
 func (application *Application) IsApplicationDeleted(ctx context.Context, db gorm.DB) (bool, error) {

@@ -47,7 +47,7 @@ type UpstreamType string
 
 const (
 	UpstreamTypeGit        UpstreamType = "git"
-	UpstreamTypeSourceCode UpstreamType = "source_code"
+	UpstreamTypeSourceCode UpstreamType = "sourceCode"
 	UpstreamTypeImage      UpstreamType = "image"
 )
 
