@@ -6,22 +6,81 @@ package graphql
 
 import (
 	"context"
-	"fmt"
 
+	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
 )
 
 // CreateApplication is the resolver for the createApplication field.
 func (r *mutationResolver) CreateApplication(ctx context.Context, input model.ApplicationInput) (*model.Application, error) {
-	panic(fmt.Errorf("not implemented: CreateApplication - createApplication"))
+	record := applicationInputToDatabaseObject(&input)
+	err := record.Create(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	return applicationToGraphqlObject(record), nil
 }
 
 // UpdateApplication is the resolver for the updateApplication field.
-func (r *mutationResolver) UpdateApplication(ctx context.Context, id int, input model.ApplicationInput) (*model.Application, error) {
-	panic(fmt.Errorf("not implemented: UpdateApplication - updateApplication"))
+func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, input model.ApplicationInput) (*model.Application, error) {
+	// fetch record
+	var record dbmodel.Application
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	// convert input to database object
+	var databaseObject = applicationInputToDatabaseObject(&input)
+	databaseObject.ID = record.ID
+	// update record
+	err = databaseObject.Update(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	return applicationToGraphqlObject(databaseObject), nil
 }
 
 // DeleteApplication is the resolver for the deleteApplication field.
-func (r *mutationResolver) DeleteApplication(ctx context.Context, id int) (bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteApplication - deleteApplication"))
+func (r *mutationResolver) DeleteApplication(ctx context.Context, id string) (*model.Application, error) {
+	// fetch record
+	var record dbmodel.Application
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	// delete record
+	err = record.Delete(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	return applicationToGraphqlObject(&record), nil
+}
+
+// Application is the resolver for the application field.
+func (r *queryResolver) Application(ctx context.Context, id string) (*model.Application, error) {
+	var record dbmodel.Application
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	return applicationToGraphqlObject(&record), nil
+}
+
+// Applications is the resolver for the applications field.
+func (r *queryResolver) Applications(ctx context.Context) ([]*model.Application, error) {
+	var records []*dbmodel.Application
+	records, err := dbmodel.FindAllApplications(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	var result = make([]*model.Application, 0)
+	for _, record := range records {
+		result = append(result, applicationToGraphqlObject(record))
+	}
+	return result, nil
+}
+
+// IsExistApplicationName is the resolver for the isExistApplicationName field.
+func (r *queryResolver) IsExistApplicationName(ctx context.Context, name string) (bool, error) {
+	return dbmodel.IsExistApplicationName(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager, name)
 }

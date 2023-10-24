@@ -103,8 +103,10 @@ type Application struct {
 	// No of replicas to be deployed
 	DeploymentMode DeploymentMode `json:"deploymentMode"`
 	Replicas       uint           `json:"replicas"`
-	// Deployment
+	// Deployments
 	Deployments []Deployment `json:"deployments" gorm:"foreignKey:ApplicationID"`
+	// Latest Deployment
+	LatestDeployment Deployment `json:"-"`
 	// Ingress Rules
 	IngressRules []IngressRule `json:"ingressRules" gorm:"foreignKey:ApplicationID"`
 }

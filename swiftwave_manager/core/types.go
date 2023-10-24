@@ -72,11 +72,12 @@ const (
 type DeploymentStatus string
 
 const (
+	DeploymentStatusPending   DeploymentStatus = "pending"
 	DeploymentStatusQueued    DeploymentStatus = "queued"
 	DeploymentStatusDeploying DeploymentStatus = "deploying"
-	DeploymentStatusFailed    DeploymentStatus = "failed"
 	DeploymentStatusRunning   DeploymentStatus = "running"
 	DeploymentStatusStopped   DeploymentStatus = "stopped"
+	DeploymentStatusFailed    DeploymentStatus = "failed"
 )
 
 // ProtocolType : type of protocol for ingress rule

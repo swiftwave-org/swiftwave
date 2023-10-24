@@ -7,7 +7,7 @@ type Application struct {
 	Name                     string                     `json:"name"`
 	EnvironmentVariables     []*EnvironmentVariable     `json:"environmentVariables"`
 	PersistentVolumeBindings []*PersistentVolumeBinding `json:"persistentVolumeBindings"`
-	CurrentDeployment        *Deployment                `json:"currentDeployment"`
+	LatestDeployment         *Deployment                `json:"latestDeployment"`
 	Deployments              []*Deployment              `json:"deployments"`
 	DeploymentMode           string                     `json:"deploymentMode"`
 	Replicas                 int                        `json:"replicas"`
@@ -23,6 +23,7 @@ type ApplicationInput struct {
 	Replicas                     int                             `json:"replicas"`
 	UpstreamType                 string                          `json:"upstreamType"`
 	GitCredentialID              int                             `json:"gitCredentialID"`
+	GitProvider                  string                          `json:"gitProvider"`
 	RepositoryOwner              string                          `json:"repositoryOwner"`
 	RepositoryName               string                          `json:"repositoryName"`
 	RepositoryBranch             string                          `json:"repositoryBranch"`

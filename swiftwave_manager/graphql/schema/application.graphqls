@@ -3,7 +3,7 @@ type Application {
     name: String!
     environmentVariables: [EnvironmentVariable!]!
     persistentVolumeBindings: [PersistentVolumeBinding!]!
-    currentDeployment: Deployment!
+    latestDeployment: Deployment!
     deployments: [Deployment!]!
     deploymentMode: String!
     replicas: Int!
@@ -21,6 +21,7 @@ input ApplicationInput {
     upstreamType: String!
     # required for upstreamType = "git"
     gitCredentialID: Int!
+    gitProvider: String!
     repositoryOwner: String!
     repositoryName: String!
     repositoryBranch: String!
@@ -31,10 +32,14 @@ input ApplicationInput {
     imageRegistryCredentialID: Int!
 }
 
-
+extend type Query {
+    application(id: String!): Application!
+    applications: [Application!]!
+    isExistApplicationName(name: String!): Boolean!
+}
 
 extend type Mutation {
     createApplication(input: ApplicationInput!): Application!
-    updateApplication(id: Int!, input: ApplicationInput!): Application!
-    deleteApplication(id: Int!): Boolean!
+    updateApplication(id: String!, input: ApplicationInput!): Application!
+    deleteApplication(id: String!): Application!
 }

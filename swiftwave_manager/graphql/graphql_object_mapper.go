@@ -3,6 +3,7 @@ package graphql
 import (
 	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
+	"time"
 )
 
 // This file contains object mappers
@@ -62,5 +63,111 @@ func persistentVolumeToGraphqlObject(record *dbmodel.PersistentVolume) *model.Pe
 func persistentVolumeInputToDatabaseObject(record *model.PersistentVolumeInput) *dbmodel.PersistentVolume {
 	return &dbmodel.PersistentVolume{
 		Name: record.Name,
+	}
+}
+
+// persistentVolumeBindingInputToDatabaseObject : converts PersistentVolumeBindingInput to PersistentVolumeBindingDatabaseObject
+func persistentVolumeBindingInputToDatabaseObject(record *model.PersistentVolumeBindingInput) *dbmodel.PersistentVolumeBinding {
+	return &dbmodel.PersistentVolumeBinding{
+		PersistentVolumeID: uint(record.PersistentVolumeID),
+		MountingPath:       record.MountingPath,
+	}
+}
+
+// persistentVolumeBindingToGraphqlObject : converts PersistentVolumeBinding to PersistentVolumeBindingGraphqlObject
+func persistentVolumeBindingToGraphqlObject(record *dbmodel.PersistentVolumeBinding) *model.PersistentVolumeBinding {
+	return &model.PersistentVolumeBinding{
+		ID:                 int(record.ID),
+		PersistentVolumeID: int(record.PersistentVolumeID),
+		MountingPath:       record.MountingPath,
+	}
+}
+
+// environmentVariableInputToDatabaseObject : converts EnvironmentVariableInput to EnvironmentVariableDatabaseObject
+func environmentVariableInputToDatabaseObject(record *model.EnvironmentVariableInput) *dbmodel.EnvironmentVariable {
+	return &dbmodel.EnvironmentVariable{
+		Key:   record.Key,
+		Value: record.Value,
+	}
+}
+
+// environmentVariableToGraphqlObject : converts EnvironmentVariable to EnvironmentVariableGraphqlObject
+func environmentVariableToGraphqlObject(record *dbmodel.EnvironmentVariable) *model.EnvironmentVariable {
+	return &model.EnvironmentVariable{
+		Key:   record.Key,
+		Value: record.Value,
+	}
+}
+
+// buildArgInputToDatabaseObject : converts BuildArgInput to BuildArgDatabaseObject
+func buildArgInputToDatabaseObject(record *model.BuildArgInput) *dbmodel.BuildArg {
+	return &dbmodel.BuildArg{
+		Key:   record.Key,
+		Value: record.Value,
+	}
+}
+
+// buildArgToGraphqlObject : converts BuildArg to BuildArgGraphqlObject
+func buildArgToGraphqlObject(record *dbmodel.BuildArg) *model.BuildArg {
+	return &model.BuildArg{
+		Key:   record.Key,
+		Value: record.Value,
+	}
+}
+
+// applicationInputToDeploymentDatabaseObject : converts ApplicationInput to DeploymentDatabaseObject
+func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) *dbmodel.Deployment {
+	var buildArgs = make([]dbmodel.BuildArg, 0)
+	for _, buildArg := range record.BuildArgs {
+		buildArgs = append(buildArgs, *buildArgInputToDatabaseObject(buildArg))
+	}
+	return &dbmodel.Deployment{
+		UpstreamType:                 dbmodel.UpstreamType(record.UpstreamType), // TODO: Check this
+		GitCredentialID:              uint(record.GitCredentialID),
+		GitProvider:                  dbmodel.GitProvider(record.GitProvider),
+		RepositoryOwner:              record.RepositoryOwner,
+		RepositoryName:               record.RepositoryName,
+		RepositoryBranch:             record.RepositoryBranch,
+		CommitHash:                   "",
+		SourceCodeCompressedFileName: record.SourceCodeCompressedFileName,
+		DockerImage:                  record.DockerImage,
+		ImageRegistryCredentialID:    uint(record.ImageRegistryCredentialID),
+		BuildArgs:                    buildArgs,
+		Dockerfile:                   record.Dockerfile,
+		Logs:                         make([]dbmodel.DeploymentLog, 0),
+		Status:                       dbmodel.DeploymentStatusPending,
+		CreatedAt:                    time.Now(),
+	}
+}
+
+// applicationInputToDatabaseObject : converts ApplicationInput to ApplicationDatabaseObject
+func applicationInputToDatabaseObject(record *model.ApplicationInput) *dbmodel.Application {
+	var environmentVariables = make([]dbmodel.EnvironmentVariable, 0)
+	for _, environmentVariable := range record.EnvironmentVariables {
+		environmentVariables = append(environmentVariables, *environmentVariableInputToDatabaseObject(environmentVariable))
+	}
+	var persistentVolumeBindings = make([]dbmodel.PersistentVolumeBinding, 0)
+	for _, persistentVolumeBinding := range record.PersistentVolumeBindings {
+		persistentVolumeBindings = append(persistentVolumeBindings, *persistentVolumeBindingInputToDatabaseObject(persistentVolumeBinding))
+	}
+	return &dbmodel.Application{
+		Name:                     record.Name,
+		EnvironmentVariables:     environmentVariables,
+		PersistentVolumeBindings: persistentVolumeBindings,
+		DeploymentMode:           dbmodel.DeploymentMode(record.DeploymentMode),
+		Replicas:                 uint(record.Replicas),
+		LatestDeployment:         *applicationInputToDeploymentDatabaseObject(record),
+		Deployments:              make([]dbmodel.Deployment, 0),
+		IngressRules:             make([]dbmodel.IngressRule, 0),
+	}
+}
+
+// applicationToGraphqlObject : converts Application to ApplicationGraphqlObject
+func applicationToGraphqlObject(record *dbmodel.Application) *model.Application {
+	return &model.Application{
+		ID:             record.ID,
+		Name:           record.Name,
+		DeploymentMode: string(record.DeploymentMode),
+		Replicas:       int(record.Replicas),
 	}
 }
