@@ -41,19 +41,19 @@ func (application *Application) FindById(ctx context.Context, db gorm.DB, id str
 	return tx.Error
 }
 
-func (application *Application) Create(ctx context.Context, db gorm.DB) error {
+func (application *Application) Create(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
 	// TODO: add validation, create new deployment
 	tx := db.Create(&application)
 	return tx.Error
 }
 
-func (application *Application) Update(ctx context.Context, db gorm.DB) error {
+func (application *Application) Update(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
 	// TODO: add validation, create new deployment if change required
 	tx := db.Save(&application)
 	return tx.Error
 }
 
-func (application *Application) Delete(ctx context.Context, db gorm.DB) error {
+func (application *Application) Delete(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
 	// TODO: add validation, delete all deployments and application
 	tx := db.Delete(&application)
 	return tx.Error

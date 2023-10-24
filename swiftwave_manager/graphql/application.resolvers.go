@@ -14,7 +14,7 @@ import (
 // CreateApplication is the resolver for the createApplication field.
 func (r *mutationResolver) CreateApplication(ctx context.Context, input model.ApplicationInput) (*model.Application, error) {
 	record := applicationInputToDatabaseObject(&input)
-	err := record.Create(ctx, r.ServiceManager.DbClient)
+	err := record.Create(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 	var databaseObject = applicationInputToDatabaseObject(&input)
 	databaseObject.ID = record.ID
 	// update record
-	err = databaseObject.Update(ctx, r.ServiceManager.DbClient)
+	err = databaseObject.Update(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (r *mutationResolver) DeleteApplication(ctx context.Context, id string) (*m
 		return nil, err
 	}
 	// delete record
-	err = record.Delete(ctx, r.ServiceManager.DbClient)
+	err = record.Delete(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
 	if err != nil {
 		return nil, err
 	}
