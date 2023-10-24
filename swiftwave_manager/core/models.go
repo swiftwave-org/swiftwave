@@ -109,6 +109,8 @@ type Application struct {
 	LatestDeployment Deployment `json:"-"`
 	// Ingress Rules
 	IngressRules []IngressRule `json:"ingressRules" gorm:"foreignKey:ApplicationID"`
+	// Is deleted - soft delete - will be deleted from database in background
+	IsDeleted bool `json:"isDeleted" gorm:"default:false"`
 }
 
 // Deployment : hold information about deployment of application
