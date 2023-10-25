@@ -11,7 +11,7 @@ type Application {
     latestDeployment: Deployment!
     deployments: [Deployment!]!
     deploymentMode: DeploymentMode!
-    replicas: Int!
+    replicas: Uint!
     # TODO ingress rules
 }
 
@@ -22,10 +22,10 @@ input ApplicationInput {
     dockerfile: String # required for upstreamType = "git" or "SourceCode"
     buildArgs: [BuildArgInput!]!
     deploymentMode: DeploymentMode! # dont change with each deployment
-    replicas: Int # dont change with each deployment
+    replicas: Uint # dont change with each deployment
     upstreamType: UpstreamType!
     # required for upstreamType = "git"
-    gitCredentialID: Int
+    gitCredentialID: Uint
     gitProvider: GitProvider
     repositoryOwner: String
     repositoryName: String
@@ -34,7 +34,7 @@ input ApplicationInput {
     sourceCodeCompressedFileName: String
     # required for upstreamType = "Image"
     dockerImage: String
-    imageRegistryCredentialID: Int
+    imageRegistryCredentialID: Uint
 }
 
 extend type Query {

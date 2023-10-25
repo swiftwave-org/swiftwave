@@ -22,7 +22,7 @@ func (r *mutationResolver) CreatePersistentVolume(ctx context.Context, input mod
 }
 
 // DeletePersistentVolume is the resolver for the deletePersistentVolume field.
-func (r *mutationResolver) DeletePersistentVolume(ctx context.Context, id int) (*model.PersistentVolume, error) {
+func (r *mutationResolver) DeletePersistentVolume(ctx context.Context, id uint) (*model.PersistentVolume, error) {
 	// fetch record
 	var record dbmodel.PersistentVolume
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
@@ -51,7 +51,7 @@ func (r *queryResolver) PersistentVolumes(ctx context.Context) ([]*model.Persist
 }
 
 // PersistentVolume is the resolver for the persistentVolume field.
-func (r *queryResolver) PersistentVolume(ctx context.Context, id int) (*model.PersistentVolume, error) {
+func (r *queryResolver) PersistentVolume(ctx context.Context, id uint) (*model.PersistentVolume, error) {
 	var record dbmodel.PersistentVolume
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {

@@ -22,7 +22,7 @@ func (r *mutationResolver) CreateImageRegistryCredential(ctx context.Context, in
 }
 
 // UpdateImageRegistryCredential is the resolver for the updateImageRegistryCredential field.
-func (r *mutationResolver) UpdateImageRegistryCredential(ctx context.Context, id int, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error) {
+func (r *mutationResolver) UpdateImageRegistryCredential(ctx context.Context, id uint, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error) {
 	// fetch record
 	var record = &dbmodel.ImageRegistryCredential{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
@@ -41,7 +41,7 @@ func (r *mutationResolver) UpdateImageRegistryCredential(ctx context.Context, id
 }
 
 // DeleteImageRegistryCredential is the resolver for the deleteImageRegistryCredential field.
-func (r *mutationResolver) DeleteImageRegistryCredential(ctx context.Context, id int) (*model.ImageRegistryCredential, error) {
+func (r *mutationResolver) DeleteImageRegistryCredential(ctx context.Context, id uint) (*model.ImageRegistryCredential, error) {
 	// fetch record
 	var record = &dbmodel.ImageRegistryCredential{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
@@ -70,7 +70,7 @@ func (r *queryResolver) ImageRegistryCredentials(ctx context.Context) ([]*model.
 }
 
 // ImageRegistryCredential is the resolver for the imageRegistryCredential field.
-func (r *queryResolver) ImageRegistryCredential(ctx context.Context, id int) (*model.ImageRegistryCredential, error) {
+func (r *queryResolver) ImageRegistryCredential(ctx context.Context, id uint) (*model.ImageRegistryCredential, error) {
 	var record = &dbmodel.ImageRegistryCredential{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {

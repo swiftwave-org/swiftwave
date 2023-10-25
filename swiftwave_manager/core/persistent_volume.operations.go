@@ -37,7 +37,7 @@ func FindAllPersistentVolumes(ctx context.Context, db gorm.DB) ([]*PersistentVol
 	return persistentVolumes, tx.Error
 }
 
-func (persistentVolume *PersistentVolume) FindById(ctx context.Context, db gorm.DB, id int) error {
+func (persistentVolume *PersistentVolume) FindById(ctx context.Context, db gorm.DB, id uint) error {
 	tx := db.First(&persistentVolume, id)
 	return tx.Error
 }

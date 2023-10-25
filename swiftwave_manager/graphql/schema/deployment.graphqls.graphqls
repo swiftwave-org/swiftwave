@@ -25,7 +25,7 @@ type Deployment {
     application: Application!
     upstreamType: UpstreamType!
     # required for upstreamType = "git"
-    gitCredentialID: Int!
+    gitCredentialID: Uint!
     gitCredential: GitCredential!
     gitProvider: GitProvider!
     repositoryOwner: String!
@@ -36,7 +36,7 @@ type Deployment {
     sourceCodeCompressedFileName: String!
     # required for upstreamType = "Image"
     dockerImage: String!
-    imageRegistryCredentialID: Int!
+    imageRegistryCredentialID: Uint!
     imageRegistryCredential: ImageRegistryCredential!
     # Common Fields
     buildArgs: [BuildArg!]!

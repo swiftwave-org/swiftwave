@@ -23,7 +23,7 @@ func (r *mutationResolver) CreateGitCredential(ctx context.Context, input model.
 }
 
 // UpdateGitCredential is the resolver for the updateGitCredential field.
-func (r *mutationResolver) UpdateGitCredential(ctx context.Context, id int, input model.GitCredentialInput) (*model.GitCredential, error) {
+func (r *mutationResolver) UpdateGitCredential(ctx context.Context, id uint, input model.GitCredentialInput) (*model.GitCredential, error) {
 	// fetch record
 	var record = &dbmodel.GitCredential{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
@@ -42,7 +42,7 @@ func (r *mutationResolver) UpdateGitCredential(ctx context.Context, id int, inpu
 }
 
 // DeleteGitCredential is the resolver for the deleteGitCredential field.
-func (r *mutationResolver) DeleteGitCredential(ctx context.Context, id int) (*model.GitCredential, error) {
+func (r *mutationResolver) DeleteGitCredential(ctx context.Context, id uint) (*model.GitCredential, error) {
 	// fetch record
 	var record = &dbmodel.GitCredential{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
@@ -71,7 +71,7 @@ func (r *queryResolver) GitCredentials(ctx context.Context) ([]*model.GitCredent
 }
 
 // GitCredential is the resolver for the GitCredential field.
-func (r *queryResolver) GitCredential(ctx context.Context, id int) (*model.GitCredential, error) {
+func (r *queryResolver) GitCredential(ctx context.Context, id uint) (*model.GitCredential, error) {
 	var record = &dbmodel.GitCredential{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {

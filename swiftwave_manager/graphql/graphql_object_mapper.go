@@ -16,7 +16,7 @@ import (
 // gitCredentialToGraphqlObject : converts GitCredential to GitCredentialGraphqlObject
 func gitCredentialToGraphqlObject(record *dbmodel.GitCredential) *model.GitCredential {
 	return &model.GitCredential{
-		ID:       int(record.ID),
+		ID:       record.ID,
 		Name:     record.Name,
 		Username: record.Username,
 		Password: record.Password,
@@ -35,7 +35,7 @@ func gitCredentialInputToDatabaseObject(record *model.GitCredentialInput) *dbmod
 // imageRegistryCredentialToGraphqlObject : converts ImageRegistryCredential to ImageRegistryCredentialGraphqlObject
 func imageRegistryCredentialToGraphqlObject(record *dbmodel.ImageRegistryCredential) *model.ImageRegistryCredential {
 	return &model.ImageRegistryCredential{
-		ID:       int(record.ID),
+		ID:       record.ID,
 		URL:      record.Url,
 		Username: record.Username,
 		Password: record.Password,
@@ -54,7 +54,7 @@ func imageRegistryCredentialInputToDatabaseObject(record *model.ImageRegistryCre
 // persistentVolumeToGraphqlObject : converts PersistentVolume to PersistentVolumeGraphqlObject
 func persistentVolumeToGraphqlObject(record *dbmodel.PersistentVolume) *model.PersistentVolume {
 	return &model.PersistentVolume{
-		ID:   int(record.ID),
+		ID:   record.ID,
 		Name: record.Name,
 	}
 }
@@ -69,7 +69,7 @@ func persistentVolumeInputToDatabaseObject(record *model.PersistentVolumeInput) 
 // persistentVolumeBindingInputToDatabaseObject : converts PersistentVolumeBindingInput to PersistentVolumeBindingDatabaseObject
 func persistentVolumeBindingInputToDatabaseObject(record *model.PersistentVolumeBindingInput) *dbmodel.PersistentVolumeBinding {
 	return &dbmodel.PersistentVolumeBinding{
-		PersistentVolumeID: uint(record.PersistentVolumeID),
+		PersistentVolumeID: record.PersistentVolumeID,
 		MountingPath:       record.MountingPath,
 	}
 }
@@ -77,8 +77,8 @@ func persistentVolumeBindingInputToDatabaseObject(record *model.PersistentVolume
 // persistentVolumeBindingToGraphqlObject : converts PersistentVolumeBinding to PersistentVolumeBindingGraphqlObject
 func persistentVolumeBindingToGraphqlObject(record *dbmodel.PersistentVolumeBinding) *model.PersistentVolumeBinding {
 	return &model.PersistentVolumeBinding{
-		ID:                 int(record.ID),
-		PersistentVolumeID: int(record.PersistentVolumeID),
+		ID:                 record.ID,
+		PersistentVolumeID: record.PersistentVolumeID,
 		MountingPath:       record.MountingPath,
 	}
 }
@@ -123,7 +123,7 @@ func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) 
 	}
 	return &dbmodel.Deployment{
 		UpstreamType:                 dbmodel.UpstreamType(record.UpstreamType), // TODO: Check this
-		GitCredentialID:              uint(DefaultInt(record.GitCredentialID, 0)),
+		GitCredentialID:              DefaultUint(record.GitCredentialID, 0),
 		GitProvider:                  dbmodel.GitProvider(DefaultGitProvider(record.GitProvider)),
 		RepositoryOwner:              DefaultString(record.RepositoryOwner, ""),
 		RepositoryName:               DefaultString(record.RepositoryName, ""),
@@ -131,7 +131,7 @@ func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) 
 		CommitHash:                   "",
 		SourceCodeCompressedFileName: DefaultString(record.SourceCodeCompressedFileName, ""),
 		DockerImage:                  DefaultString(record.DockerImage, ""),
-		ImageRegistryCredentialID:    uint(DefaultInt(record.ImageRegistryCredentialID, 0)),
+		ImageRegistryCredentialID:    DefaultUint(record.ImageRegistryCredentialID, 0),
 		BuildArgs:                    buildArgs,
 		Dockerfile:                   DefaultString(record.Dockerfile, ""),
 		Logs:                         make([]dbmodel.DeploymentLog, 0),
@@ -155,7 +155,7 @@ func applicationInputToDatabaseObject(record *model.ApplicationInput) *dbmodel.A
 		EnvironmentVariables:     environmentVariables,
 		PersistentVolumeBindings: persistentVolumeBindings,
 		DeploymentMode:           dbmodel.DeploymentMode(record.DeploymentMode),
-		Replicas:                 uint(DefaultInt(record.Replicas, 0)),
+		Replicas:                 DefaultUint(record.Replicas, 0),
 		LatestDeployment:         *applicationInputToDeploymentDatabaseObject(record),
 		Deployments:              make([]dbmodel.Deployment, 0),
 		IngressRules:             make([]dbmodel.IngressRule, 0),
@@ -168,7 +168,7 @@ func applicationToGraphqlObject(record *dbmodel.Application) *model.Application 
 		ID:             record.ID,
 		Name:           record.Name,
 		DeploymentMode: model.DeploymentMode(record.DeploymentMode),
-		Replicas:       int(record.Replicas),
+		Replicas:       record.Replicas,
 	}
 }
 
@@ -178,7 +178,7 @@ func deploymentToGraphqlObject(record *dbmodel.Deployment) *model.Deployment {
 		ID:                           record.ID,
 		ApplicationID:                record.ApplicationID,
 		UpstreamType:                 model.UpstreamType(record.UpstreamType),
-		GitCredentialID:              int(record.GitCredentialID),
+		GitCredentialID:              record.GitCredentialID,
 		GitProvider:                  model.GitProvider(record.GitProvider),
 		RepositoryOwner:              record.RepositoryOwner,
 		RepositoryName:               record.RepositoryName,
@@ -186,7 +186,7 @@ func deploymentToGraphqlObject(record *dbmodel.Deployment) *model.Deployment {
 		CommitHash:                   record.CommitHash,
 		SourceCodeCompressedFileName: record.SourceCodeCompressedFileName,
 		DockerImage:                  record.DockerImage,
-		ImageRegistryCredentialID:    int(record.ImageRegistryCredentialID),
+		ImageRegistryCredentialID:    record.ImageRegistryCredentialID,
 		Dockerfile:                   record.Dockerfile,
 		Status:                       model.DeploymentStatus(record.Status),
 		CreatedAt:                    record.CreatedAt,

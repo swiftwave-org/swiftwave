@@ -1,5 +1,5 @@
 type PersistentVolume {
-    id: Int!
+    id: Uint!
     name: String!
 }
 
@@ -9,11 +9,11 @@ input PersistentVolumeInput {
 
 extend type Query {
     persistentVolumes: [PersistentVolume]
-    persistentVolume(id: Int!): PersistentVolume
+    persistentVolume(id: Uint!): PersistentVolume
     isExistPersistentVolume(name: String!): Boolean
 }
 
 extend type Mutation {
     createPersistentVolume(input: PersistentVolumeInput!): PersistentVolume
-    deletePersistentVolume(id: Int!): PersistentVolume
+    deletePersistentVolume(id: Uint!): PersistentVolume
 }

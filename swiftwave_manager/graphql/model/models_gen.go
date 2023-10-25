@@ -17,7 +17,7 @@ type Application struct {
 	LatestDeployment         *Deployment                `json:"latestDeployment"`
 	Deployments              []*Deployment              `json:"deployments"`
 	DeploymentMode           DeploymentMode             `json:"deploymentMode"`
-	Replicas                 int                        `json:"replicas"`
+	Replicas                 uint                       `json:"replicas"`
 }
 
 type ApplicationInput struct {
@@ -27,16 +27,16 @@ type ApplicationInput struct {
 	Dockerfile                   *string                         `json:"dockerfile,omitempty"`
 	BuildArgs                    []*BuildArgInput                `json:"buildArgs"`
 	DeploymentMode               DeploymentMode                  `json:"deploymentMode"`
-	Replicas                     *int                            `json:"replicas,omitempty"`
+	Replicas                     *uint                           `json:"replicas,omitempty"`
 	UpstreamType                 UpstreamType                    `json:"upstreamType"`
-	GitCredentialID              *int                            `json:"gitCredentialID,omitempty"`
+	GitCredentialID              *uint                           `json:"gitCredentialID,omitempty"`
 	GitProvider                  *GitProvider                    `json:"gitProvider,omitempty"`
 	RepositoryOwner              *string                         `json:"repositoryOwner,omitempty"`
 	RepositoryName               *string                         `json:"repositoryName,omitempty"`
 	RepositoryBranch             *string                         `json:"repositoryBranch,omitempty"`
 	SourceCodeCompressedFileName *string                         `json:"sourceCodeCompressedFileName,omitempty"`
 	DockerImage                  *string                         `json:"dockerImage,omitempty"`
-	ImageRegistryCredentialID    *int                            `json:"imageRegistryCredentialID,omitempty"`
+	ImageRegistryCredentialID    *uint                           `json:"imageRegistryCredentialID,omitempty"`
 }
 
 type BuildArg struct {
@@ -54,7 +54,7 @@ type Deployment struct {
 	ApplicationID                string                   `json:"applicationID"`
 	Application                  *Application             `json:"application"`
 	UpstreamType                 UpstreamType             `json:"upstreamType"`
-	GitCredentialID              int                      `json:"gitCredentialID"`
+	GitCredentialID              uint                     `json:"gitCredentialID"`
 	GitCredential                *GitCredential           `json:"gitCredential"`
 	GitProvider                  GitProvider              `json:"gitProvider"`
 	RepositoryOwner              string                   `json:"repositoryOwner"`
@@ -63,7 +63,7 @@ type Deployment struct {
 	CommitHash                   string                   `json:"commitHash"`
 	SourceCodeCompressedFileName string                   `json:"sourceCodeCompressedFileName"`
 	DockerImage                  string                   `json:"dockerImage"`
-	ImageRegistryCredentialID    int                      `json:"imageRegistryCredentialID"`
+	ImageRegistryCredentialID    uint                     `json:"imageRegistryCredentialID"`
 	ImageRegistryCredential      *ImageRegistryCredential `json:"imageRegistryCredential"`
 	BuildArgs                    []*BuildArg              `json:"buildArgs"`
 	Dockerfile                   string                   `json:"dockerfile"`
@@ -88,7 +88,7 @@ type EnvironmentVariableInput struct {
 }
 
 type GitCredential struct {
-	ID       int    `json:"id"`
+	ID       uint   `json:"id"`
 	Name     string `json:"name"`
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -101,13 +101,13 @@ type GitCredentialInput struct {
 }
 
 type GitCredentialRepositoryAccessInput struct {
-	GitCredentialID  int    `json:"gitCredentialId"`
+	GitCredentialID  uint   `json:"gitCredentialId"`
 	RepositoryURL    string `json:"repositoryUrl"`
 	RepositoryBranch string `json:"repositoryBranch"`
 }
 
 type GitCredentialRepositoryAccessResult struct {
-	GitCredentialID  int            `json:"gitCredentialId"`
+	GitCredentialID  uint           `json:"gitCredentialId"`
 	GitCredential    *GitCredential `json:"gitCredential"`
 	RepositoryURL    string         `json:"repositoryUrl"`
 	RepositoryBranch string         `json:"repositoryBranch"`
@@ -116,7 +116,7 @@ type GitCredentialRepositoryAccessResult struct {
 }
 
 type ImageRegistryCredential struct {
-	ID       int    `json:"id"`
+	ID       uint   `json:"id"`
 	URL      string `json:"url"`
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -129,13 +129,13 @@ type ImageRegistryCredentialInput struct {
 }
 
 type PersistentVolume struct {
-	ID   int    `json:"id"`
+	ID   uint   `json:"id"`
 	Name string `json:"name"`
 }
 
 type PersistentVolumeBinding struct {
-	ID                 int               `json:"id"`
-	PersistentVolumeID int               `json:"persistentVolumeID"`
+	ID                 uint              `json:"id"`
+	PersistentVolumeID uint              `json:"persistentVolumeID"`
 	PersistentVolume   *PersistentVolume `json:"persistentVolume"`
 	ApplicationID      string            `json:"applicationID"`
 	Application        *Application      `json:"application"`
@@ -143,7 +143,7 @@ type PersistentVolumeBinding struct {
 }
 
 type PersistentVolumeBindingInput struct {
-	PersistentVolumeID int    `json:"persistentVolumeID"`
+	PersistentVolumeID uint   `json:"persistentVolumeID"`
 	MountingPath       string `json:"mountingPath"`
 }
 

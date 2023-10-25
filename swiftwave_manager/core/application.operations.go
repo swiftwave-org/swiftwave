@@ -65,7 +65,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	// For UpstreamType = Git, verify git record id
 	if application.LatestDeployment.UpstreamType == UpstreamTypeGit {
 		var gitCredential = &GitCredential{}
-		err := gitCredential.FindById(ctx, db, int(application.LatestDeployment.GitCredentialID))
+		err := gitCredential.FindById(ctx, db, application.LatestDeployment.GitCredentialID)
 		if err != nil {
 			return err
 		}
@@ -74,7 +74,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	if application.LatestDeployment.UpstreamType == UpstreamTypeImage {
 		if application.LatestDeployment.ImageRegistryCredentialID != 0 {
 			var imageRegistryCredential = &ImageRegistryCredential{}
-			err := imageRegistryCredential.FindById(ctx, db, int(application.LatestDeployment.ImageRegistryCredentialID))
+			err := imageRegistryCredential.FindById(ctx, db, application.LatestDeployment.ImageRegistryCredentialID)
 			if err != nil {
 				return err
 			}
@@ -118,7 +118,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	for _, persistentVolumeBinding := range application.PersistentVolumeBindings {
 		// verify persistent volume exists
 		var persistentVolume = &PersistentVolume{}
-		err := persistentVolume.FindById(ctx, db, int(persistentVolumeBinding.PersistentVolumeID))
+		err := persistentVolume.FindById(ctx, db, persistentVolumeBinding.PersistentVolumeID)
 		if err != nil {
 			return err
 		}

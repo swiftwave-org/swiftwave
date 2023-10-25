@@ -17,7 +17,7 @@ func FindAllImageRegistryCredentials(ctx context.Context, db gorm.DB) ([]*ImageR
 	return imageRegistryCredentials, tx.Error
 }
 
-func (imageRegistryCredential *ImageRegistryCredential) FindById(ctx context.Context, db gorm.DB, id int) error {
+func (imageRegistryCredential *ImageRegistryCredential) FindById(ctx context.Context, db gorm.DB, id uint) error {
 	tx := db.First(&imageRegistryCredential, id)
 	return tx.Error
 }

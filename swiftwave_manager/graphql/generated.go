@@ -129,12 +129,12 @@ type ComplexityRoot struct {
 		CreateImageRegistryCredential func(childComplexity int, input model.ImageRegistryCredentialInput) int
 		CreatePersistentVolume        func(childComplexity int, input model.PersistentVolumeInput) int
 		DeleteApplication             func(childComplexity int, id string) int
-		DeleteGitCredential           func(childComplexity int, id int) int
-		DeleteImageRegistryCredential func(childComplexity int, id int) int
-		DeletePersistentVolume        func(childComplexity int, id int) int
+		DeleteGitCredential           func(childComplexity int, id uint) int
+		DeleteImageRegistryCredential func(childComplexity int, id uint) int
+		DeletePersistentVolume        func(childComplexity int, id uint) int
 		UpdateApplication             func(childComplexity int, id string, input model.ApplicationInput) int
-		UpdateGitCredential           func(childComplexity int, id int, input model.GitCredentialInput) int
-		UpdateImageRegistryCredential func(childComplexity int, id int, input model.ImageRegistryCredentialInput) int
+		UpdateGitCredential           func(childComplexity int, id uint, input model.GitCredentialInput) int
+		UpdateImageRegistryCredential func(childComplexity int, id uint, input model.ImageRegistryCredentialInput) int
 	}
 
 	PersistentVolume struct {
@@ -155,13 +155,13 @@ type ComplexityRoot struct {
 		Application                        func(childComplexity int, id string) int
 		Applications                       func(childComplexity int) int
 		CheckGitCredentialRepositoryAccess func(childComplexity int, input model.GitCredentialRepositoryAccessInput) int
-		GitCredential                      func(childComplexity int, id int) int
+		GitCredential                      func(childComplexity int, id uint) int
 		GitCredentials                     func(childComplexity int) int
-		ImageRegistryCredential            func(childComplexity int, id int) int
+		ImageRegistryCredential            func(childComplexity int, id uint) int
 		ImageRegistryCredentials           func(childComplexity int) int
 		IsExistApplicationName             func(childComplexity int, name string) int
 		IsExistPersistentVolume            func(childComplexity int, name string) int
-		PersistentVolume                   func(childComplexity int, id int) int
+		PersistentVolume                   func(childComplexity int, id uint) int
 		PersistentVolumes                  func(childComplexity int) int
 	}
 }
@@ -187,13 +187,13 @@ type MutationResolver interface {
 	UpdateApplication(ctx context.Context, id string, input model.ApplicationInput) (*model.Application, error)
 	DeleteApplication(ctx context.Context, id string) (*model.Application, error)
 	CreateGitCredential(ctx context.Context, input model.GitCredentialInput) (*model.GitCredential, error)
-	UpdateGitCredential(ctx context.Context, id int, input model.GitCredentialInput) (*model.GitCredential, error)
-	DeleteGitCredential(ctx context.Context, id int) (*model.GitCredential, error)
+	UpdateGitCredential(ctx context.Context, id uint, input model.GitCredentialInput) (*model.GitCredential, error)
+	DeleteGitCredential(ctx context.Context, id uint) (*model.GitCredential, error)
 	CreateImageRegistryCredential(ctx context.Context, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error)
-	UpdateImageRegistryCredential(ctx context.Context, id int, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error)
-	DeleteImageRegistryCredential(ctx context.Context, id int) (*model.ImageRegistryCredential, error)
+	UpdateImageRegistryCredential(ctx context.Context, id uint, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error)
+	DeleteImageRegistryCredential(ctx context.Context, id uint) (*model.ImageRegistryCredential, error)
 	CreatePersistentVolume(ctx context.Context, input model.PersistentVolumeInput) (*model.PersistentVolume, error)
-	DeletePersistentVolume(ctx context.Context, id int) (*model.PersistentVolume, error)
+	DeletePersistentVolume(ctx context.Context, id uint) (*model.PersistentVolume, error)
 }
 type PersistentVolumeBindingResolver interface {
 	PersistentVolume(ctx context.Context, obj *model.PersistentVolumeBinding) (*model.PersistentVolume, error)
@@ -205,12 +205,12 @@ type QueryResolver interface {
 	Applications(ctx context.Context) ([]*model.Application, error)
 	IsExistApplicationName(ctx context.Context, name string) (bool, error)
 	GitCredentials(ctx context.Context) ([]*model.GitCredential, error)
-	GitCredential(ctx context.Context, id int) (*model.GitCredential, error)
+	GitCredential(ctx context.Context, id uint) (*model.GitCredential, error)
 	CheckGitCredentialRepositoryAccess(ctx context.Context, input model.GitCredentialRepositoryAccessInput) (*model.GitCredentialRepositoryAccessResult, error)
 	ImageRegistryCredentials(ctx context.Context) ([]*model.ImageRegistryCredential, error)
-	ImageRegistryCredential(ctx context.Context, id int) (*model.ImageRegistryCredential, error)
+	ImageRegistryCredential(ctx context.Context, id uint) (*model.ImageRegistryCredential, error)
 	PersistentVolumes(ctx context.Context) ([]*model.PersistentVolume, error)
-	PersistentVolume(ctx context.Context, id int) (*model.PersistentVolume, error)
+	PersistentVolume(ctx context.Context, id uint) (*model.PersistentVolume, error)
 	IsExistPersistentVolume(ctx context.Context, name string) (*bool, error)
 }
 
@@ -639,7 +639,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteGitCredential(childComplexity, args["id"].(int)), true
+		return e.complexity.Mutation.DeleteGitCredential(childComplexity, args["id"].(uint)), true
 
 	case "Mutation.deleteImageRegistryCredential":
 		if e.complexity.Mutation.DeleteImageRegistryCredential == nil {
@@ -651,7 +651,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteImageRegistryCredential(childComplexity, args["id"].(int)), true
+		return e.complexity.Mutation.DeleteImageRegistryCredential(childComplexity, args["id"].(uint)), true
 
 	case "Mutation.deletePersistentVolume":
 		if e.complexity.Mutation.DeletePersistentVolume == nil {
@@ -663,7 +663,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeletePersistentVolume(childComplexity, args["id"].(int)), true
+		return e.complexity.Mutation.DeletePersistentVolume(childComplexity, args["id"].(uint)), true
 
 	case "Mutation.updateApplication":
 		if e.complexity.Mutation.UpdateApplication == nil {
@@ -687,7 +687,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateGitCredential(childComplexity, args["id"].(int), args["input"].(model.GitCredentialInput)), true
+		return e.complexity.Mutation.UpdateGitCredential(childComplexity, args["id"].(uint), args["input"].(model.GitCredentialInput)), true
 
 	case "Mutation.updateImageRegistryCredential":
 		if e.complexity.Mutation.UpdateImageRegistryCredential == nil {
@@ -699,7 +699,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateImageRegistryCredential(childComplexity, args["id"].(int), args["input"].(model.ImageRegistryCredentialInput)), true
+		return e.complexity.Mutation.UpdateImageRegistryCredential(childComplexity, args["id"].(uint), args["input"].(model.ImageRegistryCredentialInput)), true
 
 	case "PersistentVolume.id":
 		if e.complexity.PersistentVolume.ID == nil {
@@ -798,7 +798,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GitCredential(childComplexity, args["id"].(int)), true
+		return e.complexity.Query.GitCredential(childComplexity, args["id"].(uint)), true
 
 	case "Query.gitCredentials":
 		if e.complexity.Query.GitCredentials == nil {
@@ -817,7 +817,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ImageRegistryCredential(childComplexity, args["id"].(int)), true
+		return e.complexity.Query.ImageRegistryCredential(childComplexity, args["id"].(uint)), true
 
 	case "Query.imageRegistryCredentials":
 		if e.complexity.Query.ImageRegistryCredentials == nil {
@@ -860,7 +860,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.PersistentVolume(childComplexity, args["id"].(int)), true
+		return e.complexity.Query.PersistentVolume(childComplexity, args["id"].(uint)), true
 
 	case "Query.persistentVolumes":
 		if e.complexity.Query.PersistentVolumes == nil {
@@ -1088,10 +1088,10 @@ func (ec *executionContext) field_Mutation_deleteApplication_args(ctx context.Co
 func (ec *executionContext) field_Mutation_deleteGitCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
+	var arg0 uint
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1103,10 +1103,10 @@ func (ec *executionContext) field_Mutation_deleteGitCredential_args(ctx context.
 func (ec *executionContext) field_Mutation_deleteImageRegistryCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
+	var arg0 uint
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1118,10 +1118,10 @@ func (ec *executionContext) field_Mutation_deleteImageRegistryCredential_args(ct
 func (ec *executionContext) field_Mutation_deletePersistentVolume_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
+	var arg0 uint
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1157,10 +1157,10 @@ func (ec *executionContext) field_Mutation_updateApplication_args(ctx context.Co
 func (ec *executionContext) field_Mutation_updateGitCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
+	var arg0 uint
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1181,10 +1181,10 @@ func (ec *executionContext) field_Mutation_updateGitCredential_args(ctx context.
 func (ec *executionContext) field_Mutation_updateImageRegistryCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
+	var arg0 uint
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1250,10 +1250,10 @@ func (ec *executionContext) field_Query_checkGitCredentialRepositoryAccess_args(
 func (ec *executionContext) field_Query_gitCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
+	var arg0 uint
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1265,10 +1265,10 @@ func (ec *executionContext) field_Query_gitCredential_args(ctx context.Context, 
 func (ec *executionContext) field_Query_imageRegistryCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
+	var arg0 uint
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1310,10 +1310,10 @@ func (ec *executionContext) field_Query_isExistPersistentVolume_args(ctx context
 func (ec *executionContext) field_Query_persistentVolume_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
+	var arg0 uint
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1798,9 +1798,9 @@ func (ec *executionContext) _Application_replicas(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(uint)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Application_replicas(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1810,7 +1810,7 @@ func (ec *executionContext) fieldContext_Application_replicas(ctx context.Contex
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Uint does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2124,9 +2124,9 @@ func (ec *executionContext) _Deployment_gitCredentialID(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(uint)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Deployment_gitCredentialID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2136,7 +2136,7 @@ func (ec *executionContext) fieldContext_Deployment_gitCredentialID(ctx context.
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Uint does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2530,9 +2530,9 @@ func (ec *executionContext) _Deployment_imageRegistryCredentialID(ctx context.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(uint)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Deployment_imageRegistryCredentialID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2542,7 +2542,7 @@ func (ec *executionContext) fieldContext_Deployment_imageRegistryCredentialID(ct
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Uint does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3036,9 +3036,9 @@ func (ec *executionContext) _GitCredential_id(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(uint)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_GitCredential_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3048,7 +3048,7 @@ func (ec *executionContext) fieldContext_GitCredential_id(ctx context.Context, f
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Uint does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3212,9 +3212,9 @@ func (ec *executionContext) _GitCredentialRepositoryAccessResult_gitCredentialId
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(uint)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_GitCredentialRepositoryAccessResult_gitCredentialId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3224,7 +3224,7 @@ func (ec *executionContext) fieldContext_GitCredentialRepositoryAccessResult_git
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Uint does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3486,9 +3486,9 @@ func (ec *executionContext) _ImageRegistryCredential_id(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(uint)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ImageRegistryCredential_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3498,7 +3498,7 @@ func (ec *executionContext) fieldContext_ImageRegistryCredential_id(ctx context.
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Uint does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3934,7 +3934,7 @@ func (ec *executionContext) _Mutation_updateGitCredential(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateGitCredential(rctx, fc.Args["id"].(int), fc.Args["input"].(model.GitCredentialInput))
+		return ec.resolvers.Mutation().UpdateGitCredential(rctx, fc.Args["id"].(uint), fc.Args["input"].(model.GitCredentialInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3999,7 +3999,7 @@ func (ec *executionContext) _Mutation_deleteGitCredential(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteGitCredential(rctx, fc.Args["id"].(int))
+		return ec.resolvers.Mutation().DeleteGitCredential(rctx, fc.Args["id"].(uint))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4129,7 +4129,7 @@ func (ec *executionContext) _Mutation_updateImageRegistryCredential(ctx context.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateImageRegistryCredential(rctx, fc.Args["id"].(int), fc.Args["input"].(model.ImageRegistryCredentialInput))
+		return ec.resolvers.Mutation().UpdateImageRegistryCredential(rctx, fc.Args["id"].(uint), fc.Args["input"].(model.ImageRegistryCredentialInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4194,7 +4194,7 @@ func (ec *executionContext) _Mutation_deleteImageRegistryCredential(ctx context.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteImageRegistryCredential(rctx, fc.Args["id"].(int))
+		return ec.resolvers.Mutation().DeleteImageRegistryCredential(rctx, fc.Args["id"].(uint))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4317,7 +4317,7 @@ func (ec *executionContext) _Mutation_deletePersistentVolume(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeletePersistentVolume(rctx, fc.Args["id"].(int))
+		return ec.resolvers.Mutation().DeletePersistentVolume(rctx, fc.Args["id"].(uint))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4387,9 +4387,9 @@ func (ec *executionContext) _PersistentVolume_id(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(uint)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PersistentVolume_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4399,7 +4399,7 @@ func (ec *executionContext) fieldContext_PersistentVolume_id(ctx context.Context
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Uint does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4475,9 +4475,9 @@ func (ec *executionContext) _PersistentVolumeBinding_id(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(uint)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PersistentVolumeBinding_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4487,7 +4487,7 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_id(ctx context.
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Uint does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4519,9 +4519,9 @@ func (ec *executionContext) _PersistentVolumeBinding_persistentVolumeID(ctx cont
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(uint)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PersistentVolumeBinding_persistentVolumeID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4531,7 +4531,7 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_persistentVolum
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Uint does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4995,7 +4995,7 @@ func (ec *executionContext) _Query_gitCredential(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GitCredential(rctx, fc.Args["id"].(int))
+		return ec.resolvers.Query().GitCredential(rctx, fc.Args["id"].(uint))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5183,7 +5183,7 @@ func (ec *executionContext) _Query_imageRegistryCredential(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ImageRegistryCredential(rctx, fc.Args["id"].(int))
+		return ec.resolvers.Query().ImageRegistryCredential(rctx, fc.Args["id"].(uint))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5295,7 +5295,7 @@ func (ec *executionContext) _Query_persistentVolume(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().PersistentVolume(rctx, fc.Args["id"].(int))
+		return ec.resolvers.Query().PersistentVolume(rctx, fc.Args["id"].(uint))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7365,7 +7365,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("replicas"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOUint2ᚖuint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7383,7 +7383,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gitCredentialID"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOUint2ᚖuint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7446,7 +7446,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageRegistryCredentialID"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOUint2ᚖuint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7598,7 +7598,7 @@ func (ec *executionContext) unmarshalInputGitCredentialRepositoryAccessInput(ctx
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gitCredentialId"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNUint2uint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7692,7 +7692,7 @@ func (ec *executionContext) unmarshalInputPersistentVolumeBindingInput(ctx conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("persistentVolumeID"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNUint2uint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9949,21 +9949,6 @@ func (ec *executionContext) unmarshalNImageRegistryCredentialInput2githubᚗcom�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
-	res, err := graphql.UnmarshalInt(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	res := graphql.MarshalInt(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) marshalNPersistentVolume2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v model.PersistentVolume) graphql.Marshaler {
 	return ec._PersistentVolume(ctx, sel, &v)
 }
@@ -10081,6 +10066,21 @@ func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v in
 
 func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
 	res := graphql.MarshalTime(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNUint2uint(ctx context.Context, v interface{}) (uint, error) {
+	res, err := graphql.UnmarshalUint(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUint2uint(ctx context.Context, sel ast.SelectionSet, v uint) graphql.Marshaler {
+	res := graphql.MarshalUint(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -10394,22 +10394,6 @@ func (ec *executionContext) marshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑor
 	return v
 }
 
-func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalInt(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	res := graphql.MarshalInt(*v)
-	return res
-}
-
 func (ec *executionContext) marshalOPersistentVolume2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v []*model.PersistentVolume) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -10471,6 +10455,22 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	res := graphql.MarshalString(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOUint2ᚖuint(ctx context.Context, v interface{}) (*uint, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalUint(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUint2ᚖuint(ctx context.Context, sel ast.SelectionSet, v *uint) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalUint(*v)
 	return res
 }
 
