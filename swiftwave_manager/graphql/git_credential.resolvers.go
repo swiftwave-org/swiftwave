@@ -25,7 +25,7 @@ func (r *mutationResolver) CreateGitCredential(ctx context.Context, input model.
 // UpdateGitCredential is the resolver for the updateGitCredential field.
 func (r *mutationResolver) UpdateGitCredential(ctx context.Context, id int, input model.GitCredentialInput) (*model.GitCredential, error) {
 	// fetch record
-	var record dbmodel.GitCredential
+	var record = &dbmodel.GitCredential{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
 		return nil, err
@@ -38,13 +38,13 @@ func (r *mutationResolver) UpdateGitCredential(ctx context.Context, id int, inpu
 	if err != nil {
 		return nil, err
 	}
-	return gitCredentialToGraphqlObject(&record), nil
+	return gitCredentialToGraphqlObject(record), nil
 }
 
 // DeleteGitCredential is the resolver for the deleteGitCredential field.
 func (r *mutationResolver) DeleteGitCredential(ctx context.Context, id int) (*model.GitCredential, error) {
 	// fetch record
-	var record dbmodel.GitCredential
+	var record = &dbmodel.GitCredential{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (r *mutationResolver) DeleteGitCredential(ctx context.Context, id int) (*mo
 	if err != nil {
 		return nil, err
 	}
-	return gitCredentialToGraphqlObject(&record), nil
+	return gitCredentialToGraphqlObject(record), nil
 }
 
 // GitCredentials is the resolver for the GitCredentials field.
@@ -72,18 +72,18 @@ func (r *queryResolver) GitCredentials(ctx context.Context) ([]*model.GitCredent
 
 // GitCredential is the resolver for the GitCredential field.
 func (r *queryResolver) GitCredential(ctx context.Context, id int) (*model.GitCredential, error) {
-	var record dbmodel.GitCredential
+	var record = &dbmodel.GitCredential{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
 		return nil, err
 	}
-	return gitCredentialToGraphqlObject(&record), nil
+	return gitCredentialToGraphqlObject(record), nil
 }
 
 // CheckGitCredentialRepositoryAccess is the resolver for the checkGitCredentialRepositoryAccess field.
 func (r *queryResolver) CheckGitCredentialRepositoryAccess(ctx context.Context, input model.GitCredentialRepositoryAccessInput) (*model.GitCredentialRepositoryAccessResult, error) {
 	// Fetch git credential
-	var gitCredential dbmodel.GitCredential
+	var gitCredential = &dbmodel.GitCredential{}
 	tx := r.ServiceManager.DbClient.First(&gitCredential, input.GitCredentialID)
 	if tx.Error != nil {
 		return nil, tx.Error
@@ -93,7 +93,7 @@ func (r *queryResolver) CheckGitCredentialRepositoryAccess(ctx context.Context, 
 		GitCredentialID:  input.GitCredentialID,
 		RepositoryURL:    input.RepositoryURL,
 		RepositoryBranch: input.RepositoryBranch,
-		GitCredential:    gitCredentialToGraphqlObject(&gitCredential),
+		GitCredential:    gitCredentialToGraphqlObject(gitCredential),
 	}
 	// Test git credential
 	_, err := GIT.FetchLatestCommitHash(input.RepositoryURL, input.RepositoryBranch, gitCredential.Username, gitCredential.Password)

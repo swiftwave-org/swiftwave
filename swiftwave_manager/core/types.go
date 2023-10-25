@@ -55,6 +55,7 @@ const (
 type GitProvider string
 
 const (
+	GitProviderNone   GitProvider = "none"
 	GitProviderGithub GitProvider = "github"
 	GitProviderGitlab GitProvider = "gitlab"
 )

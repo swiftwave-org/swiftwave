@@ -14,13 +14,14 @@ enum DeploymentStatus {
 }
 
 enum GitProvider {
+    none
     github
     gitlab
 }
 
 type Deployment {
     id: String!
-    applicationID: Int!
+    applicationID: String!
     application: Application!
     upstreamType: UpstreamType!
     # required for upstreamType = "git"
@@ -44,5 +45,5 @@ type Deployment {
     deploymentLogs: [DeploymentLog!]!
     # meta
     status: DeploymentStatus!
-    createdAt: String!
+    createdAt: Time!
 }

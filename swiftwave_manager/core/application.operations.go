@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
-	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
 	"gorm.io/gorm"
 	"os"
 	"path/filepath"
@@ -54,6 +53,7 @@ func (application *Application) FindById(ctx context.Context, db gorm.DB, id str
 }
 
 func (application *Application) Create(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager, codeTarballDir string) error {
+	// TODO: split this function into smaller functions
 	// verify if there is no application with same name
 	isExist, err := IsExistApplicationName(ctx, db, dockerManager, application.Name)
 	if err != nil {
@@ -64,7 +64,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	}
 	// For UpstreamType = Git, verify git record id
 	if application.LatestDeployment.UpstreamType == UpstreamTypeGit {
-		var gitCredential GitCredential
+		var gitCredential = &GitCredential{}
 		err := gitCredential.FindById(ctx, db, int(application.LatestDeployment.GitCredentialID))
 		if err != nil {
 			return err
@@ -73,7 +73,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	// For UpstreamType = Image, verify image registry credential id
 	if application.LatestDeployment.UpstreamType == UpstreamTypeImage {
 		if application.LatestDeployment.ImageRegistryCredentialID != 0 {
-			var imageRegistryCredential ImageRegistryCredential
+			var imageRegistryCredential = &ImageRegistryCredential{}
 			err := imageRegistryCredential.FindById(ctx, db, int(application.LatestDeployment.ImageRegistryCredentialID))
 			if err != nil {
 				return err
@@ -89,11 +89,11 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		}
 	}
 	// create application
-	createdApplication := model.Application{
+	createdApplication := Application{
 		ID:             uuid.NewString(),
 		Name:           application.Name,
-		DeploymentMode: model.DeploymentMode(application.DeploymentMode),
-		Replicas:       int(application.Replicas),
+		DeploymentMode: application.DeploymentMode,
+		Replicas:       uint(int(application.Replicas)),
 	}
 	tx := db.Create(&createdApplication)
 	if tx.Error != nil {
@@ -116,6 +116,12 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	// create persistent volume bindings
 	createdPersistentVolumeBindings := make([]PersistentVolumeBinding, 0)
 	for _, persistentVolumeBinding := range application.PersistentVolumeBindings {
+		// verify persistent volume exists
+		var persistentVolume = &PersistentVolume{}
+		err := persistentVolume.FindById(ctx, db, int(persistentVolumeBinding.PersistentVolumeID))
+		if err != nil {
+			return err
+		}
 		createdPersistentVolumeBinding := PersistentVolumeBinding{
 			ApplicationID:      createdApplication.ID,
 			PersistentVolumeID: persistentVolumeBinding.PersistentVolumeID,
@@ -164,6 +170,8 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	if tx.Error != nil {
 		return tx.Error
 	}
+	// update application details
+	*application = createdApplication
 	return nil
 	// TODO: push to queue for deployment
 }

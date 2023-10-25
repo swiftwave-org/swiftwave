@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"time"
 )
 
 type Application struct {
@@ -23,19 +24,19 @@ type ApplicationInput struct {
 	Name                         string                          `json:"name"`
 	EnvironmentVariables         []*EnvironmentVariableInput     `json:"environmentVariables"`
 	PersistentVolumeBindings     []*PersistentVolumeBindingInput `json:"persistentVolumeBindings"`
-	Dockerfile                   string                          `json:"dockerfile"`
+	Dockerfile                   *string                         `json:"dockerfile,omitempty"`
 	BuildArgs                    []*BuildArgInput                `json:"buildArgs"`
 	DeploymentMode               DeploymentMode                  `json:"deploymentMode"`
-	Replicas                     int                             `json:"replicas"`
+	Replicas                     *int                            `json:"replicas,omitempty"`
 	UpstreamType                 UpstreamType                    `json:"upstreamType"`
-	GitCredentialID              int                             `json:"gitCredentialID"`
-	GitProvider                  GitProvider                     `json:"gitProvider"`
-	RepositoryOwner              string                          `json:"repositoryOwner"`
-	RepositoryName               string                          `json:"repositoryName"`
-	RepositoryBranch             string                          `json:"repositoryBranch"`
-	SourceCodeCompressedFileName string                          `json:"sourceCodeCompressedFileName"`
-	DockerImage                  string                          `json:"dockerImage"`
-	ImageRegistryCredentialID    int                             `json:"imageRegistryCredentialID"`
+	GitCredentialID              *int                            `json:"gitCredentialID,omitempty"`
+	GitProvider                  *GitProvider                    `json:"gitProvider,omitempty"`
+	RepositoryOwner              *string                         `json:"repositoryOwner,omitempty"`
+	RepositoryName               *string                         `json:"repositoryName,omitempty"`
+	RepositoryBranch             *string                         `json:"repositoryBranch,omitempty"`
+	SourceCodeCompressedFileName *string                         `json:"sourceCodeCompressedFileName,omitempty"`
+	DockerImage                  *string                         `json:"dockerImage,omitempty"`
+	ImageRegistryCredentialID    *int                            `json:"imageRegistryCredentialID,omitempty"`
 }
 
 type BuildArg struct {
@@ -50,7 +51,7 @@ type BuildArgInput struct {
 
 type Deployment struct {
 	ID                           string                   `json:"id"`
-	ApplicationID                int                      `json:"applicationID"`
+	ApplicationID                string                   `json:"applicationID"`
 	Application                  *Application             `json:"application"`
 	UpstreamType                 UpstreamType             `json:"upstreamType"`
 	GitCredentialID              int                      `json:"gitCredentialID"`
@@ -68,12 +69,12 @@ type Deployment struct {
 	Dockerfile                   string                   `json:"dockerfile"`
 	DeploymentLogs               []*DeploymentLog         `json:"deploymentLogs"`
 	Status                       DeploymentStatus         `json:"status"`
-	CreatedAt                    string                   `json:"createdAt"`
+	CreatedAt                    time.Time                `json:"createdAt"`
 }
 
 type DeploymentLog struct {
-	Content   string `json:"content"`
-	CreatedAt string `json:"createdAt"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type EnvironmentVariable struct {
@@ -136,7 +137,7 @@ type PersistentVolumeBinding struct {
 	ID                 int               `json:"id"`
 	PersistentVolumeID int               `json:"persistentVolumeID"`
 	PersistentVolume   *PersistentVolume `json:"persistentVolume"`
-	ApplicationID      int               `json:"applicationID"`
+	ApplicationID      string            `json:"applicationID"`
 	Application        *Application      `json:"application"`
 	MountingPath       string            `json:"mountingPath"`
 }
@@ -243,18 +244,20 @@ func (e DeploymentStatus) MarshalGQL(w io.Writer) {
 type GitProvider string
 
 const (
+	GitProviderNone   GitProvider = "none"
 	GitProviderGithub GitProvider = "github"
 	GitProviderGitlab GitProvider = "gitlab"
 )
 
 var AllGitProvider = []GitProvider{
+	GitProviderNone,
 	GitProviderGithub,
 	GitProviderGitlab,
 }
 
 func (e GitProvider) IsValid() bool {
 	switch e {
-	case GitProviderGithub, GitProviderGitlab:
+	case GitProviderNone, GitProviderGithub, GitProviderGitlab:
 		return true
 	}
 	return false

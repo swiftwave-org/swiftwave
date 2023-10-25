@@ -19,22 +19,22 @@ input ApplicationInput {
     name: String!
     environmentVariables: [EnvironmentVariableInput!]! # dont change with each deployment
     persistentVolumeBindings: [PersistentVolumeBindingInput!]! # dont change with each deployment
-    dockerfile: String! # required for upstreamType = "git" or "SourceCode"
+    dockerfile: String # required for upstreamType = "git" or "SourceCode"
     buildArgs: [BuildArgInput!]!
     deploymentMode: DeploymentMode! # dont change with each deployment
-    replicas: Int! # dont change with each deployment
+    replicas: Int # dont change with each deployment
     upstreamType: UpstreamType!
     # required for upstreamType = "git"
-    gitCredentialID: Int!
-    gitProvider: GitProvider!
-    repositoryOwner: String!
-    repositoryName: String!
-    repositoryBranch: String!
+    gitCredentialID: Int
+    gitProvider: GitProvider
+    repositoryOwner: String
+    repositoryName: String
+    repositoryBranch: String
     # required for upstreamType = "SourceCode"
-    sourceCodeCompressedFileName: String!
+    sourceCodeCompressedFileName: String
     # required for upstreamType = "Image"
-    dockerImage: String!
-    imageRegistryCredentialID: Int!
+    dockerImage: String
+    imageRegistryCredentialID: Int
 }
 
 extend type Query {

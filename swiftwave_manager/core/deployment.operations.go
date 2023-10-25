@@ -14,6 +14,15 @@ import (
 // Each function's argument format should be (ctx context.Context, db gorm.DB, ...)
 // context used to pass some data to the function e.g. user id, auth info, etc.
 
+func FindLatestDeploymentByApplicationId(ctx context.Context, db gorm.DB, id string) (*Deployment, error) {
+	var deployment = &Deployment{}
+	tx := db.Where("application_id = ?", id).Order("created_at desc").First(&deployment)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return deployment, nil
+}
+
 func (deployment *Deployment) Create(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
 	deployment.ID = uuid.NewString()
 	deployment.CreatedAt = time.Now()

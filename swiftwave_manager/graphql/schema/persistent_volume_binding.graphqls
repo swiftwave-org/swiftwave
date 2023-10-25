@@ -2,7 +2,7 @@ type PersistentVolumeBinding {
     id: Int!
     persistentVolumeID: Int!
     persistentVolume: PersistentVolume!
-    applicationID: Int!
+    applicationID: String!
     application: Application!
     mountingPath: String!
 }

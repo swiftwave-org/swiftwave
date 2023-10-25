@@ -20,7 +20,7 @@ resolver:
   filename_template: "{name}.resolvers.go"
 
 autobind:
-#  - "github.com/swiftwave-org/swiftwave/server/graphql/model"
+#  - "github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
 
 models:
   ID:
@@ -34,3 +34,31 @@ models:
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
+  Application:
+    fields:
+      environmentVariables:
+        resolver: true
+      persistentVolumeBindings:
+        resolver: true
+      latestDeployment:
+        resolver: true
+      deployments:
+        resolver: true
+  PersistentVolumeBinding:
+    fields:
+      persistentVolume:
+        resolver: true
+      application:
+        resolver: true
+  Deployment:
+    fields:
+      application:
+        resolver: true
+      gitCredential:
+        resolver: true
+      imageRegistryCredential:
+        resolver: true
+      buildArgs:
+        resolver: true
+      deploymentLogs:
+        resolver: true
