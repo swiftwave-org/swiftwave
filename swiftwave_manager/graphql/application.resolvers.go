@@ -6,7 +6,6 @@ package graphql
 
 import (
 	"context"
-	"fmt"
 
 	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
@@ -54,7 +53,17 @@ func (r *applicationResolver) LatestDeployment(ctx context.Context, obj *model.A
 
 // Deployments is the resolver for the deployments field.
 func (r *applicationResolver) Deployments(ctx context.Context, obj *model.Application) ([]*model.Deployment, error) {
-	panic(fmt.Errorf("not implemented: Deployments - deployments"))
+	// fetch record
+	records, err := dbmodel.FindDeploymentsByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	// convert to graphql object
+	var result = make([]*model.Deployment, 0)
+	for _, record := range records {
+		result = append(result, deploymentToGraphqlObject(record))
+	}
+	return result, nil
 }
 
 // CreateApplication is the resolver for the createApplication field.

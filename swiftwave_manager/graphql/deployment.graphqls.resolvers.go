@@ -8,27 +8,58 @@ import (
 	"context"
 	"fmt"
 
+	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
 )
 
 // Application is the resolver for the application field.
 func (r *deploymentResolver) Application(ctx context.Context, obj *model.Deployment) (*model.Application, error) {
-	panic(fmt.Errorf("not implemented: Application - application"))
+	// fetch record
+	var application = &dbmodel.Application{}
+	err := application.FindById(ctx, r.ServiceManager.DbClient, obj.ApplicationID)
+	if err != nil {
+		return nil, err
+	}
+	return applicationToGraphqlObject(application), nil
 }
 
 // GitCredential is the resolver for the gitCredential field.
 func (r *deploymentResolver) GitCredential(ctx context.Context, obj *model.Deployment) (*model.GitCredential, error) {
-	panic(fmt.Errorf("not implemented: GitCredential - gitCredential"))
+	var gitCredential = &dbmodel.GitCredential{}
+	if obj.GitCredentialID != 0 {
+		err := gitCredential.FindById(ctx, r.ServiceManager.DbClient, obj.GitCredentialID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return gitCredentialToGraphqlObject(gitCredential), nil
 }
 
 // ImageRegistryCredential is the resolver for the imageRegistryCredential field.
 func (r *deploymentResolver) ImageRegistryCredential(ctx context.Context, obj *model.Deployment) (*model.ImageRegistryCredential, error) {
-	panic(fmt.Errorf("not implemented: ImageRegistryCredential - imageRegistryCredential"))
+	var imageRegistryCredential = &dbmodel.ImageRegistryCredential{}
+	if obj.ImageRegistryCredentialID != 0 {
+		err := imageRegistryCredential.FindById(ctx, r.ServiceManager.DbClient, obj.ImageRegistryCredentialID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return imageRegistryCredentialToGraphqlObject(imageRegistryCredential), nil
 }
 
 // BuildArgs is the resolver for the buildArgs field.
 func (r *deploymentResolver) BuildArgs(ctx context.Context, obj *model.Deployment) ([]*model.BuildArg, error) {
-	panic(fmt.Errorf("not implemented: BuildArgs - buildArgs"))
+	// fetch record
+	records, err := dbmodel.FindBuildArgsByDeploymentId(ctx, r.ServiceManager.DbClient, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	// convert to graphql object
+	var result = make([]*model.BuildArg, 0)
+	for _, record := range records {
+		result = append(result, buildArgToGraphqlObject(record))
+	}
+	return result, nil
 }
 
 // DeploymentLogs is the resolver for the deploymentLogs field.

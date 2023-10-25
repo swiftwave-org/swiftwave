@@ -23,6 +23,15 @@ func FindLatestDeploymentByApplicationId(ctx context.Context, db gorm.DB, id str
 	return deployment, nil
 }
 
+func FindDeploymentsByApplicationId(ctx context.Context, db gorm.DB, id string) ([]*Deployment, error) {
+	var deployments = make([]*Deployment, 0)
+	tx := db.Where("application_id = ?", id).Order("created_at desc").Find(&deployments)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return deployments, nil
+}
+
 func (deployment *Deployment) Create(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
 	deployment.ID = uuid.NewString()
 	deployment.CreatedAt = time.Now()
