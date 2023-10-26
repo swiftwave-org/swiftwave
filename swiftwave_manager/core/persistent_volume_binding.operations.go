@@ -16,3 +16,9 @@ func FindPersistentVolumeBindingsByApplicationId(ctx context.Context, db gorm.DB
 	tx := db.Where("application_id = ?", applicationId).Find(&persistentVolumeBindings)
 	return persistentVolumeBindings, tx.Error
 }
+
+func FindPersistentVolumeBindingsByPersistentVolumeId(ctx context.Context, db gorm.DB, persistentVolumeId uint) ([]*PersistentVolumeBinding, error) {
+	var persistentVolumeBindings []*PersistentVolumeBinding
+	tx := db.Where("persistent_volume_id = ?", persistentVolumeId).Find(&persistentVolumeBindings)
+	return persistentVolumeBindings, tx.Error
+}

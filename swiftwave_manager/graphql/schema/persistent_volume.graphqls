@@ -1,6 +1,7 @@
 type PersistentVolume {
     id: Uint!
     name: String!
+    persistentVolumeBindings: [PersistentVolumeBinding!]!
 }
 
 input PersistentVolumeInput {

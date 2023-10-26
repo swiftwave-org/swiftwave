@@ -88,10 +88,11 @@ type EnvironmentVariableInput struct {
 }
 
 type GitCredential struct {
-	ID       uint   `json:"id"`
-	Name     string `json:"name"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	ID          uint          `json:"id"`
+	Name        string        `json:"name"`
+	Username    string        `json:"username"`
+	Password    string        `json:"password"`
+	Deployments []*Deployment `json:"deployments"`
 }
 
 type GitCredentialInput struct {
@@ -116,10 +117,11 @@ type GitCredentialRepositoryAccessResult struct {
 }
 
 type ImageRegistryCredential struct {
-	ID       uint   `json:"id"`
-	URL      string `json:"url"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	ID          uint          `json:"id"`
+	URL         string        `json:"url"`
+	Username    string        `json:"username"`
+	Password    string        `json:"password"`
+	Deployments []*Deployment `json:"deployments"`
 }
 
 type ImageRegistryCredentialInput struct {
@@ -129,8 +131,9 @@ type ImageRegistryCredentialInput struct {
 }
 
 type PersistentVolume struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
+	ID                       uint                       `json:"id"`
+	Name                     string                     `json:"name"`
+	PersistentVolumeBindings []*PersistentVolumeBinding `json:"persistentVolumeBindings"`
 }
 
 type PersistentVolumeBinding struct {

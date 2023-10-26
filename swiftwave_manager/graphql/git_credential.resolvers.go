@@ -6,11 +6,25 @@ package graphql
 
 import (
 	"context"
-
 	GIT "github.com/swiftwave-org/swiftwave/git_manager"
 	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
 )
+
+// Deployments is the resolver for the deployments field.
+func (r *gitCredentialResolver) Deployments(ctx context.Context, obj *model.GitCredential) ([]*model.Deployment, error) {
+	// fetch record
+	records, err := dbmodel.FindDeploymentsByGitCredentialId(ctx, r.ServiceManager.DbClient, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	// convert to graphql object
+	var result = make([]*model.Deployment, 0)
+	for _, record := range records {
+		result = append(result, deploymentToGraphqlObject(record))
+	}
+	return result, nil
+}
 
 // CreateGitCredential is the resolver for the createGitCredential field.
 func (r *mutationResolver) CreateGitCredential(ctx context.Context, input model.GitCredentialInput) (*model.GitCredential, error) {
@@ -106,3 +120,8 @@ func (r *queryResolver) CheckGitCredentialRepositoryAccess(ctx context.Context, 
 	}
 	return gitCredentialTestResult, nil
 }
+
+// GitCredential returns GitCredentialResolver implementation.
+func (r *Resolver) GitCredential() GitCredentialResolver { return &gitCredentialResolver{r} }
+
+type gitCredentialResolver struct{ *Resolver }

@@ -55,3 +55,23 @@ func (deployment *Deployment) Delete(ctx context.Context, db gorm.DB, dockerMana
 	tx = db.Delete(&deployment)
 	return tx.Error
 }
+
+// Extra functions for resolvers
+
+func FindDeploymentsByImageRegistryCredentialId(ctx context.Context, db gorm.DB, id uint) ([]*Deployment, error) {
+	var deployments = make([]*Deployment, 0)
+	tx := db.Where("image_registry_credential_id = ?", id).Find(&deployments)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return deployments, nil
+}
+
+func FindDeploymentsByGitCredentialId(ctx context.Context, db gorm.DB, id uint) ([]*Deployment, error) {
+	var deployments = make([]*Deployment, 0)
+	tx := db.Where("git_credential_id = ?", id).Find(&deployments)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return deployments, nil
+}

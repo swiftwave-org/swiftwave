@@ -42,7 +42,10 @@ type Config struct {
 type ResolverRoot interface {
 	Application() ApplicationResolver
 	Deployment() DeploymentResolver
+	GitCredential() GitCredentialResolver
+	ImageRegistryCredential() ImageRegistryCredentialResolver
 	Mutation() MutationResolver
+	PersistentVolume() PersistentVolumeResolver
 	PersistentVolumeBinding() PersistentVolumeBindingResolver
 	Query() QueryResolver
 }
@@ -101,10 +104,11 @@ type ComplexityRoot struct {
 	}
 
 	GitCredential struct {
-		ID       func(childComplexity int) int
-		Name     func(childComplexity int) int
-		Password func(childComplexity int) int
-		Username func(childComplexity int) int
+		Deployments func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Password    func(childComplexity int) int
+		Username    func(childComplexity int) int
 	}
 
 	GitCredentialRepositoryAccessResult struct {
@@ -117,10 +121,11 @@ type ComplexityRoot struct {
 	}
 
 	ImageRegistryCredential struct {
-		ID       func(childComplexity int) int
-		Password func(childComplexity int) int
-		URL      func(childComplexity int) int
-		Username func(childComplexity int) int
+		Deployments func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Password    func(childComplexity int) int
+		URL         func(childComplexity int) int
+		Username    func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -138,8 +143,9 @@ type ComplexityRoot struct {
 	}
 
 	PersistentVolume struct {
-		ID   func(childComplexity int) int
-		Name func(childComplexity int) int
+		ID                       func(childComplexity int) int
+		Name                     func(childComplexity int) int
+		PersistentVolumeBindings func(childComplexity int) int
 	}
 
 	PersistentVolumeBinding struct {
@@ -182,6 +188,12 @@ type DeploymentResolver interface {
 
 	DeploymentLogs(ctx context.Context, obj *model.Deployment) ([]*model.DeploymentLog, error)
 }
+type GitCredentialResolver interface {
+	Deployments(ctx context.Context, obj *model.GitCredential) ([]*model.Deployment, error)
+}
+type ImageRegistryCredentialResolver interface {
+	Deployments(ctx context.Context, obj *model.ImageRegistryCredential) ([]*model.Deployment, error)
+}
 type MutationResolver interface {
 	CreateApplication(ctx context.Context, input model.ApplicationInput) (*model.Application, error)
 	UpdateApplication(ctx context.Context, id string, input model.ApplicationInput) (*model.Application, error)
@@ -194,6 +206,9 @@ type MutationResolver interface {
 	DeleteImageRegistryCredential(ctx context.Context, id uint) (*model.ImageRegistryCredential, error)
 	CreatePersistentVolume(ctx context.Context, input model.PersistentVolumeInput) (*model.PersistentVolume, error)
 	DeletePersistentVolume(ctx context.Context, id uint) (*model.PersistentVolume, error)
+}
+type PersistentVolumeResolver interface {
+	PersistentVolumeBindings(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeBinding, error)
 }
 type PersistentVolumeBindingResolver interface {
 	PersistentVolume(ctx context.Context, obj *model.PersistentVolumeBinding) (*model.PersistentVolume, error)
@@ -471,6 +486,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EnvironmentVariable.Value(childComplexity), true
 
+	case "GitCredential.deployments":
+		if e.complexity.GitCredential.Deployments == nil {
+			break
+		}
+
+		return e.complexity.GitCredential.Deployments(childComplexity), true
+
 	case "GitCredential.id":
 		if e.complexity.GitCredential.ID == nil {
 			break
@@ -540,6 +562,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.GitCredentialRepositoryAccessResult.Success(childComplexity), true
+
+	case "ImageRegistryCredential.deployments":
+		if e.complexity.ImageRegistryCredential.Deployments == nil {
+			break
+		}
+
+		return e.complexity.ImageRegistryCredential.Deployments(childComplexity), true
 
 	case "ImageRegistryCredential.id":
 		if e.complexity.ImageRegistryCredential.ID == nil {
@@ -714,6 +743,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PersistentVolume.Name(childComplexity), true
+
+	case "PersistentVolume.persistentVolumeBindings":
+		if e.complexity.PersistentVolume.PersistentVolumeBindings == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolume.PersistentVolumeBindings(childComplexity), true
 
 	case "PersistentVolumeBinding.application":
 		if e.complexity.PersistentVolumeBinding.Application == nil {
@@ -2189,6 +2225,8 @@ func (ec *executionContext) fieldContext_Deployment_gitCredential(ctx context.Co
 				return ec.fieldContext_GitCredential_username(ctx, field)
 			case "password":
 				return ec.fieldContext_GitCredential_password(ctx, field)
+			case "deployments":
+				return ec.fieldContext_GitCredential_deployments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GitCredential", field.Name)
 		},
@@ -2595,6 +2633,8 @@ func (ec *executionContext) fieldContext_Deployment_imageRegistryCredential(ctx 
 				return ec.fieldContext_ImageRegistryCredential_username(ctx, field)
 			case "password":
 				return ec.fieldContext_ImageRegistryCredential_password(ctx, field)
+			case "deployments":
+				return ec.fieldContext_ImageRegistryCredential_deployments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ImageRegistryCredential", field.Name)
 		},
@@ -3186,6 +3226,92 @@ func (ec *executionContext) fieldContext_GitCredential_password(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _GitCredential_deployments(ctx context.Context, field graphql.CollectedField, obj *model.GitCredential) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GitCredential_deployments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.GitCredential().Deployments(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Deployment)
+	fc.Result = res
+	return ec.marshalNDeployment2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GitCredential_deployments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GitCredential",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Deployment_id(ctx, field)
+			case "applicationID":
+				return ec.fieldContext_Deployment_applicationID(ctx, field)
+			case "application":
+				return ec.fieldContext_Deployment_application(ctx, field)
+			case "upstreamType":
+				return ec.fieldContext_Deployment_upstreamType(ctx, field)
+			case "gitCredentialID":
+				return ec.fieldContext_Deployment_gitCredentialID(ctx, field)
+			case "gitCredential":
+				return ec.fieldContext_Deployment_gitCredential(ctx, field)
+			case "gitProvider":
+				return ec.fieldContext_Deployment_gitProvider(ctx, field)
+			case "repositoryOwner":
+				return ec.fieldContext_Deployment_repositoryOwner(ctx, field)
+			case "repositoryName":
+				return ec.fieldContext_Deployment_repositoryName(ctx, field)
+			case "repositoryBranch":
+				return ec.fieldContext_Deployment_repositoryBranch(ctx, field)
+			case "commitHash":
+				return ec.fieldContext_Deployment_commitHash(ctx, field)
+			case "sourceCodeCompressedFileName":
+				return ec.fieldContext_Deployment_sourceCodeCompressedFileName(ctx, field)
+			case "dockerImage":
+				return ec.fieldContext_Deployment_dockerImage(ctx, field)
+			case "imageRegistryCredentialID":
+				return ec.fieldContext_Deployment_imageRegistryCredentialID(ctx, field)
+			case "imageRegistryCredential":
+				return ec.fieldContext_Deployment_imageRegistryCredential(ctx, field)
+			case "buildArgs":
+				return ec.fieldContext_Deployment_buildArgs(ctx, field)
+			case "dockerfile":
+				return ec.fieldContext_Deployment_dockerfile(ctx, field)
+			case "deploymentLogs":
+				return ec.fieldContext_Deployment_deploymentLogs(ctx, field)
+			case "status":
+				return ec.fieldContext_Deployment_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Deployment_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Deployment", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _GitCredentialRepositoryAccessResult_gitCredentialId(ctx context.Context, field graphql.CollectedField, obj *model.GitCredentialRepositoryAccessResult) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_GitCredentialRepositoryAccessResult_gitCredentialId(ctx, field)
 	if err != nil {
@@ -3277,6 +3403,8 @@ func (ec *executionContext) fieldContext_GitCredentialRepositoryAccessResult_git
 				return ec.fieldContext_GitCredential_username(ctx, field)
 			case "password":
 				return ec.fieldContext_GitCredential_password(ctx, field)
+			case "deployments":
+				return ec.fieldContext_GitCredential_deployments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GitCredential", field.Name)
 		},
@@ -3636,6 +3764,92 @@ func (ec *executionContext) fieldContext_ImageRegistryCredential_password(ctx co
 	return fc, nil
 }
 
+func (ec *executionContext) _ImageRegistryCredential_deployments(ctx context.Context, field graphql.CollectedField, obj *model.ImageRegistryCredential) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ImageRegistryCredential_deployments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ImageRegistryCredential().Deployments(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Deployment)
+	fc.Result = res
+	return ec.marshalNDeployment2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ImageRegistryCredential_deployments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ImageRegistryCredential",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Deployment_id(ctx, field)
+			case "applicationID":
+				return ec.fieldContext_Deployment_applicationID(ctx, field)
+			case "application":
+				return ec.fieldContext_Deployment_application(ctx, field)
+			case "upstreamType":
+				return ec.fieldContext_Deployment_upstreamType(ctx, field)
+			case "gitCredentialID":
+				return ec.fieldContext_Deployment_gitCredentialID(ctx, field)
+			case "gitCredential":
+				return ec.fieldContext_Deployment_gitCredential(ctx, field)
+			case "gitProvider":
+				return ec.fieldContext_Deployment_gitProvider(ctx, field)
+			case "repositoryOwner":
+				return ec.fieldContext_Deployment_repositoryOwner(ctx, field)
+			case "repositoryName":
+				return ec.fieldContext_Deployment_repositoryName(ctx, field)
+			case "repositoryBranch":
+				return ec.fieldContext_Deployment_repositoryBranch(ctx, field)
+			case "commitHash":
+				return ec.fieldContext_Deployment_commitHash(ctx, field)
+			case "sourceCodeCompressedFileName":
+				return ec.fieldContext_Deployment_sourceCodeCompressedFileName(ctx, field)
+			case "dockerImage":
+				return ec.fieldContext_Deployment_dockerImage(ctx, field)
+			case "imageRegistryCredentialID":
+				return ec.fieldContext_Deployment_imageRegistryCredentialID(ctx, field)
+			case "imageRegistryCredential":
+				return ec.fieldContext_Deployment_imageRegistryCredential(ctx, field)
+			case "buildArgs":
+				return ec.fieldContext_Deployment_buildArgs(ctx, field)
+			case "dockerfile":
+				return ec.fieldContext_Deployment_dockerfile(ctx, field)
+			case "deploymentLogs":
+				return ec.fieldContext_Deployment_deploymentLogs(ctx, field)
+			case "status":
+				return ec.fieldContext_Deployment_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Deployment_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Deployment", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createApplication(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createApplication(ctx, field)
 	if err != nil {
@@ -3902,6 +4116,8 @@ func (ec *executionContext) fieldContext_Mutation_createGitCredential(ctx contex
 				return ec.fieldContext_GitCredential_username(ctx, field)
 			case "password":
 				return ec.fieldContext_GitCredential_password(ctx, field)
+			case "deployments":
+				return ec.fieldContext_GitCredential_deployments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GitCredential", field.Name)
 		},
@@ -3967,6 +4183,8 @@ func (ec *executionContext) fieldContext_Mutation_updateGitCredential(ctx contex
 				return ec.fieldContext_GitCredential_username(ctx, field)
 			case "password":
 				return ec.fieldContext_GitCredential_password(ctx, field)
+			case "deployments":
+				return ec.fieldContext_GitCredential_deployments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GitCredential", field.Name)
 		},
@@ -4032,6 +4250,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteGitCredential(ctx contex
 				return ec.fieldContext_GitCredential_username(ctx, field)
 			case "password":
 				return ec.fieldContext_GitCredential_password(ctx, field)
+			case "deployments":
+				return ec.fieldContext_GitCredential_deployments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GitCredential", field.Name)
 		},
@@ -4097,6 +4317,8 @@ func (ec *executionContext) fieldContext_Mutation_createImageRegistryCredential(
 				return ec.fieldContext_ImageRegistryCredential_username(ctx, field)
 			case "password":
 				return ec.fieldContext_ImageRegistryCredential_password(ctx, field)
+			case "deployments":
+				return ec.fieldContext_ImageRegistryCredential_deployments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ImageRegistryCredential", field.Name)
 		},
@@ -4162,6 +4384,8 @@ func (ec *executionContext) fieldContext_Mutation_updateImageRegistryCredential(
 				return ec.fieldContext_ImageRegistryCredential_username(ctx, field)
 			case "password":
 				return ec.fieldContext_ImageRegistryCredential_password(ctx, field)
+			case "deployments":
+				return ec.fieldContext_ImageRegistryCredential_deployments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ImageRegistryCredential", field.Name)
 		},
@@ -4227,6 +4451,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteImageRegistryCredential(
 				return ec.fieldContext_ImageRegistryCredential_username(ctx, field)
 			case "password":
 				return ec.fieldContext_ImageRegistryCredential_password(ctx, field)
+			case "deployments":
+				return ec.fieldContext_ImageRegistryCredential_deployments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ImageRegistryCredential", field.Name)
 		},
@@ -4285,6 +4511,8 @@ func (ec *executionContext) fieldContext_Mutation_createPersistentVolume(ctx con
 				return ec.fieldContext_PersistentVolume_id(ctx, field)
 			case "name":
 				return ec.fieldContext_PersistentVolume_name(ctx, field)
+			case "persistentVolumeBindings":
+				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
 		},
@@ -4343,6 +4571,8 @@ func (ec *executionContext) fieldContext_Mutation_deletePersistentVolume(ctx con
 				return ec.fieldContext_PersistentVolume_id(ctx, field)
 			case "name":
 				return ec.fieldContext_PersistentVolume_name(ctx, field)
+			case "persistentVolumeBindings":
+				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
 		},
@@ -4444,6 +4674,64 @@ func (ec *executionContext) fieldContext_PersistentVolume_name(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolume_persistentVolumeBindings(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolume) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PersistentVolume().PersistentVolumeBindings(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.PersistentVolumeBinding)
+	fc.Result = res
+	return ec.marshalNPersistentVolumeBinding2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBindingᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolume_persistentVolumeBindings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolume",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PersistentVolumeBinding_id(ctx, field)
+			case "persistentVolumeID":
+				return ec.fieldContext_PersistentVolumeBinding_persistentVolumeID(ctx, field)
+			case "persistentVolume":
+				return ec.fieldContext_PersistentVolumeBinding_persistentVolume(ctx, field)
+			case "applicationID":
+				return ec.fieldContext_PersistentVolumeBinding_applicationID(ctx, field)
+			case "application":
+				return ec.fieldContext_PersistentVolumeBinding_application(ctx, field)
+			case "mountingPath":
+				return ec.fieldContext_PersistentVolumeBinding_mountingPath(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersistentVolumeBinding", field.Name)
 		},
 	}
 	return fc, nil
@@ -4580,6 +4868,8 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_persistentVolum
 				return ec.fieldContext_PersistentVolume_id(ctx, field)
 			case "name":
 				return ec.fieldContext_PersistentVolume_name(ctx, field)
+			case "persistentVolumeBindings":
+				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
 		},
@@ -4974,6 +5264,8 @@ func (ec *executionContext) fieldContext_Query_gitCredentials(ctx context.Contex
 				return ec.fieldContext_GitCredential_username(ctx, field)
 			case "password":
 				return ec.fieldContext_GitCredential_password(ctx, field)
+			case "deployments":
+				return ec.fieldContext_GitCredential_deployments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GitCredential", field.Name)
 		},
@@ -5028,6 +5320,8 @@ func (ec *executionContext) fieldContext_Query_gitCredential(ctx context.Context
 				return ec.fieldContext_GitCredential_username(ctx, field)
 			case "password":
 				return ec.fieldContext_GitCredential_password(ctx, field)
+			case "deployments":
+				return ec.fieldContext_GitCredential_deployments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GitCredential", field.Name)
 		},
@@ -5162,6 +5456,8 @@ func (ec *executionContext) fieldContext_Query_imageRegistryCredentials(ctx cont
 				return ec.fieldContext_ImageRegistryCredential_username(ctx, field)
 			case "password":
 				return ec.fieldContext_ImageRegistryCredential_password(ctx, field)
+			case "deployments":
+				return ec.fieldContext_ImageRegistryCredential_deployments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ImageRegistryCredential", field.Name)
 		},
@@ -5216,6 +5512,8 @@ func (ec *executionContext) fieldContext_Query_imageRegistryCredential(ctx conte
 				return ec.fieldContext_ImageRegistryCredential_username(ctx, field)
 			case "password":
 				return ec.fieldContext_ImageRegistryCredential_password(ctx, field)
+			case "deployments":
+				return ec.fieldContext_ImageRegistryCredential_deployments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ImageRegistryCredential", field.Name)
 		},
@@ -5274,6 +5572,8 @@ func (ec *executionContext) fieldContext_Query_persistentVolumes(ctx context.Con
 				return ec.fieldContext_PersistentVolume_id(ctx, field)
 			case "name":
 				return ec.fieldContext_PersistentVolume_name(ctx, field)
+			case "persistentVolumeBindings":
+				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
 		},
@@ -5321,6 +5621,8 @@ func (ec *executionContext) fieldContext_Query_persistentVolume(ctx context.Cont
 				return ec.fieldContext_PersistentVolume_id(ctx, field)
 			case "name":
 				return ec.fieldContext_PersistentVolume_name(ctx, field)
+			case "persistentVolumeBindings":
+				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
 		},
@@ -8382,23 +8684,59 @@ func (ec *executionContext) _GitCredential(ctx context.Context, sel ast.Selectio
 		case "id":
 			out.Values[i] = ec._GitCredential_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._GitCredential_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "username":
 			out.Values[i] = ec._GitCredential_username(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "password":
 			out.Values[i] = ec._GitCredential_password(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "deployments":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._GitCredential_deployments(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8500,23 +8838,59 @@ func (ec *executionContext) _ImageRegistryCredential(ctx context.Context, sel as
 		case "id":
 			out.Values[i] = ec._ImageRegistryCredential_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "url":
 			out.Values[i] = ec._ImageRegistryCredential_url(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "username":
 			out.Values[i] = ec._ImageRegistryCredential_username(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "password":
 			out.Values[i] = ec._ImageRegistryCredential_password(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "deployments":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ImageRegistryCredential_deployments(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8667,13 +9041,49 @@ func (ec *executionContext) _PersistentVolume(ctx context.Context, sel ast.Selec
 		case "id":
 			out.Values[i] = ec._PersistentVolume_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._PersistentVolume_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "persistentVolumeBindings":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PersistentVolume_persistentVolumeBindings(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

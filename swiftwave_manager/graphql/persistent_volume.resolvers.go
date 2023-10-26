@@ -6,7 +6,6 @@ package graphql
 
 import (
 	"context"
-
 	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
 )
@@ -37,6 +36,21 @@ func (r *mutationResolver) DeletePersistentVolume(ctx context.Context, id uint) 
 	return persistentVolumeToGraphqlObject(&record), nil
 }
 
+// PersistentVolumeBindings is the resolver for the persistentVolumeBindings field.
+func (r *persistentVolumeResolver) PersistentVolumeBindings(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeBinding, error) {
+	// fetch record
+	records, err := dbmodel.FindPersistentVolumeBindingsByPersistentVolumeId(ctx, r.ServiceManager.DbClient, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	// convert to graphql object
+	var result = make([]*model.PersistentVolumeBinding, 0)
+	for _, record := range records {
+		result = append(result, persistentVolumeBindingToGraphqlObject(record))
+	}
+	return result, nil
+}
+
 // PersistentVolumes is the resolver for the persistentVolumes field.
 func (r *queryResolver) PersistentVolumes(ctx context.Context) ([]*model.PersistentVolume, error) {
 	records, err := dbmodel.FindAllPersistentVolumes(ctx, r.ServiceManager.DbClient)
@@ -65,3 +79,8 @@ func (r *queryResolver) IsExistPersistentVolume(ctx context.Context, name string
 	isExists, err := dbmodel.IsExistPersistentVolume(ctx, r.ServiceManager.DbClient, name, r.ServiceManager.DockerManager)
 	return &isExists, err
 }
+
+// PersistentVolume returns PersistentVolumeResolver implementation.
+func (r *Resolver) PersistentVolume() PersistentVolumeResolver { return &persistentVolumeResolver{r} }
+
+type persistentVolumeResolver struct{ *Resolver }

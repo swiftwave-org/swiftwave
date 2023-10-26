@@ -11,6 +11,21 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
 )
 
+// Deployments is the resolver for the deployments field.
+func (r *imageRegistryCredentialResolver) Deployments(ctx context.Context, obj *model.ImageRegistryCredential) ([]*model.Deployment, error) {
+	// fetch record
+	records, err := dbmodel.FindDeploymentsByImageRegistryCredentialId(ctx, r.ServiceManager.DbClient, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	// convert to graphql object
+	var result = make([]*model.Deployment, 0)
+	for _, record := range records {
+		result = append(result, deploymentToGraphqlObject(record))
+	}
+	return result, nil
+}
+
 // CreateImageRegistryCredential is the resolver for the createImageRegistryCredential field.
 func (r *mutationResolver) CreateImageRegistryCredential(ctx context.Context, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error) {
 	record := imageRegistryCredentialInputToDatabaseObject(&input)
@@ -78,3 +93,10 @@ func (r *queryResolver) ImageRegistryCredential(ctx context.Context, id uint) (*
 	}
 	return imageRegistryCredentialToGraphqlObject(record), nil
 }
+
+// ImageRegistryCredential returns ImageRegistryCredentialResolver implementation.
+func (r *Resolver) ImageRegistryCredential() ImageRegistryCredentialResolver {
+	return &imageRegistryCredentialResolver{r}
+}
+
+type imageRegistryCredentialResolver struct{ *Resolver }

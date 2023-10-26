@@ -49,6 +49,10 @@ models:
         resolver: true
       deployments:
         resolver: true
+  PersistentVolume:
+    fields:
+      persistentVolumeBindings:
+        resolver: true
   PersistentVolumeBinding:
     fields:
       persistentVolume:
@@ -66,4 +70,12 @@ models:
       buildArgs:
         resolver: true
       deploymentLogs:
+        resolver: true
+  ImageRegistryCredential:
+    fields:
+      deployments:
+        resolver: true
+  GitCredential:
+    fields:
+      deployments:
         resolver: true
