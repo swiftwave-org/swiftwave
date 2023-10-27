@@ -1,0 +1,36 @@
+enum IngressRuleStatus {
+    pending
+    applied
+    deleting
+    failed
+}
+
+input IngressRuleInput {
+    domainId: Uint!
+    applicationId: String!
+    protocol: ProtocolType!
+    port: Uint!
+    targetPort: Uint!
+}
+
+type IngressRule {
+    id: Uint!
+    domain: Domain!
+    protocol: ProtocolType!
+    port: Uint!
+    application: Application!
+    targetPort: Uint!
+    status: IngressRuleStatus!
+    createdAt: Time!
+    updatedAt: Time!
+}
+
+extend type Query {
+    ingressRule(id: Uint!): IngressRule!
+    ingressRules: [IngressRule!]!
+}
+
+extend type Mutation {
+    createIngressRule(input: IngressRuleInput!): IngressRule!
+    deleteIngressRule(id: Uint!): Boolean!
+}

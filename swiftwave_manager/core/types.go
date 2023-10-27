@@ -65,8 +65,8 @@ type DomainSSLStatus string
 
 const (
 	DomainSSLStatusNone    DomainSSLStatus = "none"
+	DomainSSLStatusPending DomainSSLStatus = "pending"
 	DomainSSLStatusIssued  DomainSSLStatus = "issued"
-	DomainSSLStatusIssuing DomainSSLStatus = "issuing"
 )
 
 // DeploymentStatus : status of the deployment

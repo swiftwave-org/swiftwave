@@ -1,0 +1,34 @@
+enum RedirectRuleStatus {
+    pending
+    applied
+    failed
+    deleting
+}
+
+input RedirectRuleInput {
+    domainId: Uint!
+    protocol: ProtocolType!
+    port: Uint!
+    redirectURL: String!
+}
+
+type RedirectRule {
+    id: Uint!
+    domain: Domain!
+    protocol: ProtocolType!
+    port: Uint!
+    redirectURL: String!
+    status: RedirectRuleStatus!
+    createdAt: Time!
+    updatedAt: Time!
+}
+
+extend type Query {
+    redirectRule(id: Uint!): RedirectRule!
+    redirectRules: [RedirectRule!]!
+}
+
+extend type Mutation {
+    createRedirectRule(input: RedirectRuleInput!): RedirectRule!
+    deleteRedirectRule(id: Uint!): Boolean!
+}

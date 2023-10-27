@@ -31,6 +31,7 @@ type Domain struct {
 	SSLFullChain  string          `json:"sslFullChain"`
 	SSLIssuedAt   time.Time       `json:"sslIssuedAt"`
 	SSLIssuer     string          `json:"sslIssuer"`
+	SSLAutoRenew  bool            `json:"sslAutoRenew" gorm:"default:false"`
 	IngressRules  []IngressRule   `json:"ingressRules" gorm:"foreignKey:DomainID"`
 	RedirectRules []RedirectRule  `json:"redirectRules" gorm:"foreignKey:DomainID"`
 }

@@ -12,7 +12,7 @@ type Application {
     deployments: [Deployment!]!
     deploymentMode: DeploymentMode!
     replicas: Uint!
-    # TODO ingress rules
+    ingressRules: [IngressRule!]!
 }
 
 input ApplicationInput {

@@ -42,12 +42,15 @@ type Config struct {
 type ResolverRoot interface {
 	Application() ApplicationResolver
 	Deployment() DeploymentResolver
+	Domain() DomainResolver
 	GitCredential() GitCredentialResolver
 	ImageRegistryCredential() ImageRegistryCredentialResolver
+	IngressRule() IngressRuleResolver
 	Mutation() MutationResolver
 	PersistentVolume() PersistentVolumeResolver
 	PersistentVolumeBinding() PersistentVolumeBindingResolver
 	Query() QueryResolver
+	RedirectRule() RedirectRuleResolver
 }
 
 type DirectiveRoot struct {
@@ -59,6 +62,7 @@ type ComplexityRoot struct {
 		Deployments              func(childComplexity int) int
 		EnvironmentVariables     func(childComplexity int) int
 		ID                       func(childComplexity int) int
+		IngressRules             func(childComplexity int) int
 		LatestDeployment         func(childComplexity int) int
 		Name                     func(childComplexity int) int
 		PersistentVolumeBindings func(childComplexity int) int
@@ -98,6 +102,19 @@ type ComplexityRoot struct {
 		CreatedAt func(childComplexity int) int
 	}
 
+	Domain struct {
+		ID            func(childComplexity int) int
+		IngressRules  func(childComplexity int) int
+		Name          func(childComplexity int) int
+		RedirectRules func(childComplexity int) int
+		SslAutoRenew  func(childComplexity int) int
+		SslFullChain  func(childComplexity int) int
+		SslIssuedAt   func(childComplexity int) int
+		SslIssuer     func(childComplexity int) int
+		SslPrivateKey func(childComplexity int) int
+		SslStatus     func(childComplexity int) int
+	}
+
 	EnvironmentVariable struct {
 		Key   func(childComplexity int) int
 		Value func(childComplexity int) int
@@ -128,15 +145,35 @@ type ComplexityRoot struct {
 		Username    func(childComplexity int) int
 	}
 
+	IngressRule struct {
+		Application func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		Domain      func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Port        func(childComplexity int) int
+		Protocol    func(childComplexity int) int
+		Status      func(childComplexity int) int
+		TargetPort  func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
+	}
+
 	Mutation struct {
+		AddCustomSsl                  func(childComplexity int, id uint, input model.CustomSSLInput) int
+		AddDomain                     func(childComplexity int, input model.DomainInput) int
 		CreateApplication             func(childComplexity int, input model.ApplicationInput) int
 		CreateGitCredential           func(childComplexity int, input model.GitCredentialInput) int
 		CreateImageRegistryCredential func(childComplexity int, input model.ImageRegistryCredentialInput) int
+		CreateIngressRule             func(childComplexity int, input model.IngressRuleInput) int
 		CreatePersistentVolume        func(childComplexity int, input model.PersistentVolumeInput) int
+		CreateRedirectRule            func(childComplexity int, input model.RedirectRuleInput) int
 		DeleteApplication             func(childComplexity int, id string) int
 		DeleteGitCredential           func(childComplexity int, id uint) int
 		DeleteImageRegistryCredential func(childComplexity int, id uint) int
+		DeleteIngressRule             func(childComplexity int, id uint) int
 		DeletePersistentVolume        func(childComplexity int, id uint) int
+		DeleteRedirectRule            func(childComplexity int, id uint) int
+		IssueSsl                      func(childComplexity int, id uint) int
+		RemoveDomain                  func(childComplexity int, id uint) int
 		UpdateApplication             func(childComplexity int, id string, input model.ApplicationInput) int
 		UpdateGitCredential           func(childComplexity int, id uint, input model.GitCredentialInput) int
 		UpdateImageRegistryCredential func(childComplexity int, id uint, input model.ImageRegistryCredentialInput) int
@@ -161,14 +198,32 @@ type ComplexityRoot struct {
 		Application                        func(childComplexity int, id string) int
 		Applications                       func(childComplexity int) int
 		CheckGitCredentialRepositoryAccess func(childComplexity int, input model.GitCredentialRepositoryAccessInput) int
+		Domain                             func(childComplexity int, id uint) int
+		Domains                            func(childComplexity int) int
 		GitCredential                      func(childComplexity int, id uint) int
 		GitCredentials                     func(childComplexity int) int
 		ImageRegistryCredential            func(childComplexity int, id uint) int
 		ImageRegistryCredentials           func(childComplexity int) int
+		IngressRule                        func(childComplexity int, id uint) int
+		IngressRules                       func(childComplexity int) int
 		IsExistApplicationName             func(childComplexity int, name string) int
 		IsExistPersistentVolume            func(childComplexity int, name string) int
 		PersistentVolume                   func(childComplexity int, id uint) int
 		PersistentVolumes                  func(childComplexity int) int
+		RedirectRule                       func(childComplexity int, id uint) int
+		RedirectRules                      func(childComplexity int) int
+		VerifyDomainConfiguration          func(childComplexity int, id uint) int
+	}
+
+	RedirectRule struct {
+		CreatedAt   func(childComplexity int) int
+		Domain      func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Port        func(childComplexity int) int
+		Protocol    func(childComplexity int) int
+		RedirectURL func(childComplexity int) int
+		Status      func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
 	}
 }
 
@@ -177,6 +232,8 @@ type ApplicationResolver interface {
 	PersistentVolumeBindings(ctx context.Context, obj *model.Application) ([]*model.PersistentVolumeBinding, error)
 	LatestDeployment(ctx context.Context, obj *model.Application) (*model.Deployment, error)
 	Deployments(ctx context.Context, obj *model.Application) ([]*model.Deployment, error)
+
+	IngressRules(ctx context.Context, obj *model.Application) ([]*model.IngressRule, error)
 }
 type DeploymentResolver interface {
 	Application(ctx context.Context, obj *model.Deployment) (*model.Application, error)
@@ -188,24 +245,41 @@ type DeploymentResolver interface {
 
 	DeploymentLogs(ctx context.Context, obj *model.Deployment) ([]*model.DeploymentLog, error)
 }
+type DomainResolver interface {
+	IngressRules(ctx context.Context, obj *model.Domain) ([]*model.IngressRule, error)
+	RedirectRules(ctx context.Context, obj *model.Domain) ([]*model.RedirectRule, error)
+}
 type GitCredentialResolver interface {
 	Deployments(ctx context.Context, obj *model.GitCredential) ([]*model.Deployment, error)
 }
 type ImageRegistryCredentialResolver interface {
 	Deployments(ctx context.Context, obj *model.ImageRegistryCredential) ([]*model.Deployment, error)
 }
+type IngressRuleResolver interface {
+	Domain(ctx context.Context, obj *model.IngressRule) (*model.Domain, error)
+
+	Application(ctx context.Context, obj *model.IngressRule) (*model.Application, error)
+}
 type MutationResolver interface {
 	CreateApplication(ctx context.Context, input model.ApplicationInput) (*model.Application, error)
 	UpdateApplication(ctx context.Context, id string, input model.ApplicationInput) (*model.Application, error)
 	DeleteApplication(ctx context.Context, id string) (*model.Application, error)
+	AddDomain(ctx context.Context, input model.DomainInput) (*model.Domain, error)
+	RemoveDomain(ctx context.Context, id uint) (bool, error)
+	IssueSsl(ctx context.Context, id uint) (*model.Domain, error)
+	AddCustomSsl(ctx context.Context, id uint, input model.CustomSSLInput) (*model.Domain, error)
 	CreateGitCredential(ctx context.Context, input model.GitCredentialInput) (*model.GitCredential, error)
 	UpdateGitCredential(ctx context.Context, id uint, input model.GitCredentialInput) (*model.GitCredential, error)
 	DeleteGitCredential(ctx context.Context, id uint) (*model.GitCredential, error)
 	CreateImageRegistryCredential(ctx context.Context, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error)
 	UpdateImageRegistryCredential(ctx context.Context, id uint, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error)
 	DeleteImageRegistryCredential(ctx context.Context, id uint) (*model.ImageRegistryCredential, error)
+	CreateIngressRule(ctx context.Context, input model.IngressRuleInput) (*model.IngressRule, error)
+	DeleteIngressRule(ctx context.Context, id uint) (bool, error)
 	CreatePersistentVolume(ctx context.Context, input model.PersistentVolumeInput) (*model.PersistentVolume, error)
 	DeletePersistentVolume(ctx context.Context, id uint) (*model.PersistentVolume, error)
+	CreateRedirectRule(ctx context.Context, input model.RedirectRuleInput) (*model.RedirectRule, error)
+	DeleteRedirectRule(ctx context.Context, id uint) (bool, error)
 }
 type PersistentVolumeResolver interface {
 	PersistentVolumeBindings(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeBinding, error)
@@ -219,14 +293,24 @@ type QueryResolver interface {
 	Application(ctx context.Context, id string) (*model.Application, error)
 	Applications(ctx context.Context) ([]*model.Application, error)
 	IsExistApplicationName(ctx context.Context, name string) (bool, error)
+	Domains(ctx context.Context) ([]*model.Domain, error)
+	Domain(ctx context.Context, id uint) (*model.Domain, error)
+	VerifyDomainConfiguration(ctx context.Context, id uint) (bool, error)
 	GitCredentials(ctx context.Context) ([]*model.GitCredential, error)
 	GitCredential(ctx context.Context, id uint) (*model.GitCredential, error)
 	CheckGitCredentialRepositoryAccess(ctx context.Context, input model.GitCredentialRepositoryAccessInput) (*model.GitCredentialRepositoryAccessResult, error)
 	ImageRegistryCredentials(ctx context.Context) ([]*model.ImageRegistryCredential, error)
 	ImageRegistryCredential(ctx context.Context, id uint) (*model.ImageRegistryCredential, error)
+	IngressRule(ctx context.Context, id uint) (*model.IngressRule, error)
+	IngressRules(ctx context.Context) ([]*model.IngressRule, error)
 	PersistentVolumes(ctx context.Context) ([]*model.PersistentVolume, error)
 	PersistentVolume(ctx context.Context, id uint) (*model.PersistentVolume, error)
 	IsExistPersistentVolume(ctx context.Context, name string) (*bool, error)
+	RedirectRule(ctx context.Context, id uint) (*model.RedirectRule, error)
+	RedirectRules(ctx context.Context) ([]*model.RedirectRule, error)
+}
+type RedirectRuleResolver interface {
+	Domain(ctx context.Context, obj *model.RedirectRule) (*model.Domain, error)
 }
 
 type executableSchema struct {
@@ -275,6 +359,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Application.ID(childComplexity), true
+
+	case "Application.ingressRules":
+		if e.complexity.Application.IngressRules == nil {
+			break
+		}
+
+		return e.complexity.Application.IngressRules(childComplexity), true
 
 	case "Application.latestDeployment":
 		if e.complexity.Application.LatestDeployment == nil {
@@ -472,6 +563,76 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DeploymentLog.CreatedAt(childComplexity), true
 
+	case "Domain.id":
+		if e.complexity.Domain.ID == nil {
+			break
+		}
+
+		return e.complexity.Domain.ID(childComplexity), true
+
+	case "Domain.ingressRules":
+		if e.complexity.Domain.IngressRules == nil {
+			break
+		}
+
+		return e.complexity.Domain.IngressRules(childComplexity), true
+
+	case "Domain.name":
+		if e.complexity.Domain.Name == nil {
+			break
+		}
+
+		return e.complexity.Domain.Name(childComplexity), true
+
+	case "Domain.redirectRules":
+		if e.complexity.Domain.RedirectRules == nil {
+			break
+		}
+
+		return e.complexity.Domain.RedirectRules(childComplexity), true
+
+	case "Domain.sslAutoRenew":
+		if e.complexity.Domain.SslAutoRenew == nil {
+			break
+		}
+
+		return e.complexity.Domain.SslAutoRenew(childComplexity), true
+
+	case "Domain.sslFullChain":
+		if e.complexity.Domain.SslFullChain == nil {
+			break
+		}
+
+		return e.complexity.Domain.SslFullChain(childComplexity), true
+
+	case "Domain.sslIssuedAt":
+		if e.complexity.Domain.SslIssuedAt == nil {
+			break
+		}
+
+		return e.complexity.Domain.SslIssuedAt(childComplexity), true
+
+	case "Domain.sslIssuer":
+		if e.complexity.Domain.SslIssuer == nil {
+			break
+		}
+
+		return e.complexity.Domain.SslIssuer(childComplexity), true
+
+	case "Domain.sslPrivateKey":
+		if e.complexity.Domain.SslPrivateKey == nil {
+			break
+		}
+
+		return e.complexity.Domain.SslPrivateKey(childComplexity), true
+
+	case "Domain.sslStatus":
+		if e.complexity.Domain.SslStatus == nil {
+			break
+		}
+
+		return e.complexity.Domain.SslStatus(childComplexity), true
+
 	case "EnvironmentVariable.key":
 		if e.complexity.EnvironmentVariable.Key == nil {
 			break
@@ -598,6 +759,93 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ImageRegistryCredential.Username(childComplexity), true
 
+	case "IngressRule.application":
+		if e.complexity.IngressRule.Application == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.Application(childComplexity), true
+
+	case "IngressRule.createdAt":
+		if e.complexity.IngressRule.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.CreatedAt(childComplexity), true
+
+	case "IngressRule.domain":
+		if e.complexity.IngressRule.Domain == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.Domain(childComplexity), true
+
+	case "IngressRule.id":
+		if e.complexity.IngressRule.ID == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.ID(childComplexity), true
+
+	case "IngressRule.port":
+		if e.complexity.IngressRule.Port == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.Port(childComplexity), true
+
+	case "IngressRule.protocol":
+		if e.complexity.IngressRule.Protocol == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.Protocol(childComplexity), true
+
+	case "IngressRule.status":
+		if e.complexity.IngressRule.Status == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.Status(childComplexity), true
+
+	case "IngressRule.targetPort":
+		if e.complexity.IngressRule.TargetPort == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.TargetPort(childComplexity), true
+
+	case "IngressRule.updatedAt":
+		if e.complexity.IngressRule.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.UpdatedAt(childComplexity), true
+
+	case "Mutation.addCustomSSL":
+		if e.complexity.Mutation.AddCustomSsl == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addCustomSSL_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddCustomSsl(childComplexity, args["id"].(uint), args["input"].(model.CustomSSLInput)), true
+
+	case "Mutation.addDomain":
+		if e.complexity.Mutation.AddDomain == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addDomain_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddDomain(childComplexity, args["input"].(model.DomainInput)), true
+
 	case "Mutation.createApplication":
 		if e.complexity.Mutation.CreateApplication == nil {
 			break
@@ -634,6 +882,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateImageRegistryCredential(childComplexity, args["input"].(model.ImageRegistryCredentialInput)), true
 
+	case "Mutation.createIngressRule":
+		if e.complexity.Mutation.CreateIngressRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createIngressRule_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateIngressRule(childComplexity, args["input"].(model.IngressRuleInput)), true
+
 	case "Mutation.createPersistentVolume":
 		if e.complexity.Mutation.CreatePersistentVolume == nil {
 			break
@@ -645,6 +905,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreatePersistentVolume(childComplexity, args["input"].(model.PersistentVolumeInput)), true
+
+	case "Mutation.createRedirectRule":
+		if e.complexity.Mutation.CreateRedirectRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createRedirectRule_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateRedirectRule(childComplexity, args["input"].(model.RedirectRuleInput)), true
 
 	case "Mutation.deleteApplication":
 		if e.complexity.Mutation.DeleteApplication == nil {
@@ -682,6 +954,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteImageRegistryCredential(childComplexity, args["id"].(uint)), true
 
+	case "Mutation.deleteIngressRule":
+		if e.complexity.Mutation.DeleteIngressRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteIngressRule_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteIngressRule(childComplexity, args["id"].(uint)), true
+
 	case "Mutation.deletePersistentVolume":
 		if e.complexity.Mutation.DeletePersistentVolume == nil {
 			break
@@ -693,6 +977,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeletePersistentVolume(childComplexity, args["id"].(uint)), true
+
+	case "Mutation.deleteRedirectRule":
+		if e.complexity.Mutation.DeleteRedirectRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteRedirectRule_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteRedirectRule(childComplexity, args["id"].(uint)), true
+
+	case "Mutation.issueSSL":
+		if e.complexity.Mutation.IssueSsl == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_issueSSL_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.IssueSsl(childComplexity, args["id"].(uint)), true
+
+	case "Mutation.removeDomain":
+		if e.complexity.Mutation.RemoveDomain == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeDomain_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveDomain(childComplexity, args["id"].(uint)), true
 
 	case "Mutation.updateApplication":
 		if e.complexity.Mutation.UpdateApplication == nil {
@@ -824,6 +1144,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.CheckGitCredentialRepositoryAccess(childComplexity, args["input"].(model.GitCredentialRepositoryAccessInput)), true
 
+	case "Query.domain":
+		if e.complexity.Query.Domain == nil {
+			break
+		}
+
+		args, err := ec.field_Query_domain_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Domain(childComplexity, args["id"].(uint)), true
+
+	case "Query.domains":
+		if e.complexity.Query.Domains == nil {
+			break
+		}
+
+		return e.complexity.Query.Domains(childComplexity), true
+
 	case "Query.gitCredential":
 		if e.complexity.Query.GitCredential == nil {
 			break
@@ -861,6 +1200,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ImageRegistryCredentials(childComplexity), true
+
+	case "Query.ingressRule":
+		if e.complexity.Query.IngressRule == nil {
+			break
+		}
+
+		args, err := ec.field_Query_ingressRule_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.IngressRule(childComplexity, args["id"].(uint)), true
+
+	case "Query.ingressRules":
+		if e.complexity.Query.IngressRules == nil {
+			break
+		}
+
+		return e.complexity.Query.IngressRules(childComplexity), true
 
 	case "Query.isExistApplicationName":
 		if e.complexity.Query.IsExistApplicationName == nil {
@@ -905,6 +1263,93 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.PersistentVolumes(childComplexity), true
 
+	case "Query.redirectRule":
+		if e.complexity.Query.RedirectRule == nil {
+			break
+		}
+
+		args, err := ec.field_Query_redirectRule_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.RedirectRule(childComplexity, args["id"].(uint)), true
+
+	case "Query.redirectRules":
+		if e.complexity.Query.RedirectRules == nil {
+			break
+		}
+
+		return e.complexity.Query.RedirectRules(childComplexity), true
+
+	case "Query.verifyDomainConfiguration":
+		if e.complexity.Query.VerifyDomainConfiguration == nil {
+			break
+		}
+
+		args, err := ec.field_Query_verifyDomainConfiguration_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.VerifyDomainConfiguration(childComplexity, args["id"].(uint)), true
+
+	case "RedirectRule.createdAt":
+		if e.complexity.RedirectRule.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.RedirectRule.CreatedAt(childComplexity), true
+
+	case "RedirectRule.domain":
+		if e.complexity.RedirectRule.Domain == nil {
+			break
+		}
+
+		return e.complexity.RedirectRule.Domain(childComplexity), true
+
+	case "RedirectRule.id":
+		if e.complexity.RedirectRule.ID == nil {
+			break
+		}
+
+		return e.complexity.RedirectRule.ID(childComplexity), true
+
+	case "RedirectRule.port":
+		if e.complexity.RedirectRule.Port == nil {
+			break
+		}
+
+		return e.complexity.RedirectRule.Port(childComplexity), true
+
+	case "RedirectRule.protocol":
+		if e.complexity.RedirectRule.Protocol == nil {
+			break
+		}
+
+		return e.complexity.RedirectRule.Protocol(childComplexity), true
+
+	case "RedirectRule.redirectURL":
+		if e.complexity.RedirectRule.RedirectURL == nil {
+			break
+		}
+
+		return e.complexity.RedirectRule.RedirectURL(childComplexity), true
+
+	case "RedirectRule.status":
+		if e.complexity.RedirectRule.Status == nil {
+			break
+		}
+
+		return e.complexity.RedirectRule.Status(childComplexity), true
+
+	case "RedirectRule.updatedAt":
+		if e.complexity.RedirectRule.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.RedirectRule.UpdatedAt(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -915,12 +1360,16 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputApplicationInput,
 		ec.unmarshalInputBuildArgInput,
+		ec.unmarshalInputCustomSSLInput,
+		ec.unmarshalInputDomainInput,
 		ec.unmarshalInputEnvironmentVariableInput,
 		ec.unmarshalInputGitCredentialInput,
 		ec.unmarshalInputGitCredentialRepositoryAccessInput,
 		ec.unmarshalInputImageRegistryCredentialInput,
+		ec.unmarshalInputIngressRuleInput,
 		ec.unmarshalInputPersistentVolumeBindingInput,
 		ec.unmarshalInputPersistentVolumeInput,
+		ec.unmarshalInputRedirectRuleInput,
 	)
 	first := true
 
@@ -1017,7 +1466,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/deployment.graphqls.graphqls" "schema/deployment_log.graphqls" "schema/environment_variable.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_binding.graphqls"
+//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/deployment.graphqls.graphqls" "schema/deployment_log.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_binding.graphqls" "schema/redirect_rule.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -1034,17 +1483,59 @@ var sources = []*ast.Source{
 	{Name: "schema/build_arg.graphqls", Input: sourceData("schema/build_arg.graphqls"), BuiltIn: false},
 	{Name: "schema/deployment.graphqls.graphqls", Input: sourceData("schema/deployment.graphqls.graphqls"), BuiltIn: false},
 	{Name: "schema/deployment_log.graphqls", Input: sourceData("schema/deployment_log.graphqls"), BuiltIn: false},
+	{Name: "schema/domain.graphqls", Input: sourceData("schema/domain.graphqls"), BuiltIn: false},
 	{Name: "schema/environment_variable.graphqls", Input: sourceData("schema/environment_variable.graphqls"), BuiltIn: false},
 	{Name: "schema/git_credential.graphqls", Input: sourceData("schema/git_credential.graphqls"), BuiltIn: false},
 	{Name: "schema/image_registry_credential.graphqls", Input: sourceData("schema/image_registry_credential.graphqls"), BuiltIn: false},
+	{Name: "schema/ingress_rule.graphqls", Input: sourceData("schema/ingress_rule.graphqls"), BuiltIn: false},
 	{Name: "schema/persistent_volume.graphqls", Input: sourceData("schema/persistent_volume.graphqls"), BuiltIn: false},
 	{Name: "schema/persistent_volume_binding.graphqls", Input: sourceData("schema/persistent_volume_binding.graphqls"), BuiltIn: false},
+	{Name: "schema/redirect_rule.graphqls", Input: sourceData("schema/redirect_rule.graphqls"), BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_addCustomSSL_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 model.CustomSSLInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNCustomSSLInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐCustomSSLInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addDomain_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.DomainInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNDomainInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomainInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createApplication_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1091,6 +1582,21 @@ func (ec *executionContext) field_Mutation_createImageRegistryCredential_args(ct
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createIngressRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.IngressRuleInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNIngressRuleInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createPersistentVolume_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1098,6 +1604,21 @@ func (ec *executionContext) field_Mutation_createPersistentVolume_args(ctx conte
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNPersistentVolumeInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createRedirectRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.RedirectRuleInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNRedirectRuleInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1151,7 +1672,67 @@ func (ec *executionContext) field_Mutation_deleteImageRegistryCredential_args(ct
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteIngressRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deletePersistentVolume_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteRedirectRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_issueSSL_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removeDomain_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 uint
@@ -1283,6 +1864,21 @@ func (ec *executionContext) field_Query_checkGitCredentialRepositoryAccess_args(
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_domain_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_gitCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1299,6 +1895,21 @@ func (ec *executionContext) field_Query_gitCredential_args(ctx context.Context, 
 }
 
 func (ec *executionContext) field_Query_imageRegistryCredential_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ingressRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 uint
@@ -1344,6 +1955,36 @@ func (ec *executionContext) field_Query_isExistPersistentVolume_args(ctx context
 }
 
 func (ec *executionContext) field_Query_persistentVolume_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_redirectRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_verifyDomainConfiguration_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 uint
@@ -1852,6 +2493,70 @@ func (ec *executionContext) fieldContext_Application_replicas(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Application_ingressRules(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_ingressRules(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Application().IngressRules(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.IngressRule)
+	fc.Result = res
+	return ec.marshalNIngressRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_ingressRules(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_IngressRule_id(ctx, field)
+			case "domain":
+				return ec.fieldContext_IngressRule_domain(ctx, field)
+			case "protocol":
+				return ec.fieldContext_IngressRule_protocol(ctx, field)
+			case "port":
+				return ec.fieldContext_IngressRule_port(ctx, field)
+			case "application":
+				return ec.fieldContext_IngressRule_application(ctx, field)
+			case "targetPort":
+				return ec.fieldContext_IngressRule_targetPort(ctx, field)
+			case "status":
+				return ec.fieldContext_IngressRule_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_IngressRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_IngressRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type IngressRule", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _BuildArg_key(ctx context.Context, field graphql.CollectedField, obj *model.BuildArg) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_BuildArg_key(ctx, field)
 	if err != nil {
@@ -2083,6 +2788,8 @@ func (ec *executionContext) fieldContext_Deployment_application(ctx context.Cont
 				return ec.fieldContext_Application_deploymentMode(ctx, field)
 			case "replicas":
 				return ec.fieldContext_Application_replicas(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Application_ingressRules(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -2957,6 +3664,484 @@ func (ec *executionContext) fieldContext_DeploymentLog_createdAt(ctx context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Domain_id(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Domain_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Domain_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Domain",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Domain_name(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Domain_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Domain_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Domain",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Domain_sslStatus(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Domain_sslStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SslStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DomainSSLStatus)
+	fc.Result = res
+	return ec.marshalNDomainSSLStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomainSSLStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Domain_sslStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Domain",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DomainSSLStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Domain_sslFullChain(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Domain_sslFullChain(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SslFullChain, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Domain_sslFullChain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Domain",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Domain_sslPrivateKey(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Domain_sslPrivateKey(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SslPrivateKey, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Domain_sslPrivateKey(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Domain",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Domain_sslIssuedAt(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Domain_sslIssuedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SslIssuedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Domain_sslIssuedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Domain",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Domain_sslIssuer(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Domain_sslIssuer(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SslIssuer, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Domain_sslIssuer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Domain",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Domain_sslAutoRenew(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Domain_sslAutoRenew(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SslAutoRenew, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Domain_sslAutoRenew(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Domain",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Domain_ingressRules(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Domain_ingressRules(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Domain().IngressRules(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.IngressRule)
+	fc.Result = res
+	return ec.marshalNIngressRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Domain_ingressRules(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Domain",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_IngressRule_id(ctx, field)
+			case "domain":
+				return ec.fieldContext_IngressRule_domain(ctx, field)
+			case "protocol":
+				return ec.fieldContext_IngressRule_protocol(ctx, field)
+			case "port":
+				return ec.fieldContext_IngressRule_port(ctx, field)
+			case "application":
+				return ec.fieldContext_IngressRule_application(ctx, field)
+			case "targetPort":
+				return ec.fieldContext_IngressRule_targetPort(ctx, field)
+			case "status":
+				return ec.fieldContext_IngressRule_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_IngressRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_IngressRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type IngressRule", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Domain_redirectRules(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Domain_redirectRules(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Domain().RedirectRules(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.RedirectRule)
+	fc.Result = res
+	return ec.marshalNRedirectRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Domain_redirectRules(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Domain",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RedirectRule_id(ctx, field)
+			case "domain":
+				return ec.fieldContext_RedirectRule_domain(ctx, field)
+			case "protocol":
+				return ec.fieldContext_RedirectRule_protocol(ctx, field)
+			case "port":
+				return ec.fieldContext_RedirectRule_port(ctx, field)
+			case "redirectURL":
+				return ec.fieldContext_RedirectRule_redirectURL(ctx, field)
+			case "status":
+				return ec.fieldContext_RedirectRule_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_RedirectRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_RedirectRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RedirectRule", field.Name)
 		},
 	}
 	return fc, nil
@@ -3850,6 +5035,444 @@ func (ec *executionContext) fieldContext_ImageRegistryCredential_deployments(ctx
 	return fc, nil
 }
 
+func (ec *executionContext) _IngressRule_id(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_domain(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_domain(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.IngressRule().Domain(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Domain)
+	fc.Result = res
+	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_domain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Domain_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Domain_name(ctx, field)
+			case "sslStatus":
+				return ec.fieldContext_Domain_sslStatus(ctx, field)
+			case "sslFullChain":
+				return ec.fieldContext_Domain_sslFullChain(ctx, field)
+			case "sslPrivateKey":
+				return ec.fieldContext_Domain_sslPrivateKey(ctx, field)
+			case "sslIssuedAt":
+				return ec.fieldContext_Domain_sslIssuedAt(ctx, field)
+			case "sslIssuer":
+				return ec.fieldContext_Domain_sslIssuer(ctx, field)
+			case "sslAutoRenew":
+				return ec.fieldContext_Domain_sslAutoRenew(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Domain_ingressRules(ctx, field)
+			case "redirectRules":
+				return ec.fieldContext_Domain_redirectRules(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Domain", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_protocol(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_protocol(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Protocol, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.ProtocolType)
+	fc.Result = res
+	return ec.marshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐProtocolType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_protocol(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ProtocolType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_port(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_port(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Port, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_port(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_application(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_application(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.IngressRule().Application(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Application)
+	fc.Result = res
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_application(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Application_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Application_name(ctx, field)
+			case "environmentVariables":
+				return ec.fieldContext_Application_environmentVariables(ctx, field)
+			case "persistentVolumeBindings":
+				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "latestDeployment":
+				return ec.fieldContext_Application_latestDeployment(ctx, field)
+			case "deployments":
+				return ec.fieldContext_Application_deployments(ctx, field)
+			case "deploymentMode":
+				return ec.fieldContext_Application_deploymentMode(ctx, field)
+			case "replicas":
+				return ec.fieldContext_Application_replicas(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Application_ingressRules(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_targetPort(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_targetPort(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TargetPort, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_targetPort(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_status(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.IngressRuleStatus)
+	fc.Result = res
+	return ec.marshalNIngressRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type IngressRuleStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createApplication(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createApplication(ctx, field)
 	if err != nil {
@@ -3905,6 +5528,8 @@ func (ec *executionContext) fieldContext_Mutation_createApplication(ctx context.
 				return ec.fieldContext_Application_deploymentMode(ctx, field)
 			case "replicas":
 				return ec.fieldContext_Application_replicas(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Application_ingressRules(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -3978,6 +5603,8 @@ func (ec *executionContext) fieldContext_Mutation_updateApplication(ctx context.
 				return ec.fieldContext_Application_deploymentMode(ctx, field)
 			case "replicas":
 				return ec.fieldContext_Application_replicas(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Application_ingressRules(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -4051,6 +5678,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteApplication(ctx context.
 				return ec.fieldContext_Application_deploymentMode(ctx, field)
 			case "replicas":
 				return ec.fieldContext_Application_replicas(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Application_ingressRules(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -4063,6 +5692,292 @@ func (ec *executionContext) fieldContext_Mutation_deleteApplication(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteApplication_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addDomain(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addDomain(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddDomain(rctx, fc.Args["input"].(model.DomainInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Domain)
+	fc.Result = res
+	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addDomain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Domain_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Domain_name(ctx, field)
+			case "sslStatus":
+				return ec.fieldContext_Domain_sslStatus(ctx, field)
+			case "sslFullChain":
+				return ec.fieldContext_Domain_sslFullChain(ctx, field)
+			case "sslPrivateKey":
+				return ec.fieldContext_Domain_sslPrivateKey(ctx, field)
+			case "sslIssuedAt":
+				return ec.fieldContext_Domain_sslIssuedAt(ctx, field)
+			case "sslIssuer":
+				return ec.fieldContext_Domain_sslIssuer(ctx, field)
+			case "sslAutoRenew":
+				return ec.fieldContext_Domain_sslAutoRenew(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Domain_ingressRules(ctx, field)
+			case "redirectRules":
+				return ec.fieldContext_Domain_redirectRules(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Domain", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addDomain_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_removeDomain(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_removeDomain(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RemoveDomain(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_removeDomain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_removeDomain_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_issueSSL(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_issueSSL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().IssueSsl(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Domain)
+	fc.Result = res
+	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_issueSSL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Domain_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Domain_name(ctx, field)
+			case "sslStatus":
+				return ec.fieldContext_Domain_sslStatus(ctx, field)
+			case "sslFullChain":
+				return ec.fieldContext_Domain_sslFullChain(ctx, field)
+			case "sslPrivateKey":
+				return ec.fieldContext_Domain_sslPrivateKey(ctx, field)
+			case "sslIssuedAt":
+				return ec.fieldContext_Domain_sslIssuedAt(ctx, field)
+			case "sslIssuer":
+				return ec.fieldContext_Domain_sslIssuer(ctx, field)
+			case "sslAutoRenew":
+				return ec.fieldContext_Domain_sslAutoRenew(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Domain_ingressRules(ctx, field)
+			case "redirectRules":
+				return ec.fieldContext_Domain_redirectRules(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Domain", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_issueSSL_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addCustomSSL(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addCustomSSL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddCustomSsl(rctx, fc.Args["id"].(uint), fc.Args["input"].(model.CustomSSLInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Domain)
+	fc.Result = res
+	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addCustomSSL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Domain_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Domain_name(ctx, field)
+			case "sslStatus":
+				return ec.fieldContext_Domain_sslStatus(ctx, field)
+			case "sslFullChain":
+				return ec.fieldContext_Domain_sslFullChain(ctx, field)
+			case "sslPrivateKey":
+				return ec.fieldContext_Domain_sslPrivateKey(ctx, field)
+			case "sslIssuedAt":
+				return ec.fieldContext_Domain_sslIssuedAt(ctx, field)
+			case "sslIssuer":
+				return ec.fieldContext_Domain_sslIssuer(ctx, field)
+			case "sslAutoRenew":
+				return ec.fieldContext_Domain_sslAutoRenew(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Domain_ingressRules(ctx, field)
+			case "redirectRules":
+				return ec.fieldContext_Domain_redirectRules(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Domain", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addCustomSSL_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4471,6 +6386,136 @@ func (ec *executionContext) fieldContext_Mutation_deleteImageRegistryCredential(
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createIngressRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createIngressRule(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateIngressRule(rctx, fc.Args["input"].(model.IngressRuleInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.IngressRule)
+	fc.Result = res
+	return ec.marshalNIngressRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createIngressRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_IngressRule_id(ctx, field)
+			case "domain":
+				return ec.fieldContext_IngressRule_domain(ctx, field)
+			case "protocol":
+				return ec.fieldContext_IngressRule_protocol(ctx, field)
+			case "port":
+				return ec.fieldContext_IngressRule_port(ctx, field)
+			case "application":
+				return ec.fieldContext_IngressRule_application(ctx, field)
+			case "targetPort":
+				return ec.fieldContext_IngressRule_targetPort(ctx, field)
+			case "status":
+				return ec.fieldContext_IngressRule_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_IngressRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_IngressRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type IngressRule", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createIngressRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteIngressRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteIngressRule(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteIngressRule(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteIngressRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteIngressRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createPersistentVolume(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createPersistentVolume(ctx, field)
 	if err != nil {
@@ -4585,6 +6630,134 @@ func (ec *executionContext) fieldContext_Mutation_deletePersistentVolume(ctx con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deletePersistentVolume_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createRedirectRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createRedirectRule(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateRedirectRule(rctx, fc.Args["input"].(model.RedirectRuleInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.RedirectRule)
+	fc.Result = res
+	return ec.marshalNRedirectRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createRedirectRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RedirectRule_id(ctx, field)
+			case "domain":
+				return ec.fieldContext_RedirectRule_domain(ctx, field)
+			case "protocol":
+				return ec.fieldContext_RedirectRule_protocol(ctx, field)
+			case "port":
+				return ec.fieldContext_RedirectRule_port(ctx, field)
+			case "redirectURL":
+				return ec.fieldContext_RedirectRule_redirectURL(ctx, field)
+			case "status":
+				return ec.fieldContext_RedirectRule_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_RedirectRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_RedirectRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RedirectRule", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createRedirectRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteRedirectRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteRedirectRule(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteRedirectRule(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteRedirectRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteRedirectRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4976,6 +7149,8 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_application(ctx
 				return ec.fieldContext_Application_deploymentMode(ctx, field)
 			case "replicas":
 				return ec.fieldContext_Application_replicas(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Application_ingressRules(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -5082,6 +7257,8 @@ func (ec *executionContext) fieldContext_Query_application(ctx context.Context, 
 				return ec.fieldContext_Application_deploymentMode(ctx, field)
 			case "replicas":
 				return ec.fieldContext_Application_replicas(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Application_ingressRules(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -5155,6 +7332,8 @@ func (ec *executionContext) fieldContext_Query_applications(ctx context.Context,
 				return ec.fieldContext_Application_deploymentMode(ctx, field)
 			case "replicas":
 				return ec.fieldContext_Application_replicas(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Application_ingressRules(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -5211,6 +7390,204 @@ func (ec *executionContext) fieldContext_Query_isExistApplicationName(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_isExistApplicationName_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_domains(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_domains(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Domains(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Domain)
+	fc.Result = res
+	return ec.marshalNDomain2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomainᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_domains(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Domain_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Domain_name(ctx, field)
+			case "sslStatus":
+				return ec.fieldContext_Domain_sslStatus(ctx, field)
+			case "sslFullChain":
+				return ec.fieldContext_Domain_sslFullChain(ctx, field)
+			case "sslPrivateKey":
+				return ec.fieldContext_Domain_sslPrivateKey(ctx, field)
+			case "sslIssuedAt":
+				return ec.fieldContext_Domain_sslIssuedAt(ctx, field)
+			case "sslIssuer":
+				return ec.fieldContext_Domain_sslIssuer(ctx, field)
+			case "sslAutoRenew":
+				return ec.fieldContext_Domain_sslAutoRenew(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Domain_ingressRules(ctx, field)
+			case "redirectRules":
+				return ec.fieldContext_Domain_redirectRules(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Domain", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_domain(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_domain(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Domain(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Domain)
+	fc.Result = res
+	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_domain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Domain_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Domain_name(ctx, field)
+			case "sslStatus":
+				return ec.fieldContext_Domain_sslStatus(ctx, field)
+			case "sslFullChain":
+				return ec.fieldContext_Domain_sslFullChain(ctx, field)
+			case "sslPrivateKey":
+				return ec.fieldContext_Domain_sslPrivateKey(ctx, field)
+			case "sslIssuedAt":
+				return ec.fieldContext_Domain_sslIssuedAt(ctx, field)
+			case "sslIssuer":
+				return ec.fieldContext_Domain_sslIssuer(ctx, field)
+			case "sslAutoRenew":
+				return ec.fieldContext_Domain_sslAutoRenew(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Domain_ingressRules(ctx, field)
+			case "redirectRules":
+				return ec.fieldContext_Domain_redirectRules(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Domain", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_domain_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_verifyDomainConfiguration(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_verifyDomainConfiguration(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().VerifyDomainConfiguration(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_verifyDomainConfiguration(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_verifyDomainConfiguration_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -5532,6 +7909,145 @@ func (ec *executionContext) fieldContext_Query_imageRegistryCredential(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_ingressRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_ingressRule(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IngressRule(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.IngressRule)
+	fc.Result = res
+	return ec.marshalNIngressRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_ingressRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_IngressRule_id(ctx, field)
+			case "domain":
+				return ec.fieldContext_IngressRule_domain(ctx, field)
+			case "protocol":
+				return ec.fieldContext_IngressRule_protocol(ctx, field)
+			case "port":
+				return ec.fieldContext_IngressRule_port(ctx, field)
+			case "application":
+				return ec.fieldContext_IngressRule_application(ctx, field)
+			case "targetPort":
+				return ec.fieldContext_IngressRule_targetPort(ctx, field)
+			case "status":
+				return ec.fieldContext_IngressRule_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_IngressRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_IngressRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type IngressRule", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_ingressRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_ingressRules(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_ingressRules(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IngressRules(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.IngressRule)
+	fc.Result = res
+	return ec.marshalNIngressRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_ingressRules(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_IngressRule_id(ctx, field)
+			case "domain":
+				return ec.fieldContext_IngressRule_domain(ctx, field)
+			case "protocol":
+				return ec.fieldContext_IngressRule_protocol(ctx, field)
+			case "port":
+				return ec.fieldContext_IngressRule_port(ctx, field)
+			case "application":
+				return ec.fieldContext_IngressRule_application(ctx, field)
+			case "targetPort":
+				return ec.fieldContext_IngressRule_targetPort(ctx, field)
+			case "status":
+				return ec.fieldContext_IngressRule_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_IngressRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_IngressRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type IngressRule", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_persistentVolumes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_persistentVolumes(ctx, field)
 	if err != nil {
@@ -5693,6 +8209,141 @@ func (ec *executionContext) fieldContext_Query_isExistPersistentVolume(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_redirectRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_redirectRule(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().RedirectRule(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.RedirectRule)
+	fc.Result = res
+	return ec.marshalNRedirectRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_redirectRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RedirectRule_id(ctx, field)
+			case "domain":
+				return ec.fieldContext_RedirectRule_domain(ctx, field)
+			case "protocol":
+				return ec.fieldContext_RedirectRule_protocol(ctx, field)
+			case "port":
+				return ec.fieldContext_RedirectRule_port(ctx, field)
+			case "redirectURL":
+				return ec.fieldContext_RedirectRule_redirectURL(ctx, field)
+			case "status":
+				return ec.fieldContext_RedirectRule_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_RedirectRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_RedirectRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RedirectRule", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_redirectRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_redirectRules(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_redirectRules(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().RedirectRules(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.RedirectRule)
+	fc.Result = res
+	return ec.marshalNRedirectRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_redirectRules(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RedirectRule_id(ctx, field)
+			case "domain":
+				return ec.fieldContext_RedirectRule_domain(ctx, field)
+			case "protocol":
+				return ec.fieldContext_RedirectRule_protocol(ctx, field)
+			case "port":
+				return ec.fieldContext_RedirectRule_port(ctx, field)
+			case "redirectURL":
+				return ec.fieldContext_RedirectRule_redirectURL(ctx, field)
+			case "status":
+				return ec.fieldContext_RedirectRule_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_RedirectRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_RedirectRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RedirectRule", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -5817,6 +8468,380 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedirectRule_id(ctx context.Context, field graphql.CollectedField, obj *model.RedirectRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RedirectRule_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RedirectRule_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedirectRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedirectRule_domain(ctx context.Context, field graphql.CollectedField, obj *model.RedirectRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RedirectRule_domain(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.RedirectRule().Domain(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Domain)
+	fc.Result = res
+	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RedirectRule_domain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedirectRule",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Domain_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Domain_name(ctx, field)
+			case "sslStatus":
+				return ec.fieldContext_Domain_sslStatus(ctx, field)
+			case "sslFullChain":
+				return ec.fieldContext_Domain_sslFullChain(ctx, field)
+			case "sslPrivateKey":
+				return ec.fieldContext_Domain_sslPrivateKey(ctx, field)
+			case "sslIssuedAt":
+				return ec.fieldContext_Domain_sslIssuedAt(ctx, field)
+			case "sslIssuer":
+				return ec.fieldContext_Domain_sslIssuer(ctx, field)
+			case "sslAutoRenew":
+				return ec.fieldContext_Domain_sslAutoRenew(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Domain_ingressRules(ctx, field)
+			case "redirectRules":
+				return ec.fieldContext_Domain_redirectRules(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Domain", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedirectRule_protocol(ctx context.Context, field graphql.CollectedField, obj *model.RedirectRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RedirectRule_protocol(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Protocol, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.ProtocolType)
+	fc.Result = res
+	return ec.marshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐProtocolType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RedirectRule_protocol(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedirectRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ProtocolType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedirectRule_port(ctx context.Context, field graphql.CollectedField, obj *model.RedirectRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RedirectRule_port(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Port, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RedirectRule_port(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedirectRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedirectRule_redirectURL(ctx context.Context, field graphql.CollectedField, obj *model.RedirectRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RedirectRule_redirectURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RedirectURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RedirectRule_redirectURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedirectRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedirectRule_status(ctx context.Context, field graphql.CollectedField, obj *model.RedirectRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RedirectRule_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.RedirectRuleStatus)
+	fc.Result = res
+	return ec.marshalNRedirectRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RedirectRule_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedirectRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RedirectRuleStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedirectRule_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.RedirectRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RedirectRule_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RedirectRule_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedirectRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedirectRule_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.RedirectRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RedirectRule_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RedirectRule_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedirectRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -7797,6 +10822,82 @@ func (ec *executionContext) unmarshalInputBuildArgInput(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCustomSSLInput(ctx context.Context, obj interface{}) (model.CustomSSLInput, error) {
+	var it model.CustomSSLInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"fullChain", "privateKey", "sslIssuer"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "fullChain":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fullChain"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FullChain = data
+		case "privateKey":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("privateKey"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PrivateKey = data
+		case "sslIssuer":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sslIssuer"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SslIssuer = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputDomainInput(ctx context.Context, obj interface{}) (model.DomainInput, error) {
+	var it model.DomainInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputEnvironmentVariableInput(ctx context.Context, obj interface{}) (model.EnvironmentVariableInput, error) {
 	var it model.EnvironmentVariableInput
 	asMap := map[string]interface{}{}
@@ -7976,6 +11077,71 @@ func (ec *executionContext) unmarshalInputImageRegistryCredentialInput(ctx conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputIngressRuleInput(ctx context.Context, obj interface{}) (model.IngressRuleInput, error) {
+	var it model.IngressRuleInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"domainId", "applicationId", "protocol", "port", "targetPort"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "domainId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("domainId"))
+			data, err := ec.unmarshalNUint2uint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DomainID = data
+		case "applicationId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("applicationId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ApplicationID = data
+		case "protocol":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("protocol"))
+			data, err := ec.unmarshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐProtocolType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Protocol = data
+		case "port":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("port"))
+			data, err := ec.unmarshalNUint2uint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Port = data
+		case "targetPort":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("targetPort"))
+			data, err := ec.unmarshalNUint2uint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TargetPort = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPersistentVolumeBindingInput(ctx context.Context, obj interface{}) (model.PersistentVolumeBindingInput, error) {
 	var it model.PersistentVolumeBindingInput
 	asMap := map[string]interface{}{}
@@ -8037,6 +11203,62 @@ func (ec *executionContext) unmarshalInputPersistentVolumeInput(ctx context.Cont
 				return it, err
 			}
 			it.Name = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputRedirectRuleInput(ctx context.Context, obj interface{}) (model.RedirectRuleInput, error) {
+	var it model.RedirectRuleInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"domainId", "protocol", "port", "redirectURL"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "domainId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("domainId"))
+			data, err := ec.unmarshalNUint2uint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DomainID = data
+		case "protocol":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("protocol"))
+			data, err := ec.unmarshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐProtocolType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Protocol = data
+		case "port":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("port"))
+			data, err := ec.unmarshalNUint2uint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Port = data
+		case "redirectURL":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("redirectURL"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RedirectURL = data
 		}
 	}
 
@@ -8226,6 +11448,42 @@ func (ec *executionContext) _Application(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "ingressRules":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Application_ingressRules(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8626,6 +11884,152 @@ func (ec *executionContext) _DeploymentLog(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var domainImplementors = []string{"Domain"}
+
+func (ec *executionContext) _Domain(ctx context.Context, sel ast.SelectionSet, obj *model.Domain) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, domainImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Domain")
+		case "id":
+			out.Values[i] = ec._Domain_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "name":
+			out.Values[i] = ec._Domain_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "sslStatus":
+			out.Values[i] = ec._Domain_sslStatus(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "sslFullChain":
+			out.Values[i] = ec._Domain_sslFullChain(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "sslPrivateKey":
+			out.Values[i] = ec._Domain_sslPrivateKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "sslIssuedAt":
+			out.Values[i] = ec._Domain_sslIssuedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "sslIssuer":
+			out.Values[i] = ec._Domain_sslIssuer(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "sslAutoRenew":
+			out.Values[i] = ec._Domain_sslAutoRenew(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "ingressRules":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Domain_ingressRules(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "redirectRules":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Domain_redirectRules(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var environmentVariableImplementors = []string{"EnvironmentVariable"}
 
 func (ec *executionContext) _EnvironmentVariable(ctx context.Context, sel ast.SelectionSet, obj *model.EnvironmentVariable) graphql.Marshaler {
@@ -8914,6 +12318,147 @@ func (ec *executionContext) _ImageRegistryCredential(ctx context.Context, sel as
 	return out
 }
 
+var ingressRuleImplementors = []string{"IngressRule"}
+
+func (ec *executionContext) _IngressRule(ctx context.Context, sel ast.SelectionSet, obj *model.IngressRule) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, ingressRuleImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IngressRule")
+		case "id":
+			out.Values[i] = ec._IngressRule_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "domain":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IngressRule_domain(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "protocol":
+			out.Values[i] = ec._IngressRule_protocol(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "port":
+			out.Values[i] = ec._IngressRule_port(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "application":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IngressRule_application(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "targetPort":
+			out.Values[i] = ec._IngressRule_targetPort(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "status":
+			out.Values[i] = ec._IngressRule_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "createdAt":
+			out.Values[i] = ec._IngressRule_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "updatedAt":
+			out.Values[i] = ec._IngressRule_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -8950,6 +12495,34 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "deleteApplication":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteApplication(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "addDomain":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addDomain(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "removeDomain":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_removeDomain(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "issueSSL":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_issueSSL(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "addCustomSSL":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addCustomSSL(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -8996,6 +12569,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "createIngressRule":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createIngressRule(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteIngressRule":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteIngressRule(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createPersistentVolume":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createPersistentVolume(ctx, field)
@@ -9004,6 +12591,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deletePersistentVolume(ctx, field)
 			})
+		case "createRedirectRule":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createRedirectRule(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteRedirectRule":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteRedirectRule(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9318,6 +12919,72 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "domains":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_domains(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "domain":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_domain(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "verifyDomainConfiguration":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_verifyDomainConfiguration(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "gitCredentials":
 			field := field
 
@@ -9428,6 +13095,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "ingressRule":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ingressRule(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "ingressRules":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ingressRules(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "persistentVolumes":
 			field := field
 
@@ -9485,6 +13196,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "redirectRule":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_redirectRule(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "redirectRules":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_redirectRules(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -9493,6 +13248,111 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___schema(ctx, field)
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var redirectRuleImplementors = []string{"RedirectRule"}
+
+func (ec *executionContext) _RedirectRule(ctx context.Context, sel ast.SelectionSet, obj *model.RedirectRule) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, redirectRuleImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RedirectRule")
+		case "id":
+			out.Values[i] = ec._RedirectRule_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "domain":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RedirectRule_domain(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "protocol":
+			out.Values[i] = ec._RedirectRule_protocol(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "port":
+			out.Values[i] = ec._RedirectRule_port(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "redirectURL":
+			out.Values[i] = ec._RedirectRule_redirectURL(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "status":
+			out.Values[i] = ec._RedirectRule_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "createdAt":
+			out.Values[i] = ec._RedirectRule_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "updatedAt":
+			out.Values[i] = ec._RedirectRule_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9996,6 +13856,11 @@ func (ec *executionContext) unmarshalNBuildArgInput2ᚖgithubᚗcomᚋswiftwave�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNCustomSSLInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐCustomSSLInput(ctx context.Context, v interface{}) (model.CustomSSLInput, error) {
+	res, err := ec.unmarshalInputCustomSSLInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNDeployment2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeployment(ctx context.Context, sel ast.SelectionSet, v model.Deployment) graphql.Marshaler {
 	return ec._Deployment(ctx, sel, &v)
 }
@@ -10125,6 +13990,79 @@ func (ec *executionContext) unmarshalNDeploymentStatus2githubᚗcomᚋswiftwave�
 }
 
 func (ec *executionContext) marshalNDeploymentStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentStatus(ctx context.Context, sel ast.SelectionSet, v model.DeploymentStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNDomain2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx context.Context, sel ast.SelectionSet, v model.Domain) graphql.Marshaler {
+	return ec._Domain(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDomain2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomainᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Domain) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx context.Context, sel ast.SelectionSet, v *model.Domain) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Domain(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNDomainInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomainInput(ctx context.Context, v interface{}) (model.DomainInput, error) {
+	res, err := ec.unmarshalInputDomainInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNDomainSSLStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomainSSLStatus(ctx context.Context, v interface{}) (model.DomainSSLStatus, error) {
+	var res model.DomainSSLStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDomainSSLStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomainSSLStatus(ctx context.Context, sel ast.SelectionSet, v model.DomainSSLStatus) graphql.Marshaler {
 	return v
 }
 
@@ -10359,6 +14297,79 @@ func (ec *executionContext) unmarshalNImageRegistryCredentialInput2githubᚗcom�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNIngressRule2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRule(ctx context.Context, sel ast.SelectionSet, v model.IngressRule) graphql.Marshaler {
+	return ec._IngressRule(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNIngressRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.IngressRule) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNIngressRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRule(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNIngressRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRule(ctx context.Context, sel ast.SelectionSet, v *model.IngressRule) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._IngressRule(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNIngressRuleInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleInput(ctx context.Context, v interface{}) (model.IngressRuleInput, error) {
+	res, err := ec.unmarshalInputIngressRuleInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNIngressRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleStatus(ctx context.Context, v interface{}) (model.IngressRuleStatus, error) {
+	var res model.IngressRuleStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNIngressRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleStatus(ctx context.Context, sel ast.SelectionSet, v model.IngressRuleStatus) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNPersistentVolume2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v model.PersistentVolume) graphql.Marshaler {
 	return ec._PersistentVolume(ctx, sel, &v)
 }
@@ -10452,6 +14463,89 @@ func (ec *executionContext) unmarshalNPersistentVolumeBindingInput2ᚖgithubᚗc
 func (ec *executionContext) unmarshalNPersistentVolumeInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeInput(ctx context.Context, v interface{}) (model.PersistentVolumeInput, error) {
 	res, err := ec.unmarshalInputPersistentVolumeInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐProtocolType(ctx context.Context, v interface{}) (model.ProtocolType, error) {
+	var res model.ProtocolType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐProtocolType(ctx context.Context, sel ast.SelectionSet, v model.ProtocolType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNRedirectRule2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRule(ctx context.Context, sel ast.SelectionSet, v model.RedirectRule) graphql.Marshaler {
+	return ec._RedirectRule(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRedirectRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RedirectRule) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRedirectRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRule(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNRedirectRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRule(ctx context.Context, sel ast.SelectionSet, v *model.RedirectRule) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RedirectRule(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNRedirectRuleInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleInput(ctx context.Context, v interface{}) (model.RedirectRuleInput, error) {
+	res, err := ec.unmarshalInputRedirectRuleInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNRedirectRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleStatus(ctx context.Context, v interface{}) (model.RedirectRuleStatus, error) {
+	var res model.RedirectRuleStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRedirectRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleStatus(ctx context.Context, sel ast.SelectionSet, v model.RedirectRuleStatus) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

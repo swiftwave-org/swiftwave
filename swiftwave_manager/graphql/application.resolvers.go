@@ -6,6 +6,7 @@ package graphql
 
 import (
 	"context"
+	"fmt"
 
 	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
@@ -64,6 +65,11 @@ func (r *applicationResolver) Deployments(ctx context.Context, obj *model.Applic
 		result = append(result, deploymentToGraphqlObject(record))
 	}
 	return result, nil
+}
+
+// IngressRules is the resolver for the ingressRules field.
+func (r *applicationResolver) IngressRules(ctx context.Context, obj *model.Application) ([]*model.IngressRule, error) {
+	panic(fmt.Errorf("not implemented: IngressRules - ingressRules"))
 }
 
 // CreateApplication is the resolver for the createApplication field.

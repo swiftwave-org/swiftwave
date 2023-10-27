@@ -49,6 +49,8 @@ models:
         resolver: true
       deployments:
         resolver: true
+      ingressRules:
+        resolver: true
   PersistentVolume:
     fields:
       persistentVolumeBindings:
@@ -78,4 +80,22 @@ models:
   GitCredential:
     fields:
       deployments:
+        resolver: true
+  Domain:
+    fields:
+      ingressRules:
+        resolver: true
+      redirectRules:
+        resolver: true
+  IngressRule:
+    fields:
+      domain:
+        resolver: true
+      application:
+        resolver: true
+  RedirectRule:
+    fields:
+      domain:
+        resolver: true
+      application:
         resolver: true

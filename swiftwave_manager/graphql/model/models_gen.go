@@ -18,6 +18,7 @@ type Application struct {
 	Deployments              []*Deployment              `json:"deployments"`
 	DeploymentMode           DeploymentMode             `json:"deploymentMode"`
 	Replicas                 uint                       `json:"replicas"`
+	IngressRules             []*IngressRule             `json:"ingressRules"`
 }
 
 type ApplicationInput struct {
@@ -49,6 +50,12 @@ type BuildArgInput struct {
 	Value string `json:"value"`
 }
 
+type CustomSSLInput struct {
+	FullChain  string `json:"fullChain"`
+	PrivateKey string `json:"privateKey"`
+	SslIssuer  string `json:"sslIssuer"`
+}
+
 type Deployment struct {
 	ID                           string                   `json:"id"`
 	ApplicationID                string                   `json:"applicationID"`
@@ -75,6 +82,23 @@ type Deployment struct {
 type DeploymentLog struct {
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+type Domain struct {
+	ID            uint            `json:"id"`
+	Name          string          `json:"name"`
+	SslStatus     DomainSSLStatus `json:"sslStatus"`
+	SslFullChain  string          `json:"sslFullChain"`
+	SslPrivateKey string          `json:"sslPrivateKey"`
+	SslIssuedAt   string          `json:"sslIssuedAt"`
+	SslIssuer     string          `json:"sslIssuer"`
+	SslAutoRenew  bool            `json:"sslAutoRenew"`
+	IngressRules  []*IngressRule  `json:"ingressRules"`
+	RedirectRules []*RedirectRule `json:"redirectRules"`
+}
+
+type DomainInput struct {
+	Name string `json:"name"`
 }
 
 type EnvironmentVariable struct {
@@ -130,6 +154,26 @@ type ImageRegistryCredentialInput struct {
 	Password string `json:"password"`
 }
 
+type IngressRule struct {
+	ID          uint              `json:"id"`
+	Domain      *Domain           `json:"domain"`
+	Protocol    ProtocolType      `json:"protocol"`
+	Port        uint              `json:"port"`
+	Application *Application      `json:"application"`
+	TargetPort  uint              `json:"targetPort"`
+	Status      IngressRuleStatus `json:"status"`
+	CreatedAt   time.Time         `json:"createdAt"`
+	UpdatedAt   time.Time         `json:"updatedAt"`
+}
+
+type IngressRuleInput struct {
+	DomainID      uint         `json:"domainId"`
+	ApplicationID string       `json:"applicationId"`
+	Protocol      ProtocolType `json:"protocol"`
+	Port          uint         `json:"port"`
+	TargetPort    uint         `json:"targetPort"`
+}
+
 type PersistentVolume struct {
 	ID                       uint                       `json:"id"`
 	Name                     string                     `json:"name"`
@@ -152,6 +196,24 @@ type PersistentVolumeBindingInput struct {
 
 type PersistentVolumeInput struct {
 	Name string `json:"name"`
+}
+
+type RedirectRule struct {
+	ID          uint               `json:"id"`
+	Domain      *Domain            `json:"domain"`
+	Protocol    ProtocolType       `json:"protocol"`
+	Port        uint               `json:"port"`
+	RedirectURL string             `json:"redirectURL"`
+	Status      RedirectRuleStatus `json:"status"`
+	CreatedAt   time.Time          `json:"createdAt"`
+	UpdatedAt   time.Time          `json:"updatedAt"`
+}
+
+type RedirectRuleInput struct {
+	DomainID    uint         `json:"domainId"`
+	Protocol    ProtocolType `json:"protocol"`
+	Port        uint         `json:"port"`
+	RedirectURL string       `json:"redirectURL"`
 }
 
 type DeploymentMode string
@@ -244,6 +306,49 @@ func (e DeploymentStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type DomainSSLStatus string
+
+const (
+	DomainSSLStatusNone    DomainSSLStatus = "none"
+	DomainSSLStatusPending DomainSSLStatus = "pending"
+	DomainSSLStatusIssued  DomainSSLStatus = "issued"
+)
+
+var AllDomainSSLStatus = []DomainSSLStatus{
+	DomainSSLStatusNone,
+	DomainSSLStatusPending,
+	DomainSSLStatusIssued,
+}
+
+func (e DomainSSLStatus) IsValid() bool {
+	switch e {
+	case DomainSSLStatusNone, DomainSSLStatusPending, DomainSSLStatusIssued:
+		return true
+	}
+	return false
+}
+
+func (e DomainSSLStatus) String() string {
+	return string(e)
+}
+
+func (e *DomainSSLStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DomainSSLStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DomainSSLStatus", str)
+	}
+	return nil
+}
+
+func (e DomainSSLStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type GitProvider string
 
 const (
@@ -284,6 +389,139 @@ func (e *GitProvider) UnmarshalGQL(v interface{}) error {
 }
 
 func (e GitProvider) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type IngressRuleStatus string
+
+const (
+	IngressRuleStatusPending  IngressRuleStatus = "pending"
+	IngressRuleStatusApplied  IngressRuleStatus = "applied"
+	IngressRuleStatusDeleting IngressRuleStatus = "deleting"
+	IngressRuleStatusFailed   IngressRuleStatus = "failed"
+)
+
+var AllIngressRuleStatus = []IngressRuleStatus{
+	IngressRuleStatusPending,
+	IngressRuleStatusApplied,
+	IngressRuleStatusDeleting,
+	IngressRuleStatusFailed,
+}
+
+func (e IngressRuleStatus) IsValid() bool {
+	switch e {
+	case IngressRuleStatusPending, IngressRuleStatusApplied, IngressRuleStatusDeleting, IngressRuleStatusFailed:
+		return true
+	}
+	return false
+}
+
+func (e IngressRuleStatus) String() string {
+	return string(e)
+}
+
+func (e *IngressRuleStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = IngressRuleStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid IngressRuleStatus", str)
+	}
+	return nil
+}
+
+func (e IngressRuleStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ProtocolType string
+
+const (
+	ProtocolTypeHTTP  ProtocolType = "http"
+	ProtocolTypeHTTPS ProtocolType = "https"
+	ProtocolTypeTCP   ProtocolType = "tcp"
+)
+
+var AllProtocolType = []ProtocolType{
+	ProtocolTypeHTTP,
+	ProtocolTypeHTTPS,
+	ProtocolTypeTCP,
+}
+
+func (e ProtocolType) IsValid() bool {
+	switch e {
+	case ProtocolTypeHTTP, ProtocolTypeHTTPS, ProtocolTypeTCP:
+		return true
+	}
+	return false
+}
+
+func (e ProtocolType) String() string {
+	return string(e)
+}
+
+func (e *ProtocolType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ProtocolType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ProtocolType", str)
+	}
+	return nil
+}
+
+func (e ProtocolType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type RedirectRuleStatus string
+
+const (
+	RedirectRuleStatusPending  RedirectRuleStatus = "pending"
+	RedirectRuleStatusApplied  RedirectRuleStatus = "applied"
+	RedirectRuleStatusFailed   RedirectRuleStatus = "failed"
+	RedirectRuleStatusDeleting RedirectRuleStatus = "deleting"
+)
+
+var AllRedirectRuleStatus = []RedirectRuleStatus{
+	RedirectRuleStatusPending,
+	RedirectRuleStatusApplied,
+	RedirectRuleStatusFailed,
+	RedirectRuleStatusDeleting,
+}
+
+func (e RedirectRuleStatus) IsValid() bool {
+	switch e {
+	case RedirectRuleStatusPending, RedirectRuleStatusApplied, RedirectRuleStatusFailed, RedirectRuleStatusDeleting:
+		return true
+	}
+	return false
+}
+
+func (e RedirectRuleStatus) String() string {
+	return string(e)
+}
+
+func (e *RedirectRuleStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RedirectRuleStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid RedirectRuleStatus", str)
+	}
+	return nil
+}
+
+func (e RedirectRuleStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
