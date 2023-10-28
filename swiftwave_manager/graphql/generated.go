@@ -10581,7 +10581,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "dockerfile", "buildArgs", "deploymentMode", "replicas", "upstreamType", "gitCredentialID", "gitProvider", "repositoryOwner", "repositoryName", "repositoryBranch", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID"}
+	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "dockerfile", "buildArgs", "deploymentMode", "replicas", "upstreamType", "gitCredentialID", "gitProvider", "repositoryOwner", "repositoryName", "repositoryBranch", "commitHash", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10705,6 +10705,15 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 				return it, err
 			}
 			it.RepositoryBranch = data
+		case "commitHash":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("commitHash"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CommitHash = data
 		case "sourceCodeCompressedFileName":
 			var err error
 

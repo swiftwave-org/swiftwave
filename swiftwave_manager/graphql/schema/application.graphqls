@@ -30,6 +30,7 @@ input ApplicationInput {
     repositoryOwner: String
     repositoryName: String
     repositoryBranch: String
+    commitHash: String
     # required for upstreamType = "SourceCode"
     sourceCodeCompressedFileName: String
     # required for upstreamType = "Image"

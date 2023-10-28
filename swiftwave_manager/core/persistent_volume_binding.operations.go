@@ -22,3 +22,18 @@ func FindPersistentVolumeBindingsByPersistentVolumeId(ctx context.Context, db go
 	tx := db.Where("persistent_volume_id = ?", persistentVolumeId).Find(&persistentVolumeBindings)
 	return persistentVolumeBindings, tx.Error
 }
+
+func (p *PersistentVolumeBinding) Create(ctx context.Context, db gorm.DB) error {
+	tx := db.Create(p)
+	return tx.Error
+}
+
+func (p *PersistentVolumeBinding) Update(ctx context.Context, db gorm.DB) error {
+	tx := db.Save(p)
+	return tx.Error
+}
+
+func (p *PersistentVolumeBinding) Delete(ctx context.Context, db gorm.DB) error {
+	tx := db.Delete(p)
+	return tx.Error
+}

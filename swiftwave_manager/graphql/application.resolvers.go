@@ -101,9 +101,15 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 	var databaseObject = applicationInputToDatabaseObject(&input)
 	databaseObject.ID = record.ID
 	// update record
-	err = databaseObject.Update(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
+	result, err := databaseObject.Update(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
 	if err != nil {
 		return nil, err
+	} else {
+		if result.RebuildRequired {
+			// TODO: push to queue for rebuild and reload
+		} else if result.ReloadRequired {
+			// TODO: push to queue for reload
+		}
 	}
 	return applicationToGraphqlObject(databaseObject), nil
 }

@@ -117,3 +117,14 @@ const (
 	DeploymentModeReplicated DeploymentMode = "replicated"
 	DeploymentModeGlobal     DeploymentMode = "global"
 )
+
+// ApplicationUpdateResult : result of application update
+type ApplicationUpdateResult struct {
+	RebuildRequired bool
+	ReloadRequired  bool
+}
+
+// DeploymentUpdateResult : result of deployment update
+type DeploymentUpdateResult struct {
+	RebuildRequired bool
+}

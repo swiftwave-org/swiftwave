@@ -176,24 +176,136 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	// TODO: push to queue for deployment
 }
 
-func (application *Application) Update(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
+func (application *Application) Update(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) (*ApplicationUpdateResult, error) {
+	var err error
 	// ensure that application is not deleted
 	isDeleted, err := application.IsApplicationDeleted(ctx, db)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if isDeleted {
-		return errors.New("application is deleted")
+		return nil, errors.New("application is deleted")
 	}
-	// TODO: add validation, create new deployment if change required
-	// create transaction
-	transaction := db.Begin()
+	// status
+	isReloadRequired := false
+	// fetch application with environment variables and persistent volume bindings
+	var applicationFull = &Application{}
+	tx := db.Preload("EnvironmentVariables").Preload("PersistentVolumeBindings").First(&applicationFull, application.ID)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	// create array of environment variables
+	var newEnvironmentVariableMap = make(map[string]string)
+	for _, environmentVariable := range application.EnvironmentVariables {
+		newEnvironmentVariableMap[environmentVariable.Key] = environmentVariable.Value
+	}
 	// update environment variables -- if required
+	if applicationFull.EnvironmentVariables != nil {
+		for _, environmentVariable := range applicationFull.EnvironmentVariables {
+			// check if environment variable is present in new environment variables
+			if _, ok := newEnvironmentVariableMap[environmentVariable.Key]; ok {
+				// check if value is changed
+				if environmentVariable.Value != newEnvironmentVariableMap[environmentVariable.Key] {
+					// update environment variable
+					environmentVariable.Value = newEnvironmentVariableMap[environmentVariable.Key]
+					err = environmentVariable.Update(ctx, db)
+					if err != nil {
+						return nil, err
+					}
+					// delete from newEnvironmentVariableMap
+					delete(newEnvironmentVariableMap, environmentVariable.Key)
+					// reload application
+					isReloadRequired = true
+				}
+			} else {
+				// delete environment variable
+				err = environmentVariable.Delete(ctx, db)
+				if err != nil {
+					return nil, err
+				}
+				// reload application
+				isReloadRequired = true
+			}
+		}
+	}
+	// add new environment variables which are not present
+	for key, value := range newEnvironmentVariableMap {
+		environmentVariable := EnvironmentVariable{
+			ApplicationID: application.ID,
+			Key:           key,
+			Value:         value,
+		}
+		err := environmentVariable.Create(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+		// reload application
+		isReloadRequired = true
+	}
+	// create array of persistent volume bindings
+	var newPersistentVolumeBindingMap = make(map[string]uint)
+	for _, persistentVolumeBinding := range application.PersistentVolumeBindings {
+		newPersistentVolumeBindingMap[persistentVolumeBinding.MountingPath] = persistentVolumeBinding.PersistentVolumeID
+	}
 	// update persistent volume bindings -- if required
+	if applicationFull.PersistentVolumeBindings != nil {
+		for _, persistentVolumeBinding := range applicationFull.PersistentVolumeBindings {
+			// check if persistent volume binding is present in new persistent volume bindings
+			if _, ok := newPersistentVolumeBindingMap[persistentVolumeBinding.MountingPath]; ok {
+				// check if value is changed
+				if persistentVolumeBinding.PersistentVolumeID != newPersistentVolumeBindingMap[persistentVolumeBinding.MountingPath] {
+					// update persistent volume binding
+					persistentVolumeBinding.PersistentVolumeID = newPersistentVolumeBindingMap[persistentVolumeBinding.MountingPath]
+					err = persistentVolumeBinding.Update(ctx, db)
+					if err != nil {
+						return nil, err
+					}
+					// delete from newPersistentVolumeBindingMap
+					delete(newPersistentVolumeBindingMap, persistentVolumeBinding.MountingPath)
+					// reload application
+					isReloadRequired = true
+				}
+			} else {
+				// delete persistent volume binding
+				err = persistentVolumeBinding.Delete(ctx, db)
+				if err != nil {
+					return nil, err
+				}
+				// reload application
+				isReloadRequired = true
+			}
+		}
+	}
+	// add new persistent volume bindings which are not present
+	for mountingPath, persistentVolumeID := range newPersistentVolumeBindingMap {
+		persistentVolumeBinding := PersistentVolumeBinding{
+			ApplicationID:      application.ID,
+			PersistentVolumeID: persistentVolumeID,
+			MountingPath:       mountingPath,
+		}
+		err := persistentVolumeBinding.Create(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+		// reload application
+		isReloadRequired = true
+	}
 	// update deployment -- if required
-	// reload application -- if changed
-	return transaction.Commit().Error
-	// TODO: push to queue for update
+	currentDeploymentID, err := FindLatestDeploymentIDByApplicationId(ctx, db, application.ID)
+	if err != nil {
+		return nil, err
+	}
+	// set deployment id
+	application.LatestDeployment.ID = currentDeploymentID
+	// send call to update deployment
+	updateDeploymentStatus, err := application.LatestDeployment.Update(ctx, db, dockerManager)
+	if err != nil {
+		return nil, err
+	}
+	return &ApplicationUpdateResult{
+		ReloadRequired:  isReloadRequired,
+		RebuildRequired: updateDeploymentStatus.RebuildRequired,
+	}, nil
 }
 
 func (application *Application) Delete(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
