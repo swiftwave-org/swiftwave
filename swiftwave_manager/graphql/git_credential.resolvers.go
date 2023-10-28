@@ -57,19 +57,19 @@ func (r *mutationResolver) UpdateGitCredential(ctx context.Context, id uint, inp
 }
 
 // DeleteGitCredential is the resolver for the deleteGitCredential field.
-func (r *mutationResolver) DeleteGitCredential(ctx context.Context, id uint) (*model.GitCredential, error) {
+func (r *mutationResolver) DeleteGitCredential(ctx context.Context, id uint) (bool, error) {
 	// fetch record
 	var record = &dbmodel.GitCredential{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 	// delete record
 	err = record.Delete(ctx, r.ServiceManager.DbClient)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
-	return gitCredentialToGraphqlObject(record), nil
+	return true, nil
 }
 
 // GitCredentials is the resolver for the GitCredentials field.

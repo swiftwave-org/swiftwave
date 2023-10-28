@@ -263,21 +263,21 @@ type IngressRuleResolver interface {
 type MutationResolver interface {
 	CreateApplication(ctx context.Context, input model.ApplicationInput) (*model.Application, error)
 	UpdateApplication(ctx context.Context, id string, input model.ApplicationInput) (*model.Application, error)
-	DeleteApplication(ctx context.Context, id string) (*model.Application, error)
+	DeleteApplication(ctx context.Context, id string) (bool, error)
 	AddDomain(ctx context.Context, input model.DomainInput) (*model.Domain, error)
 	RemoveDomain(ctx context.Context, id uint) (bool, error)
 	IssueSsl(ctx context.Context, id uint) (*model.Domain, error)
 	AddCustomSsl(ctx context.Context, id uint, input model.CustomSSLInput) (*model.Domain, error)
 	CreateGitCredential(ctx context.Context, input model.GitCredentialInput) (*model.GitCredential, error)
 	UpdateGitCredential(ctx context.Context, id uint, input model.GitCredentialInput) (*model.GitCredential, error)
-	DeleteGitCredential(ctx context.Context, id uint) (*model.GitCredential, error)
+	DeleteGitCredential(ctx context.Context, id uint) (bool, error)
 	CreateImageRegistryCredential(ctx context.Context, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error)
 	UpdateImageRegistryCredential(ctx context.Context, id uint, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error)
-	DeleteImageRegistryCredential(ctx context.Context, id uint) (*model.ImageRegistryCredential, error)
+	DeleteImageRegistryCredential(ctx context.Context, id uint) (bool, error)
 	CreateIngressRule(ctx context.Context, input model.IngressRuleInput) (*model.IngressRule, error)
 	DeleteIngressRule(ctx context.Context, id uint) (bool, error)
 	CreatePersistentVolume(ctx context.Context, input model.PersistentVolumeInput) (*model.PersistentVolume, error)
-	DeletePersistentVolume(ctx context.Context, id uint) (*model.PersistentVolume, error)
+	DeletePersistentVolume(ctx context.Context, id uint) (bool, error)
 	CreateRedirectRule(ctx context.Context, input model.RedirectRuleInput) (*model.RedirectRule, error)
 	DeleteRedirectRule(ctx context.Context, id uint) (bool, error)
 }
@@ -305,7 +305,7 @@ type QueryResolver interface {
 	IngressRules(ctx context.Context) ([]*model.IngressRule, error)
 	PersistentVolumes(ctx context.Context) ([]*model.PersistentVolume, error)
 	PersistentVolume(ctx context.Context, id uint) (*model.PersistentVolume, error)
-	IsExistPersistentVolume(ctx context.Context, name string) (*bool, error)
+	IsExistPersistentVolume(ctx context.Context, name string) (bool, error)
 	RedirectRule(ctx context.Context, id uint) (*model.RedirectRule, error)
 	RedirectRules(ctx context.Context) ([]*model.RedirectRule, error)
 }
@@ -5649,9 +5649,9 @@ func (ec *executionContext) _Mutation_deleteApplication(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Application)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deleteApplication(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5661,27 +5661,7 @@ func (ec *executionContext) fieldContext_Mutation_deleteApplication(ctx context.
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Application_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Application_name(ctx, field)
-			case "environmentVariables":
-				return ec.fieldContext_Application_environmentVariables(ctx, field)
-			case "persistentVolumeBindings":
-				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
-			case "latestDeployment":
-				return ec.fieldContext_Application_latestDeployment(ctx, field)
-			case "deployments":
-				return ec.fieldContext_Application_deployments(ctx, field)
-			case "deploymentMode":
-				return ec.fieldContext_Application_deploymentMode(ctx, field)
-			case "replicas":
-				return ec.fieldContext_Application_replicas(ctx, field)
-			case "ingressRules":
-				return ec.fieldContext_Application_ingressRules(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	defer func() {
@@ -6144,9 +6124,9 @@ func (ec *executionContext) _Mutation_deleteGitCredential(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.GitCredential)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredential(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deleteGitCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6156,19 +6136,7 @@ func (ec *executionContext) fieldContext_Mutation_deleteGitCredential(ctx contex
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_GitCredential_id(ctx, field)
-			case "name":
-				return ec.fieldContext_GitCredential_name(ctx, field)
-			case "username":
-				return ec.fieldContext_GitCredential_username(ctx, field)
-			case "password":
-				return ec.fieldContext_GitCredential_password(ctx, field)
-			case "deployments":
-				return ec.fieldContext_GitCredential_deployments(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type GitCredential", field.Name)
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	defer func() {
@@ -6345,9 +6313,9 @@ func (ec *executionContext) _Mutation_deleteImageRegistryCredential(ctx context.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.ImageRegistryCredential)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deleteImageRegistryCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6357,19 +6325,7 @@ func (ec *executionContext) fieldContext_Mutation_deleteImageRegistryCredential(
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ImageRegistryCredential_id(ctx, field)
-			case "url":
-				return ec.fieldContext_ImageRegistryCredential_url(ctx, field)
-			case "username":
-				return ec.fieldContext_ImageRegistryCredential_username(ctx, field)
-			case "password":
-				return ec.fieldContext_ImageRegistryCredential_password(ctx, field)
-			case "deployments":
-				return ec.fieldContext_ImageRegistryCredential_deployments(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ImageRegistryCredential", field.Name)
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	defer func() {
@@ -6597,11 +6553,14 @@ func (ec *executionContext) _Mutation_deletePersistentVolume(ctx context.Context
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.PersistentVolume)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalOPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deletePersistentVolume(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6611,15 +6570,7 @@ func (ec *executionContext) fieldContext_Mutation_deletePersistentVolume(ctx con
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_PersistentVolume_id(ctx, field)
-			case "name":
-				return ec.fieldContext_PersistentVolume_name(ctx, field)
-			case "persistentVolumeBindings":
-				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	defer func() {
@@ -8178,11 +8129,14 @@ func (ec *executionContext) _Query_isExistPersistentVolume(ctx context.Context, 
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*bool)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_isExistPersistentVolume(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -12591,6 +12545,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deletePersistentVolume(ctx, field)
 			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createRedirectRule":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createRedirectRule(ctx, field)
@@ -13187,6 +13144,9 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_isExistPersistentVolume(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 

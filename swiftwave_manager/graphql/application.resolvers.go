@@ -109,19 +109,19 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 }
 
 // DeleteApplication is the resolver for the deleteApplication field.
-func (r *mutationResolver) DeleteApplication(ctx context.Context, id string) (*model.Application, error) {
+func (r *mutationResolver) DeleteApplication(ctx context.Context, id string) (bool, error) {
 	// fetch record
 	var record = &dbmodel.Application{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 	// delete record
 	err = record.Delete(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
-	return applicationToGraphqlObject(record), nil
+	return true, nil
 }
 
 // Application is the resolver for the application field.

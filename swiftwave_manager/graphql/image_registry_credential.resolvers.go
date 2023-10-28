@@ -56,19 +56,19 @@ func (r *mutationResolver) UpdateImageRegistryCredential(ctx context.Context, id
 }
 
 // DeleteImageRegistryCredential is the resolver for the deleteImageRegistryCredential field.
-func (r *mutationResolver) DeleteImageRegistryCredential(ctx context.Context, id uint) (*model.ImageRegistryCredential, error) {
+func (r *mutationResolver) DeleteImageRegistryCredential(ctx context.Context, id uint) (bool, error) {
 	// fetch record
 	var record = &dbmodel.ImageRegistryCredential{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 	// delete record
 	err = record.Delete(ctx, r.ServiceManager.DbClient)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
-	return imageRegistryCredentialToGraphqlObject(record), nil
+	return true, nil
 }
 
 // ImageRegistryCredentials is the resolver for the imageRegistryCredentials field.

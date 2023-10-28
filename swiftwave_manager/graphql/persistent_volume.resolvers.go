@@ -22,19 +22,19 @@ func (r *mutationResolver) CreatePersistentVolume(ctx context.Context, input mod
 }
 
 // DeletePersistentVolume is the resolver for the deletePersistentVolume field.
-func (r *mutationResolver) DeletePersistentVolume(ctx context.Context, id uint) (*model.PersistentVolume, error) {
+func (r *mutationResolver) DeletePersistentVolume(ctx context.Context, id uint) (bool, error) {
 	// fetch record
 	var record dbmodel.PersistentVolume
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 	// delete record
 	err = record.Delete(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
-	return persistentVolumeToGraphqlObject(&record), nil
+	return true, nil
 }
 
 // PersistentVolumeBindings is the resolver for the persistentVolumeBindings field.
@@ -76,9 +76,9 @@ func (r *queryResolver) PersistentVolume(ctx context.Context, id uint) (*model.P
 }
 
 // IsExistPersistentVolume is the resolver for the isExistPersistentVolume field.
-func (r *queryResolver) IsExistPersistentVolume(ctx context.Context, name string) (*bool, error) {
+func (r *queryResolver) IsExistPersistentVolume(ctx context.Context, name string) (bool, error) {
 	isExists, err := dbmodel.IsExistPersistentVolume(ctx, r.ServiceManager.DbClient, name, r.ServiceManager.DockerManager)
-	return &isExists, err
+	return isExists, err
 }
 
 // PersistentVolume returns PersistentVolumeResolver implementation.
