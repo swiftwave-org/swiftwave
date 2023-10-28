@@ -146,15 +146,17 @@ type ComplexityRoot struct {
 	}
 
 	IngressRule struct {
-		Application func(childComplexity int) int
-		CreatedAt   func(childComplexity int) int
-		Domain      func(childComplexity int) int
-		ID          func(childComplexity int) int
-		Port        func(childComplexity int) int
-		Protocol    func(childComplexity int) int
-		Status      func(childComplexity int) int
-		TargetPort  func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
+		Application   func(childComplexity int) int
+		ApplicationID func(childComplexity int) int
+		CreatedAt     func(childComplexity int) int
+		Domain        func(childComplexity int) int
+		DomainID      func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Port          func(childComplexity int) int
+		Protocol      func(childComplexity int) int
+		Status        func(childComplexity int) int
+		TargetPort    func(childComplexity int) int
+		UpdatedAt     func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -212,12 +214,13 @@ type ComplexityRoot struct {
 		PersistentVolumes                  func(childComplexity int) int
 		RedirectRule                       func(childComplexity int, id uint) int
 		RedirectRules                      func(childComplexity int) int
-		VerifyDomainConfiguration          func(childComplexity int, id uint) int
+		VerifyDomainConfiguration          func(childComplexity int, name string) int
 	}
 
 	RedirectRule struct {
 		CreatedAt   func(childComplexity int) int
 		Domain      func(childComplexity int) int
+		DomainID    func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Port        func(childComplexity int) int
 		Protocol    func(childComplexity int) int
@@ -295,7 +298,7 @@ type QueryResolver interface {
 	IsExistApplicationName(ctx context.Context, name string) (bool, error)
 	Domains(ctx context.Context) ([]*model.Domain, error)
 	Domain(ctx context.Context, id uint) (*model.Domain, error)
-	VerifyDomainConfiguration(ctx context.Context, id uint) (bool, error)
+	VerifyDomainConfiguration(ctx context.Context, name string) (bool, error)
 	GitCredentials(ctx context.Context) ([]*model.GitCredential, error)
 	GitCredential(ctx context.Context, id uint) (*model.GitCredential, error)
 	CheckGitCredentialRepositoryAccess(ctx context.Context, input model.GitCredentialRepositoryAccessInput) (*model.GitCredentialRepositoryAccessResult, error)
@@ -766,6 +769,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.IngressRule.Application(childComplexity), true
 
+	case "IngressRule.applicationId":
+		if e.complexity.IngressRule.ApplicationID == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.ApplicationID(childComplexity), true
+
 	case "IngressRule.createdAt":
 		if e.complexity.IngressRule.CreatedAt == nil {
 			break
@@ -779,6 +789,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.IngressRule.Domain(childComplexity), true
+
+	case "IngressRule.domainId":
+		if e.complexity.IngressRule.DomainID == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.DomainID(childComplexity), true
 
 	case "IngressRule.id":
 		if e.complexity.IngressRule.ID == nil {
@@ -1292,7 +1309,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.VerifyDomainConfiguration(childComplexity, args["id"].(uint)), true
+		return e.complexity.Query.VerifyDomainConfiguration(childComplexity, args["name"].(string)), true
 
 	case "RedirectRule.createdAt":
 		if e.complexity.RedirectRule.CreatedAt == nil {
@@ -1307,6 +1324,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RedirectRule.Domain(childComplexity), true
+
+	case "RedirectRule.domainId":
+		if e.complexity.RedirectRule.DomainID == nil {
+			break
+		}
+
+		return e.complexity.RedirectRule.DomainID(childComplexity), true
 
 	case "RedirectRule.id":
 		if e.complexity.RedirectRule.ID == nil {
@@ -1987,15 +2011,15 @@ func (ec *executionContext) field_Query_redirectRule_args(ctx context.Context, r
 func (ec *executionContext) field_Query_verifyDomainConfiguration_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["name"] = arg0
 	return args, nil
 }
 
@@ -2534,12 +2558,16 @@ func (ec *executionContext) fieldContext_Application_ingressRules(ctx context.Co
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_IngressRule_id(ctx, field)
+			case "domainId":
+				return ec.fieldContext_IngressRule_domainId(ctx, field)
 			case "domain":
 				return ec.fieldContext_IngressRule_domain(ctx, field)
 			case "protocol":
 				return ec.fieldContext_IngressRule_protocol(ctx, field)
 			case "port":
 				return ec.fieldContext_IngressRule_port(ctx, field)
+			case "applicationId":
+				return ec.fieldContext_IngressRule_applicationId(ctx, field)
 			case "application":
 				return ec.fieldContext_IngressRule_application(ctx, field)
 			case "targetPort":
@@ -3915,9 +3943,9 @@ func (ec *executionContext) _Domain_sslIssuedAt(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Domain_sslIssuedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3927,7 +3955,7 @@ func (ec *executionContext) fieldContext_Domain_sslIssuedAt(ctx context.Context,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4062,12 +4090,16 @@ func (ec *executionContext) fieldContext_Domain_ingressRules(ctx context.Context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_IngressRule_id(ctx, field)
+			case "domainId":
+				return ec.fieldContext_IngressRule_domainId(ctx, field)
 			case "domain":
 				return ec.fieldContext_IngressRule_domain(ctx, field)
 			case "protocol":
 				return ec.fieldContext_IngressRule_protocol(ctx, field)
 			case "port":
 				return ec.fieldContext_IngressRule_port(ctx, field)
+			case "applicationId":
+				return ec.fieldContext_IngressRule_applicationId(ctx, field)
 			case "application":
 				return ec.fieldContext_IngressRule_application(ctx, field)
 			case "targetPort":
@@ -4126,6 +4158,8 @@ func (ec *executionContext) fieldContext_Domain_redirectRules(ctx context.Contex
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_RedirectRule_id(ctx, field)
+			case "domainId":
+				return ec.fieldContext_RedirectRule_domainId(ctx, field)
 			case "domain":
 				return ec.fieldContext_RedirectRule_domain(ctx, field)
 			case "protocol":
@@ -5079,6 +5113,50 @@ func (ec *executionContext) fieldContext_IngressRule_id(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _IngressRule_domainId(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_domainId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DomainID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_domainId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _IngressRule_domain(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_IngressRule_domain(ctx, field)
 	if err != nil {
@@ -5228,6 +5306,50 @@ func (ec *executionContext) fieldContext_IngressRule_port(ctx context.Context, f
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_applicationId(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_applicationId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ApplicationID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_applicationId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6383,12 +6505,16 @@ func (ec *executionContext) fieldContext_Mutation_createIngressRule(ctx context.
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_IngressRule_id(ctx, field)
+			case "domainId":
+				return ec.fieldContext_IngressRule_domainId(ctx, field)
 			case "domain":
 				return ec.fieldContext_IngressRule_domain(ctx, field)
 			case "protocol":
 				return ec.fieldContext_IngressRule_protocol(ctx, field)
 			case "port":
 				return ec.fieldContext_IngressRule_port(ctx, field)
+			case "applicationId":
+				return ec.fieldContext_IngressRule_applicationId(ctx, field)
 			case "application":
 				return ec.fieldContext_IngressRule_application(ctx, field)
 			case "targetPort":
@@ -6628,6 +6754,8 @@ func (ec *executionContext) fieldContext_Mutation_createRedirectRule(ctx context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_RedirectRule_id(ctx, field)
+			case "domainId":
+				return ec.fieldContext_RedirectRule_domainId(ctx, field)
 			case "domain":
 				return ec.fieldContext_RedirectRule_domain(ctx, field)
 			case "protocol":
@@ -7504,7 +7632,7 @@ func (ec *executionContext) _Query_verifyDomainConfiguration(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().VerifyDomainConfiguration(rctx, fc.Args["id"].(uint))
+		return ec.resolvers.Query().VerifyDomainConfiguration(rctx, fc.Args["name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7901,12 +8029,16 @@ func (ec *executionContext) fieldContext_Query_ingressRule(ctx context.Context, 
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_IngressRule_id(ctx, field)
+			case "domainId":
+				return ec.fieldContext_IngressRule_domainId(ctx, field)
 			case "domain":
 				return ec.fieldContext_IngressRule_domain(ctx, field)
 			case "protocol":
 				return ec.fieldContext_IngressRule_protocol(ctx, field)
 			case "port":
 				return ec.fieldContext_IngressRule_port(ctx, field)
+			case "applicationId":
+				return ec.fieldContext_IngressRule_applicationId(ctx, field)
 			case "application":
 				return ec.fieldContext_IngressRule_application(ctx, field)
 			case "targetPort":
@@ -7976,12 +8108,16 @@ func (ec *executionContext) fieldContext_Query_ingressRules(ctx context.Context,
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_IngressRule_id(ctx, field)
+			case "domainId":
+				return ec.fieldContext_IngressRule_domainId(ctx, field)
 			case "domain":
 				return ec.fieldContext_IngressRule_domain(ctx, field)
 			case "protocol":
 				return ec.fieldContext_IngressRule_protocol(ctx, field)
 			case "port":
 				return ec.fieldContext_IngressRule_port(ctx, field)
+			case "applicationId":
+				return ec.fieldContext_IngressRule_applicationId(ctx, field)
 			case "application":
 				return ec.fieldContext_IngressRule_application(ctx, field)
 			case "targetPort":
@@ -8204,6 +8340,8 @@ func (ec *executionContext) fieldContext_Query_redirectRule(ctx context.Context,
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_RedirectRule_id(ctx, field)
+			case "domainId":
+				return ec.fieldContext_RedirectRule_domainId(ctx, field)
 			case "domain":
 				return ec.fieldContext_RedirectRule_domain(ctx, field)
 			case "protocol":
@@ -8277,6 +8415,8 @@ func (ec *executionContext) fieldContext_Query_redirectRules(ctx context.Context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_RedirectRule_id(ctx, field)
+			case "domainId":
+				return ec.fieldContext_RedirectRule_domainId(ctx, field)
 			case "domain":
 				return ec.fieldContext_RedirectRule_domain(ctx, field)
 			case "protocol":
@@ -8459,6 +8599,50 @@ func (ec *executionContext) _RedirectRule_id(ctx context.Context, field graphql.
 }
 
 func (ec *executionContext) fieldContext_RedirectRule_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RedirectRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RedirectRule_domainId(ctx context.Context, field graphql.CollectedField, obj *model.RedirectRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RedirectRule_domainId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DomainID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RedirectRule_domainId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "RedirectRule",
 		Field:      field,
@@ -12297,6 +12481,11 @@ func (ec *executionContext) _IngressRule(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "domainId":
+			out.Values[i] = ec._IngressRule_domainId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "domain":
 			field := field
 
@@ -12340,6 +12529,11 @@ func (ec *executionContext) _IngressRule(ctx context.Context, sel ast.SelectionS
 			}
 		case "port":
 			out.Values[i] = ec._IngressRule_port(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "applicationId":
+			out.Values[i] = ec._IngressRule_applicationId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
@@ -13253,6 +13447,11 @@ func (ec *executionContext) _RedirectRule(ctx context.Context, sel ast.Selection
 			out.Values[i] = graphql.MarshalString("RedirectRule")
 		case "id":
 			out.Values[i] = ec._RedirectRule_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "domainId":
+			out.Values[i] = ec._RedirectRule_domainId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

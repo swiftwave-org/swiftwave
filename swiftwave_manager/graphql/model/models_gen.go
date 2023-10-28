@@ -91,7 +91,7 @@ type Domain struct {
 	SslStatus     DomainSSLStatus `json:"sslStatus"`
 	SslFullChain  string          `json:"sslFullChain"`
 	SslPrivateKey string          `json:"sslPrivateKey"`
-	SslIssuedAt   string          `json:"sslIssuedAt"`
+	SslIssuedAt   time.Time       `json:"sslIssuedAt"`
 	SslIssuer     string          `json:"sslIssuer"`
 	SslAutoRenew  bool            `json:"sslAutoRenew"`
 	IngressRules  []*IngressRule  `json:"ingressRules"`
@@ -156,15 +156,17 @@ type ImageRegistryCredentialInput struct {
 }
 
 type IngressRule struct {
-	ID          uint              `json:"id"`
-	Domain      *Domain           `json:"domain"`
-	Protocol    ProtocolType      `json:"protocol"`
-	Port        uint              `json:"port"`
-	Application *Application      `json:"application"`
-	TargetPort  uint              `json:"targetPort"`
-	Status      IngressRuleStatus `json:"status"`
-	CreatedAt   time.Time         `json:"createdAt"`
-	UpdatedAt   time.Time         `json:"updatedAt"`
+	ID            uint              `json:"id"`
+	DomainID      uint              `json:"domainId"`
+	Domain        *Domain           `json:"domain"`
+	Protocol      ProtocolType      `json:"protocol"`
+	Port          uint              `json:"port"`
+	ApplicationID string            `json:"applicationId"`
+	Application   *Application      `json:"application"`
+	TargetPort    uint              `json:"targetPort"`
+	Status        IngressRuleStatus `json:"status"`
+	CreatedAt     time.Time         `json:"createdAt"`
+	UpdatedAt     time.Time         `json:"updatedAt"`
 }
 
 type IngressRuleInput struct {
@@ -201,6 +203,7 @@ type PersistentVolumeInput struct {
 
 type RedirectRule struct {
 	ID          uint               `json:"id"`
+	DomainID    uint               `json:"domainId"`
 	Domain      *Domain            `json:"domain"`
 	Protocol    ProtocolType       `json:"protocol"`
 	Port        uint               `json:"port"`

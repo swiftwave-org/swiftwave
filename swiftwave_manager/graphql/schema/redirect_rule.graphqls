@@ -14,6 +14,7 @@ input RedirectRuleInput {
 
 type RedirectRule {
     id: Uint!
+    domainId: Uint!
     domain: Domain!
     protocol: ProtocolType!
     port: Uint!

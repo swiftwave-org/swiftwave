@@ -6,54 +6,137 @@ package graphql
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"time"
 
+	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
 )
 
 // IngressRules is the resolver for the ingressRules field.
 func (r *domainResolver) IngressRules(ctx context.Context, obj *model.Domain) ([]*model.IngressRule, error) {
-	panic(fmt.Errorf("not implemented: IngressRules - ingressRules"))
+	records, err := dbmodel.FindIngressRulesByDomainID(ctx, r.ServiceManager.DbClient, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	var result []*model.IngressRule
+	for _, record := range records {
+		result = append(result, ingressRuleToGraphqlObject(record))
+	}
+	return result, nil
 }
 
 // RedirectRules is the resolver for the redirectRules field.
 func (r *domainResolver) RedirectRules(ctx context.Context, obj *model.Domain) ([]*model.RedirectRule, error) {
-	panic(fmt.Errorf("not implemented: RedirectRules - redirectRules"))
+	records, err := dbmodel.FindRedirectRulesByDomainID(ctx, r.ServiceManager.DbClient, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	var result []*model.RedirectRule
+	for _, record := range records {
+		result = append(result, redirectRuleToGraphqlObject(record))
+	}
+	return result, nil
 }
 
 // AddDomain is the resolver for the addDomain field.
 func (r *mutationResolver) AddDomain(ctx context.Context, input model.DomainInput) (*model.Domain, error) {
-	panic(fmt.Errorf("not implemented: AddDomain - addDomain"))
+	record := domainInputToDatabaseObject(&input)
+	err := record.Create(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	return domainToGraphqlObject(record), nil
 }
 
 // RemoveDomain is the resolver for the removeDomain field.
 func (r *mutationResolver) RemoveDomain(ctx context.Context, id uint) (bool, error) {
-	panic(fmt.Errorf("not implemented: RemoveDomain - removeDomain"))
+	record := dbmodel.Domain{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	err = record.Delete(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // IssueSsl is the resolver for the issueSSL field.
 func (r *mutationResolver) IssueSsl(ctx context.Context, id uint) (*model.Domain, error) {
-	panic(fmt.Errorf("not implemented: IssueSsl - issueSSL"))
+	// fetch record
+	record := dbmodel.Domain{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	// verify domain configuration
+	// TODO: sanitize domain name
+	configured := r.ServiceManager.SslManager.VerifyDomain(record.Name)
+	if !configured {
+		return nil, errors.New("domain not configured")
+	}
+	// update record
+	record.SSLStatus = dbmodel.DomainSSLStatusPending
+	err = record.Update(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	return domainToGraphqlObject(&record), nil
+	// TODO: push to queue
 }
 
 // AddCustomSsl is the resolver for the addCustomSSL field.
 func (r *mutationResolver) AddCustomSsl(ctx context.Context, id uint, input model.CustomSSLInput) (*model.Domain, error) {
-	panic(fmt.Errorf("not implemented: AddCustomSsl - addCustomSSL"))
+	// fetch record
+	record := dbmodel.Domain{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	// update record
+	record.SSLPrivateKey = input.PrivateKey
+	record.SSLFullChain = input.FullChain
+	record.SSLIssuedAt = time.Now()
+	// TODO: resolve date from the certificate itself
+	record.SSLIssuer = input.SslIssuer
+	record.SSLStatus = dbmodel.DomainSSLStatusIssued
+	record.SSLAutoRenew = false
+	err = record.Update(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	return domainToGraphqlObject(&record), nil
+	// TODO: push to queue
 }
 
 // Domains is the resolver for the domains field.
 func (r *queryResolver) Domains(ctx context.Context) ([]*model.Domain, error) {
-	panic(fmt.Errorf("not implemented: Domains - domains"))
+	records, err := dbmodel.FindAllDomains(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	var result []*model.Domain
+	for _, record := range records {
+		result = append(result, domainToGraphqlObject(record))
+	}
+	return result, nil
 }
 
 // Domain is the resolver for the domain field.
 func (r *queryResolver) Domain(ctx context.Context, id uint) (*model.Domain, error) {
-	panic(fmt.Errorf("not implemented: Domain - domain"))
+	record := dbmodel.Domain{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	return domainToGraphqlObject(&record), nil
 }
 
 // VerifyDomainConfiguration is the resolver for the verifyDomainConfiguration field.
-func (r *queryResolver) VerifyDomainConfiguration(ctx context.Context, id uint) (bool, error) {
-	panic(fmt.Errorf("not implemented: VerifyDomainConfiguration - verifyDomainConfiguration"))
+func (r *queryResolver) VerifyDomainConfiguration(ctx context.Context, name string) (bool, error) {
+	return r.ServiceManager.SslManager.VerifyDomain(name), nil
 }
 
 // Domain returns DomainResolver implementation.

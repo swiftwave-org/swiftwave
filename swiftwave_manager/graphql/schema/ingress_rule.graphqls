@@ -15,9 +15,11 @@ input IngressRuleInput {
 
 type IngressRule {
     id: Uint!
+    domainId: Uint!
     domain: Domain!
     protocol: ProtocolType!
     port: Uint!
+    applicationId: String!
     application: Application!
     targetPort: Uint!
     status: IngressRuleStatus!

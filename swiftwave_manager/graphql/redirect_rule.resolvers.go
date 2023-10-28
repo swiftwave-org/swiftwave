@@ -6,34 +6,66 @@ package graphql
 
 import (
 	"context"
-	"fmt"
+	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
 
 	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
 )
 
 // CreateRedirectRule is the resolver for the createRedirectRule field.
 func (r *mutationResolver) CreateRedirectRule(ctx context.Context, input model.RedirectRuleInput) (*model.RedirectRule, error) {
-	panic(fmt.Errorf("not implemented: CreateRedirectRule - createRedirectRule"))
+	record := redirectRuleInputToDatabaseObject(&input)
+	err := record.Create(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	return redirectRuleToGraphqlObject(record), nil
 }
 
 // DeleteRedirectRule is the resolver for the deleteRedirectRule field.
 func (r *mutationResolver) DeleteRedirectRule(ctx context.Context, id uint) (bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteRedirectRule - deleteRedirectRule"))
+	record := dbmodel.RedirectRule{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	err = record.Delete(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // RedirectRule is the resolver for the redirectRule field.
 func (r *queryResolver) RedirectRule(ctx context.Context, id uint) (*model.RedirectRule, error) {
-	panic(fmt.Errorf("not implemented: RedirectRule - redirectRule"))
+	record := dbmodel.RedirectRule{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	return redirectRuleToGraphqlObject(&record), nil
 }
 
 // RedirectRules is the resolver for the redirectRules field.
 func (r *queryResolver) RedirectRules(ctx context.Context) ([]*model.RedirectRule, error) {
-	panic(fmt.Errorf("not implemented: RedirectRules - redirectRules"))
+	records, err := dbmodel.FindAllRedirectRules(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	var result []*model.RedirectRule
+	for _, record := range records {
+		result = append(result, redirectRuleToGraphqlObject(record))
+	}
+	return result, nil
 }
 
 // Domain is the resolver for the domain field.
 func (r *redirectRuleResolver) Domain(ctx context.Context, obj *model.RedirectRule) (*model.Domain, error) {
-	panic(fmt.Errorf("not implemented: Domain - domain"))
+	domain := &dbmodel.Domain{}
+	err := domain.FindById(ctx, r.ServiceManager.DbClient, obj.DomainID)
+	if err != nil {
+		return nil, err
+	}
+	return domainToGraphqlObject(domain), nil
 }
 
 // RedirectRule returns RedirectRuleResolver implementation.

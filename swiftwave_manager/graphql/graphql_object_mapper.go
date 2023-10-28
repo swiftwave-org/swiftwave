@@ -192,3 +192,80 @@ func deploymentToGraphqlObject(record *dbmodel.Deployment) *model.Deployment {
 		CreatedAt:                    record.CreatedAt,
 	}
 }
+
+// domainInputToDatabaseObject : converts DomainInput to DomainDatabaseObject
+func domainInputToDatabaseObject(record *model.DomainInput) *dbmodel.Domain {
+	return &dbmodel.Domain{
+		Name:         record.Name,
+		SSLStatus:    dbmodel.DomainSSLStatusNone,
+		SSLAutoRenew: false,
+	}
+}
+
+// domainToGraphqlObject : converts Domain to DomainGraphqlObject
+func domainToGraphqlObject(record *dbmodel.Domain) *model.Domain {
+	return &model.Domain{
+		ID:            record.ID,
+		Name:          record.Name,
+		SslStatus:     model.DomainSSLStatus(record.SSLStatus),
+		SslPrivateKey: record.SSLPrivateKey,
+		SslFullChain:  record.SSLFullChain,
+		SslIssuedAt:   record.SSLIssuedAt,
+		SslIssuer:     record.SSLIssuer,
+		SslAutoRenew:  record.SSLAutoRenew,
+	}
+}
+
+// ingressRuleInputToDatabaseObject : converts IngressRuleInput to IngressRuleDatabaseObject
+func ingressRuleInputToDatabaseObject(record *model.IngressRuleInput) *dbmodel.IngressRule {
+	return &dbmodel.IngressRule{
+		ApplicationID: record.ApplicationID,
+		DomainID:      record.DomainID,
+		Protocol:      dbmodel.ProtocolType(record.Protocol),
+		Port:          record.Port,
+		TargetPort:    record.TargetPort,
+		Status:        dbmodel.IngressRuleStatusPending,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+}
+
+// ingressRuleToGraphqlObject : converts IngressRule to IngressRuleGraphqlObject
+func ingressRuleToGraphqlObject(record *dbmodel.IngressRule) *model.IngressRule {
+	return &model.IngressRule{
+		ID:            record.ID,
+		ApplicationID: record.ApplicationID,
+		DomainID:      record.DomainID,
+		Protocol:      model.ProtocolType(record.Protocol),
+		Port:          record.Port,
+		TargetPort:    record.TargetPort,
+		Status:        model.IngressRuleStatus(record.Status),
+		CreatedAt:     record.CreatedAt,
+		UpdatedAt:     record.UpdatedAt,
+	}
+}
+
+// redirectRuleInputToDatabaseObject : converts RedirectRuleInput to RedirectRuleDatabaseObject
+func redirectRuleInputToDatabaseObject(record *model.RedirectRuleInput) *dbmodel.RedirectRule {
+	return &dbmodel.RedirectRule{
+		DomainID:    record.DomainID,
+		Port:        record.Port,
+		RedirectURL: record.RedirectURL,
+		Status:      dbmodel.RedirectRuleStatusPending,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+}
+
+// redirectRuleToGraphqlObject : converts RedirectRule to RedirectRuleGraphqlObject
+func redirectRuleToGraphqlObject(record *dbmodel.RedirectRule) *model.RedirectRule {
+	return &model.RedirectRule{
+		ID:          record.ID,
+		DomainID:    record.DomainID,
+		Port:        record.Port,
+		RedirectURL: record.RedirectURL,
+		Status:      model.RedirectRuleStatus(record.Status),
+		CreatedAt:   record.CreatedAt,
+		UpdatedAt:   record.UpdatedAt,
+	}
+}

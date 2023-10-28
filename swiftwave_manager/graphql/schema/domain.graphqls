@@ -26,7 +26,7 @@ type Domain {
     sslStatus: DomainSSLStatus!
     sslFullChain: String!
     sslPrivateKey: String! # obfuscated
-    sslIssuedAt: String!
+    sslIssuedAt: Time!
     sslIssuer: String!
     sslAutoRenew: Boolean!
     ingressRules: [IngressRule!]!
@@ -36,7 +36,7 @@ type Domain {
 extend type Query {
     domains: [Domain!]!
     domain(id: Uint!): Domain!
-    verifyDomainConfiguration(id: Uint!): Boolean!
+    verifyDomainConfiguration(name: String!): Boolean!
 }
 
 extend type Mutation {

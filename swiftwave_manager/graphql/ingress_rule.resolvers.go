@@ -6,39 +6,76 @@ package graphql
 
 import (
 	"context"
-	"fmt"
+	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
 
 	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
 )
 
 // Domain is the resolver for the domain field.
 func (r *ingressRuleResolver) Domain(ctx context.Context, obj *model.IngressRule) (*model.Domain, error) {
-	panic(fmt.Errorf("not implemented: Domain - domain"))
+	domain := &dbmodel.Domain{}
+	err := domain.FindById(ctx, r.ServiceManager.DbClient, obj.DomainID)
+	if err != nil {
+		return nil, err
+	}
+	return domainToGraphqlObject(domain), nil
 }
 
 // Application is the resolver for the application field.
 func (r *ingressRuleResolver) Application(ctx context.Context, obj *model.IngressRule) (*model.Application, error) {
-	panic(fmt.Errorf("not implemented: Application - application"))
+	application := &dbmodel.Application{}
+	err := application.FindById(ctx, r.ServiceManager.DbClient, obj.ApplicationID)
+	if err != nil {
+		return nil, err
+	}
+	return applicationToGraphqlObject(application), nil
 }
 
 // CreateIngressRule is the resolver for the createIngressRule field.
 func (r *mutationResolver) CreateIngressRule(ctx context.Context, input model.IngressRuleInput) (*model.IngressRule, error) {
-	panic(fmt.Errorf("not implemented: CreateIngressRule - createIngressRule"))
+	record := ingressRuleInputToDatabaseObject(&input)
+	err := record.Create(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	return ingressRuleToGraphqlObject(record), nil
 }
 
 // DeleteIngressRule is the resolver for the deleteIngressRule field.
 func (r *mutationResolver) DeleteIngressRule(ctx context.Context, id uint) (bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteIngressRule - deleteIngressRule"))
+	record := dbmodel.IngressRule{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	err = record.Delete(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // IngressRule is the resolver for the ingressRule field.
 func (r *queryResolver) IngressRule(ctx context.Context, id uint) (*model.IngressRule, error) {
-	panic(fmt.Errorf("not implemented: IngressRule - ingressRule"))
+	record := dbmodel.IngressRule{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	return ingressRuleToGraphqlObject(&record), nil
 }
 
 // IngressRules is the resolver for the ingressRules field.
 func (r *queryResolver) IngressRules(ctx context.Context) ([]*model.IngressRule, error) {
-	panic(fmt.Errorf("not implemented: IngressRules - ingressRules"))
+	records, err := dbmodel.FindAllIngressRules(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	var result []*model.IngressRule
+	for _, record := range records {
+		result = append(result, ingressRuleToGraphqlObject(record))
+	}
+	return result, nil
 }
 
 // IngressRule returns IngressRuleResolver implementation.
