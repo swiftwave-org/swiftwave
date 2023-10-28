@@ -8,8 +8,8 @@ import (
 	"context"
 
 	GIT "github.com/swiftwave-org/swiftwave/git_manager"
-	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
-	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
+	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
 
 // Deployments is the resolver for the deployments field.

@@ -20,7 +20,7 @@ resolver:
   filename_template: "{name}.resolvers.go"
 
 autobind:
-#  - "github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql/model"
+#  - "github.com/swiftwave-org/swiftwave/swiftwave/graphql/model"
 
 models:
   ID:

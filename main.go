@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/swiftwave-org/swiftwave/swiftwave_manager"
-	"github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"log"
 
 	"github.com/joho/godotenv"
@@ -17,8 +17,11 @@ func main() {
 	// Load the manager
 	config := core.ServiceConfig{}
 	manager := core.ServiceManager{}
+	config.Load()
+	manager.Load()
+
+	// Create Echo Server
 	echoServer := echo.New()
-	swiftwave_manager.Load(&config, &manager, echoServer)
-	// Start the manager
-	swiftwave_manager.StartServer(&config, &manager, echoServer)
+	// Start the swift wave server
+	swiftwave.StartServer(&config, &manager, echoServer, true)
 }

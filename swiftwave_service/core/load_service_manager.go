@@ -3,13 +3,10 @@ package core
 import (
 	"context"
 	DOCKER_CLIENT "github.com/docker/docker/client"
-	"github.com/go-redis/redis/v8"
 	DOCKER "github.com/swiftwave-org/swiftwave/container_manager"
 	DOCKER_CONFIG_GENERATOR "github.com/swiftwave-org/swiftwave/docker_config_generator"
 	HAPROXY "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
-	"github.com/vmihailenco/taskq/v3"
-	"github.com/vmihailenco/taskq/v3/redisq"
 	"log"
 	"os"
 	"strconv"
@@ -23,14 +20,6 @@ func (manager *ServiceManager) Load() {
 		panic(err.Error())
 	}
 	manager.DbClient = *dbClient
-
-	// Initiating Redis client
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     os.Getenv("REDIS_ADDRESS"),
-		Password: os.Getenv("REDIS_PASSWORD"),
-		DB:       0, // use default DB
-	})
-	manager.RedisClient = *rdb
 
 	// Initiating SSL Manager
 	options := SSL.ManagerOptions{
@@ -74,15 +63,4 @@ func (manager *ServiceManager) Load() {
 		panic(err)
 	}
 	manager.DockerConfigGenerator = dockerConfigGenerator
-
-	// Worker related
-	manager.WorkerContext, manager.WorkerContextCancel = context.WithCancel(context.Background())
-	manager.QueueFactory = redisq.NewFactory()
-	// Registering main queue to push tasks
-	manager.TaskQueue = manager.QueueFactory.RegisterQueue(&taskq.QueueOptions{
-		Name:  "main-queue",
-		Redis: &manager.RedisClient,
-	})
-	// Map of task name to task
-	manager.TaskMap = make(map[string]*taskq.Task)
 }

@@ -1,7 +1,7 @@
 package graphql
 
 import (
-	"github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 )
 
 type Resolver struct {

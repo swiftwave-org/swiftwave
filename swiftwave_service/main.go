@@ -1,19 +1,14 @@
-package swiftwave_manager
+package swiftwave
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/swiftwave-org/swiftwave/swiftwave_manager/core"
-	"github.com/swiftwave-org/swiftwave/swiftwave_manager/graphql"
-	"github.com/swiftwave-org/swiftwave/swiftwave_manager/rest"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/rest"
 	"strconv"
 )
 
-func Load(config *core.ServiceConfig, manager *core.ServiceManager, echoServer *echo.Echo) {
-	// Load Config
-	config.Load()
-	// Load Manager
-	manager.Load()
-
+func StartServer(config *core.ServiceConfig, manager *core.ServiceManager, echoServer *echo.Echo, migrateDatabase bool) {
 	// Create Rest Server
 	restServer := rest.Server{
 		EchoServer:     echoServer,
@@ -30,11 +25,10 @@ func Load(config *core.ServiceConfig, manager *core.ServiceManager, echoServer *
 	restServer.Initialize()
 	// Initialize GraphQL Server
 	graphqlServer.Initialize()
-}
-
-func StartServer(config *core.ServiceConfig, manager *core.ServiceManager, echoServer *echo.Echo) {
-	// Migrate Database by default
-	core.MigrateDatabase(&manager.DbClient)
+	if migrateDatabase {
+		// Migrate Database
+		core.MigrateDatabase(&manager.DbClient)
+	}
 	// Start the server
 	echoServer.Logger.Fatal(echoServer.Start(":" + strconv.Itoa(config.Port)))
 }

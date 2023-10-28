@@ -1,14 +1,12 @@
 package core
 
 import (
-	"context"
 	DOCKER_CLIENT "github.com/docker/docker/client"
 	"github.com/go-redis/redis/v8"
 	DOCKER "github.com/swiftwave-org/swiftwave/container_manager"
 	DOCKER_CONFIG_GENERATOR "github.com/swiftwave-org/swiftwave/docker_config_generator"
 	HAPROXY "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
-	"github.com/vmihailenco/taskq/v3"
 	"gorm.io/gorm"
 	"time"
 )
@@ -34,12 +32,6 @@ type ServiceManager struct {
 	DockerClient          DOCKER_CLIENT.Client
 	DbClient              gorm.DB
 	RedisClient           redis.Client
-	// Worker related
-	QueueFactory        taskq.Factory
-	TaskQueue           taskq.Queue
-	TaskMap             map[string]*taskq.Task
-	WorkerContext       context.Context
-	WorkerContextCancel context.CancelFunc
 }
 
 // UpstreamType : type of source for the codebase of the application
