@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-set"
 	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	"gorm.io/gorm"
 	"os"
@@ -115,7 +116,14 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	}
 	// create persistent volume bindings
 	createdPersistentVolumeBindings := make([]PersistentVolumeBinding, 0)
+	persistedVolumeBindingsMountingPathSet := set.From[string](make([]string, 0))
 	for _, persistentVolumeBinding := range application.PersistentVolumeBindings {
+		// check if mounting path is already used
+		if persistedVolumeBindingsMountingPathSet.Contains(persistentVolumeBinding.MountingPath) {
+			return errors.New("mounting path already used")
+		} else {
+			persistedVolumeBindingsMountingPathSet.Insert(persistentVolumeBinding.MountingPath)
+		}
 		// verify persistent volume exists
 		var persistentVolume = &PersistentVolume{}
 		err := persistentVolume.FindById(ctx, db, persistentVolumeBinding.PersistentVolumeID)
@@ -244,7 +252,14 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 	}
 	// create array of persistent volume bindings
 	var newPersistentVolumeBindingMap = make(map[string]uint)
+	newPersistentVolumeBindingMountingPathSet := set.From[string](make([]string, 0))
 	for _, persistentVolumeBinding := range application.PersistentVolumeBindings {
+		// check if mounting path is already used
+		if newPersistentVolumeBindingMountingPathSet.Contains(persistentVolumeBinding.MountingPath) {
+			return nil, errors.New("duplicate mounting path found")
+		} else {
+			newPersistentVolumeBindingMountingPathSet.Insert(persistentVolumeBinding.MountingPath)
+		}
 		newPersistentVolumeBindingMap[persistentVolumeBinding.MountingPath] = persistentVolumeBinding.PersistentVolumeID
 	}
 	// update persistent volume bindings -- if required
