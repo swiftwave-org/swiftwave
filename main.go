@@ -61,7 +61,7 @@ func consumer(prefixLog string, channel <-chan string) {
 func main() {
 	pubsubclient, err := pubsub.CreatePubSubClient(pubsub.Config{
 		Type:         pubsub.Local,
-		BufferLength: 20,
+		BufferLength: 1000,
 		RedisClient:  nil,
 	})
 	if err != nil {
@@ -89,11 +89,7 @@ func main() {
 		panic(err)
 	}
 	log.Println("Created subscription", subscriptionId, subscriptionChannel)
-	// close subscription
-	err = pubsubclient.Unsubscribe("test", subscriptionId)
-	if err != nil {
-		return
-	}
+
 	go consumer("B", subscriptionChannel)
 
 	// Run producer
