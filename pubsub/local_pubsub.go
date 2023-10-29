@@ -89,7 +89,7 @@ func (l *localPubSub) Subscribe(topic string) (string, <-chan string, error) {
 	// create a new subscription id
 	subscriptionId := topic + "-" + uuid.NewString()
 	// create a new channel
-	channel := make(chan string, 50)
+	channel := make(chan string, l.bufferLength)
 	// create a new subscription record
 	subscriptionRecord := localPubSubSubscription{
 		Mutex:   &sync.RWMutex{},

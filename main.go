@@ -60,8 +60,9 @@ func consumer(prefixLog string, channel <-chan string) {
 
 func main() {
 	pubsubclient, err := pubsub.CreatePubSubClient(pubsub.Config{
-		Type:        pubsub.Local,
-		RedisClient: nil,
+		Type:         pubsub.Local,
+		BufferLength: 20,
+		RedisClient:  nil,
 	})
 	if err != nil {
 		panic(err)
