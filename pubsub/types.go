@@ -15,16 +15,21 @@ type PubSub interface {
 }
 
 type localPubSub struct {
-	mutex         sync.RWMutex
-	subscriptions map[string]map[string][]chan interface{}
+	mutex         *sync.RWMutex
+	subscriptions map[string]map[string]localPubSubSubscription
 	// <topic> -> [<subscriber> -> <channel>]
 	topics set.Set[string]
 	closed bool
 }
 
+type localPubSubSubscription struct {
+	Mutex   *sync.RWMutex
+	Channel chan interface{}
+}
+
 type remotePubSub struct {
-	redisClient redis.Client
-	closed      bool
+	RedisClient redis.Client
+	Closed      bool
 }
 
 type Type string
