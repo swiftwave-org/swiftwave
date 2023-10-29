@@ -33,6 +33,7 @@ type localPubSubSubscription struct {
 type remotePubSub struct {
 	redisClient       redis.Client
 	mutex             *sync.RWMutex
+	bufferLength      int
 	topicsChannelName string
 	subscriptions     map[string]map[string]remotePubSubSubscription
 	// <topic> -> [<subscriber> -> <channel>]
@@ -54,11 +55,12 @@ const (
 	Remote Type = "remote"
 )
 
-type Config struct {
+type Options struct {
 	Type Type
-	// Only for local pubsub
 	// to store max number of messages in channel if no subscriber is listening
 	BufferLength int
 	// Only for remote pubsub, to store redis client
-	RedisClient *redis.Client
+	RedisClient       *redis.Client
+	TopicsChannelName string
+	EventsChannelName string
 }

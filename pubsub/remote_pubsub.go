@@ -73,7 +73,7 @@ func (r *remotePubSub) Subscribe(topic string) (string, <-chan string, error) {
 	mutex := &sync.RWMutex{}
 	subscription := remotePubSubSubscription{
 		Mutex:   mutex,
-		Channel: castChannelType(redisSubscriptionRef.Channel()),
+		Channel: r.castChannelType(topic, subscriptionId, redisSubscriptionRef.Channel()),
 		PubSub:  redisSubscriptionRef,
 	}
 	r.subscriptions[topic][subscriptionId] = subscription
@@ -94,31 +94,13 @@ func (r *remotePubSub) Unsubscribe(topic string, subscriptionId string) error {
 	if !exists {
 		return errors.New("topic does not exist")
 	}
-	// check if topic exists
-	if _, ok := r.subscriptions[topic]; !ok {
-		return errors.New("topic does not exist")
-	}
-	// check if subscription exists
-	if _, ok := r.subscriptions[topic][subscriptionId]; !ok {
-		return errors.New("subscription does not exist")
-	}
-	// close channel
-	lock := r.subscriptions[topic][subscriptionId].Mutex
-	lock.Lock()
-	defer lock.Unlock()
-	// channel
-	channel := r.subscriptions[topic][subscriptionId].Channel
-	// close channel
-	if _, ok := <-channel; ok {
-		close(channel)
-	}
-	// close redis pubsub
-	err = r.subscriptions[topic][subscriptionId].PubSub.Close()
+	// cancel subscription
+	err = r.cancelSubscription(topic, subscriptionId)
 	if err != nil {
 		return err
 	}
 	// delete subscription
-	delete(r.subscriptions, subscriptionId)
+	delete(r.subscriptions[topic], subscriptionId)
 	return nil
 }
 
@@ -129,7 +111,14 @@ func (r *remotePubSub) Publish(topic string, data string) error {
 }
 
 func (r *remotePubSub) Close() error {
-	// TODO: close local channels
+	// lock mutex
+	r.mutex.Lock()
+	// unlock mutex
+	defer r.mutex.Unlock()
+	// close all subscriptions
+	for topic := range r.subscriptions {
+		r.cancelAllSubscriptionsOfTopic(topic)
+	}
 	// close redis client
 	err := r.redisClient.Close()
 	if err != nil {
@@ -141,9 +130,15 @@ func (r *remotePubSub) Close() error {
 }
 
 // private functions
-func castChannelType(channel <-chan *redis.Message) chan string {
-	c := make(chan string, 100)
+func (r *remotePubSub) castChannelType(topic string, subscriptionId string, channel <-chan *redis.Message) chan string {
+	c := make(chan string, r.bufferLength)
 	go func() {
+		// defer recover from panic
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println("Recovered from panic", r)
+			}
+		}()
 		for {
 			msg, ok := <-channel
 			// check if `input` is closed
@@ -151,7 +146,10 @@ func castChannelType(channel <-chan *redis.Message) chan string {
 				// verify if `output` channel is not closed
 				if _, ok := <-c; ok {
 					// close
-					close(c)
+					err := r.cancelSubscription(topic, subscriptionId)
+					if err != nil {
+						log.Println("error in canceling subscription of topic", topic, "with id", subscriptionId, ":", err)
+					}
 				}
 				// skip and break
 				break
@@ -170,19 +168,22 @@ func (r *remotePubSub) cancelAllSubscriptionsOfTopic(topic string) {
 		return
 	}
 	// iterate over all subscriptions
-	for id, _ := range r.subscriptions[topic] {
-		r.cancelSubscription(topic, id)
+	for id := range r.subscriptions[topic] {
+		err := r.cancelSubscription(topic, id)
+		if err != nil {
+			log.Println("error in canceling subscription of topic", topic, "with id", id, ":", err)
+		}
 	}
 }
 
-func (r *remotePubSub) cancelSubscription(topic string, subscriptionId string) {
+func (r *remotePubSub) cancelSubscription(topic string, subscriptionId string) error {
 	// verify topic exists locally
 	if _, ok := r.subscriptions[topic]; !ok {
-		return
+		return nil
 	}
 	// verify subscription exists locally
 	if _, ok := r.subscriptions[topic][subscriptionId]; !ok {
-		return
+		return nil
 	}
 	// fetch subscription record
 	subscriptionRecord := r.subscriptions[topic][subscriptionId]
@@ -195,8 +196,9 @@ func (r *remotePubSub) cancelSubscription(topic string, subscriptionId string) {
 	// close redis pubsub
 	err := subscriptionRecord.PubSub.Close()
 	if err != nil {
-		log.Println("Error in closing redis pubsub", err)
+		return err
 	}
+	return nil
 }
 
 func (r *remotePubSub) removeTopicAndCleanup(topic string) {
@@ -213,16 +215,16 @@ func (r *remotePubSub) removeTopicAndCleanup(topic string) {
 func (r *remotePubSub) listenForBroadcastEvents(ctx context.Context) {
 	// subscribe to `eventsChannelName`
 	// docs: https://redis.io/commands/subscribe/
-	pubsub := r.redisClient.Subscribe(context.Background(), r.eventsChannelName)
-	channel := pubsub.Channel()
+	subscribeRef := r.redisClient.Subscribe(context.Background(), r.eventsChannelName)
+	channel := subscribeRef.Channel()
 	// listen for messages
 	for {
 		select {
 		case <-ctx.Done():
-			// close pubsub
-			err := pubsub.Close()
+			// close subscribeRef
+			err := subscribeRef.Close()
 			if err != nil {
-				log.Println("Error in closing redis pubsub", err)
+				log.Println("Error in closing redis subscribeRef", err)
 			}
 			return
 		case msg, ok := <-channel:

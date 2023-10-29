@@ -60,18 +60,21 @@ func consumer(prefixLog string, channel <-chan string) {
 }
 
 func main() {
-	//pubsubclient, err := pubsub.CreatePubSubClient(pubsub.Config{
+	//pubsubclient, err := pubsub.CreatePubSubClient(pubsub.Options{
 	//	Type:         pubsub.Local,
 	//	BufferLength: 1000,
 	//	RedisClient:  nil,
 	//})
-	pubsubclient, err := pubsub.CreatePubSubClient(pubsub.Config{
+	pubsubclient, err := pubsub.CreatePubSubClient(pubsub.Options{
 		Type: pubsub.Remote,
 		RedisClient: redis.NewClient(&redis.Options{
 			Addr:     "localhost:6379",
 			Password: "",
 			DB:       0,
 		}),
+		BufferLength:      10,
+		TopicsChannelName: "topics",
+		EventsChannelName: "events",
 	})
 	if err != nil {
 		panic(err)

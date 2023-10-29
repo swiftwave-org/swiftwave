@@ -3,46 +3,57 @@ package pubsub
 import (
 	"context"
 	"errors"
-	"github.com/go-redis/redis/v8"
 	"github.com/hashicorp/go-set"
 	"sync"
 )
 
-func CreatePubSubClient(config Config) (Client, error) {
-	if config.Type == Local {
-		if config.BufferLength == 0 {
-			return nil, errors.New("buffer length must be greater than 0")
-		}
-		return createLocalPubSubClient(config.BufferLength)
-	} else if config.Type == Remote {
-		if config.RedisClient == nil {
-			return nil, errors.New("redis client must not be nil")
-		}
-		return createRemotePubSubClient(config.RedisClient)
+func CreatePubSubClient(options Options) (Client, error) {
+	if options.Type == Local {
+		return createLocalPubSubClient(options)
+	} else if options.Type == Remote {
+		return createRemotePubSubClient(options)
 	} else {
 		return nil, errors.New("invalid pubsub type")
 	}
 }
 
-func createLocalPubSubClient(bufferLength int) (Client, error) {
+func createLocalPubSubClient(options Options) (Client, error) {
+	// validate options
+	if options.BufferLength <= 0 {
+		return nil, errors.New("buffer length cannot be less than or equal to 0")
+	}
 	mutex := sync.RWMutex{}
 	return &localPubSub{
 		mutex:         &mutex,
-		bufferLength:  bufferLength,
+		bufferLength:  options.BufferLength,
 		subscriptions: make(map[string]map[string]localPubSubSubscription),
 		topics:        set.New[string](0),
 		closed:        false,
 	}, nil
 }
 
-func createRemotePubSubClient(redisClient *redis.Client) (Client, error) {
+func createRemotePubSubClient(options Options) (Client, error) {
+	// validate options
+	if options.RedisClient == nil {
+		return nil, errors.New("redis client is nil")
+	}
+	if options.TopicsChannelName == "" {
+		return nil, errors.New("topics channel name is empty")
+	}
+	if options.EventsChannelName == "" {
+		return nil, errors.New("events channel name is empty")
+	}
+	if options.BufferLength <= 0 {
+		return nil, errors.New("buffer length cannot be less than or equal to 0")
+	}
 	mutex := sync.RWMutex{}
 	client := remotePubSub{
 		mutex:             &mutex,
-		redisClient:       *redisClient,
+		redisClient:       *options.RedisClient,
+		bufferLength:      options.BufferLength,
 		subscriptions:     make(map[string]map[string]remotePubSubSubscription),
-		topicsChannelName: "pubSubTopics",
-		eventsChannelName: "eventData",
+		topicsChannelName: options.TopicsChannelName,
+		eventsChannelName: options.EventsChannelName,
 		eventsContext:     context.Background(),
 		closed:            false,
 	}
