@@ -10,6 +10,7 @@ type Client interface {
 	CreateTopic(topic string) error
 	RemoveTopic(topic string) error
 	Subscribe(topic string) (string, <-chan string, error)
+	Unsubscribe(topic string, subscriptionId string) error
 	Publish(topic string, data string) error
 	Close() error
 }

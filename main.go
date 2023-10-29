@@ -73,6 +73,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	wg.Add(3)
+
 	// Create a subscription
 	subscriptionId, subscriptionChannel, err := pubsubclient.Subscribe("test")
 	if err != nil {
@@ -82,14 +84,18 @@ func main() {
 	go consumer("A", subscriptionChannel)
 
 	// Create a second subscription
-	_, subscriptionChannel, err = pubsubclient.Subscribe("test")
+	subscriptionId, subscriptionChannel, err = pubsubclient.Subscribe("test")
 	if err != nil {
 		panic(err)
 	}
 	log.Println("Created subscription", subscriptionId, subscriptionChannel)
+	// close subscription
+	err = pubsubclient.Unsubscribe("test", subscriptionId)
+	if err != nil {
+		return
+	}
 	go consumer("B", subscriptionChannel)
 
-	wg.Add(3)
 	// Run producer
 	go producer(pubsubclient, "test")
 	// Wait for goroutines to finish

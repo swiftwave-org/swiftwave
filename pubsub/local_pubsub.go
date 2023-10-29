@@ -35,27 +35,20 @@ func (l *localPubSub) RemoveTopic(topic string) error {
 	if !l.topics.Contains(topic) {
 		return nil
 	} else {
-		// create a wait group
-		var wg sync.WaitGroup
 		// close and remove all subscribers
 		for subscriptionRecord := range l.subscriptions[topic] {
-			wg.Add(1)
-			go l.cancelSubscriptionsOfTopic(topic, subscriptionRecord, &wg)
+			l.cancelSubscriptionsOfTopic(topic, subscriptionRecord)
 		}
-		// wait for all goroutines to finish
-		wg.Wait()
 		// delete subscribers
 		delete(l.subscriptions, topic)
 	}
 	return nil
 }
 
-func (l *localPubSub) cancelSubscriptionsOfTopic(topic string, subscriptionId string, wg *sync.WaitGroup) {
+func (l *localPubSub) cancelSubscriptionsOfTopic(topic string, subscriptionId string) {
 	if l.closed {
 		return
 	}
-	// defer wait group
-	defer wg.Done()
 	// verify topic exists with ok
 	if _, ok := l.subscriptions[topic]; !ok {
 		return
@@ -101,20 +94,53 @@ func (l *localPubSub) Subscribe(topic string) (string, <-chan string, error) {
 	return subscriptionId, channel, nil
 }
 
-func (l *localPubSub) Publish(topic string, data string) error {
+// Unsubscribe removes a subscription
+func (l *localPubSub) Unsubscribe(topic string, subscriptionId string) error {
 	if l.closed {
 		return errors.New("pubsub client is closed")
 	}
+	// lock main mutex
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
 	// check if topic exists
 	if !l.topics.Contains(topic) {
+		return errors.New("topic does not exist")
+	}
+	// check if subscription exists
+	if _, ok := l.subscriptions[topic][subscriptionId]; !ok {
+		return errors.New("subscription does not exist")
+	}
+	// fetch subscription record
+	subscriptionRecord := l.subscriptions[topic][subscriptionId]
+	// lock
+	mutex := subscriptionRecord.Mutex
+	mutex.Lock()
+	defer mutex.Unlock()
+	// close channel
+	close(subscriptionRecord.Channel)
+	// delete subscription
+	delete(l.subscriptions[topic], subscriptionId)
+	return nil
+}
+
+func (l *localPubSub) Publish(topic string, data string) error {
+	// check if closed
+	if l.closed {
+		return errors.New("pubsub client is closed")
+	}
+	// lock main mutex
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+	// check if topic exists
+	if !l.topics.Contains(topic) {
+		l.mutex.Unlock()
 		return errors.New("topic does not exist")
 	}
 	// fetch all subscriptions
 	subscriptions := l.subscriptions[topic]
 	// iterate over all subscriptions
-
 	for _, subscriptionRecord := range subscriptions {
-		// lock
+		// lock subscription mutex
 		mutex := subscriptionRecord.Mutex
 		mutex.Lock()
 		// clear channel if full
@@ -123,7 +149,7 @@ func (l *localPubSub) Publish(topic string, data string) error {
 		}
 		// send data
 		subscriptionRecord.Channel <- data
-		// unlock
+		// unlock subscription mutex
 		mutex.Unlock()
 	}
 	return nil
@@ -137,8 +163,9 @@ func (l *localPubSub) Close() error {
 			return
 		}
 	}()
-	// lock
+	// lock main mutex
 	l.mutex.Lock()
+	// unlock main mutex
 	defer l.mutex.Unlock()
 	// check if already closed
 	if l.closed {
@@ -146,16 +173,11 @@ func (l *localPubSub) Close() error {
 	}
 	// set closed to true
 	l.closed = true
-	// create a wait group
-	var wg sync.WaitGroup
 	// close and remove all subscribers
 	for topic := range l.subscriptions {
 		for subscriptionRecord := range l.subscriptions[topic] {
-			wg.Add(1)
-			go l.cancelSubscriptionsOfTopic(topic, subscriptionRecord, &wg)
+			l.cancelSubscriptionsOfTopic(topic, subscriptionRecord)
 		}
 	}
-	// wait for all goroutines to finish
-	wg.Wait()
 	return nil
 }
