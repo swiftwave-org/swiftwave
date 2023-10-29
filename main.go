@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"github.com/swiftwave-org/swiftwave/pubsub"
 	"log"
 	"sync"
@@ -59,10 +60,18 @@ func consumer(prefixLog string, channel <-chan string) {
 }
 
 func main() {
+	//pubsubclient, err := pubsub.CreatePubSubClient(pubsub.Config{
+	//	Type:         pubsub.Local,
+	//	BufferLength: 1000,
+	//	RedisClient:  nil,
+	//})
 	pubsubclient, err := pubsub.CreatePubSubClient(pubsub.Config{
-		Type:         pubsub.Local,
-		BufferLength: 1000,
-		RedisClient:  nil,
+		Type: pubsub.Remote,
+		RedisClient: redis.NewClient(&redis.Options{
+			Addr:     "localhost:6379",
+			Password: "",
+			DB:       0,
+		}),
 	})
 	if err != nil {
 		panic(err)

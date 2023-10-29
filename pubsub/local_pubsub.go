@@ -37,7 +37,7 @@ func (l *localPubSub) RemoveTopic(topic string) error {
 	} else {
 		// close and remove all subscribers
 		for subscriptionRecord := range l.subscriptions[topic] {
-			l.cancelSubscriptionsOfTopic(topic, subscriptionRecord)
+			l.cancelSubscriptions(topic, subscriptionRecord)
 		}
 		// delete subscribers
 		delete(l.subscriptions, topic)
@@ -45,7 +45,7 @@ func (l *localPubSub) RemoveTopic(topic string) error {
 	return nil
 }
 
-func (l *localPubSub) cancelSubscriptionsOfTopic(topic string, subscriptionId string) {
+func (l *localPubSub) cancelSubscriptions(topic string, subscriptionId string) {
 	if l.closed {
 		return
 	}
@@ -80,7 +80,7 @@ func (l *localPubSub) Subscribe(topic string) (string, <-chan string, error) {
 		return "", nil, errors.New("topic does not exist")
 	}
 	// create a new subscription id
-	subscriptionId := topic + "-" + uuid.NewString()
+	subscriptionId := topic + "_" + uuid.NewString()
 	// create a new channel
 	channel := make(chan string, l.bufferLength)
 	// create a new subscription record
@@ -116,8 +116,11 @@ func (l *localPubSub) Unsubscribe(topic string, subscriptionId string) error {
 	mutex := subscriptionRecord.Mutex
 	mutex.Lock()
 	defer mutex.Unlock()
-	// close channel
-	close(subscriptionRecord.Channel)
+	// cleanup channel
+	if _, ok := <-subscriptionRecord.Channel; ok {
+		<-subscriptionRecord.Channel
+		close(subscriptionRecord.Channel)
+	}
 	// delete subscription
 	delete(l.subscriptions[topic], subscriptionId)
 	return nil
@@ -176,7 +179,7 @@ func (l *localPubSub) Close() error {
 	// close and remove all subscribers
 	for topic := range l.subscriptions {
 		for subscriptionRecord := range l.subscriptions[topic] {
-			l.cancelSubscriptionsOfTopic(topic, subscriptionRecord)
+			l.cancelSubscriptions(topic, subscriptionRecord)
 		}
 	}
 	return nil

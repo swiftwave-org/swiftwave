@@ -1,6 +1,7 @@
 package pubsub
 
 import (
+	"context"
 	"github.com/go-redis/redis/v8"
 	"github.com/hashicorp/go-set"
 	"sync"
@@ -30,8 +31,20 @@ type localPubSubSubscription struct {
 }
 
 type remotePubSub struct {
-	redisClient redis.Client
-	closed      bool
+	redisClient       redis.Client
+	mutex             *sync.RWMutex
+	topicsChannelName string
+	subscriptions     map[string]map[string]remotePubSubSubscription
+	// <topic> -> [<subscriber> -> <channel>]
+	eventsChannelName string
+	eventsContext     context.Context
+	closed            bool
+}
+
+type remotePubSubSubscription struct {
+	Mutex   *sync.RWMutex
+	Channel chan string
+	PubSub  *redis.PubSub
 }
 
 type Type string

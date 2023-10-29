@@ -1,6 +1,7 @@
 package pubsub
 
 import (
+	"context"
 	"errors"
 	"github.com/go-redis/redis/v8"
 	"github.com/hashicorp/go-set"
@@ -35,8 +36,16 @@ func createLocalPubSubClient(bufferLength int) (Client, error) {
 }
 
 func createRemotePubSubClient(redisClient *redis.Client) (Client, error) {
-	return &remotePubSub{
-		redisClient: *redisClient,
-		closed:      false,
-	}, nil
+	mutex := sync.RWMutex{}
+	client := remotePubSub{
+		mutex:             &mutex,
+		redisClient:       *redisClient,
+		subscriptions:     make(map[string]map[string]remotePubSubSubscription),
+		topicsChannelName: "pubSubTopics",
+		eventsChannelName: "eventData",
+		eventsContext:     context.Background(),
+		closed:            false,
+	}
+	go client.listenForBroadcastEvents(client.eventsContext)
+	return &client, nil
 }
