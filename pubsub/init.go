@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-func CreatePubSubClient(config Config) (PubSub, error) {
+func CreatePubSubClient(config Config) (Client, error) {
 	if config.Type == Local {
 		return createLocalPubSubClient()
 	} else if config.Type == Remote {
@@ -17,17 +17,19 @@ func CreatePubSubClient(config Config) (PubSub, error) {
 	}
 }
 
-func createLocalPubSubClient() (PubSub, error) {
+func createLocalPubSubClient() (Client, error) {
+	mutex := sync.RWMutex{}
 	return &localPubSub{
-		mutex:         sync.RWMutex{},
-		subscriptions: make(map[string]map[string][]chan interface{}),
-		topics:        set.Set[string]{},
+		mutex:         &mutex,
+		subscriptions: make(map[string]map[string]localPubSubSubscription),
+		topics:        set.New[string](0),
 		closed:        false,
 	}, nil
 }
 
-func createRemotePubSubClient(redisClient *redis.Client) (PubSub, error) {
+func createRemotePubSubClient(redisClient *redis.Client) (Client, error) {
 	return &remotePubSub{
 		redisClient: *redisClient,
+		closed:      false,
 	}, nil
 }

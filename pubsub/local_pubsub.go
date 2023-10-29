@@ -14,7 +14,12 @@ func (l *localPubSub) CreateTopic(topic string) error {
 	if l.topics.Contains(topic) {
 		return nil
 	} else {
+		// lock
+		l.mutex.Lock()
+		defer l.mutex.Unlock()
+		// insert
 		l.topics.Insert(topic)
+		l.subscriptions[topic] = make(map[string]localPubSubSubscription)
 		return nil
 	}
 }
@@ -65,15 +70,12 @@ func (l *localPubSub) cancelSubscriptionsOfTopic(topic string, subscriptionId st
 	defer mutex.Unlock()
 	// close channel
 	close(l.subscriptions[topic][subscriptionId].Channel)
-	// take lock on main mutex
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
 	// delete subscription
 	delete(l.subscriptions[topic], subscriptionId)
 }
 
 // Subscribe returns a subscription id and a channel to listen to
-func (l *localPubSub) Subscribe(topic string) (string, <-chan interface{}, error) {
+func (l *localPubSub) Subscribe(topic string) (string, <-chan string, error) {
 	if l.closed {
 		return "", nil, errors.New("pubsub client is closed")
 	}
@@ -85,9 +87,9 @@ func (l *localPubSub) Subscribe(topic string) (string, <-chan interface{}, error
 		return "", nil, errors.New("topic does not exist")
 	}
 	// create a new subscription id
-	subscriptionId := topic + "_" + uuid.NewString()
+	subscriptionId := topic + "-" + uuid.NewString()
 	// create a new channel
-	channel := make(chan interface{})
+	channel := make(chan string, 50)
 	// create a new subscription record
 	subscriptionRecord := localPubSubSubscription{
 		Mutex:   &sync.RWMutex{},
@@ -99,7 +101,7 @@ func (l *localPubSub) Subscribe(topic string) (string, <-chan interface{}, error
 	return subscriptionId, channel, nil
 }
 
-func (l *localPubSub) Publish(topic string, data interface{}) error {
+func (l *localPubSub) Publish(topic string, data string) error {
 	if l.closed {
 		return errors.New("pubsub client is closed")
 	}
@@ -110,10 +112,15 @@ func (l *localPubSub) Publish(topic string, data interface{}) error {
 	// fetch all subscriptions
 	subscriptions := l.subscriptions[topic]
 	// iterate over all subscriptions
+
 	for _, subscriptionRecord := range subscriptions {
 		// lock
 		mutex := subscriptionRecord.Mutex
 		mutex.Lock()
+		// clear channel if full
+		if len(subscriptionRecord.Channel) == cap(subscriptionRecord.Channel) {
+			<-subscriptionRecord.Channel
+		}
 		// send data
 		subscriptionRecord.Channel <- data
 		// unlock

@@ -6,11 +6,11 @@ import (
 	"sync"
 )
 
-type PubSub interface {
+type Client interface {
 	CreateTopic(topic string) error
 	RemoveTopic(topic string) error
-	Subscribe(topic string) (<-chan interface{}, error)
-	Publish(topic string, data interface{}) error
+	Subscribe(topic string) (string, <-chan string, error)
+	Publish(topic string, data string) error
 	Close() error
 }
 
@@ -18,18 +18,18 @@ type localPubSub struct {
 	mutex         *sync.RWMutex
 	subscriptions map[string]map[string]localPubSubSubscription
 	// <topic> -> [<subscriber> -> <channel>]
-	topics set.Set[string]
+	topics *set.Set[string]
 	closed bool
 }
 
 type localPubSubSubscription struct {
 	Mutex   *sync.RWMutex
-	Channel chan interface{}
+	Channel chan string
 }
 
 type remotePubSub struct {
-	RedisClient redis.Client
-	Closed      bool
+	redisClient redis.Client
+	closed      bool
 }
 
 type Type string
