@@ -42,7 +42,7 @@ func consumer(prefixLog string, channel <-chan string) {
 	fmt.Println("Done consuming on consumer : ", prefixLog)
 }
 
-func test_pubsub() {
+func Test_pubsub() {
 	//pubsubclient, err := pubsub.CreatePubSubClient(pubsub.Options{
 	//	Type:         pubsub.Local,
 	//	BufferLength: 1000,

@@ -15,5 +15,5 @@ func main() {
 	//echoServer := echo.New()
 	//// Start the swift wave server
 	//swiftwave.StartServer(&config, &manager, echoServer, true)
-	test_pubsub()
+	//Test_pubsub()
 }
