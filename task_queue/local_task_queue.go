@@ -1,6 +1,9 @@
 package task_queue
 
-import "errors"
+import (
+	"errors"
+	"reflect"
+)
 
 func (l *localTaskQueue) RegisterFunction(queueName string, function WorkerFunctionType) error {
 	// acquire lock
@@ -26,8 +29,21 @@ func (l *localTaskQueue) RegisterFunction(queueName string, function WorkerFunct
 	return nil
 }
 
+func (l *localTaskQueue) EnqueueTask(queueName string, argument ArgumentType) error {
+	// fetch function by queue name
+	functionMetadata, err := l.getFunction(queueName)
+	if err != nil {
+		return err
+	}
+	// verify the argument type
+	if functionMetadata.argumentTypeName != getTypeName(argument) {
+		return errors.New("invalid argument type for this queue, expected [" + functionMetadata.argumentTypeName + "]")
+	}
+	return nil
+}
+
 // private function
-func (l *localTaskQueue) getFunction(queueName string) (WorkerFunctionType, error) {
+func (l *localTaskQueue) getFunction(queueName string) (functionMetadata, error) {
 	// acquire lock
 	l.mutex.RLock()
 	// release lock when function returns
@@ -35,9 +51,18 @@ func (l *localTaskQueue) getFunction(queueName string) (WorkerFunctionType, erro
 
 	// check if there is no function registered for this queue
 	if _, ok := l.queueToFunctionMapping[queueName]; !ok {
-		return nil, errors.New("no function registered for this queue")
+		return functionMetadata{}, errors.New("no function registered for this queue")
 	}
 
 	// return function
-	return l.queueToFunctionMapping[queueName].function, nil
+	return l.queueToFunctionMapping[queueName], nil
+}
+
+func getTypeName(object interface{}) string {
+	val := reflect.ValueOf(object)
+	if val.Kind() == reflect.Ptr {
+		return val.Elem().Type().Name()
+	} else {
+		return val.Type().Name()
+	}
 }

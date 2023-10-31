@@ -3,9 +3,11 @@ package task_queue
 import "sync"
 
 type WorkerFunctionType interface{}
+type ArgumentType interface{}
 
 type Client interface {
-	RegisterFunction(name string, function WorkerFunctionType) error
+	RegisterFunction(queueName string, function WorkerFunctionType) error
+	EnqueueTask(queueName string, argument ArgumentType) error
 }
 
 type localTaskQueue struct {
@@ -16,7 +18,7 @@ type localTaskQueue struct {
 type functionMetadata struct {
 	function         WorkerFunctionType
 	functionName     string
-	argumentType     interface{}
+	argumentType     ArgumentType
 	argumentTypeName string
 }
 

@@ -7,6 +7,11 @@ type Data struct {
 	y int `json:"y"`
 }
 
+type Result struct {
+	x int `json:"x"`
+	y int `json:"y"`
+}
+
 func testAddition(data Data) error {
 	return nil
 }
@@ -25,6 +30,11 @@ func TestTaskQueue() {
 		panic(err)
 	}
 	err = client.RegisterFunction("subtraction", testSubtraction)
+	if err != nil {
+		panic(err)
+	}
+	// enqueue task
+	err = client.EnqueueTask("addition", Data{x: 1, y: 2})
 	if err != nil {
 		panic(err)
 	}
