@@ -8,6 +8,7 @@ type ArgumentType interface{}
 type Client interface {
 	RegisterFunction(queueName string, function WorkerFunctionType) error
 	EnqueueTask(queueName string, argument ArgumentType) error
+	StartConsumers() error
 }
 
 type localTaskQueue struct {

@@ -42,6 +42,11 @@ func (l *localTaskQueue) EnqueueTask(queueName string, argument ArgumentType) er
 	return nil
 }
 
+func (l *localTaskQueue) StartConsumers() error {
+	// TODO implement this
+	return nil
+}
+
 // private function
 func (l *localTaskQueue) getFunction(queueName string) (functionMetadata, error) {
 	// acquire lock
