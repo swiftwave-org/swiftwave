@@ -16,4 +16,5 @@ func main() {
 	//// Start the swift wave server
 	//swiftwave.StartServer(&config, &manager, echoServer, true)
 	//Test_pubsub()
+	TestTaskQueue()
 }
