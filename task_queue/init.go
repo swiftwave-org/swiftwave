@@ -16,10 +16,24 @@ func NewClient(options Options) (Client, error) {
 }
 
 func createLocalTaskQueueClient(options Options) (Client, error) {
-	mappings := make(map[string]functionMetadata)
+	if options.MaxMessagesPerQueue == 0 {
+		return nil, errors.New("max messages per queue cannot be zero")
+	}
+	functionsMapping := make(map[string]functionMetadata)
+	channelsMapping := make(map[string]chan ArgumentType)
 	mutex := &sync.RWMutex{}
+	mutex2 := &sync.RWMutex{}
+
+	if options.Type == Local && options.Mode != Both {
+		return nil, errors.New("for local task queue, mode should be both")
+	}
+
 	return &localTaskQueue{
-		mutex:                  mutex,
-		queueToFunctionMapping: mappings,
+		mutexQueueToFunctionMapping: mutex,
+		mutexQueueToChannelMapping:  mutex2,
+		queueToFunctionMapping:      functionsMapping,
+		queueToChannelMapping:       channelsMapping,
+		operationMode:               options.Mode,
+		maxMessagesPerQueue:         options.MaxMessagesPerQueue,
 	}, nil
 }

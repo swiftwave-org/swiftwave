@@ -6,14 +6,21 @@ type WorkerFunctionType interface{}
 type ArgumentType interface{}
 
 type Client interface {
+	// RegisterFunction registers a consumer function for a queue
 	RegisterFunction(queueName string, function WorkerFunctionType) error
+	// EnqueueTask enqueues a task to a queue
 	EnqueueTask(queueName string, argument ArgumentType) error
-	StartConsumers() error
+	// StartConsumers is a blocking function that starts the consumers for all the registered queues
+	StartConsumers()
 }
 
 type localTaskQueue struct {
-	mutex                  *sync.RWMutex
-	queueToFunctionMapping map[string]functionMetadata // map between queue name <---> function
+	mutexQueueToFunctionMapping *sync.RWMutex
+	mutexQueueToChannelMapping  *sync.RWMutex
+	queueToFunctionMapping      map[string]functionMetadata // map between queue name <---> function
+	queueToChannelMapping       map[string]chan ArgumentType
+	operationMode               Mode
+	maxMessagesPerQueue         int
 }
 
 type functionMetadata struct {
@@ -30,6 +37,16 @@ const (
 	Remote Type = "remote"
 )
 
+type Mode string
+
+const (
+	ProducerOnly Mode = "producer_only"
+	ConsumerOnly Mode = "consumer_only"
+	Both         Mode = "both"
+)
+
 type Options struct {
-	Type Type
+	Type                Type
+	Mode                Mode
+	MaxMessagesPerQueue int
 }

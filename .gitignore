@@ -14,3 +14,4 @@ dev.log
 node_modules
 swiftwave
 dump.rdb
+ignore_*

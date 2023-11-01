@@ -22,8 +22,16 @@ func inspectFunction(function WorkerFunctionType) (functionMetadata, error) {
 		return metadata, errors.New("function is not type of func. Found " + foundType + " instead")
 	}
 
+	// function name
+	functionName := runtime.FuncForPC(fnValue.Pointer()).Name()
+
+	// verify function is exported
+	if !isFunctionExported(functionName) {
+		return metadata, errors.New("function `" + functionName + "` is not exported. Your function name should start with a capital letter to be exported")
+	}
 	// set function name
-	metadata.functionName = runtime.FuncForPC(fnValue.Pointer()).Name()
+	metadata.functionName = functionName
+	metadata.function = function
 
 	// ensure provided function has only one return type and it's an error
 	if fnType.NumOut() != 1 || fnType.Out(0).Kind() != reflect.Interface || fnType.Out(0).Name() != "error" {
@@ -53,6 +61,11 @@ func inspectFunction(function WorkerFunctionType) (functionMetadata, error) {
 	if fnType.In(0).Kind() != reflect.Struct {
 		foundType := fnType.In(0).Kind().String()
 		return metadata, errors.New("function argument must be a struct, found " + foundType + " instead")
+	}
+
+	// ensure argument type is exported
+	if !isArgumentTypeExported(fnType.In(0).Name()) {
+		return metadata, errors.New("argument type `" + fnType.In(0).Name() + "` is not exported. Your argument type should start with a capital letter to be exported")
 	}
 
 	// validate that each field of the struct has a json tag
