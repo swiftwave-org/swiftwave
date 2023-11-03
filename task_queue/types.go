@@ -38,7 +38,6 @@ type remoteTaskQueue struct {
 	amqpClientName              string
 	operationMode               Mode
 	consumersWaitGroup          *sync.WaitGroup
-
 	// internal use
 	amqpConnection *amqp.Connection
 	amqpChannel    *amqp.Channel
