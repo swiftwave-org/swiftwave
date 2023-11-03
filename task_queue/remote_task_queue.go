@@ -1,6 +1,7 @@
 package task_queue
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -40,8 +41,43 @@ func (r *remoteTaskQueue) RegisterFunction(queueName string, function WorkerFunc
 }
 
 func (r *remoteTaskQueue) EnqueueTask(queueName string, argument ArgumentType) error {
-	//TODO implement me
-	panic("implement me")
+	// checks
+	if r.operationMode == ConsumerOnly {
+		return errors.New("cannot enqueue task in consumer only mode")
+	}
+	// marshal argument to json
+	jsonBytes, err := json.Marshal(argument)
+	if err != nil {
+		return errors.New("error while marshalling argument to json")
+	}
+
+	// push to queue
+	dConfirmation, err := r.amqpChannel.PublishWithDeferredConfirmWithContext(
+		context.Background(),
+		"",
+		queueName,
+		true,
+		false,
+		amqp.Publishing{
+			Headers:         amqp.Table{},
+			ContentType:     "text/plain",
+			ContentEncoding: "",
+			DeliveryMode:    amqp.Persistent,
+			Priority:        0,
+			Body:            jsonBytes,
+		},
+	)
+	if err != nil {
+		log.Println("error while publishing message to queue [" + queueName + "]")
+		return errors.New("error while publishing message to queue")
+	}
+	// Check acknowledgement
+	ack := dConfirmation.Acked()
+	if !ack {
+		log.Println("error while publishing message to queue [" + queueName + "]")
+		return errors.New("error while publishing message to queue")
+	}
+	return nil
 }
 
 func (r *remoteTaskQueue) StartConsumers(nowait bool) {
