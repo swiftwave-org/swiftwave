@@ -67,7 +67,7 @@ func (l *localTaskQueue) EnqueueTask(queueName string, argument ArgumentType) er
 	return nil
 }
 
-func (l *localTaskQueue) StartConsumers() {
+func (l *localTaskQueue) StartConsumers(nowait bool) {
 	if l.operationMode == ProducerOnly {
 		panic("cannot start consumers in producer mode")
 	}
@@ -77,25 +77,31 @@ func (l *localTaskQueue) StartConsumers() {
 	// acquire lock
 	l.mutexQueueToChannelMapping.RLock()
 
-	// release lock when function returns
-	defer l.mutexQueueToChannelMapping.RUnlock()
-
 	// copy the queue names
 	for queueName, _ := range l.queueToChannelMapping {
 		queueNames = append(queueNames, queueName)
 	}
 
+	// release lock when function returns
+	l.mutexQueueToChannelMapping.RUnlock()
+
 	// wait group
-	wg := sync.WaitGroup{}
+	wg := l.consumersWaitGroup
 
 	// start consumers
 	for _, queueName := range queueNames {
 		wg.Add(1)
-		go l.listenForTasks(queueName, &wg)
+		go l.listenForTasks(queueName, wg)
 	}
 
-	// wait for all consumers to finish
-	wg.Wait()
+	if !nowait {
+		// wait for all consumers to finish
+		wg.Wait()
+	}
+}
+
+func (l *localTaskQueue) WaitForConsumers() {
+	l.consumersWaitGroup.Wait()
 }
 
 // private function
