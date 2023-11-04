@@ -23,6 +23,7 @@ func NewManager(config *core.ServiceConfig, manager *core.ServiceManager) *Manag
 // registerWorkerFunctions : register all the functions to the task queue client
 func (m Manager) registerWorkerFunctions() {
 	taskQueueClient := m.ServiceManager.TaskQueueClient
+	panicOnError(taskQueueClient.RegisterFunction("build_application", m.BuildApplication))
 	panicOnError(taskQueueClient.RegisterFunction("deploy_application", m.DeployApplication))
 	panicOnError(taskQueueClient.RegisterFunction("ingress_rule_apply", m.IngressRuleApply))
 	panicOnError(taskQueueClient.RegisterFunction("redirect_rule_apply", m.RedirectRuleApply))

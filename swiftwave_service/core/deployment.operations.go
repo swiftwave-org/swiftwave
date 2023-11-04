@@ -41,6 +41,11 @@ func FindDeploymentsByApplicationId(ctx context.Context, db gorm.DB, id string) 
 	return deployments, nil
 }
 
+func (deployment *Deployment) FindById(ctx context.Context, db gorm.DB, id string) error {
+	tx := db.First(&deployment, "id = ?", id)
+	return tx.Error
+}
+
 func (deployment *Deployment) Create(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
 	deployment.ID = uuid.NewString()
 	deployment.CreatedAt = time.Now()
@@ -119,6 +124,12 @@ func (deployment *Deployment) Update(ctx context.Context, db gorm.DB, dockerMana
 	return result, nil
 }
 
+func (deployment *Deployment) UpdateStatus(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager, status DeploymentStatus) error {
+	// update status
+	tx := db.Model(&deployment).Update("status", status)
+	return tx.Error
+}
+
 func (deployment *Deployment) Delete(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
 	// delete all build args
 	tx := db.Where("deployment_id = ?", deployment.ID).Delete(&BuildArg{})
@@ -133,6 +144,32 @@ func (deployment *Deployment) Delete(ctx context.Context, db gorm.DB, dockerMana
 	// delete deployment
 	tx = db.Delete(&deployment)
 	return tx.Error
+}
+
+func (deployment *Deployment) DeployableDockerImageURI() string {
+	// TODO : add support for providing generated docker image uri
+	if deployment.UpstreamType == UpstreamTypeImage {
+		return deployment.DockerImage
+	} else if deployment.UpstreamType == UpstreamTypeGit {
+		return deployment.ApplicationID + ":" + deployment.ID
+	} else if deployment.UpstreamType == UpstreamTypeSourceCode {
+		return deployment.ApplicationID + ":" + deployment.ID
+	} else {
+		return ""
+	}
+}
+
+func (deployment *Deployment) GitRepositoryURL() string {
+	if deployment.UpstreamType != UpstreamTypeGit {
+		return ""
+	}
+	if deployment.GitProvider == GitProviderGithub {
+		return "https://github.com/" + deployment.RepositoryOwner + "/" + deployment.RepositoryName + ".git"
+	}
+	if deployment.GitProvider == GitProviderGitlab {
+		return "https://gitlab.com/" + deployment.RepositoryOwner + "/" + deployment.RepositoryName + ".git"
+	}
+	return ""
 }
 
 // Extra functions for resolvers

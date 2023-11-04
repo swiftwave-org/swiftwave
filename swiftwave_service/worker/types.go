@@ -14,6 +14,11 @@ type Manager struct {
 
 // DeployApplicationRequest : request payload for deploy application
 type DeployApplicationRequest struct {
+	AppId string `json:"app_id"`
+}
+
+// BuildApplicationRequest : request payload for deploy application
+type BuildApplicationRequest struct {
 	AppId        string `json:"app_id"`
 	DeploymentId string `json:"deployment_id"`
 }
