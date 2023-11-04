@@ -5,10 +5,11 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/rest"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/worker"
 	"strconv"
 )
 
-func StartServer(config *core.ServiceConfig, manager *core.ServiceManager, echoServer *echo.Echo, migrateDatabase bool) {
+func StartServer(config *core.ServiceConfig, manager *core.ServiceManager, echoServer *echo.Echo, workerManager *worker.Manager, migrateDatabase bool) {
 	// Create Rest Server
 	restServer := rest.Server{
 		EchoServer:     echoServer,

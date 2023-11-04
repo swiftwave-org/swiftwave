@@ -7,15 +7,15 @@ package graphql
 import (
 	"context"
 	"fmt"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 
-	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
 
 // Application is the resolver for the application field.
 func (r *deploymentResolver) Application(ctx context.Context, obj *model.Deployment) (*model.Application, error) {
 	// fetch record
-	var application = &dbmodel.Application{}
+	var application = &core.Application{}
 	err := application.FindById(ctx, r.ServiceManager.DbClient, obj.ApplicationID)
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func (r *deploymentResolver) Application(ctx context.Context, obj *model.Deploym
 
 // GitCredential is the resolver for the gitCredential field.
 func (r *deploymentResolver) GitCredential(ctx context.Context, obj *model.Deployment) (*model.GitCredential, error) {
-	var gitCredential = &dbmodel.GitCredential{}
+	var gitCredential = &core.GitCredential{}
 	if obj.GitCredentialID != 0 {
 		err := gitCredential.FindById(ctx, r.ServiceManager.DbClient, obj.GitCredentialID)
 		if err != nil {
@@ -37,7 +37,7 @@ func (r *deploymentResolver) GitCredential(ctx context.Context, obj *model.Deplo
 
 // ImageRegistryCredential is the resolver for the imageRegistryCredential field.
 func (r *deploymentResolver) ImageRegistryCredential(ctx context.Context, obj *model.Deployment) (*model.ImageRegistryCredential, error) {
-	var imageRegistryCredential = &dbmodel.ImageRegistryCredential{}
+	var imageRegistryCredential = &core.ImageRegistryCredential{}
 	if obj.ImageRegistryCredentialID != 0 {
 		err := imageRegistryCredential.FindById(ctx, r.ServiceManager.DbClient, obj.ImageRegistryCredentialID)
 		if err != nil {
@@ -50,7 +50,7 @@ func (r *deploymentResolver) ImageRegistryCredential(ctx context.Context, obj *m
 // BuildArgs is the resolver for the buildArgs field.
 func (r *deploymentResolver) BuildArgs(ctx context.Context, obj *model.Deployment) ([]*model.BuildArg, error) {
 	// fetch record
-	records, err := dbmodel.FindBuildArgsByDeploymentId(ctx, r.ServiceManager.DbClient, obj.ID)
+	records, err := core.FindBuildArgsByDeploymentId(ctx, r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
 		return nil, err
 	}

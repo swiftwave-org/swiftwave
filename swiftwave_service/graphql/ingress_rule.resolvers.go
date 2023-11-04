@@ -6,14 +6,13 @@ package graphql
 
 import (
 	"context"
-	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_service/core"
-
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
 
 // Domain is the resolver for the domain field.
 func (r *ingressRuleResolver) Domain(ctx context.Context, obj *model.IngressRule) (*model.Domain, error) {
-	domain := &dbmodel.Domain{}
+	domain := &core.Domain{}
 	err := domain.FindById(ctx, r.ServiceManager.DbClient, obj.DomainID)
 	if err != nil {
 		return nil, err
@@ -23,7 +22,7 @@ func (r *ingressRuleResolver) Domain(ctx context.Context, obj *model.IngressRule
 
 // Application is the resolver for the application field.
 func (r *ingressRuleResolver) Application(ctx context.Context, obj *model.IngressRule) (*model.Application, error) {
-	application := &dbmodel.Application{}
+	application := &core.Application{}
 	err := application.FindById(ctx, r.ServiceManager.DbClient, obj.ApplicationID)
 	if err != nil {
 		return nil, err
@@ -43,7 +42,7 @@ func (r *mutationResolver) CreateIngressRule(ctx context.Context, input model.In
 
 // DeleteIngressRule is the resolver for the deleteIngressRule field.
 func (r *mutationResolver) DeleteIngressRule(ctx context.Context, id uint) (bool, error) {
-	record := dbmodel.IngressRule{}
+	record := core.IngressRule{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
 		return false, err
@@ -57,7 +56,7 @@ func (r *mutationResolver) DeleteIngressRule(ctx context.Context, id uint) (bool
 
 // IngressRule is the resolver for the ingressRule field.
 func (r *queryResolver) IngressRule(ctx context.Context, id uint) (*model.IngressRule, error) {
-	record := dbmodel.IngressRule{}
+	record := core.IngressRule{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
 		return nil, err
@@ -67,7 +66,7 @@ func (r *queryResolver) IngressRule(ctx context.Context, id uint) (*model.Ingres
 
 // IngressRules is the resolver for the ingressRules field.
 func (r *queryResolver) IngressRules(ctx context.Context) ([]*model.IngressRule, error) {
-	records, err := dbmodel.FindAllIngressRules(ctx, r.ServiceManager.DbClient)
+	records, err := core.FindAllIngressRules(ctx, r.ServiceManager.DbClient)
 	if err != nil {
 		return nil, err
 	}

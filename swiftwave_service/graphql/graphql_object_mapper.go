@@ -1,7 +1,7 @@
 package graphql
 
 import (
-	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 	"time"
 )
@@ -14,7 +14,7 @@ import (
 // Because ID field is provided directly to Mutation or Query function
 
 // gitCredentialToGraphqlObject : converts GitCredential to GitCredentialGraphqlObject
-func gitCredentialToGraphqlObject(record *dbmodel.GitCredential) *model.GitCredential {
+func gitCredentialToGraphqlObject(record *core.GitCredential) *model.GitCredential {
 	return &model.GitCredential{
 		ID:       record.ID,
 		Name:     record.Name,
@@ -24,8 +24,8 @@ func gitCredentialToGraphqlObject(record *dbmodel.GitCredential) *model.GitCrede
 }
 
 // gitCredentialInputToDatabaseObject : converts GitCredentialInput to GitCredentialDatabaseObject
-func gitCredentialInputToDatabaseObject(record *model.GitCredentialInput) *dbmodel.GitCredential {
-	return &dbmodel.GitCredential{
+func gitCredentialInputToDatabaseObject(record *model.GitCredentialInput) *core.GitCredential {
+	return &core.GitCredential{
 		Name:     record.Name,
 		Username: record.Username,
 		Password: record.Password,
@@ -33,7 +33,7 @@ func gitCredentialInputToDatabaseObject(record *model.GitCredentialInput) *dbmod
 }
 
 // imageRegistryCredentialToGraphqlObject : converts ImageRegistryCredential to ImageRegistryCredentialGraphqlObject
-func imageRegistryCredentialToGraphqlObject(record *dbmodel.ImageRegistryCredential) *model.ImageRegistryCredential {
+func imageRegistryCredentialToGraphqlObject(record *core.ImageRegistryCredential) *model.ImageRegistryCredential {
 	return &model.ImageRegistryCredential{
 		ID:       record.ID,
 		URL:      record.Url,
@@ -43,8 +43,8 @@ func imageRegistryCredentialToGraphqlObject(record *dbmodel.ImageRegistryCredent
 }
 
 // imageRegistryCredentialInputToDatabaseObject : converts ImageRegistryCredentialInput to ImageRegistryCredentialDatabaseObject
-func imageRegistryCredentialInputToDatabaseObject(record *model.ImageRegistryCredentialInput) *dbmodel.ImageRegistryCredential {
-	return &dbmodel.ImageRegistryCredential{
+func imageRegistryCredentialInputToDatabaseObject(record *model.ImageRegistryCredentialInput) *core.ImageRegistryCredential {
+	return &core.ImageRegistryCredential{
 		Url:      record.URL,
 		Username: record.Username,
 		Password: record.Password,
@@ -52,7 +52,7 @@ func imageRegistryCredentialInputToDatabaseObject(record *model.ImageRegistryCre
 }
 
 // persistentVolumeToGraphqlObject : converts PersistentVolume to PersistentVolumeGraphqlObject
-func persistentVolumeToGraphqlObject(record *dbmodel.PersistentVolume) *model.PersistentVolume {
+func persistentVolumeToGraphqlObject(record *core.PersistentVolume) *model.PersistentVolume {
 	return &model.PersistentVolume{
 		ID:   record.ID,
 		Name: record.Name,
@@ -60,22 +60,22 @@ func persistentVolumeToGraphqlObject(record *dbmodel.PersistentVolume) *model.Pe
 }
 
 // persistentVolumeInputToDatabaseObject : converts PersistentVolumeInput to PersistentVolumeDatabaseObject
-func persistentVolumeInputToDatabaseObject(record *model.PersistentVolumeInput) *dbmodel.PersistentVolume {
-	return &dbmodel.PersistentVolume{
+func persistentVolumeInputToDatabaseObject(record *model.PersistentVolumeInput) *core.PersistentVolume {
+	return &core.PersistentVolume{
 		Name: record.Name,
 	}
 }
 
 // persistentVolumeBindingInputToDatabaseObject : converts PersistentVolumeBindingInput to PersistentVolumeBindingDatabaseObject
-func persistentVolumeBindingInputToDatabaseObject(record *model.PersistentVolumeBindingInput) *dbmodel.PersistentVolumeBinding {
-	return &dbmodel.PersistentVolumeBinding{
+func persistentVolumeBindingInputToDatabaseObject(record *model.PersistentVolumeBindingInput) *core.PersistentVolumeBinding {
+	return &core.PersistentVolumeBinding{
 		PersistentVolumeID: record.PersistentVolumeID,
 		MountingPath:       record.MountingPath,
 	}
 }
 
 // persistentVolumeBindingToGraphqlObject : converts PersistentVolumeBinding to PersistentVolumeBindingGraphqlObject
-func persistentVolumeBindingToGraphqlObject(record *dbmodel.PersistentVolumeBinding) *model.PersistentVolumeBinding {
+func persistentVolumeBindingToGraphqlObject(record *core.PersistentVolumeBinding) *model.PersistentVolumeBinding {
 	return &model.PersistentVolumeBinding{
 		ID:                 record.ID,
 		PersistentVolumeID: record.PersistentVolumeID,
@@ -84,15 +84,15 @@ func persistentVolumeBindingToGraphqlObject(record *dbmodel.PersistentVolumeBind
 }
 
 // environmentVariableInputToDatabaseObject : converts EnvironmentVariableInput to EnvironmentVariableDatabaseObject
-func environmentVariableInputToDatabaseObject(record *model.EnvironmentVariableInput) *dbmodel.EnvironmentVariable {
-	return &dbmodel.EnvironmentVariable{
+func environmentVariableInputToDatabaseObject(record *model.EnvironmentVariableInput) *core.EnvironmentVariable {
+	return &core.EnvironmentVariable{
 		Key:   record.Key,
 		Value: record.Value,
 	}
 }
 
 // environmentVariableToGraphqlObject : converts EnvironmentVariable to EnvironmentVariableGraphqlObject
-func environmentVariableToGraphqlObject(record *dbmodel.EnvironmentVariable) *model.EnvironmentVariable {
+func environmentVariableToGraphqlObject(record *core.EnvironmentVariable) *model.EnvironmentVariable {
 	return &model.EnvironmentVariable{
 		Key:   record.Key,
 		Value: record.Value,
@@ -100,15 +100,15 @@ func environmentVariableToGraphqlObject(record *dbmodel.EnvironmentVariable) *mo
 }
 
 // buildArgInputToDatabaseObject : converts BuildArgInput to BuildArgDatabaseObject
-func buildArgInputToDatabaseObject(record *model.BuildArgInput) *dbmodel.BuildArg {
-	return &dbmodel.BuildArg{
+func buildArgInputToDatabaseObject(record *model.BuildArgInput) *core.BuildArg {
+	return &core.BuildArg{
 		Key:   record.Key,
 		Value: record.Value,
 	}
 }
 
 // buildArgToGraphqlObject : converts BuildArg to BuildArgGraphqlObject
-func buildArgToGraphqlObject(record *dbmodel.BuildArg) *model.BuildArg {
+func buildArgToGraphqlObject(record *core.BuildArg) *model.BuildArg {
 	return &model.BuildArg{
 		Key:   record.Key,
 		Value: record.Value,
@@ -116,15 +116,15 @@ func buildArgToGraphqlObject(record *dbmodel.BuildArg) *model.BuildArg {
 }
 
 // applicationInputToDeploymentDatabaseObject : converts ApplicationInput to DeploymentDatabaseObject
-func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) *dbmodel.Deployment {
-	var buildArgs = make([]dbmodel.BuildArg, 0)
+func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) *core.Deployment {
+	var buildArgs = make([]core.BuildArg, 0)
 	for _, buildArg := range record.BuildArgs {
 		buildArgs = append(buildArgs, *buildArgInputToDatabaseObject(buildArg))
 	}
-	return &dbmodel.Deployment{
-		UpstreamType:                 dbmodel.UpstreamType(record.UpstreamType), // TODO: Check this
+	return &core.Deployment{
+		UpstreamType:                 core.UpstreamType(record.UpstreamType), // TODO: Check this
 		GitCredentialID:              DefaultUint(record.GitCredentialID, 0),
-		GitProvider:                  dbmodel.GitProvider(DefaultGitProvider(record.GitProvider)),
+		GitProvider:                  core.GitProvider(DefaultGitProvider(record.GitProvider)),
 		RepositoryOwner:              DefaultString(record.RepositoryOwner, ""),
 		RepositoryName:               DefaultString(record.RepositoryName, ""),
 		RepositoryBranch:             DefaultString(record.RepositoryBranch, ""),
@@ -134,36 +134,36 @@ func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) 
 		ImageRegistryCredentialID:    DefaultUint(record.ImageRegistryCredentialID, 0),
 		BuildArgs:                    buildArgs,
 		Dockerfile:                   DefaultString(record.Dockerfile, ""),
-		Logs:                         make([]dbmodel.DeploymentLog, 0),
-		Status:                       dbmodel.DeploymentStatusPending,
+		Logs:                         make([]core.DeploymentLog, 0),
+		Status:                       core.DeploymentStatusPending,
 		CreatedAt:                    time.Now(),
 	}
 }
 
 // applicationInputToDatabaseObject : converts ApplicationInput to ApplicationDatabaseObject
-func applicationInputToDatabaseObject(record *model.ApplicationInput) *dbmodel.Application {
-	var environmentVariables = make([]dbmodel.EnvironmentVariable, 0)
+func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Application {
+	var environmentVariables = make([]core.EnvironmentVariable, 0)
 	for _, environmentVariable := range record.EnvironmentVariables {
 		environmentVariables = append(environmentVariables, *environmentVariableInputToDatabaseObject(environmentVariable))
 	}
-	var persistentVolumeBindings = make([]dbmodel.PersistentVolumeBinding, 0)
+	var persistentVolumeBindings = make([]core.PersistentVolumeBinding, 0)
 	for _, persistentVolumeBinding := range record.PersistentVolumeBindings {
 		persistentVolumeBindings = append(persistentVolumeBindings, *persistentVolumeBindingInputToDatabaseObject(persistentVolumeBinding))
 	}
-	return &dbmodel.Application{
+	return &core.Application{
 		Name:                     record.Name,
 		EnvironmentVariables:     environmentVariables,
 		PersistentVolumeBindings: persistentVolumeBindings,
-		DeploymentMode:           dbmodel.DeploymentMode(record.DeploymentMode),
+		DeploymentMode:           core.DeploymentMode(record.DeploymentMode),
 		Replicas:                 DefaultUint(record.Replicas, 0),
 		LatestDeployment:         *applicationInputToDeploymentDatabaseObject(record),
-		Deployments:              make([]dbmodel.Deployment, 0),
-		IngressRules:             make([]dbmodel.IngressRule, 0),
+		Deployments:              make([]core.Deployment, 0),
+		IngressRules:             make([]core.IngressRule, 0),
 	}
 }
 
 // applicationToGraphqlObject : converts Application to ApplicationGraphqlObject
-func applicationToGraphqlObject(record *dbmodel.Application) *model.Application {
+func applicationToGraphqlObject(record *core.Application) *model.Application {
 	return &model.Application{
 		ID:             record.ID,
 		Name:           record.Name,
@@ -173,7 +173,7 @@ func applicationToGraphqlObject(record *dbmodel.Application) *model.Application 
 }
 
 // deploymentToGraphqlObject : converts Deployment to DeploymentGraphqlObject
-func deploymentToGraphqlObject(record *dbmodel.Deployment) *model.Deployment {
+func deploymentToGraphqlObject(record *core.Deployment) *model.Deployment {
 	return &model.Deployment{
 		ID:                           record.ID,
 		ApplicationID:                record.ApplicationID,
@@ -194,16 +194,16 @@ func deploymentToGraphqlObject(record *dbmodel.Deployment) *model.Deployment {
 }
 
 // domainInputToDatabaseObject : converts DomainInput to DomainDatabaseObject
-func domainInputToDatabaseObject(record *model.DomainInput) *dbmodel.Domain {
-	return &dbmodel.Domain{
+func domainInputToDatabaseObject(record *model.DomainInput) *core.Domain {
+	return &core.Domain{
 		Name:         record.Name,
-		SSLStatus:    dbmodel.DomainSSLStatusNone,
+		SSLStatus:    core.DomainSSLStatusNone,
 		SSLAutoRenew: false,
 	}
 }
 
 // domainToGraphqlObject : converts Domain to DomainGraphqlObject
-func domainToGraphqlObject(record *dbmodel.Domain) *model.Domain {
+func domainToGraphqlObject(record *core.Domain) *model.Domain {
 	return &model.Domain{
 		ID:            record.ID,
 		Name:          record.Name,
@@ -217,21 +217,21 @@ func domainToGraphqlObject(record *dbmodel.Domain) *model.Domain {
 }
 
 // ingressRuleInputToDatabaseObject : converts IngressRuleInput to IngressRuleDatabaseObject
-func ingressRuleInputToDatabaseObject(record *model.IngressRuleInput) *dbmodel.IngressRule {
-	return &dbmodel.IngressRule{
+func ingressRuleInputToDatabaseObject(record *model.IngressRuleInput) *core.IngressRule {
+	return &core.IngressRule{
 		ApplicationID: record.ApplicationID,
 		DomainID:      record.DomainID,
-		Protocol:      dbmodel.ProtocolType(record.Protocol),
+		Protocol:      core.ProtocolType(record.Protocol),
 		Port:          record.Port,
 		TargetPort:    record.TargetPort,
-		Status:        dbmodel.IngressRuleStatusPending,
+		Status:        core.IngressRuleStatusPending,
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
 	}
 }
 
 // ingressRuleToGraphqlObject : converts IngressRule to IngressRuleGraphqlObject
-func ingressRuleToGraphqlObject(record *dbmodel.IngressRule) *model.IngressRule {
+func ingressRuleToGraphqlObject(record *core.IngressRule) *model.IngressRule {
 	return &model.IngressRule{
 		ID:            record.ID,
 		ApplicationID: record.ApplicationID,
@@ -246,19 +246,19 @@ func ingressRuleToGraphqlObject(record *dbmodel.IngressRule) *model.IngressRule 
 }
 
 // redirectRuleInputToDatabaseObject : converts RedirectRuleInput to RedirectRuleDatabaseObject
-func redirectRuleInputToDatabaseObject(record *model.RedirectRuleInput) *dbmodel.RedirectRule {
-	return &dbmodel.RedirectRule{
+func redirectRuleInputToDatabaseObject(record *model.RedirectRuleInput) *core.RedirectRule {
+	return &core.RedirectRule{
 		DomainID:    record.DomainID,
 		Port:        record.Port,
 		RedirectURL: record.RedirectURL,
-		Status:      dbmodel.RedirectRuleStatusPending,
+		Status:      core.RedirectRuleStatusPending,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
 }
 
 // redirectRuleToGraphqlObject : converts RedirectRule to RedirectRuleGraphqlObject
-func redirectRuleToGraphqlObject(record *dbmodel.RedirectRule) *model.RedirectRule {
+func redirectRuleToGraphqlObject(record *core.RedirectRule) *model.RedirectRule {
 	return &model.RedirectRule{
 		ID:          record.ID,
 		DomainID:    record.DomainID,

@@ -6,8 +6,8 @@ package graphql
 
 import (
 	"context"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 
-	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
 
@@ -24,7 +24,7 @@ func (r *mutationResolver) CreatePersistentVolume(ctx context.Context, input mod
 // DeletePersistentVolume is the resolver for the deletePersistentVolume field.
 func (r *mutationResolver) DeletePersistentVolume(ctx context.Context, id uint) (bool, error) {
 	// fetch record
-	var record dbmodel.PersistentVolume
+	var record core.PersistentVolume
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
 		return false, err
@@ -40,7 +40,7 @@ func (r *mutationResolver) DeletePersistentVolume(ctx context.Context, id uint) 
 // PersistentVolumeBindings is the resolver for the persistentVolumeBindings field.
 func (r *persistentVolumeResolver) PersistentVolumeBindings(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeBinding, error) {
 	// fetch record
-	records, err := dbmodel.FindPersistentVolumeBindingsByPersistentVolumeId(ctx, r.ServiceManager.DbClient, obj.ID)
+	records, err := core.FindPersistentVolumeBindingsByPersistentVolumeId(ctx, r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (r *persistentVolumeResolver) PersistentVolumeBindings(ctx context.Context,
 
 // PersistentVolumes is the resolver for the persistentVolumes field.
 func (r *queryResolver) PersistentVolumes(ctx context.Context) ([]*model.PersistentVolume, error) {
-	records, err := dbmodel.FindAllPersistentVolumes(ctx, r.ServiceManager.DbClient)
+	records, err := core.FindAllPersistentVolumes(ctx, r.ServiceManager.DbClient)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (r *queryResolver) PersistentVolumes(ctx context.Context) ([]*model.Persist
 
 // PersistentVolume is the resolver for the persistentVolume field.
 func (r *queryResolver) PersistentVolume(ctx context.Context, id uint) (*model.PersistentVolume, error) {
-	var record dbmodel.PersistentVolume
+	var record core.PersistentVolume
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func (r *queryResolver) PersistentVolume(ctx context.Context, id uint) (*model.P
 
 // IsExistPersistentVolume is the resolver for the isExistPersistentVolume field.
 func (r *queryResolver) IsExistPersistentVolume(ctx context.Context, name string) (bool, error) {
-	isExists, err := dbmodel.IsExistPersistentVolume(ctx, r.ServiceManager.DbClient, name, r.ServiceManager.DockerManager)
+	isExists, err := core.IsExistPersistentVolume(ctx, r.ServiceManager.DbClient, name, r.ServiceManager.DockerManager)
 	return isExists, err
 }
 

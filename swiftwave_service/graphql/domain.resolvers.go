@@ -7,15 +7,15 @@ package graphql
 import (
 	"context"
 	"errors"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"time"
 
-	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
 
 // IngressRules is the resolver for the ingressRules field.
 func (r *domainResolver) IngressRules(ctx context.Context, obj *model.Domain) ([]*model.IngressRule, error) {
-	records, err := dbmodel.FindIngressRulesByDomainID(ctx, r.ServiceManager.DbClient, obj.ID)
+	records, err := core.FindIngressRulesByDomainID(ctx, r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (r *domainResolver) IngressRules(ctx context.Context, obj *model.Domain) ([
 
 // RedirectRules is the resolver for the redirectRules field.
 func (r *domainResolver) RedirectRules(ctx context.Context, obj *model.Domain) ([]*model.RedirectRule, error) {
-	records, err := dbmodel.FindRedirectRulesByDomainID(ctx, r.ServiceManager.DbClient, obj.ID)
+	records, err := core.FindRedirectRulesByDomainID(ctx, r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (r *mutationResolver) AddDomain(ctx context.Context, input model.DomainInpu
 
 // RemoveDomain is the resolver for the removeDomain field.
 func (r *mutationResolver) RemoveDomain(ctx context.Context, id uint) (bool, error) {
-	record := dbmodel.Domain{}
+	record := core.Domain{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
 		return false, err
@@ -66,7 +66,7 @@ func (r *mutationResolver) RemoveDomain(ctx context.Context, id uint) (bool, err
 // IssueSsl is the resolver for the issueSSL field.
 func (r *mutationResolver) IssueSsl(ctx context.Context, id uint) (*model.Domain, error) {
 	// fetch record
-	record := dbmodel.Domain{}
+	record := core.Domain{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (r *mutationResolver) IssueSsl(ctx context.Context, id uint) (*model.Domain
 		return nil, errors.New("domain not configured")
 	}
 	// update record
-	record.SSLStatus = dbmodel.DomainSSLStatusPending
+	record.SSLStatus = core.DomainSSLStatusPending
 	err = record.Update(ctx, r.ServiceManager.DbClient)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (r *mutationResolver) IssueSsl(ctx context.Context, id uint) (*model.Domain
 // AddCustomSsl is the resolver for the addCustomSSL field.
 func (r *mutationResolver) AddCustomSsl(ctx context.Context, id uint, input model.CustomSSLInput) (*model.Domain, error) {
 	// fetch record
-	record := dbmodel.Domain{}
+	record := core.Domain{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (r *mutationResolver) AddCustomSsl(ctx context.Context, id uint, input mode
 	record.SSLIssuedAt = time.Now()
 	// TODO: resolve date from the certificate itself
 	record.SSLIssuer = input.SslIssuer
-	record.SSLStatus = dbmodel.DomainSSLStatusIssued
+	record.SSLStatus = core.DomainSSLStatusIssued
 	record.SSLAutoRenew = false
 	err = record.Update(ctx, r.ServiceManager.DbClient)
 	if err != nil {
@@ -113,7 +113,7 @@ func (r *mutationResolver) AddCustomSsl(ctx context.Context, id uint, input mode
 
 // Domains is the resolver for the domains field.
 func (r *queryResolver) Domains(ctx context.Context) ([]*model.Domain, error) {
-	records, err := dbmodel.FindAllDomains(ctx, r.ServiceManager.DbClient)
+	records, err := core.FindAllDomains(ctx, r.ServiceManager.DbClient)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (r *queryResolver) Domains(ctx context.Context) ([]*model.Domain, error) {
 
 // Domain is the resolver for the domain field.
 func (r *queryResolver) Domain(ctx context.Context, id uint) (*model.Domain, error) {
-	record := dbmodel.Domain{}
+	record := core.Domain{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
 		return nil, err

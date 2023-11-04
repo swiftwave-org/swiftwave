@@ -7,15 +7,15 @@ package graphql
 import (
 	"context"
 	"fmt"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 
-	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
 
 // EnvironmentVariables is the resolver for the environmentVariables field.
 func (r *applicationResolver) EnvironmentVariables(ctx context.Context, obj *model.Application) ([]*model.EnvironmentVariable, error) {
 	// fetch record
-	records, err := dbmodel.FindEnvironmentVariablesByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
+	records, err := core.FindEnvironmentVariablesByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func (r *applicationResolver) EnvironmentVariables(ctx context.Context, obj *mod
 // PersistentVolumeBindings is the resolver for the persistentVolumeBindings field.
 func (r *applicationResolver) PersistentVolumeBindings(ctx context.Context, obj *model.Application) ([]*model.PersistentVolumeBinding, error) {
 	// fetch record
-	records, err := dbmodel.FindPersistentVolumeBindingsByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
+	records, err := core.FindPersistentVolumeBindingsByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (r *applicationResolver) PersistentVolumeBindings(ctx context.Context, obj 
 // LatestDeployment is the resolver for the latestDeployment field.
 func (r *applicationResolver) LatestDeployment(ctx context.Context, obj *model.Application) (*model.Deployment, error) {
 	// fetch record
-	record, err := dbmodel.FindLatestDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
+	record, err := core.FindLatestDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (r *applicationResolver) LatestDeployment(ctx context.Context, obj *model.A
 // Deployments is the resolver for the deployments field.
 func (r *applicationResolver) Deployments(ctx context.Context, obj *model.Application) ([]*model.Deployment, error) {
 	// fetch record
-	records, err := dbmodel.FindDeploymentsByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
+	records, err := core.FindDeploymentsByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (r *mutationResolver) CreateApplication(ctx context.Context, input model.Ap
 // UpdateApplication is the resolver for the updateApplication field.
 func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, input model.ApplicationInput) (*model.Application, error) {
 	// fetch record
-	var record = &dbmodel.Application{}
+	var record = &core.Application{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 // DeleteApplication is the resolver for the deleteApplication field.
 func (r *mutationResolver) DeleteApplication(ctx context.Context, id string) (bool, error) {
 	// fetch record
-	var record = &dbmodel.Application{}
+	var record = &core.Application{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
 		return false, err
@@ -132,7 +132,7 @@ func (r *mutationResolver) DeleteApplication(ctx context.Context, id string) (bo
 
 // Application is the resolver for the application field.
 func (r *queryResolver) Application(ctx context.Context, id string) (*model.Application, error) {
-	var record = &dbmodel.Application{}
+	var record = &core.Application{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
 		return nil, err
@@ -142,8 +142,8 @@ func (r *queryResolver) Application(ctx context.Context, id string) (*model.Appl
 
 // Applications is the resolver for the applications field.
 func (r *queryResolver) Applications(ctx context.Context) ([]*model.Application, error) {
-	var records []*dbmodel.Application
-	records, err := dbmodel.FindAllApplications(ctx, r.ServiceManager.DbClient)
+	var records []*core.Application
+	records, err := core.FindAllApplications(ctx, r.ServiceManager.DbClient)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func (r *queryResolver) Applications(ctx context.Context) ([]*model.Application,
 
 // IsExistApplicationName is the resolver for the isExistApplicationName field.
 func (r *queryResolver) IsExistApplicationName(ctx context.Context, name string) (bool, error) {
-	return dbmodel.IsExistApplicationName(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager, name)
+	return core.IsExistApplicationName(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager, name)
 }
 
 // Application returns ApplicationResolver implementation.

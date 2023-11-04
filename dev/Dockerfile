@@ -20,9 +20,9 @@ RUN addgroup docker
 RUN addgroup ${NEWUSER} docker
 
 # Download and install Go
-RUN wget https://go.dev/dl/go1.21.0.linux-amd64.tar.gz
-RUN tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
-RUN rm go1.21.0.linux-amd64.tar.gz
+RUN wget https://go.dev/dl/go1.21.3.linux-amd64.tar.gz
+RUN tar -C /usr/local -xzf go1.21.3.linux-amd64.tar.gz
+RUN rm go1.21.3.linux-amd64.tar.gz
 RUN echo "export PATH=\$PATH:/usr/local/go/bin" >> /home/${NEWUSER}/.bashrc
 
 
