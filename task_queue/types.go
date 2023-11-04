@@ -15,7 +15,7 @@ type Client interface {
 	// EnqueueTask enqueues a task to a queue
 	EnqueueTask(queueName string, argument ArgumentType) error
 	// StartConsumers is a blocking function that starts the consumers for all the registered queues
-	StartConsumers(nowait bool)
+	StartConsumers(nowait bool) error
 	// WaitForConsumers is a blocking function that waits for all the consumers to finish
 	WaitForConsumers()
 }

@@ -67,9 +67,9 @@ func (l *localTaskQueue) EnqueueTask(queueName string, argument ArgumentType) er
 	return nil
 }
 
-func (l *localTaskQueue) StartConsumers(nowait bool) {
+func (l *localTaskQueue) StartConsumers(nowait bool) error {
 	if l.operationMode == ProducerOnly {
-		panic("cannot start consumers in producer mode")
+		return errors.New("cannot start consumers in producer only mode")
 	}
 	// copy the queue names to a new slice
 	queueNames := make([]string, 0, len(l.queueToChannelMapping))
@@ -98,6 +98,7 @@ func (l *localTaskQueue) StartConsumers(nowait bool) {
 		// wait for all consumers to finish
 		wg.Wait()
 	}
+	return nil
 }
 
 func (l *localTaskQueue) WaitForConsumers() {

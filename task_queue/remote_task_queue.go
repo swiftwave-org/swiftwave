@@ -51,6 +51,19 @@ func (r *remoteTaskQueue) EnqueueTask(queueName string, argument ArgumentType) e
 		return errors.New("error while marshalling argument to json")
 	}
 
+	// check if queueName is registered
+	r.mutexQueueToFunctionMapping.RLock()
+	if _, ok := r.queueToFunctionMapping[queueName]; !ok {
+		return errors.New("no function registered for this queue")
+	}
+	r.mutexQueueToFunctionMapping.RUnlock()
+
+	// establish connection if not already established
+	err = r.establishConnection()
+	if err != nil {
+		return errors.New("error while establishing connection to AMQP server")
+	}
+
 	// push to queue
 	dConfirmation, err := r.amqpChannel.PublishWithDeferredConfirmWithContext(
 		context.Background(),
@@ -80,9 +93,15 @@ func (r *remoteTaskQueue) EnqueueTask(queueName string, argument ArgumentType) e
 	return nil
 }
 
-func (r *remoteTaskQueue) StartConsumers(nowait bool) {
+func (r *remoteTaskQueue) StartConsumers(nowait bool) error {
 	if r.operationMode == ProducerOnly {
-		panic("cannot start consumers in producer only mode")
+		return errors.New("cannot start consumers in producer only mode")
+	}
+
+	// establish connection if not already established
+	err := r.establishConnection()
+	if err != nil {
+		return err
 	}
 
 	// create the queue names for copy to a new slice
@@ -112,6 +131,8 @@ func (r *remoteTaskQueue) StartConsumers(nowait bool) {
 		// wait for all consumers to finish
 		wg.Wait()
 	}
+
+	return nil
 }
 
 func (r *remoteTaskQueue) WaitForConsumers() {
