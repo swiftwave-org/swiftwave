@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-func CreatePubSubClient(options Options) (Client, error) {
+func NewClient(options Options) (Client, error) {
 	if options.Type == Local {
 		return createLocalPubSubClient(options)
 	} else if options.Type == Remote {

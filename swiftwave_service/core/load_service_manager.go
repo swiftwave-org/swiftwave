@@ -6,7 +6,9 @@ import (
 	DOCKER "github.com/swiftwave-org/swiftwave/container_manager"
 	DOCKER_CONFIG_GENERATOR "github.com/swiftwave-org/swiftwave/docker_config_generator"
 	HAPROXY "github.com/swiftwave-org/swiftwave/haproxy_manager"
+	"github.com/swiftwave-org/swiftwave/pubsub"
 	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
+	"github.com/swiftwave-org/swiftwave/task_queue"
 	"log"
 	"os"
 	"strconv"
@@ -63,4 +65,26 @@ func (manager *ServiceManager) Load() {
 		panic(err)
 	}
 	manager.DockerConfigGenerator = dockerConfigGenerator
+
+	// TODO based on configuration use remote or local redis
+	pubSubClient, err := pubsub.NewClient(pubsub.Options{
+		Type:         pubsub.Local,
+		BufferLength: 1000,
+		RedisClient:  nil,
+	})
+	if err != nil {
+		panic(err)
+	}
+	manager.PubSubClient = pubSubClient
+
+	taskQueueClient, err := task_queue.NewClient(task_queue.Options{
+		Type:                task_queue.Local,
+		Mode:                task_queue.Both,
+		MaxMessagesPerQueue: 1000,
+	})
+	if err != nil {
+		panic(err)
+	}
+	manager.TaskQueueClient = taskQueueClient
+
 }

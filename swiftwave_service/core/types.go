@@ -6,7 +6,9 @@ import (
 	DOCKER "github.com/swiftwave-org/swiftwave/container_manager"
 	DOCKER_CONFIG_GENERATOR "github.com/swiftwave-org/swiftwave/docker_config_generator"
 	HAPROXY "github.com/swiftwave-org/swiftwave/haproxy_manager"
+	"github.com/swiftwave-org/swiftwave/pubsub"
 	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
+	"github.com/swiftwave-org/swiftwave/task_queue"
 	"gorm.io/gorm"
 	"time"
 )
@@ -32,6 +34,8 @@ type ServiceManager struct {
 	DockerClient          DOCKER_CLIENT.Client
 	DbClient              gorm.DB
 	RedisClient           redis.Client
+	PubSubClient          pubsub.Client
+	TaskQueueClient       task_queue.Client
 }
 
 // UpstreamType : type of source for the codebase of the application
