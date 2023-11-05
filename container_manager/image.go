@@ -10,7 +10,7 @@ import (
 )
 
 /*
-`CreateImage` builds a Docker image from a Dockerfile and returns a scanner to read the build logs.
+CreateImage builds a Docker image from a Dockerfile and returns a scanner to read the build logs.
 It takes the Dockerfile content as a string, a map of build arguments, the path to the code directory, and the name of the image to be built.
 It returns a scanner to read the build logs and an error if any.
 */
@@ -47,4 +47,14 @@ func (m Manager) CreateImage(dockerfile string, buildargs map[string]string, cod
 	// Return scanner to read the build logs
 	scanner := bufio.NewScanner(response.Body)
 	return scanner, nil
+}
+
+// PullImage pulls a Docker image from a remote registry and returns a scanner to read the pull logs.
+func (m Manager) PullImage(image string) (*bufio.Scanner, error) {
+	// Pull the image
+	scanner, err := m.client.ImagePull(m.ctx, image, types.ImagePullOptions{})
+	if err != nil {
+		return nil, errors.New("failed to pull the image")
+	}
+	return bufio.NewScanner(scanner), nil
 }
