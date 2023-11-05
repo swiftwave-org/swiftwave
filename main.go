@@ -22,7 +22,6 @@ func main() {
 
 	// Create the worker manager
 	workerManager := worker.NewManager(&config, &manager)
-	// Register the functions
 
 	// Create Echo Server
 	echoServer := echo.New()
