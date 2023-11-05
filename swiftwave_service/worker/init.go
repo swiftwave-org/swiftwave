@@ -19,6 +19,14 @@ func NewManager(config *core.ServiceConfig, manager *core.ServiceManager) *Manag
 	return &workerManager
 }
 
+func (m Manager) StartConsumers(nowait bool) error {
+	return m.ServiceManager.TaskQueueClient.StartConsumers(nowait)
+}
+
+func (m Manager) WaitForConsumers() {
+	m.ServiceManager.TaskQueueClient.WaitForConsumers()
+}
+
 // private functions
 // registerWorkerFunctions : register all the functions to the task queue client
 func (m Manager) registerWorkerFunctions() {

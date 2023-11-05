@@ -22,9 +22,21 @@ func main() {
 
 	// Create the worker manager
 	workerManager := worker.NewManager(&config, &manager)
+	err = workerManager.StartConsumers(false)
+	if err != nil {
+		panic(err)
+	}
+
+	// create a channel to block the main thread
+	var waitForever chan struct{}
 
 	// Create Echo Server
 	echoServer := echo.New()
+
 	// Start the swift wave server
-	swiftwave.StartServer(&config, &manager, echoServer, workerManager, true)
+	go swiftwave.StartServer(&config, &manager, echoServer, workerManager, true)
+	// Wait for consumers
+	go workerManager.WaitForConsumers()
+
+	<-waitForever
 }
