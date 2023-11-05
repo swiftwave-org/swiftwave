@@ -62,6 +62,7 @@ type DomainSSLStatus string
 const (
 	DomainSSLStatusNone    DomainSSLStatus = "none"
 	DomainSSLStatusPending DomainSSLStatus = "pending"
+	DomainSSLStatusFailed  DomainSSLStatus = "failed"
 	DomainSSLStatusIssued  DomainSSLStatus = "issued"
 )
 

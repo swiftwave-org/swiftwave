@@ -35,5 +35,5 @@ type RedirectRuleApplyRequest struct {
 
 // SSLGenerateRequest : request payload for ssl generate
 type SSLGenerateRequest struct {
-	Id uint `json:"id"`
+	DomainId uint `json:"domain_id"`
 }

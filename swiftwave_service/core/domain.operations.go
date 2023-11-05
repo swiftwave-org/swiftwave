@@ -46,3 +46,9 @@ func (domain *Domain) Delete(ctx context.Context, db gorm.DB) error {
 	tx := db.Delete(&domain)
 	return tx.Error
 }
+
+func (domain *Domain) UpdateSSLStatus(ctx context.Context, db gorm.DB, status DomainSSLStatus) error {
+	domain.SSLStatus = status
+	tx := db.Where("id = ?", domain.ID).Update("ssl_status", status)
+	return tx.Error
+}
