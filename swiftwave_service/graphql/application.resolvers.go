@@ -6,8 +6,7 @@ package graphql
 
 import (
 	"context"
-	"fmt"
-
+	"errors"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
@@ -69,7 +68,17 @@ func (r *applicationResolver) Deployments(ctx context.Context, obj *model.Applic
 
 // IngressRules is the resolver for the ingressRules field.
 func (r *applicationResolver) IngressRules(ctx context.Context, obj *model.Application) ([]*model.IngressRule, error) {
-	panic(fmt.Errorf("not implemented: IngressRules - ingressRules"))
+	// fetch record
+	records, err := core.FindIngressRulesByApplicationID(ctx, r.ServiceManager.DbClient, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	// convert to graphql object
+	var result = make([]*model.IngressRule, 0)
+	for _, record := range records {
+		result = append(result, ingressRuleToGraphqlObject(record))
+	}
+	return result, nil
 }
 
 // CreateApplication is the resolver for the createApplication field.
@@ -106,9 +115,20 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 		return nil, err
 	} else {
 		if result.RebuildRequired {
-			// TODO: push to queue for rebuild and reload
+			// fetch latest deployment
+			latestDeployment, err := core.FindLatestDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, record.ID)
+			if err != nil {
+				return nil, err
+			}
+			err = r.WorkerManager.EnqueueBuildApplicationRequest(record.ID, latestDeployment.ID)
+			if err != nil {
+				return nil, errors.New("failed to process application build request")
+			}
 		} else if result.ReloadRequired {
-			// TODO: push to queue for reload
+			err = r.WorkerManager.EnqueueDeployApplicationRequest(record.ID)
+			if err != nil {
+				return nil, errors.New("failed to process application deploy request")
+			}
 		}
 	}
 	return applicationToGraphqlObject(databaseObject), nil

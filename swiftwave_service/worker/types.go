@@ -10,6 +10,17 @@ type Manager struct {
 	ServiceManager *core.ServiceManager
 }
 
+// Queue names
+const (
+	buildApplicationQueueName   = "build_application"
+	deployApplicationQueueName  = "deploy_application"
+	ingressRuleApplyQueueName   = "ingress_rule_apply"
+	ingressRuleDeleteQueueName  = "ingress_rule_delete"
+	redirectRuleApplyQueueName  = "redirect_rule_apply"
+	redirectRuleDeleteQueueName = "redirect_rule_delete"
+	sslGenerateQueueName        = "ssl_generate"
+)
+
 // Request Payload
 
 // DeployApplicationRequest : request payload for deploy application

@@ -6,6 +6,7 @@ package graphql
 
 import (
 	"context"
+	"errors"
 
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
@@ -38,6 +39,11 @@ func (r *mutationResolver) CreateIngressRule(ctx context.Context, input model.In
 	if err != nil {
 		return nil, err
 	}
+	// schedule task
+	err = r.WorkerManager.EnqueueIngressRuleApplyRequest(record.ID)
+	if err != nil {
+		return nil, errors.New("failed to schedule task to apply ingress rule")
+	}
 	return ingressRuleToGraphqlObject(record), nil
 }
 
@@ -51,6 +57,11 @@ func (r *mutationResolver) DeleteIngressRule(ctx context.Context, id uint) (bool
 	err = record.Delete(ctx, r.ServiceManager.DbClient, false)
 	if err != nil {
 		return false, err
+	}
+	// schedule task
+	err = r.WorkerManager.EnqueueIngressRuleDeleteRequest(record.ID)
+	if err != nil {
+		return false, errors.New("failed to schedule task to delete ingress rule")
 	}
 	return true, nil
 }

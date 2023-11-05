@@ -23,13 +23,13 @@ func NewManager(config *core.ServiceConfig, manager *core.ServiceManager) *Manag
 // registerWorkerFunctions : register all the functions to the task queue client
 func (m Manager) registerWorkerFunctions() {
 	taskQueueClient := m.ServiceManager.TaskQueueClient
-	panicOnError(taskQueueClient.RegisterFunction("build_application", m.BuildApplication))
-	panicOnError(taskQueueClient.RegisterFunction("deploy_application", m.DeployApplication))
-	panicOnError(taskQueueClient.RegisterFunction("ingress_rule_apply", m.IngressRuleApply))
-	panicOnError(taskQueueClient.RegisterFunction("ingress_rule_delete", m.IngressRuleDelete))
-	panicOnError(taskQueueClient.RegisterFunction("redirect_rule_apply", m.RedirectRuleApply))
-	panicOnError(taskQueueClient.RegisterFunction("redirect_rule_delete", m.RedirectRuleDelete))
-	panicOnError(taskQueueClient.RegisterFunction("ssl_generate", m.SSLGenerate))
+	panicOnError(taskQueueClient.RegisterFunction(buildApplicationQueueName, m.BuildApplication))
+	panicOnError(taskQueueClient.RegisterFunction(deployApplicationQueueName, m.DeployApplication))
+	panicOnError(taskQueueClient.RegisterFunction(ingressRuleApplyQueueName, m.IngressRuleApply))
+	panicOnError(taskQueueClient.RegisterFunction(ingressRuleDeleteQueueName, m.IngressRuleDelete))
+	panicOnError(taskQueueClient.RegisterFunction(redirectRuleApplyQueueName, m.RedirectRuleApply))
+	panicOnError(taskQueueClient.RegisterFunction(redirectRuleDeleteQueueName, m.RedirectRuleDelete))
+	panicOnError(taskQueueClient.RegisterFunction(sslGenerateQueueName, m.SSLGenerate))
 }
 
 func panicOnError(err error) {

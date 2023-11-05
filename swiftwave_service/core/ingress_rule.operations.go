@@ -23,6 +23,12 @@ func FindIngressRulesByDomainID(ctx context.Context, db gorm.DB, domainID uint) 
 	return ingressRules, tx.Error
 }
 
+func FindIngressRulesByApplicationID(ctx context.Context, db gorm.DB, applicationID string) ([]*IngressRule, error) {
+	var ingressRules []*IngressRule
+	tx := db.Where("application_id = ?", applicationID).Find(&ingressRules)
+	return ingressRules, tx.Error
+}
+
 func (ingressRule *IngressRule) Create(ctx context.Context, db gorm.DB) error {
 	// verify if domain exist
 	domain := &Domain{}

@@ -6,9 +6,9 @@ enum UpstreamType {
 
 enum DeploymentStatus {
     pending
-    queued
+    deployPending
     deploying
-    running
+    live
     stopped
     failed
 }

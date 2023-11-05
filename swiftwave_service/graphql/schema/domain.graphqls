@@ -8,6 +8,7 @@ enum DomainSSLStatus {
     none
     pending
     issued
+    failed
 }
 
 input DomainInput {

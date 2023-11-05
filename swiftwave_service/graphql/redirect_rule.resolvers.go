@@ -6,6 +6,7 @@ package graphql
 
 import (
 	"context"
+	"errors"
 
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
@@ -17,6 +18,11 @@ func (r *mutationResolver) CreateRedirectRule(ctx context.Context, input model.R
 	err := record.Create(ctx, r.ServiceManager.DbClient)
 	if err != nil {
 		return nil, err
+	}
+	// publish event
+	err = r.WorkerManager.EnqueueRedirectRuleApplyRequest(record.ID)
+	if err != nil {
+		return nil, errors.New("failed to enqueue redirect rule apply request")
 	}
 	return redirectRuleToGraphqlObject(record), nil
 }
@@ -31,6 +37,11 @@ func (r *mutationResolver) DeleteRedirectRule(ctx context.Context, id uint) (boo
 	err = record.Delete(ctx, r.ServiceManager.DbClient, false)
 	if err != nil {
 		return false, err
+	}
+	// publish event
+	err = r.WorkerManager.EnqueueRedirectRuleApplyRequest(record.ID)
+	if err != nil {
+		return false, errors.New("failed to enqueue redirect rule apply request")
 	}
 	return true, nil
 }
