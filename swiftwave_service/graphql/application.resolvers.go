@@ -147,6 +147,8 @@ func (r *mutationResolver) DeleteApplication(ctx context.Context, id string) (bo
 	if err != nil {
 		return false, err
 	}
+	// TODO: push to queue for deletion
+
 	return true, nil
 }
 

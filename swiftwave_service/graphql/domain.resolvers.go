@@ -83,11 +83,23 @@ func (r *mutationResolver) IssueSsl(ctx context.Context, id uint) (*model.Domain
 	if err != nil {
 		return nil, err
 	}
+	// push task
+	err = r.WorkerManager.EnqueueSSLGenerateRequest(record.ID)
+	if err != nil {
+		// rollback status
+		record.SSLStatus = core.DomainSSLStatusNone
+		err = record.Update(ctx, r.ServiceManager.DbClient)
+		if err != nil {
+			return nil, errors.New("failed to enqueue ssl generation request")
+		}
+		return nil, errors.New("failed to enqueue ssl generation request")
+	}
+
 	return domainToGraphqlObject(&record), nil
-	// TODO: push to queue
 }
 
 // AddCustomSsl is the resolver for the addCustomSSL field.
+// TODO: add support for custom ssl
 func (r *mutationResolver) AddCustomSsl(ctx context.Context, id uint, input model.CustomSSLInput) (*model.Domain, error) {
 	// fetch record
 	record := core.Domain{}

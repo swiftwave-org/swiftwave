@@ -181,7 +181,6 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	// update application details
 	*application = createdApplication
 	return nil
-	// TODO: push to queue for deployment
 }
 
 func (application *Application) Update(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) (*ApplicationUpdateResult, error) {
@@ -335,7 +334,6 @@ func (application *Application) Delete(ctx context.Context, db gorm.DB, dockerMa
 	// do soft delete
 	tx := db.Model(&application).Update("is_deleted", true)
 	return tx.Error
-	// TODO: push to queue for deletion
 }
 
 func (application *Application) IsApplicationDeleted(ctx context.Context, db gorm.DB) (bool, error) {
