@@ -6,15 +6,15 @@ toolchain go1.21.3
 
 require (
 	github.com/99designs/gqlgen v0.17.39
-	github.com/docker/docker v24.0.6+incompatible
-	github.com/go-git/go-git/v5 v5.9.0
+	github.com/docker/docker v24.0.7+incompatible
+	github.com/go-git/go-git/v5 v5.10.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/hashicorp/go-set v0.1.14
 	github.com/labstack/echo/v4 v4.11.2
 	github.com/mholt/acmez v1.2.0
 	github.com/vektah/gqlparser/v2 v2.5.10
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/driver/postgres v1.5.3
+	gorm.io/driver/postgres v1.5.4
 	gorm.io/driver/sqlite v1.5.4
 	gorm.io/gorm v1.25.5
 )
@@ -70,7 +70,7 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/google/uuid v1.3.1 // direct
+	github.com/google/uuid v1.4.0 // direct
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
