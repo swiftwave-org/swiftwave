@@ -7,17 +7,17 @@ import (
 func MigrateDatabase(dbClient *gorm.DB) {
 	// Migrate the schema
 	err := dbClient.AutoMigrate(
-		&GitCredential{},
-		&ImageRegistryCredential{},
 		&Domain{},
-		&IngressRule{},
 		&RedirectRule{},
 		&PersistentVolume{},
-		&PersistentVolumeBinding{},
-		&EnvironmentVariable{},
-		&BuildArg{},
 		&Application{},
+		&GitCredential{},
+		&ImageRegistryCredential{},
+		&IngressRule{},
+		&EnvironmentVariable{},
+		&PersistentVolumeBinding{},
 		&Deployment{},
+		&BuildArg{},
 		&DeploymentLog{},
 	)
 	if err != nil {

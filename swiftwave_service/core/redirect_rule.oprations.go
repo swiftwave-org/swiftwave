@@ -19,7 +19,7 @@ func FindAllRedirectRules(ctx context.Context, db gorm.DB) ([]*RedirectRule, err
 }
 
 func (redirectRule *RedirectRule) FindById(ctx context.Context, db gorm.DB, id uint) error {
-	tx := db.First(&redirectRule, id)
+	tx := db.Where("id = ?", id).First(&redirectRule)
 	return tx.Error
 }
 

@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	swiftwave "github.com/swiftwave-org/swiftwave/swiftwave_service"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/worker"
@@ -22,7 +23,7 @@ func main() {
 
 	// Create the worker manager
 	workerManager := worker.NewManager(&config, &manager)
-	err = workerManager.StartConsumers(false)
+	err = workerManager.StartConsumers(true)
 	if err != nil {
 		panic(err)
 	}
@@ -32,6 +33,10 @@ func main() {
 
 	// Create Echo Server
 	echoServer := echo.New()
+	echoServer.Pre(middleware.RemoveTrailingSlash())
+	echoServer.Use(middleware.Logger())
+	echoServer.Use(middleware.Recover())
+	echoServer.Use(middleware.CORS())
 
 	// Start the swift wave server
 	go swiftwave.StartServer(&config, &manager, echoServer, workerManager, true)

@@ -19,7 +19,7 @@ func FindAllDomains(ctx context.Context, db gorm.DB) ([]*Domain, error) {
 }
 
 func (domain *Domain) FindById(ctx context.Context, db gorm.DB, id uint) error {
-	tx := db.First(&domain, id)
+	tx := db.Where("id = ?", id).First(&domain)
 	return tx.Error
 }
 

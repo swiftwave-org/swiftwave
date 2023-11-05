@@ -95,6 +95,16 @@ func (r *mutationResolver) CreateApplication(ctx context.Context, input model.Ap
 	if err != nil {
 		return nil, err
 	}
+	// fetch latest deployment
+	latestDeployment, err := core.FindLatestDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, record.ID)
+	if err != nil {
+		return nil, errors.New("failed to fetch latest deployment")
+	}
+	// push build request to worker
+	err = r.WorkerManager.EnqueueBuildApplicationRequest(record.ID, latestDeployment.ID)
+	if err != nil {
+		return nil, errors.New("failed to process application build request")
+	}
 	return applicationToGraphqlObject(record), nil
 }
 

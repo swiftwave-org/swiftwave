@@ -13,7 +13,7 @@ func FindAllIngressRules(ctx context.Context, db gorm.DB) ([]*IngressRule, error
 }
 
 func (ingressRule *IngressRule) FindById(ctx context.Context, db gorm.DB, id uint) error {
-	tx := db.First(&ingressRule, id)
+	tx := db.Where("id = ?", id).First(&ingressRule)
 	return tx.Error
 }
 

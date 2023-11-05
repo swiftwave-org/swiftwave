@@ -71,6 +71,8 @@ func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, ctx
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "As the upstream type is image, no build is required")
 	err := deployment.UpdateStatus(ctx, dbWithoutTx, containerManager, core.DeploymentStatusDeployPending)
 	if err != nil {
+		log.Println("failed to update deployment status")
+		log.Println(err)
 		return err
 	}
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete")
@@ -88,7 +90,15 @@ func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, ctx
 func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context.Context, containerManager containermanger.Manager, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client) error {
 	// fetch git credentials
 	gitCredentials := &core.GitCredential{}
-	err := gitCredentials.FindById(ctx, db, deployment.GitCredentialID)
+	if deployment.GitCredentialID == nil {
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Git credential id is not provided")
+		err := deployment.UpdateStatus(ctx, dbWithoutTx, containerManager, core.DeploymentStatusFailed)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	err := gitCredentials.FindById(ctx, db, *deployment.GitCredentialID)
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch git credentials")
 		err := deployment.UpdateStatus(ctx, dbWithoutTx, containerManager, core.DeploymentStatusFailed)
@@ -287,7 +297,6 @@ func addDeploymentLog(dbClient gorm.DB, pubSubClient pubsub.Client, deploymentId
 	if err != nil {
 		log.Println("failed to add deployment log")
 	}
-	// TODO : modify to have a configurable topic id
 	err = pubSubClient.Publish(fmt.Sprintf("deployment-log-%s", deploymentId), content)
 	if err != nil {
 		log.Println("failed to publish deployment log")

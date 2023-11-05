@@ -136,8 +136,9 @@ func (l *localPubSub) Publish(topic string, data string) error {
 	defer l.mutex.Unlock()
 	// check if topic exists
 	if !l.topics.Contains(topic) {
-		l.mutex.Unlock()
-		return errors.New("topic does not exist")
+		// insert topic
+		l.topics.Insert(topic)
+		l.subscriptions[topic] = make(map[string]localPubSubSubscription)
 	}
 	// fetch all subscriptions
 	subscriptions := l.subscriptions[topic]

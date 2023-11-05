@@ -18,7 +18,7 @@ func FindAllGitCredentials(ctx context.Context, db gorm.DB) ([]*GitCredential, e
 }
 
 func (gitCredential *GitCredential) FindById(ctx context.Context, db gorm.DB, id uint) error {
-	tx := db.First(&gitCredential, id)
+	tx := db.Where("id = ?", id).First(&gitCredential)
 	return tx.Error
 }
 

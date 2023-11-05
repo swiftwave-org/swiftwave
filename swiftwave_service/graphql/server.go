@@ -20,6 +20,11 @@ func (server *Server) Initialize() {
 	graphqlHandler.AddTransport(&transport.Websocket{})
 	playgroundHandler := playground.Handler("GraphQL", "/graphql")
 
+	server.EchoServer.GET("/graphql", func(c echo.Context) error {
+		graphqlHandler.ServeHTTP(c.Response(), c.Request())
+		return nil
+	})
+
 	server.EchoServer.POST("/graphql", func(c echo.Context) error {
 		graphqlHandler.ServeHTTP(c.Response(), c.Request())
 		return nil

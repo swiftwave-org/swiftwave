@@ -42,7 +42,7 @@ func FindAllApplications(ctx context.Context, db gorm.DB) ([]*Application, error
 }
 
 func (application *Application) FindById(ctx context.Context, db gorm.DB, id string) error {
-	tx := db.First(&application, id)
+	tx := db.Where("id = ?", id).First(&application)
 	if tx.Error != nil {
 		return tx.Error
 	}
@@ -66,16 +66,16 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	// For UpstreamType = Git, verify git record id
 	if application.LatestDeployment.UpstreamType == UpstreamTypeGit {
 		var gitCredential = &GitCredential{}
-		err := gitCredential.FindById(ctx, db, application.LatestDeployment.GitCredentialID)
+		err := gitCredential.FindById(ctx, db, *application.LatestDeployment.GitCredentialID)
 		if err != nil {
 			return err
 		}
 	}
 	// For UpstreamType = Image, verify image registry credential id
 	if application.LatestDeployment.UpstreamType == UpstreamTypeImage {
-		if application.LatestDeployment.ImageRegistryCredentialID != 0 {
+		if application.LatestDeployment.ImageRegistryCredentialID != nil {
 			var imageRegistryCredential = &ImageRegistryCredential{}
-			err := imageRegistryCredential.FindById(ctx, db, application.LatestDeployment.ImageRegistryCredentialID)
+			err := imageRegistryCredential.FindById(ctx, db, *application.LatestDeployment.ImageRegistryCredentialID)
 			if err != nil {
 				return err
 			}
@@ -110,9 +110,11 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		}
 		createdEnvironmentVariables = append(createdEnvironmentVariables, createdEnvironmentVariable)
 	}
-	tx = db.Create(&createdEnvironmentVariables)
-	if tx.Error != nil {
-		return tx.Error
+	if len(createdEnvironmentVariables) > 0 {
+		tx = db.Create(&createdEnvironmentVariables)
+		if tx.Error != nil {
+			return tx.Error
+		}
 	}
 	// create persistent volume bindings
 	createdPersistentVolumeBindings := make([]PersistentVolumeBinding, 0)
@@ -137,9 +139,11 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		}
 		createdPersistentVolumeBindings = append(createdPersistentVolumeBindings, createdPersistentVolumeBinding)
 	}
-	tx = db.Create(&createdPersistentVolumeBindings)
-	if tx.Error != nil {
-		return tx.Error
+	if len(createdPersistentVolumeBindings) > 0 {
+		tx = db.Create(&createdPersistentVolumeBindings)
+		if tx.Error != nil {
+			return tx.Error
+		}
 	}
 	// create deployment
 	createdDeployment := Deployment{
@@ -174,9 +178,11 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		}
 		createdBuildArgs = append(createdBuildArgs, createdBuildArg)
 	}
-	tx = db.Create(&createdBuildArgs)
-	if tx.Error != nil {
-		return tx.Error
+	if len(createdBuildArgs) > 0 {
+		tx = db.Create(&createdBuildArgs)
+		if tx.Error != nil {
+			return tx.Error
+		}
 	}
 	// update application details
 	*application = createdApplication

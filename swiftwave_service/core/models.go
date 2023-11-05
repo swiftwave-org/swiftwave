@@ -120,7 +120,7 @@ type Deployment struct {
 	ApplicationID string       `json:"applicationID"`
 	UpstreamType  UpstreamType `json:"upstreamType"`
 	// Fields for UpstreamType = Git
-	GitCredentialID  uint        `json:"gitCredentialID"`
+	GitCredentialID  *uint       `json:"gitCredentialID"`
 	GitProvider      GitProvider `json:"gitProvider"`
 	RepositoryOwner  string      `json:"repositoryOwner"`
 	RepositoryName   string      `json:"repositoryName"`
@@ -130,7 +130,7 @@ type Deployment struct {
 	SourceCodeCompressedFileName string `json:"sourceCodeCompressedFileName"`
 	// Fields for UpstreamType = Image
 	DockerImage               string `json:"dockerImage"`
-	ImageRegistryCredentialID uint   `json:"imageRegistryCredentialID"`
+	ImageRegistryCredentialID *uint  `json:"imageRegistryCredentialID"`
 	// Common Fields
 	BuildArgs  []BuildArg `json:"buildArgs" gorm:"foreignKey:DeploymentID"`
 	Dockerfile string     `json:"dockerfile"`

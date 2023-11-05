@@ -123,7 +123,7 @@ func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) 
 	}
 	return &core.Deployment{
 		UpstreamType:                 core.UpstreamType(record.UpstreamType), // TODO: Check this
-		GitCredentialID:              DefaultUint(record.GitCredentialID, 0),
+		GitCredentialID:              record.GitCredentialID,
 		GitProvider:                  core.GitProvider(DefaultGitProvider(record.GitProvider)),
 		RepositoryOwner:              DefaultString(record.RepositoryOwner, ""),
 		RepositoryName:               DefaultString(record.RepositoryName, ""),
@@ -131,7 +131,7 @@ func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) 
 		CommitHash:                   "",
 		SourceCodeCompressedFileName: DefaultString(record.SourceCodeCompressedFileName, ""),
 		DockerImage:                  DefaultString(record.DockerImage, ""),
-		ImageRegistryCredentialID:    DefaultUint(record.ImageRegistryCredentialID, 0),
+		ImageRegistryCredentialID:    record.ImageRegistryCredentialID,
 		BuildArgs:                    buildArgs,
 		Dockerfile:                   DefaultString(record.Dockerfile, ""),
 		Logs:                         make([]core.DeploymentLog, 0),
@@ -174,11 +174,19 @@ func applicationToGraphqlObject(record *core.Application) *model.Application {
 
 // deploymentToGraphqlObject : converts Deployment to DeploymentGraphqlObject
 func deploymentToGraphqlObject(record *core.Deployment) *model.Deployment {
+	gitCredentialId := uint(0)
+	if record.GitCredentialID != nil {
+		gitCredentialId = *record.GitCredentialID
+	}
+	imageRegistryCredentialId := uint(0)
+	if record.ImageRegistryCredentialID != nil {
+		imageRegistryCredentialId = *record.ImageRegistryCredentialID
+	}
 	return &model.Deployment{
 		ID:                           record.ID,
 		ApplicationID:                record.ApplicationID,
 		UpstreamType:                 model.UpstreamType(record.UpstreamType),
-		GitCredentialID:              record.GitCredentialID,
+		GitCredentialID:              gitCredentialId,
 		GitProvider:                  model.GitProvider(record.GitProvider),
 		RepositoryOwner:              record.RepositoryOwner,
 		RepositoryName:               record.RepositoryName,
@@ -186,7 +194,7 @@ func deploymentToGraphqlObject(record *core.Deployment) *model.Deployment {
 		CommitHash:                   record.CommitHash,
 		SourceCodeCompressedFileName: record.SourceCodeCompressedFileName,
 		DockerImage:                  record.DockerImage,
-		ImageRegistryCredentialID:    record.ImageRegistryCredentialID,
+		ImageRegistryCredentialID:    imageRegistryCredentialId,
 		Dockerfile:                   record.Dockerfile,
 		Status:                       model.DeploymentStatus(record.Status),
 		CreatedAt:                    record.CreatedAt,
