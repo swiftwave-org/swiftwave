@@ -28,8 +28,18 @@ type IngressRuleApplyRequest struct {
 	Id uint `json:"id"`
 }
 
+// IngressRuleDeleteRequest : request payload for ingress rule delete
+type IngressRuleDeleteRequest struct {
+	Id uint `json:"id"`
+}
+
 // RedirectRuleApplyRequest : request payload for redirect rule apply
 type RedirectRuleApplyRequest struct {
+	Id uint `json:"id"`
+}
+
+// RedirectRuleDeleteRequest : request payload for redirect rule delete
+type RedirectRuleDeleteRequest struct {
 	Id uint `json:"id"`
 }
 

@@ -47,7 +47,7 @@ func (r *mutationResolver) DeleteIngressRule(ctx context.Context, id uint) (bool
 	if err != nil {
 		return false, err
 	}
-	err = record.Delete(ctx, r.ServiceManager.DbClient)
+	err = record.Delete(ctx, r.ServiceManager.DbClient, false)
 	if err != nil {
 		return false, err
 	}

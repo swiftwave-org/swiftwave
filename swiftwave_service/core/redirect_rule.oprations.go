@@ -55,10 +55,12 @@ func (redirectRule *RedirectRule) Update(ctx context.Context, db gorm.DB) error 
 	return errors.New("update of redirect rule is not allowed")
 }
 
-func (redirectRule *RedirectRule) Delete(ctx context.Context, db gorm.DB) error {
-	// verify if redirect rule is not deleting
-	if redirectRule.isDeleting() {
-		return errors.New("redirect rule is already deleting")
+func (redirectRule *RedirectRule) Delete(ctx context.Context, db gorm.DB, force bool) error {
+	if !force {
+		// verify if redirect rule is not deleting
+		if redirectRule.isDeleting() {
+			return errors.New("redirect rule is already deleting")
+		}
 	}
 	// update record
 	tx := db.Model(&redirectRule).Update("status", RedirectRuleStatusDeleting)

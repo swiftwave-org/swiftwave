@@ -26,7 +26,9 @@ func (m Manager) registerWorkerFunctions() {
 	panicOnError(taskQueueClient.RegisterFunction("build_application", m.BuildApplication))
 	panicOnError(taskQueueClient.RegisterFunction("deploy_application", m.DeployApplication))
 	panicOnError(taskQueueClient.RegisterFunction("ingress_rule_apply", m.IngressRuleApply))
+	panicOnError(taskQueueClient.RegisterFunction("ingress_rule_delete", m.IngressRuleDelete))
 	panicOnError(taskQueueClient.RegisterFunction("redirect_rule_apply", m.RedirectRuleApply))
+	panicOnError(taskQueueClient.RegisterFunction("redirect_rule_delete", m.RedirectRuleDelete))
 	panicOnError(taskQueueClient.RegisterFunction("ssl_generate", m.SSLGenerate))
 }
 
