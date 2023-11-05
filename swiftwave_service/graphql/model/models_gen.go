@@ -219,6 +219,11 @@ type RedirectRuleInput struct {
 	RedirectURL string       `json:"redirectURL"`
 }
 
+type RuntimeLog struct {
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
 type DeploymentMode string
 
 const (
