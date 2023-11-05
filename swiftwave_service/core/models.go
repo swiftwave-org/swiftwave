@@ -42,8 +42,8 @@ type IngressRule struct {
 	DomainID      uint              `json:"domainID"`
 	ApplicationID string            `json:"applicationID"`
 	Protocol      ProtocolType      `json:"protocol"`
-	Port          uint              `json:"port"`
-	TargetPort    uint              `json:"targetPort"`
+	Port          uint              `json:"port"`       // external port
+	TargetPort    uint              `json:"targetPort"` // port of the application
 	Status        IngressRuleStatus `json:"status"`
 	CreatedAt     time.Time         `json:"createdAt"`
 	UpdatedAt     time.Time         `json:"updatedAt"`

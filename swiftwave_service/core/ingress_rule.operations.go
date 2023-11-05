@@ -73,3 +73,8 @@ func (ingressRule *IngressRule) isDeleting() bool {
 	}
 	return false
 }
+
+func (ingressRule *IngressRule) UpdateStatus(ctx context.Context, db gorm.DB, status IngressRuleStatus) error {
+	tx := db.Where("id = ?", ingressRule.ID).Update("status", status)
+	return tx.Error
+}
