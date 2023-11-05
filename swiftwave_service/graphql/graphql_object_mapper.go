@@ -269,3 +269,11 @@ func redirectRuleToGraphqlObject(record *core.RedirectRule) *model.RedirectRule 
 		UpdatedAt:   record.UpdatedAt,
 	}
 }
+
+// deploymentLogToGraphqlObject : converts DeploymentLog to DeploymentLogGraphqlObject
+func deploymentLogToGraphqlObject(record *core.DeploymentLog) *model.DeploymentLog {
+	return &model.DeploymentLog{
+		Content:   record.Content,
+		CreatedAt: record.CreatedAt,
+	}
+}

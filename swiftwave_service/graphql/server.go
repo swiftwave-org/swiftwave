@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/labstack/echo/v4"
 )
@@ -12,9 +13,11 @@ func (server *Server) Initialize() {
 			Config{Resolvers: &Resolver{
 				ServiceConfig:  *server.ServiceConfig,
 				ServiceManager: *server.ServiceManager,
+				WorkerManager:  *server.WorkerManager,
 			}},
 		),
 	)
+	graphqlHandler.AddTransport(&transport.Websocket{})
 	playgroundHandler := playground.Handler("GraphQL", "/graphql")
 
 	server.EchoServer.POST("/graphql", func(c echo.Context) error {

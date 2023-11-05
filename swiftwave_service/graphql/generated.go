@@ -8,6 +8,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"io"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -51,6 +52,7 @@ type ResolverRoot interface {
 	PersistentVolumeBinding() PersistentVolumeBindingResolver
 	Query() QueryResolver
 	RedirectRule() RedirectRuleResolver
+	Subscription() SubscriptionResolver
 }
 
 type DirectiveRoot struct {
@@ -80,7 +82,6 @@ type ComplexityRoot struct {
 		BuildArgs                    func(childComplexity int) int
 		CommitHash                   func(childComplexity int) int
 		CreatedAt                    func(childComplexity int) int
-		DeploymentLogs               func(childComplexity int) int
 		DockerImage                  func(childComplexity int) int
 		Dockerfile                   func(childComplexity int) int
 		GitCredential                func(childComplexity int) int
@@ -228,6 +229,10 @@ type ComplexityRoot struct {
 		Status      func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
 	}
+
+	Subscription struct {
+		FetchDeploymentLog func(childComplexity int, id string) int
+	}
 }
 
 type ApplicationResolver interface {
@@ -245,8 +250,6 @@ type DeploymentResolver interface {
 
 	ImageRegistryCredential(ctx context.Context, obj *model.Deployment) (*model.ImageRegistryCredential, error)
 	BuildArgs(ctx context.Context, obj *model.Deployment) ([]*model.BuildArg, error)
-
-	DeploymentLogs(ctx context.Context, obj *model.Deployment) ([]*model.DeploymentLog, error)
 }
 type DomainResolver interface {
 	IngressRules(ctx context.Context, obj *model.Domain) ([]*model.IngressRule, error)
@@ -314,6 +317,9 @@ type QueryResolver interface {
 }
 type RedirectRuleResolver interface {
 	Domain(ctx context.Context, obj *model.RedirectRule) (*model.Domain, error)
+}
+type SubscriptionResolver interface {
+	FetchDeploymentLog(ctx context.Context, id string) (<-chan *model.DeploymentLog, error)
 }
 
 type executableSchema struct {
@@ -446,13 +452,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Deployment.CreatedAt(childComplexity), true
-
-	case "Deployment.deploymentLogs":
-		if e.complexity.Deployment.DeploymentLogs == nil {
-			break
-		}
-
-		return e.complexity.Deployment.DeploymentLogs(childComplexity), true
 
 	case "Deployment.dockerImage":
 		if e.complexity.Deployment.DockerImage == nil {
@@ -1374,6 +1373,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RedirectRule.UpdatedAt(childComplexity), true
 
+	case "Subscription.fetchDeploymentLog":
+		if e.complexity.Subscription.FetchDeploymentLog == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_fetchDeploymentLog_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.FetchDeploymentLog(childComplexity, args["id"].(string)), true
+
 	}
 	return 0, false
 }
@@ -1437,6 +1448,23 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 			ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
 			data := ec._Mutation(ctx, rc.Operation.SelectionSet)
 			var buf bytes.Buffer
+			data.MarshalGQL(&buf)
+
+			return &graphql.Response{
+				Data: buf.Bytes(),
+			}
+		}
+	case ast.Subscription:
+		next := ec._Subscription(ctx, rc.Operation.SelectionSet)
+
+		var buf bytes.Buffer
+		return func(ctx context.Context) *graphql.Response {
+			buf.Reset()
+			data := next(ctx)
+
+			if data == nil {
+				return nil
+			}
 			data.MarshalGQL(&buf)
 
 			return &graphql.Response{
@@ -1537,7 +1565,7 @@ func (ec *executionContext) field_Mutation_addCustomSSL_args(ctx context.Context
 	var arg1 model.CustomSSLInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNCustomSSLInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐCustomSSLInput(ctx, tmp)
+		arg1, err = ec.unmarshalNCustomSSLInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐCustomSSLInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1552,7 +1580,7 @@ func (ec *executionContext) field_Mutation_addDomain_args(ctx context.Context, r
 	var arg0 model.DomainInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNDomainInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomainInput(ctx, tmp)
+		arg0, err = ec.unmarshalNDomainInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomainInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1567,7 +1595,7 @@ func (ec *executionContext) field_Mutation_createApplication_args(ctx context.Co
 	var arg0 model.ApplicationInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNApplicationInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplicationInput(ctx, tmp)
+		arg0, err = ec.unmarshalNApplicationInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1582,7 +1610,7 @@ func (ec *executionContext) field_Mutation_createGitCredential_args(ctx context.
 	var arg0 model.GitCredentialInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNGitCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialInput(ctx, tmp)
+		arg0, err = ec.unmarshalNGitCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredentialInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1597,7 +1625,7 @@ func (ec *executionContext) field_Mutation_createImageRegistryCredential_args(ct
 	var arg0 model.ImageRegistryCredentialInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNImageRegistryCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredentialInput(ctx, tmp)
+		arg0, err = ec.unmarshalNImageRegistryCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐImageRegistryCredentialInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1612,7 +1640,7 @@ func (ec *executionContext) field_Mutation_createIngressRule_args(ctx context.Co
 	var arg0 model.IngressRuleInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNIngressRuleInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleInput(ctx, tmp)
+		arg0, err = ec.unmarshalNIngressRuleInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1627,7 +1655,7 @@ func (ec *executionContext) field_Mutation_createPersistentVolume_args(ctx conte
 	var arg0 model.PersistentVolumeInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNPersistentVolumeInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeInput(ctx, tmp)
+		arg0, err = ec.unmarshalNPersistentVolumeInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1642,7 +1670,7 @@ func (ec *executionContext) field_Mutation_createRedirectRule_args(ctx context.C
 	var arg0 model.RedirectRuleInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNRedirectRuleInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleInput(ctx, tmp)
+		arg0, err = ec.unmarshalNRedirectRuleInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRuleInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1786,7 +1814,7 @@ func (ec *executionContext) field_Mutation_updateApplication_args(ctx context.Co
 	var arg1 model.ApplicationInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNApplicationInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplicationInput(ctx, tmp)
+		arg1, err = ec.unmarshalNApplicationInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1810,7 +1838,7 @@ func (ec *executionContext) field_Mutation_updateGitCredential_args(ctx context.
 	var arg1 model.GitCredentialInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNGitCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialInput(ctx, tmp)
+		arg1, err = ec.unmarshalNGitCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredentialInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1834,7 +1862,7 @@ func (ec *executionContext) field_Mutation_updateImageRegistryCredential_args(ct
 	var arg1 model.ImageRegistryCredentialInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNImageRegistryCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredentialInput(ctx, tmp)
+		arg1, err = ec.unmarshalNImageRegistryCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐImageRegistryCredentialInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1879,7 +1907,7 @@ func (ec *executionContext) field_Query_checkGitCredentialRepositoryAccess_args(
 	var arg0 model.GitCredentialRepositoryAccessInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNGitCredentialRepositoryAccessInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessInput(ctx, tmp)
+		arg0, err = ec.unmarshalNGitCredentialRepositoryAccessInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2020,6 +2048,21 @@ func (ec *executionContext) field_Query_verifyDomainConfiguration_args(ctx conte
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_fetchDeploymentLog_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -2177,7 +2220,7 @@ func (ec *executionContext) _Application_environmentVariables(ctx context.Contex
 	}
 	res := resTmp.([]*model.EnvironmentVariable)
 	fc.Result = res
-	return ec.marshalNEnvironmentVariable2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐEnvironmentVariableᚄ(ctx, field.Selections, res)
+	return ec.marshalNEnvironmentVariable2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐEnvironmentVariableᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Application_environmentVariables(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2227,7 +2270,7 @@ func (ec *executionContext) _Application_persistentVolumeBindings(ctx context.Co
 	}
 	res := resTmp.([]*model.PersistentVolumeBinding)
 	fc.Result = res
-	return ec.marshalNPersistentVolumeBinding2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBindingᚄ(ctx, field.Selections, res)
+	return ec.marshalNPersistentVolumeBinding2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeBindingᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Application_persistentVolumeBindings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2285,7 +2328,7 @@ func (ec *executionContext) _Application_latestDeployment(ctx context.Context, f
 	}
 	res := resTmp.(*model.Deployment)
 	fc.Result = res
-	return ec.marshalNDeployment2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeployment(ctx, field.Selections, res)
+	return ec.marshalNDeployment2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeployment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Application_latestDeployment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2330,8 +2373,6 @@ func (ec *executionContext) fieldContext_Application_latestDeployment(ctx contex
 				return ec.fieldContext_Deployment_buildArgs(ctx, field)
 			case "dockerfile":
 				return ec.fieldContext_Deployment_dockerfile(ctx, field)
-			case "deploymentLogs":
-				return ec.fieldContext_Deployment_deploymentLogs(ctx, field)
 			case "status":
 				return ec.fieldContext_Deployment_status(ctx, field)
 			case "createdAt":
@@ -2371,7 +2412,7 @@ func (ec *executionContext) _Application_deployments(ctx context.Context, field 
 	}
 	res := resTmp.([]*model.Deployment)
 	fc.Result = res
-	return ec.marshalNDeployment2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentᚄ(ctx, field.Selections, res)
+	return ec.marshalNDeployment2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeploymentᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Application_deployments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2416,8 +2457,6 @@ func (ec *executionContext) fieldContext_Application_deployments(ctx context.Con
 				return ec.fieldContext_Deployment_buildArgs(ctx, field)
 			case "dockerfile":
 				return ec.fieldContext_Deployment_dockerfile(ctx, field)
-			case "deploymentLogs":
-				return ec.fieldContext_Deployment_deploymentLogs(ctx, field)
 			case "status":
 				return ec.fieldContext_Deployment_status(ctx, field)
 			case "createdAt":
@@ -2457,7 +2496,7 @@ func (ec *executionContext) _Application_deploymentMode(ctx context.Context, fie
 	}
 	res := resTmp.(model.DeploymentMode)
 	fc.Result = res
-	return ec.marshalNDeploymentMode2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentMode(ctx, field.Selections, res)
+	return ec.marshalNDeploymentMode2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeploymentMode(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Application_deploymentMode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2545,7 +2584,7 @@ func (ec *executionContext) _Application_ingressRules(ctx context.Context, field
 	}
 	res := resTmp.([]*model.IngressRule)
 	fc.Result = res
-	return ec.marshalNIngressRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleᚄ(ctx, field.Selections, res)
+	return ec.marshalNIngressRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Application_ingressRules(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2789,7 +2828,7 @@ func (ec *executionContext) _Deployment_application(ctx context.Context, field g
 	}
 	res := resTmp.(*model.Application)
 	fc.Result = res
-	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Deployment_application(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2853,7 +2892,7 @@ func (ec *executionContext) _Deployment_upstreamType(ctx context.Context, field 
 	}
 	res := resTmp.(model.UpstreamType)
 	fc.Result = res
-	return ec.marshalNUpstreamType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐUpstreamType(ctx, field.Selections, res)
+	return ec.marshalNUpstreamType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐUpstreamType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Deployment_upstreamType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2941,7 +2980,7 @@ func (ec *executionContext) _Deployment_gitCredential(ctx context.Context, field
 	}
 	res := resTmp.(*model.GitCredential)
 	fc.Result = res
-	return ec.marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredential(ctx, field.Selections, res)
+	return ec.marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredential(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Deployment_gitCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2997,7 +3036,7 @@ func (ec *executionContext) _Deployment_gitProvider(ctx context.Context, field g
 	}
 	res := resTmp.(model.GitProvider)
 	fc.Result = res
-	return ec.marshalNGitProvider2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitProvider(ctx, field.Selections, res)
+	return ec.marshalNGitProvider2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Deployment_gitProvider(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3349,7 +3388,7 @@ func (ec *executionContext) _Deployment_imageRegistryCredential(ctx context.Cont
 	}
 	res := resTmp.(*model.ImageRegistryCredential)
 	fc.Result = res
-	return ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, field.Selections, res)
+	return ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Deployment_imageRegistryCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3405,7 +3444,7 @@ func (ec *executionContext) _Deployment_buildArgs(ctx context.Context, field gra
 	}
 	res := resTmp.([]*model.BuildArg)
 	fc.Result = res
-	return ec.marshalNBuildArg2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArgᚄ(ctx, field.Selections, res)
+	return ec.marshalNBuildArg2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐBuildArgᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Deployment_buildArgs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3471,56 +3510,6 @@ func (ec *executionContext) fieldContext_Deployment_dockerfile(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Deployment_deploymentLogs(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Deployment_deploymentLogs(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Deployment().DeploymentLogs(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.DeploymentLog)
-	fc.Result = res
-	return ec.marshalNDeploymentLog2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentLogᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Deployment_deploymentLogs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Deployment",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "content":
-				return ec.fieldContext_DeploymentLog_content(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_DeploymentLog_createdAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type DeploymentLog", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Deployment_status(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Deployment_status(ctx, field)
 	if err != nil {
@@ -3549,7 +3538,7 @@ func (ec *executionContext) _Deployment_status(ctx context.Context, field graphq
 	}
 	res := resTmp.(model.DeploymentStatus)
 	fc.Result = res
-	return ec.marshalNDeploymentStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentStatus(ctx, field.Selections, res)
+	return ec.marshalNDeploymentStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeploymentStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Deployment_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3813,7 +3802,7 @@ func (ec *executionContext) _Domain_sslStatus(ctx context.Context, field graphql
 	}
 	res := resTmp.(model.DomainSSLStatus)
 	fc.Result = res
-	return ec.marshalNDomainSSLStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomainSSLStatus(ctx, field.Selections, res)
+	return ec.marshalNDomainSSLStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomainSSLStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Domain_sslStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4077,7 +4066,7 @@ func (ec *executionContext) _Domain_ingressRules(ctx context.Context, field grap
 	}
 	res := resTmp.([]*model.IngressRule)
 	fc.Result = res
-	return ec.marshalNIngressRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleᚄ(ctx, field.Selections, res)
+	return ec.marshalNIngressRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Domain_ingressRules(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4145,7 +4134,7 @@ func (ec *executionContext) _Domain_redirectRules(ctx context.Context, field gra
 	}
 	res := resTmp.([]*model.RedirectRule)
 	fc.Result = res
-	return ec.marshalNRedirectRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleᚄ(ctx, field.Selections, res)
+	return ec.marshalNRedirectRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRuleᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Domain_redirectRules(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4473,7 +4462,7 @@ func (ec *executionContext) _GitCredential_deployments(ctx context.Context, fiel
 	}
 	res := resTmp.([]*model.Deployment)
 	fc.Result = res
-	return ec.marshalNDeployment2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentᚄ(ctx, field.Selections, res)
+	return ec.marshalNDeployment2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeploymentᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_GitCredential_deployments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4518,8 +4507,6 @@ func (ec *executionContext) fieldContext_GitCredential_deployments(ctx context.C
 				return ec.fieldContext_Deployment_buildArgs(ctx, field)
 			case "dockerfile":
 				return ec.fieldContext_Deployment_dockerfile(ctx, field)
-			case "deploymentLogs":
-				return ec.fieldContext_Deployment_deploymentLogs(ctx, field)
 			case "status":
 				return ec.fieldContext_Deployment_status(ctx, field)
 			case "createdAt":
@@ -4603,7 +4590,7 @@ func (ec *executionContext) _GitCredentialRepositoryAccessResult_gitCredential(c
 	}
 	res := resTmp.(*model.GitCredential)
 	fc.Result = res
-	return ec.marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredential(ctx, field.Selections, res)
+	return ec.marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredential(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_GitCredentialRepositoryAccessResult_gitCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5011,7 +4998,7 @@ func (ec *executionContext) _ImageRegistryCredential_deployments(ctx context.Con
 	}
 	res := resTmp.([]*model.Deployment)
 	fc.Result = res
-	return ec.marshalNDeployment2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentᚄ(ctx, field.Selections, res)
+	return ec.marshalNDeployment2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeploymentᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ImageRegistryCredential_deployments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5056,8 +5043,6 @@ func (ec *executionContext) fieldContext_ImageRegistryCredential_deployments(ctx
 				return ec.fieldContext_Deployment_buildArgs(ctx, field)
 			case "dockerfile":
 				return ec.fieldContext_Deployment_dockerfile(ctx, field)
-			case "deploymentLogs":
-				return ec.fieldContext_Deployment_deploymentLogs(ctx, field)
 			case "status":
 				return ec.fieldContext_Deployment_status(ctx, field)
 			case "createdAt":
@@ -5185,7 +5170,7 @@ func (ec *executionContext) _IngressRule_domain(ctx context.Context, field graph
 	}
 	res := resTmp.(*model.Domain)
 	fc.Result = res
-	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
+	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_IngressRule_domain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5251,7 +5236,7 @@ func (ec *executionContext) _IngressRule_protocol(ctx context.Context, field gra
 	}
 	res := resTmp.(model.ProtocolType)
 	fc.Result = res
-	return ec.marshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐProtocolType(ctx, field.Selections, res)
+	return ec.marshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐProtocolType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_IngressRule_protocol(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5383,7 +5368,7 @@ func (ec *executionContext) _IngressRule_application(ctx context.Context, field 
 	}
 	res := resTmp.(*model.Application)
 	fc.Result = res
-	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_IngressRule_application(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5491,7 +5476,7 @@ func (ec *executionContext) _IngressRule_status(ctx context.Context, field graph
 	}
 	res := resTmp.(model.IngressRuleStatus)
 	fc.Result = res
-	return ec.marshalNIngressRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleStatus(ctx, field.Selections, res)
+	return ec.marshalNIngressRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_IngressRule_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5623,7 +5608,7 @@ func (ec *executionContext) _Mutation_createApplication(ctx context.Context, fie
 	}
 	res := resTmp.(*model.Application)
 	fc.Result = res
-	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createApplication(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5698,7 +5683,7 @@ func (ec *executionContext) _Mutation_updateApplication(ctx context.Context, fie
 	}
 	res := resTmp.(*model.Application)
 	fc.Result = res
-	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateApplication(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5828,7 +5813,7 @@ func (ec *executionContext) _Mutation_addDomain(ctx context.Context, field graph
 	}
 	res := resTmp.(*model.Domain)
 	fc.Result = res
-	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
+	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_addDomain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5960,7 +5945,7 @@ func (ec *executionContext) _Mutation_issueSSL(ctx context.Context, field graphq
 	}
 	res := resTmp.(*model.Domain)
 	fc.Result = res
-	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
+	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_issueSSL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6037,7 +6022,7 @@ func (ec *executionContext) _Mutation_addCustomSSL(ctx context.Context, field gr
 	}
 	res := resTmp.(*model.Domain)
 	fc.Result = res
-	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
+	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_addCustomSSL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6114,7 +6099,7 @@ func (ec *executionContext) _Mutation_createGitCredential(ctx context.Context, f
 	}
 	res := resTmp.(*model.GitCredential)
 	fc.Result = res
-	return ec.marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredential(ctx, field.Selections, res)
+	return ec.marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredential(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createGitCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6181,7 +6166,7 @@ func (ec *executionContext) _Mutation_updateGitCredential(ctx context.Context, f
 	}
 	res := resTmp.(*model.GitCredential)
 	fc.Result = res
-	return ec.marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredential(ctx, field.Selections, res)
+	return ec.marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredential(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateGitCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6303,7 +6288,7 @@ func (ec *executionContext) _Mutation_createImageRegistryCredential(ctx context.
 	}
 	res := resTmp.(*model.ImageRegistryCredential)
 	fc.Result = res
-	return ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, field.Selections, res)
+	return ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createImageRegistryCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6370,7 +6355,7 @@ func (ec *executionContext) _Mutation_updateImageRegistryCredential(ctx context.
 	}
 	res := resTmp.(*model.ImageRegistryCredential)
 	fc.Result = res
-	return ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, field.Selections, res)
+	return ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateImageRegistryCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6492,7 +6477,7 @@ func (ec *executionContext) _Mutation_createIngressRule(ctx context.Context, fie
 	}
 	res := resTmp.(*model.IngressRule)
 	fc.Result = res
-	return ec.marshalNIngressRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRule(ctx, field.Selections, res)
+	return ec.marshalNIngressRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createIngressRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6623,7 +6608,7 @@ func (ec *executionContext) _Mutation_createPersistentVolume(ctx context.Context
 	}
 	res := resTmp.(*model.PersistentVolume)
 	fc.Result = res
-	return ec.marshalOPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx, field.Selections, res)
+	return ec.marshalOPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolume(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createPersistentVolume(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6741,7 +6726,7 @@ func (ec *executionContext) _Mutation_createRedirectRule(ctx context.Context, fi
 	}
 	res := resTmp.(*model.RedirectRule)
 	fc.Result = res
-	return ec.marshalNRedirectRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRule(ctx, field.Selections, res)
+	return ec.marshalNRedirectRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createRedirectRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6959,7 +6944,7 @@ func (ec *executionContext) _PersistentVolume_persistentVolumeBindings(ctx conte
 	}
 	res := resTmp.([]*model.PersistentVolumeBinding)
 	fc.Result = res
-	return ec.marshalNPersistentVolumeBinding2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBindingᚄ(ctx, field.Selections, res)
+	return ec.marshalNPersistentVolumeBinding2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeBindingᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PersistentVolume_persistentVolumeBindings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7105,7 +7090,7 @@ func (ec *executionContext) _PersistentVolumeBinding_persistentVolume(ctx contex
 	}
 	res := resTmp.(*model.PersistentVolume)
 	fc.Result = res
-	return ec.marshalNPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx, field.Selections, res)
+	return ec.marshalNPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolume(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PersistentVolumeBinding_persistentVolume(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7201,7 +7186,7 @@ func (ec *executionContext) _PersistentVolumeBinding_application(ctx context.Con
 	}
 	res := resTmp.(*model.Application)
 	fc.Result = res
-	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PersistentVolumeBinding_application(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7309,7 +7294,7 @@ func (ec *executionContext) _Query_application(ctx context.Context, field graphq
 	}
 	res := resTmp.(*model.Application)
 	fc.Result = res
-	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplication(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_application(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7384,7 +7369,7 @@ func (ec *executionContext) _Query_applications(ctx context.Context, field graph
 	}
 	res := resTmp.([]*model.Application)
 	fc.Result = res
-	return ec.marshalNApplication2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplicationᚄ(ctx, field.Selections, res)
+	return ec.marshalNApplication2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_applications(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7503,7 +7488,7 @@ func (ec *executionContext) _Query_domains(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.([]*model.Domain)
 	fc.Result = res
-	return ec.marshalNDomain2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomainᚄ(ctx, field.Selections, res)
+	return ec.marshalNDomain2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomainᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_domains(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7569,7 +7554,7 @@ func (ec *executionContext) _Query_domain(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*model.Domain)
 	fc.Result = res
-	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
+	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_domain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7701,7 +7686,7 @@ func (ec *executionContext) _Query_gitCredentials(ctx context.Context, field gra
 	}
 	res := resTmp.([]*model.GitCredential)
 	fc.Result = res
-	return ec.marshalNGitCredential2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialᚄ(ctx, field.Selections, res)
+	return ec.marshalNGitCredential2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredentialᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_gitCredentials(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7757,7 +7742,7 @@ func (ec *executionContext) _Query_gitCredential(ctx context.Context, field grap
 	}
 	res := resTmp.(*model.GitCredential)
 	fc.Result = res
-	return ec.marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredential(ctx, field.Selections, res)
+	return ec.marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredential(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_gitCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7824,7 +7809,7 @@ func (ec *executionContext) _Query_checkGitCredentialRepositoryAccess(ctx contex
 	}
 	res := resTmp.(*model.GitCredentialRepositoryAccessResult)
 	fc.Result = res
-	return ec.marshalNGitCredentialRepositoryAccessResult2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessResult(ctx, field.Selections, res)
+	return ec.marshalNGitCredentialRepositoryAccessResult2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_checkGitCredentialRepositoryAccess(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7893,7 +7878,7 @@ func (ec *executionContext) _Query_imageRegistryCredentials(ctx context.Context,
 	}
 	res := resTmp.([]*model.ImageRegistryCredential)
 	fc.Result = res
-	return ec.marshalNImageRegistryCredential2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredentialᚄ(ctx, field.Selections, res)
+	return ec.marshalNImageRegistryCredential2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐImageRegistryCredentialᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_imageRegistryCredentials(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7949,7 +7934,7 @@ func (ec *executionContext) _Query_imageRegistryCredential(ctx context.Context, 
 	}
 	res := resTmp.(*model.ImageRegistryCredential)
 	fc.Result = res
-	return ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, field.Selections, res)
+	return ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_imageRegistryCredential(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8016,7 +8001,7 @@ func (ec *executionContext) _Query_ingressRule(ctx context.Context, field graphq
 	}
 	res := resTmp.(*model.IngressRule)
 	fc.Result = res
-	return ec.marshalNIngressRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRule(ctx, field.Selections, res)
+	return ec.marshalNIngressRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_ingressRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8095,7 +8080,7 @@ func (ec *executionContext) _Query_ingressRules(ctx context.Context, field graph
 	}
 	res := resTmp.([]*model.IngressRule)
 	fc.Result = res
-	return ec.marshalNIngressRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleᚄ(ctx, field.Selections, res)
+	return ec.marshalNIngressRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_ingressRules(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8160,7 +8145,7 @@ func (ec *executionContext) _Query_persistentVolumes(ctx context.Context, field 
 	}
 	res := resTmp.([]*model.PersistentVolume)
 	fc.Result = res
-	return ec.marshalOPersistentVolume2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx, field.Selections, res)
+	return ec.marshalOPersistentVolume2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolume(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_persistentVolumes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8209,7 +8194,7 @@ func (ec *executionContext) _Query_persistentVolume(ctx context.Context, field g
 	}
 	res := resTmp.(*model.PersistentVolume)
 	fc.Result = res
-	return ec.marshalOPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx, field.Selections, res)
+	return ec.marshalOPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolume(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_persistentVolume(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8327,7 +8312,7 @@ func (ec *executionContext) _Query_redirectRule(ctx context.Context, field graph
 	}
 	res := resTmp.(*model.RedirectRule)
 	fc.Result = res
-	return ec.marshalNRedirectRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRule(ctx, field.Selections, res)
+	return ec.marshalNRedirectRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_redirectRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8402,7 +8387,7 @@ func (ec *executionContext) _Query_redirectRules(ctx context.Context, field grap
 	}
 	res := resTmp.([]*model.RedirectRule)
 	fc.Result = res
-	return ec.marshalNRedirectRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleᚄ(ctx, field.Selections, res)
+	return ec.marshalNRedirectRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRuleᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_redirectRules(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8683,7 +8668,7 @@ func (ec *executionContext) _RedirectRule_domain(ctx context.Context, field grap
 	}
 	res := resTmp.(*model.Domain)
 	fc.Result = res
-	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
+	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RedirectRule_domain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8749,7 +8734,7 @@ func (ec *executionContext) _RedirectRule_protocol(ctx context.Context, field gr
 	}
 	res := resTmp.(model.ProtocolType)
 	fc.Result = res
-	return ec.marshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐProtocolType(ctx, field.Selections, res)
+	return ec.marshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐProtocolType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RedirectRule_protocol(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8881,7 +8866,7 @@ func (ec *executionContext) _RedirectRule_status(ctx context.Context, field grap
 	}
 	res := resTmp.(model.RedirectRuleStatus)
 	fc.Result = res
-	return ec.marshalNRedirectRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleStatus(ctx, field.Selections, res)
+	return ec.marshalNRedirectRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRuleStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RedirectRule_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8981,6 +8966,81 @@ func (ec *executionContext) fieldContext_RedirectRule_updatedAt(ctx context.Cont
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Subscription_fetchDeploymentLog(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	fc, err := ec.fieldContext_Subscription_fetchDeploymentLog(ctx, field)
+	if err != nil {
+		return nil
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().FetchDeploymentLog(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return nil
+	}
+	return func(ctx context.Context) graphql.Marshaler {
+		select {
+		case res, ok := <-resTmp.(<-chan *model.DeploymentLog):
+			if !ok {
+				return nil
+			}
+			return graphql.WriterFunc(func(w io.Writer) {
+				w.Write([]byte{'{'})
+				graphql.MarshalString(field.Alias).MarshalGQL(w)
+				w.Write([]byte{':'})
+				ec.marshalNDeploymentLog2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeploymentLog(ctx, field.Selections, res).MarshalGQL(w)
+				w.Write([]byte{'}'})
+			})
+		case <-ctx.Done():
+			return nil
+		}
+	}
+}
+
+func (ec *executionContext) fieldContext_Subscription_fetchDeploymentLog(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "content":
+				return ec.fieldContext_DeploymentLog_content(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_DeploymentLog_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DeploymentLog", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Subscription_fetchDeploymentLog_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -10785,7 +10845,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environmentVariables"))
-			data, err := ec.unmarshalNEnvironmentVariableInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐEnvironmentVariableInputᚄ(ctx, v)
+			data, err := ec.unmarshalNEnvironmentVariableInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐEnvironmentVariableInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10794,7 +10854,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("persistentVolumeBindings"))
-			data, err := ec.unmarshalNPersistentVolumeBindingInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBindingInputᚄ(ctx, v)
+			data, err := ec.unmarshalNPersistentVolumeBindingInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeBindingInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10812,7 +10872,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buildArgs"))
-			data, err := ec.unmarshalNBuildArgInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArgInputᚄ(ctx, v)
+			data, err := ec.unmarshalNBuildArgInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐBuildArgInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10821,7 +10881,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deploymentMode"))
-			data, err := ec.unmarshalNDeploymentMode2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentMode(ctx, v)
+			data, err := ec.unmarshalNDeploymentMode2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeploymentMode(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10839,7 +10899,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("upstreamType"))
-			data, err := ec.unmarshalNUpstreamType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐUpstreamType(ctx, v)
+			data, err := ec.unmarshalNUpstreamType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐUpstreamType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10857,7 +10917,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gitProvider"))
-			data, err := ec.unmarshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitProvider(ctx, v)
+			data, err := ec.unmarshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -11260,7 +11320,7 @@ func (ec *executionContext) unmarshalInputIngressRuleInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("protocol"))
-			data, err := ec.unmarshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐProtocolType(ctx, v)
+			data, err := ec.unmarshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐProtocolType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -11383,7 +11443,7 @@ func (ec *executionContext) unmarshalInputRedirectRuleInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("protocol"))
-			data, err := ec.unmarshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐProtocolType(ctx, v)
+			data, err := ec.unmarshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐProtocolType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -11918,42 +11978,6 @@ func (ec *executionContext) _Deployment(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "deploymentLogs":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Deployment_deploymentLogs(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "status":
 			out.Values[i] = ec._Deployment_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -13544,6 +13568,26 @@ func (ec *executionContext) _RedirectRule(ctx context.Context, sel ast.Selection
 	return out
 }
 
+var subscriptionImplementors = []string{"Subscription"}
+
+func (ec *executionContext) _Subscription(ctx context.Context, sel ast.SelectionSet) func(ctx context.Context) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, subscriptionImplementors)
+	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
+		Object: "Subscription",
+	})
+	if len(fields) != 1 {
+		ec.Errorf(ctx, "must subscribe to exactly one stream")
+		return nil
+	}
+
+	switch fields[0].Name {
+	case "fetchDeploymentLog":
+		return ec._Subscription_fetchDeploymentLog(ctx, fields[0])
+	default:
+		panic("unknown field " + strconv.Quote(fields[0].Name))
+	}
+}
+
 var __DirectiveImplementors = []string{"__Directive"}
 
 func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionSet, obj *introspection.Directive) graphql.Marshaler {
@@ -13870,11 +13914,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNApplication2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx context.Context, sel ast.SelectionSet, v model.Application) graphql.Marshaler {
+func (ec *executionContext) marshalNApplication2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplication(ctx context.Context, sel ast.SelectionSet, v model.Application) graphql.Marshaler {
 	return ec._Application(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNApplication2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplicationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Application) graphql.Marshaler {
+func (ec *executionContext) marshalNApplication2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Application) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -13898,7 +13942,7 @@ func (ec *executionContext) marshalNApplication2ᚕᚖgithubᚗcomᚋswiftwave�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx, sel, v[i])
+			ret[i] = ec.marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplication(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -13918,7 +13962,7 @@ func (ec *executionContext) marshalNApplication2ᚕᚖgithubᚗcomᚋswiftwave�
 	return ret
 }
 
-func (ec *executionContext) marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplication(ctx context.Context, sel ast.SelectionSet, v *model.Application) graphql.Marshaler {
+func (ec *executionContext) marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplication(ctx context.Context, sel ast.SelectionSet, v *model.Application) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -13928,7 +13972,7 @@ func (ec *executionContext) marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑor
 	return ec._Application(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNApplicationInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐApplicationInput(ctx context.Context, v interface{}) (model.ApplicationInput, error) {
+func (ec *executionContext) unmarshalNApplicationInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationInput(ctx context.Context, v interface{}) (model.ApplicationInput, error) {
 	res, err := ec.unmarshalInputApplicationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -13948,7 +13992,7 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNBuildArg2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArgᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BuildArg) graphql.Marshaler {
+func (ec *executionContext) marshalNBuildArg2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐBuildArgᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BuildArg) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -13972,7 +14016,7 @@ func (ec *executionContext) marshalNBuildArg2ᚕᚖgithubᚗcomᚋswiftwaveᚑor
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNBuildArg2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArg(ctx, sel, v[i])
+			ret[i] = ec.marshalNBuildArg2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐBuildArg(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -13992,7 +14036,7 @@ func (ec *executionContext) marshalNBuildArg2ᚕᚖgithubᚗcomᚋswiftwaveᚑor
 	return ret
 }
 
-func (ec *executionContext) marshalNBuildArg2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArg(ctx context.Context, sel ast.SelectionSet, v *model.BuildArg) graphql.Marshaler {
+func (ec *executionContext) marshalNBuildArg2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐBuildArg(ctx context.Context, sel ast.SelectionSet, v *model.BuildArg) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14002,7 +14046,7 @@ func (ec *executionContext) marshalNBuildArg2ᚖgithubᚗcomᚋswiftwaveᚑorg�
 	return ec._BuildArg(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNBuildArgInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArgInputᚄ(ctx context.Context, v interface{}) ([]*model.BuildArgInput, error) {
+func (ec *executionContext) unmarshalNBuildArgInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐBuildArgInputᚄ(ctx context.Context, v interface{}) ([]*model.BuildArgInput, error) {
 	var vSlice []interface{}
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
@@ -14011,7 +14055,7 @@ func (ec *executionContext) unmarshalNBuildArgInput2ᚕᚖgithubᚗcomᚋswiftwa
 	res := make([]*model.BuildArgInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNBuildArgInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArgInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNBuildArgInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐBuildArgInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -14019,21 +14063,21 @@ func (ec *executionContext) unmarshalNBuildArgInput2ᚕᚖgithubᚗcomᚋswiftwa
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNBuildArgInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐBuildArgInput(ctx context.Context, v interface{}) (*model.BuildArgInput, error) {
+func (ec *executionContext) unmarshalNBuildArgInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐBuildArgInput(ctx context.Context, v interface{}) (*model.BuildArgInput, error) {
 	res, err := ec.unmarshalInputBuildArgInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNCustomSSLInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐCustomSSLInput(ctx context.Context, v interface{}) (model.CustomSSLInput, error) {
+func (ec *executionContext) unmarshalNCustomSSLInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐCustomSSLInput(ctx context.Context, v interface{}) (model.CustomSSLInput, error) {
 	res, err := ec.unmarshalInputCustomSSLInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDeployment2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeployment(ctx context.Context, sel ast.SelectionSet, v model.Deployment) graphql.Marshaler {
+func (ec *executionContext) marshalNDeployment2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeployment(ctx context.Context, sel ast.SelectionSet, v model.Deployment) graphql.Marshaler {
 	return ec._Deployment(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDeployment2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Deployment) graphql.Marshaler {
+func (ec *executionContext) marshalNDeployment2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeploymentᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Deployment) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -14057,7 +14101,7 @@ func (ec *executionContext) marshalNDeployment2ᚕᚖgithubᚗcomᚋswiftwaveᚑ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNDeployment2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeployment(ctx, sel, v[i])
+			ret[i] = ec.marshalNDeployment2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeployment(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14077,7 +14121,7 @@ func (ec *executionContext) marshalNDeployment2ᚕᚖgithubᚗcomᚋswiftwaveᚑ
 	return ret
 }
 
-func (ec *executionContext) marshalNDeployment2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeployment(ctx context.Context, sel ast.SelectionSet, v *model.Deployment) graphql.Marshaler {
+func (ec *executionContext) marshalNDeployment2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeployment(ctx context.Context, sel ast.SelectionSet, v *model.Deployment) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14087,51 +14131,11 @@ func (ec *executionContext) marshalNDeployment2ᚖgithubᚗcomᚋswiftwaveᚑorg
 	return ec._Deployment(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDeploymentLog2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentLogᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DeploymentLog) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNDeploymentLog2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentLog(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
+func (ec *executionContext) marshalNDeploymentLog2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeploymentLog(ctx context.Context, sel ast.SelectionSet, v model.DeploymentLog) graphql.Marshaler {
+	return ec._DeploymentLog(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDeploymentLog2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentLog(ctx context.Context, sel ast.SelectionSet, v *model.DeploymentLog) graphql.Marshaler {
+func (ec *executionContext) marshalNDeploymentLog2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeploymentLog(ctx context.Context, sel ast.SelectionSet, v *model.DeploymentLog) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14141,31 +14145,31 @@ func (ec *executionContext) marshalNDeploymentLog2ᚖgithubᚗcomᚋswiftwaveᚑ
 	return ec._DeploymentLog(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNDeploymentMode2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentMode(ctx context.Context, v interface{}) (model.DeploymentMode, error) {
+func (ec *executionContext) unmarshalNDeploymentMode2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeploymentMode(ctx context.Context, v interface{}) (model.DeploymentMode, error) {
 	var res model.DeploymentMode
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDeploymentMode2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentMode(ctx context.Context, sel ast.SelectionSet, v model.DeploymentMode) graphql.Marshaler {
+func (ec *executionContext) marshalNDeploymentMode2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeploymentMode(ctx context.Context, sel ast.SelectionSet, v model.DeploymentMode) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNDeploymentStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentStatus(ctx context.Context, v interface{}) (model.DeploymentStatus, error) {
+func (ec *executionContext) unmarshalNDeploymentStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeploymentStatus(ctx context.Context, v interface{}) (model.DeploymentStatus, error) {
 	var res model.DeploymentStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDeploymentStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDeploymentStatus(ctx context.Context, sel ast.SelectionSet, v model.DeploymentStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNDeploymentStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeploymentStatus(ctx context.Context, sel ast.SelectionSet, v model.DeploymentStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNDomain2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx context.Context, sel ast.SelectionSet, v model.Domain) graphql.Marshaler {
+func (ec *executionContext) marshalNDomain2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx context.Context, sel ast.SelectionSet, v model.Domain) graphql.Marshaler {
 	return ec._Domain(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDomain2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomainᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Domain) graphql.Marshaler {
+func (ec *executionContext) marshalNDomain2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomainᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Domain) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -14189,7 +14193,7 @@ func (ec *executionContext) marshalNDomain2ᚕᚖgithubᚗcomᚋswiftwaveᚑorg�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx, sel, v[i])
+			ret[i] = ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14209,7 +14213,7 @@ func (ec *executionContext) marshalNDomain2ᚕᚖgithubᚗcomᚋswiftwaveᚑorg�
 	return ret
 }
 
-func (ec *executionContext) marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomain(ctx context.Context, sel ast.SelectionSet, v *model.Domain) graphql.Marshaler {
+func (ec *executionContext) marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx context.Context, sel ast.SelectionSet, v *model.Domain) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14219,22 +14223,22 @@ func (ec *executionContext) marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋs
 	return ec._Domain(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNDomainInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomainInput(ctx context.Context, v interface{}) (model.DomainInput, error) {
+func (ec *executionContext) unmarshalNDomainInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomainInput(ctx context.Context, v interface{}) (model.DomainInput, error) {
 	res, err := ec.unmarshalInputDomainInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNDomainSSLStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomainSSLStatus(ctx context.Context, v interface{}) (model.DomainSSLStatus, error) {
+func (ec *executionContext) unmarshalNDomainSSLStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomainSSLStatus(ctx context.Context, v interface{}) (model.DomainSSLStatus, error) {
 	var res model.DomainSSLStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDomainSSLStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐDomainSSLStatus(ctx context.Context, sel ast.SelectionSet, v model.DomainSSLStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNDomainSSLStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomainSSLStatus(ctx context.Context, sel ast.SelectionSet, v model.DomainSSLStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNEnvironmentVariable2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐEnvironmentVariableᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.EnvironmentVariable) graphql.Marshaler {
+func (ec *executionContext) marshalNEnvironmentVariable2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐEnvironmentVariableᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.EnvironmentVariable) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -14258,7 +14262,7 @@ func (ec *executionContext) marshalNEnvironmentVariable2ᚕᚖgithubᚗcomᚋswi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNEnvironmentVariable2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐEnvironmentVariable(ctx, sel, v[i])
+			ret[i] = ec.marshalNEnvironmentVariable2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐEnvironmentVariable(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14278,7 +14282,7 @@ func (ec *executionContext) marshalNEnvironmentVariable2ᚕᚖgithubᚗcomᚋswi
 	return ret
 }
 
-func (ec *executionContext) marshalNEnvironmentVariable2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐEnvironmentVariable(ctx context.Context, sel ast.SelectionSet, v *model.EnvironmentVariable) graphql.Marshaler {
+func (ec *executionContext) marshalNEnvironmentVariable2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐEnvironmentVariable(ctx context.Context, sel ast.SelectionSet, v *model.EnvironmentVariable) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14288,7 +14292,7 @@ func (ec *executionContext) marshalNEnvironmentVariable2ᚖgithubᚗcomᚋswiftw
 	return ec._EnvironmentVariable(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNEnvironmentVariableInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐEnvironmentVariableInputᚄ(ctx context.Context, v interface{}) ([]*model.EnvironmentVariableInput, error) {
+func (ec *executionContext) unmarshalNEnvironmentVariableInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐEnvironmentVariableInputᚄ(ctx context.Context, v interface{}) ([]*model.EnvironmentVariableInput, error) {
 	var vSlice []interface{}
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
@@ -14297,7 +14301,7 @@ func (ec *executionContext) unmarshalNEnvironmentVariableInput2ᚕᚖgithubᚗco
 	res := make([]*model.EnvironmentVariableInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNEnvironmentVariableInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐEnvironmentVariableInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNEnvironmentVariableInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐEnvironmentVariableInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -14305,16 +14309,16 @@ func (ec *executionContext) unmarshalNEnvironmentVariableInput2ᚕᚖgithubᚗco
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNEnvironmentVariableInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐEnvironmentVariableInput(ctx context.Context, v interface{}) (*model.EnvironmentVariableInput, error) {
+func (ec *executionContext) unmarshalNEnvironmentVariableInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐEnvironmentVariableInput(ctx context.Context, v interface{}) (*model.EnvironmentVariableInput, error) {
 	res, err := ec.unmarshalInputEnvironmentVariableInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNGitCredential2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredential(ctx context.Context, sel ast.SelectionSet, v model.GitCredential) graphql.Marshaler {
+func (ec *executionContext) marshalNGitCredential2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredential(ctx context.Context, sel ast.SelectionSet, v model.GitCredential) graphql.Marshaler {
 	return ec._GitCredential(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNGitCredential2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.GitCredential) graphql.Marshaler {
+func (ec *executionContext) marshalNGitCredential2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredentialᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.GitCredential) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -14338,7 +14342,7 @@ func (ec *executionContext) marshalNGitCredential2ᚕᚖgithubᚗcomᚋswiftwave
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredential(ctx, sel, v[i])
+			ret[i] = ec.marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredential(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14358,7 +14362,7 @@ func (ec *executionContext) marshalNGitCredential2ᚕᚖgithubᚗcomᚋswiftwave
 	return ret
 }
 
-func (ec *executionContext) marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredential(ctx context.Context, sel ast.SelectionSet, v *model.GitCredential) graphql.Marshaler {
+func (ec *executionContext) marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredential(ctx context.Context, sel ast.SelectionSet, v *model.GitCredential) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14368,21 +14372,21 @@ func (ec *executionContext) marshalNGitCredential2ᚖgithubᚗcomᚋswiftwaveᚑ
 	return ec._GitCredential(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNGitCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialInput(ctx context.Context, v interface{}) (model.GitCredentialInput, error) {
+func (ec *executionContext) unmarshalNGitCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredentialInput(ctx context.Context, v interface{}) (model.GitCredentialInput, error) {
 	res, err := ec.unmarshalInputGitCredentialInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNGitCredentialRepositoryAccessInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessInput(ctx context.Context, v interface{}) (model.GitCredentialRepositoryAccessInput, error) {
+func (ec *executionContext) unmarshalNGitCredentialRepositoryAccessInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessInput(ctx context.Context, v interface{}) (model.GitCredentialRepositoryAccessInput, error) {
 	res, err := ec.unmarshalInputGitCredentialRepositoryAccessInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNGitCredentialRepositoryAccessResult2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessResult(ctx context.Context, sel ast.SelectionSet, v model.GitCredentialRepositoryAccessResult) graphql.Marshaler {
+func (ec *executionContext) marshalNGitCredentialRepositoryAccessResult2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessResult(ctx context.Context, sel ast.SelectionSet, v model.GitCredentialRepositoryAccessResult) graphql.Marshaler {
 	return ec._GitCredentialRepositoryAccessResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNGitCredentialRepositoryAccessResult2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessResult(ctx context.Context, sel ast.SelectionSet, v *model.GitCredentialRepositoryAccessResult) graphql.Marshaler {
+func (ec *executionContext) marshalNGitCredentialRepositoryAccessResult2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessResult(ctx context.Context, sel ast.SelectionSet, v *model.GitCredentialRepositoryAccessResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14392,21 +14396,21 @@ func (ec *executionContext) marshalNGitCredentialRepositoryAccessResult2ᚖgithu
 	return ec._GitCredentialRepositoryAccessResult(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNGitProvider2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, v interface{}) (model.GitProvider, error) {
+func (ec *executionContext) unmarshalNGitProvider2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, v interface{}) (model.GitProvider, error) {
 	var res model.GitProvider
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNGitProvider2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, sel ast.SelectionSet, v model.GitProvider) graphql.Marshaler {
+func (ec *executionContext) marshalNGitProvider2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, sel ast.SelectionSet, v model.GitProvider) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNImageRegistryCredential2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx context.Context, sel ast.SelectionSet, v model.ImageRegistryCredential) graphql.Marshaler {
+func (ec *executionContext) marshalNImageRegistryCredential2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx context.Context, sel ast.SelectionSet, v model.ImageRegistryCredential) graphql.Marshaler {
 	return ec._ImageRegistryCredential(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNImageRegistryCredential2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredentialᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ImageRegistryCredential) graphql.Marshaler {
+func (ec *executionContext) marshalNImageRegistryCredential2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐImageRegistryCredentialᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ImageRegistryCredential) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -14430,7 +14434,7 @@ func (ec *executionContext) marshalNImageRegistryCredential2ᚕᚖgithubᚗcom�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, sel, v[i])
+			ret[i] = ec.marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14450,7 +14454,7 @@ func (ec *executionContext) marshalNImageRegistryCredential2ᚕᚖgithubᚗcom�
 	return ret
 }
 
-func (ec *executionContext) marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx context.Context, sel ast.SelectionSet, v *model.ImageRegistryCredential) graphql.Marshaler {
+func (ec *executionContext) marshalNImageRegistryCredential2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐImageRegistryCredential(ctx context.Context, sel ast.SelectionSet, v *model.ImageRegistryCredential) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14460,16 +14464,16 @@ func (ec *executionContext) marshalNImageRegistryCredential2ᚖgithubᚗcomᚋsw
 	return ec._ImageRegistryCredential(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNImageRegistryCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐImageRegistryCredentialInput(ctx context.Context, v interface{}) (model.ImageRegistryCredentialInput, error) {
+func (ec *executionContext) unmarshalNImageRegistryCredentialInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐImageRegistryCredentialInput(ctx context.Context, v interface{}) (model.ImageRegistryCredentialInput, error) {
 	res, err := ec.unmarshalInputImageRegistryCredentialInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNIngressRule2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRule(ctx context.Context, sel ast.SelectionSet, v model.IngressRule) graphql.Marshaler {
+func (ec *executionContext) marshalNIngressRule2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRule(ctx context.Context, sel ast.SelectionSet, v model.IngressRule) graphql.Marshaler {
 	return ec._IngressRule(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNIngressRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.IngressRule) graphql.Marshaler {
+func (ec *executionContext) marshalNIngressRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.IngressRule) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -14493,7 +14497,7 @@ func (ec *executionContext) marshalNIngressRule2ᚕᚖgithubᚗcomᚋswiftwave�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNIngressRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRule(ctx, sel, v[i])
+			ret[i] = ec.marshalNIngressRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRule(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14513,7 +14517,7 @@ func (ec *executionContext) marshalNIngressRule2ᚕᚖgithubᚗcomᚋswiftwave�
 	return ret
 }
 
-func (ec *executionContext) marshalNIngressRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRule(ctx context.Context, sel ast.SelectionSet, v *model.IngressRule) graphql.Marshaler {
+func (ec *executionContext) marshalNIngressRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRule(ctx context.Context, sel ast.SelectionSet, v *model.IngressRule) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14523,26 +14527,26 @@ func (ec *executionContext) marshalNIngressRule2ᚖgithubᚗcomᚋswiftwaveᚑor
 	return ec._IngressRule(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNIngressRuleInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleInput(ctx context.Context, v interface{}) (model.IngressRuleInput, error) {
+func (ec *executionContext) unmarshalNIngressRuleInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleInput(ctx context.Context, v interface{}) (model.IngressRuleInput, error) {
 	res, err := ec.unmarshalInputIngressRuleInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNIngressRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleStatus(ctx context.Context, v interface{}) (model.IngressRuleStatus, error) {
+func (ec *executionContext) unmarshalNIngressRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleStatus(ctx context.Context, v interface{}) (model.IngressRuleStatus, error) {
 	var res model.IngressRuleStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNIngressRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐIngressRuleStatus(ctx context.Context, sel ast.SelectionSet, v model.IngressRuleStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNIngressRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleStatus(ctx context.Context, sel ast.SelectionSet, v model.IngressRuleStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNPersistentVolume2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v model.PersistentVolume) graphql.Marshaler {
+func (ec *executionContext) marshalNPersistentVolume2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v model.PersistentVolume) graphql.Marshaler {
 	return ec._PersistentVolume(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v *model.PersistentVolume) graphql.Marshaler {
+func (ec *executionContext) marshalNPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v *model.PersistentVolume) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14552,7 +14556,7 @@ func (ec *executionContext) marshalNPersistentVolume2ᚖgithubᚗcomᚋswiftwave
 	return ec._PersistentVolume(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPersistentVolumeBinding2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBindingᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PersistentVolumeBinding) graphql.Marshaler {
+func (ec *executionContext) marshalNPersistentVolumeBinding2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeBindingᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PersistentVolumeBinding) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -14576,7 +14580,7 @@ func (ec *executionContext) marshalNPersistentVolumeBinding2ᚕᚖgithubᚗcom�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPersistentVolumeBinding2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBinding(ctx, sel, v[i])
+			ret[i] = ec.marshalNPersistentVolumeBinding2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeBinding(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14596,7 +14600,7 @@ func (ec *executionContext) marshalNPersistentVolumeBinding2ᚕᚖgithubᚗcom�
 	return ret
 }
 
-func (ec *executionContext) marshalNPersistentVolumeBinding2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBinding(ctx context.Context, sel ast.SelectionSet, v *model.PersistentVolumeBinding) graphql.Marshaler {
+func (ec *executionContext) marshalNPersistentVolumeBinding2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeBinding(ctx context.Context, sel ast.SelectionSet, v *model.PersistentVolumeBinding) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14606,7 +14610,7 @@ func (ec *executionContext) marshalNPersistentVolumeBinding2ᚖgithubᚗcomᚋsw
 	return ec._PersistentVolumeBinding(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPersistentVolumeBindingInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBindingInputᚄ(ctx context.Context, v interface{}) ([]*model.PersistentVolumeBindingInput, error) {
+func (ec *executionContext) unmarshalNPersistentVolumeBindingInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeBindingInputᚄ(ctx context.Context, v interface{}) ([]*model.PersistentVolumeBindingInput, error) {
 	var vSlice []interface{}
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
@@ -14615,7 +14619,7 @@ func (ec *executionContext) unmarshalNPersistentVolumeBindingInput2ᚕᚖgithub�
 	res := make([]*model.PersistentVolumeBindingInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNPersistentVolumeBindingInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBindingInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNPersistentVolumeBindingInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeBindingInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -14623,31 +14627,31 @@ func (ec *executionContext) unmarshalNPersistentVolumeBindingInput2ᚕᚖgithub�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNPersistentVolumeBindingInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeBindingInput(ctx context.Context, v interface{}) (*model.PersistentVolumeBindingInput, error) {
+func (ec *executionContext) unmarshalNPersistentVolumeBindingInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeBindingInput(ctx context.Context, v interface{}) (*model.PersistentVolumeBindingInput, error) {
 	res, err := ec.unmarshalInputPersistentVolumeBindingInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNPersistentVolumeInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolumeInput(ctx context.Context, v interface{}) (model.PersistentVolumeInput, error) {
+func (ec *executionContext) unmarshalNPersistentVolumeInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeInput(ctx context.Context, v interface{}) (model.PersistentVolumeInput, error) {
 	res, err := ec.unmarshalInputPersistentVolumeInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐProtocolType(ctx context.Context, v interface{}) (model.ProtocolType, error) {
+func (ec *executionContext) unmarshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐProtocolType(ctx context.Context, v interface{}) (model.ProtocolType, error) {
 	var res model.ProtocolType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐProtocolType(ctx context.Context, sel ast.SelectionSet, v model.ProtocolType) graphql.Marshaler {
+func (ec *executionContext) marshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐProtocolType(ctx context.Context, sel ast.SelectionSet, v model.ProtocolType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNRedirectRule2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRule(ctx context.Context, sel ast.SelectionSet, v model.RedirectRule) graphql.Marshaler {
+func (ec *executionContext) marshalNRedirectRule2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRule(ctx context.Context, sel ast.SelectionSet, v model.RedirectRule) graphql.Marshaler {
 	return ec._RedirectRule(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRedirectRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RedirectRule) graphql.Marshaler {
+func (ec *executionContext) marshalNRedirectRule2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RedirectRule) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -14671,7 +14675,7 @@ func (ec *executionContext) marshalNRedirectRule2ᚕᚖgithubᚗcomᚋswiftwave�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNRedirectRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRule(ctx, sel, v[i])
+			ret[i] = ec.marshalNRedirectRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRule(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14691,7 +14695,7 @@ func (ec *executionContext) marshalNRedirectRule2ᚕᚖgithubᚗcomᚋswiftwave�
 	return ret
 }
 
-func (ec *executionContext) marshalNRedirectRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRule(ctx context.Context, sel ast.SelectionSet, v *model.RedirectRule) graphql.Marshaler {
+func (ec *executionContext) marshalNRedirectRule2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRule(ctx context.Context, sel ast.SelectionSet, v *model.RedirectRule) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14701,18 +14705,18 @@ func (ec *executionContext) marshalNRedirectRule2ᚖgithubᚗcomᚋswiftwaveᚑo
 	return ec._RedirectRule(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNRedirectRuleInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleInput(ctx context.Context, v interface{}) (model.RedirectRuleInput, error) {
+func (ec *executionContext) unmarshalNRedirectRuleInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRuleInput(ctx context.Context, v interface{}) (model.RedirectRuleInput, error) {
 	res, err := ec.unmarshalInputRedirectRuleInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNRedirectRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleStatus(ctx context.Context, v interface{}) (model.RedirectRuleStatus, error) {
+func (ec *executionContext) unmarshalNRedirectRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRuleStatus(ctx context.Context, v interface{}) (model.RedirectRuleStatus, error) {
 	var res model.RedirectRuleStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNRedirectRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐRedirectRuleStatus(ctx context.Context, sel ast.SelectionSet, v model.RedirectRuleStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNRedirectRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRuleStatus(ctx context.Context, sel ast.SelectionSet, v model.RedirectRuleStatus) graphql.Marshaler {
 	return v
 }
 
@@ -14761,13 +14765,13 @@ func (ec *executionContext) marshalNUint2uint(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalNUpstreamType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐUpstreamType(ctx context.Context, v interface{}) (model.UpstreamType, error) {
+func (ec *executionContext) unmarshalNUpstreamType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐUpstreamType(ctx context.Context, v interface{}) (model.UpstreamType, error) {
 	var res model.UpstreamType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNUpstreamType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐUpstreamType(ctx context.Context, sel ast.SelectionSet, v model.UpstreamType) graphql.Marshaler {
+func (ec *executionContext) marshalNUpstreamType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐUpstreamType(ctx context.Context, sel ast.SelectionSet, v model.UpstreamType) graphql.Marshaler {
 	return v
 }
 
@@ -15050,7 +15054,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) unmarshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, v interface{}) (*model.GitProvider, error) {
+func (ec *executionContext) unmarshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, v interface{}) (*model.GitProvider, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -15059,14 +15063,14 @@ func (ec *executionContext) unmarshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, sel ast.SelectionSet, v *model.GitProvider) graphql.Marshaler {
+func (ec *executionContext) marshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, sel ast.SelectionSet, v *model.GitProvider) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) marshalOPersistentVolume2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v []*model.PersistentVolume) graphql.Marshaler {
+func (ec *executionContext) marshalOPersistentVolume2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v []*model.PersistentVolume) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -15093,7 +15097,7 @@ func (ec *executionContext) marshalOPersistentVolume2ᚕᚖgithubᚗcomᚋswiftw
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx, sel, v[i])
+			ret[i] = ec.marshalOPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolume(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -15107,7 +15111,7 @@ func (ec *executionContext) marshalOPersistentVolume2ᚕᚖgithubᚗcomᚋswiftw
 	return ret
 }
 
-func (ec *executionContext) marshalOPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_managerᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v *model.PersistentVolume) graphql.Marshaler {
+func (ec *executionContext) marshalOPersistentVolume2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v *model.PersistentVolume) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

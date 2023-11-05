@@ -4,3 +4,5 @@ scalar Uint
 type Query
 
 type Mutation
+
+type Subscription

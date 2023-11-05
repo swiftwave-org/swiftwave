@@ -41,8 +41,6 @@ type Deployment {
     # Common Fields
     buildArgs: [BuildArg!]!
     dockerfile: String!
-    # logs
-    deploymentLogs: [DeploymentLog!]!
     # meta
     status: DeploymentStatus!
     createdAt: Time!

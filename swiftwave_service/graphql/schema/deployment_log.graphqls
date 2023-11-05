@@ -2,3 +2,7 @@ type DeploymentLog {
     content: String!
     createdAt: Time!
 }
+
+extend type Subscription {
+    fetchDeploymentLog(id: String!): DeploymentLog!
+}

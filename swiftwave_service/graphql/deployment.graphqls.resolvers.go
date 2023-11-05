@@ -6,9 +6,8 @@ package graphql
 
 import (
 	"context"
-	"fmt"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
 
@@ -60,11 +59,6 @@ func (r *deploymentResolver) BuildArgs(ctx context.Context, obj *model.Deploymen
 		result = append(result, buildArgToGraphqlObject(record))
 	}
 	return result, nil
-}
-
-// DeploymentLogs is the resolver for the deploymentLogs field.
-func (r *deploymentResolver) DeploymentLogs(ctx context.Context, obj *model.Deployment) ([]*model.DeploymentLog, error) {
-	panic(fmt.Errorf("not implemented: DeploymentLogs - deploymentLogs"))
 }
 
 // Deployment returns DeploymentResolver implementation.

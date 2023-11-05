@@ -191,3 +191,12 @@ func FindDeploymentsByGitCredentialId(ctx context.Context, db gorm.DB, id uint) 
 	}
 	return deployments, nil
 }
+
+func FindDeploymentStatusByID(ctx context.Context, db gorm.DB, id string) (*DeploymentStatus, error) {
+	var deployment = &Deployment{}
+	tx := db.Select("status").Where("id = ?", id).First(&deployment)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return &deployment.Status, nil
+}

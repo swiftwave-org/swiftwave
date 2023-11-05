@@ -75,7 +75,6 @@ type Deployment struct {
 	ImageRegistryCredential      *ImageRegistryCredential `json:"imageRegistryCredential"`
 	BuildArgs                    []*BuildArg              `json:"buildArgs"`
 	Dockerfile                   string                   `json:"dockerfile"`
-	DeploymentLogs               []*DeploymentLog         `json:"deploymentLogs"`
 	Status                       DeploymentStatus         `json:"status"`
 	CreatedAt                    time.Time                `json:"createdAt"`
 }

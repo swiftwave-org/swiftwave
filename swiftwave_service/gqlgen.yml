@@ -71,8 +71,6 @@ models:
         resolver: true
       buildArgs:
         resolver: true
-      deploymentLogs:
-        resolver: true
   ImageRegistryCredential:
     fields:
       deployments:

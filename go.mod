@@ -12,6 +12,7 @@ require (
 	github.com/hashicorp/go-set v0.1.14
 	github.com/labstack/echo/v4 v4.11.2
 	github.com/mholt/acmez v1.2.0
+	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/vektah/gqlparser/v2 v2.5.10
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.5.4
@@ -40,7 +41,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.17 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
-	github.com/rabbitmq/amqp091-go v1.9.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/skeema/knownhosts v1.2.0 // indirect
 	github.com/sosodev/duration v1.1.0 // indirect

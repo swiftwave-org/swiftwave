@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 
-cd ./swiftwave_manager && go run github.com/99designs/gqlgen generate
+cd ./swiftwave_service && go run github.com/99designs/gqlgen generate
