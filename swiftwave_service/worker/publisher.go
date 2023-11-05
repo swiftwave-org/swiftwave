@@ -13,6 +13,12 @@ func (m Manager) EnqueueDeployApplicationRequest(applicationId string) error {
 	})
 }
 
+func (m Manager) EnqueueDeleteApplicationRequest(applicationId string) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(deleteApplicationQueueName, DeleteApplicationRequest{
+		Id: applicationId,
+	})
+}
+
 func (m Manager) EnqueueSSLGenerateRequest(domainId uint) error {
 	return m.ServiceManager.TaskQueueClient.EnqueueTask(sslGenerateQueueName, SSLGenerateRequest{
 		DomainId: domainId,

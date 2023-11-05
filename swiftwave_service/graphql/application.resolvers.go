@@ -147,8 +147,11 @@ func (r *mutationResolver) DeleteApplication(ctx context.Context, id string) (bo
 	if err != nil {
 		return false, err
 	}
-	// TODO: push to queue for deletion
-
+	// push delete request to worker
+	err = r.WorkerManager.EnqueueDeleteApplicationRequest(record.ID)
+	if err != nil {
+		return false, errors.New("failed to process application delete request")
+	}
 	return true, nil
 }
 

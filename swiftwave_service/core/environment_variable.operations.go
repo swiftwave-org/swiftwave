@@ -17,6 +17,11 @@ func FindEnvironmentVariablesByApplicationId(ctx context.Context, db gorm.DB, ap
 	return environmentVariables, tx.Error
 }
 
+func DeleteEnvironmentVariablesByApplicationId(ctx context.Context, db gorm.DB, applicationId string) error {
+	tx := db.Delete(&EnvironmentVariable{}, "application_id = ?", applicationId)
+	return tx.Error
+}
+
 func (e *EnvironmentVariable) Create(ctx context.Context, db gorm.DB) error {
 	tx := db.Create(e)
 	return tx.Error

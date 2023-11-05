@@ -16,3 +16,8 @@ func FindBuildArgsByDeploymentId(ctx context.Context, db gorm.DB, deploymentId s
 	tx := db.Where("deployment_id = ?", deploymentId).Find(&buildArgs)
 	return buildArgs, tx.Error
 }
+
+func DeleteBuildArgsByDeploymentId(ctx context.Context, db gorm.DB, deploymentId string) error {
+	tx := db.Where("deployment_id = ?", deploymentId).Delete(&BuildArg{})
+	return tx.Error
+}

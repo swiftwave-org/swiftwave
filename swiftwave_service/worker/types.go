@@ -14,6 +14,7 @@ type Manager struct {
 const (
 	buildApplicationQueueName   = "build_application"
 	deployApplicationQueueName  = "deploy_application"
+	deleteApplicationQueueName  = "delete_application"
 	ingressRuleApplyQueueName   = "ingress_rule_apply"
 	ingressRuleDeleteQueueName  = "ingress_rule_delete"
 	redirectRuleApplyQueueName  = "redirect_rule_apply"
@@ -57,4 +58,9 @@ type RedirectRuleDeleteRequest struct {
 // SSLGenerateRequest : request payload for ssl generate
 type SSLGenerateRequest struct {
 	DomainId uint `json:"domain_id"`
+}
+
+// DeleteApplicationRequest : request payload for application delete
+type DeleteApplicationRequest struct {
+	Id string `json:"id"`
 }

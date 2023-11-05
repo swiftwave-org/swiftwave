@@ -331,6 +331,14 @@ func (application *Application) Delete(ctx context.Context, db gorm.DB, dockerMa
 	if isDeleted {
 		return errors.New("application is deleted")
 	}
+	// ensure there is no ingress rule associated with this application
+	ingressRules, err := FindIngressRulesByApplicationID(ctx, db, application.ID)
+	if err != nil {
+		return err
+	}
+	if ingressRules != nil && len(ingressRules) > 0 {
+		return errors.New("application has ingress rules associated with it")
+	}
 	// do soft delete
 	tx := db.Model(&application).Update("is_deleted", true)
 	return tx.Error

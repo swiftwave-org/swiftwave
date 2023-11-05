@@ -20,3 +20,8 @@ func FindAllDeploymentLogsByDeploymentId(ctx context.Context, db gorm.DB, id str
 	}
 	return deploymentLogs, nil
 }
+
+func DeleteBuildLogsByDeploymentId(ctx context.Context, db gorm.DB, deploymentId string) error {
+	tx := db.Where("deployment_id = ?", deploymentId).Delete(&DeploymentLog{})
+	return tx.Error
+}

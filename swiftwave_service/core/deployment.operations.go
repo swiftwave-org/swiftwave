@@ -41,6 +41,25 @@ func FindDeploymentsByApplicationId(ctx context.Context, db gorm.DB, id string) 
 	return deployments, nil
 }
 
+func DeleteDeploymentsByApplicationId(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager, id string) ([]string, error) {
+	// deployment ids
+	var deploymentIds = make([]string, 0)
+	// fetch deployments
+	deployments, err := FindDeploymentsByApplicationId(ctx, db, id)
+	if err != nil {
+		return deploymentIds, err
+	}
+	// delete deployments
+	for _, deployment := range deployments {
+		err = deployment.Delete(ctx, db, dockerManager)
+		if err != nil {
+			return deploymentIds, err
+		}
+		deploymentIds = append(deploymentIds, deployment.ID)
+	}
+	return deploymentIds, nil
+}
+
 func (deployment *Deployment) FindById(ctx context.Context, db gorm.DB, id string) error {
 	tx := db.First(&deployment, "id = ?", id)
 	return tx.Error

@@ -25,6 +25,7 @@ func (m Manager) registerWorkerFunctions() {
 	taskQueueClient := m.ServiceManager.TaskQueueClient
 	panicOnError(taskQueueClient.RegisterFunction(buildApplicationQueueName, m.BuildApplication))
 	panicOnError(taskQueueClient.RegisterFunction(deployApplicationQueueName, m.DeployApplication))
+	panicOnError(taskQueueClient.RegisterFunction(deleteApplicationQueueName, m.DeleteApplication))
 	panicOnError(taskQueueClient.RegisterFunction(ingressRuleApplyQueueName, m.IngressRuleApply))
 	panicOnError(taskQueueClient.RegisterFunction(ingressRuleDeleteQueueName, m.IngressRuleDelete))
 	panicOnError(taskQueueClient.RegisterFunction(redirectRuleApplyQueueName, m.RedirectRuleApply))

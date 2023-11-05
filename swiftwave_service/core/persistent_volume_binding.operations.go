@@ -37,3 +37,8 @@ func (p *PersistentVolumeBinding) Delete(ctx context.Context, db gorm.DB) error 
 	tx := db.Delete(p)
 	return tx.Error
 }
+
+func DeletePersistentVolumeBindingsByApplicationId(ctx context.Context, db gorm.DB, applicationId string) error {
+	tx := db.Delete(&PersistentVolumeBinding{}, "application_id = ?", applicationId)
+	return tx.Error
+}
