@@ -79,40 +79,46 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 	}
 	// docker pull image
 	dockerImageUri := deployment.DeployableDockerImageURI()
-	scanner, err := m.ServiceManager.DockerManager.PullImage(deployment.DeployableDockerImageURI()) // TODO: add support for providing auth credentials
-	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to pull docker image")
-		return err
-	}
-	// read the logs
-	if scanner != nil {
-		var data map[string]interface{}
-		for scanner.Scan() {
-			err = json.Unmarshal(scanner.Bytes(), &data)
-			if err != nil {
-				continue
-			}
-			if data["status"] != nil {
-				status := data["status"].(string)
-				id := ""
-				if data["id"] != nil {
-					id = data["id"].(string)
+	// check if image exists
+	isImageExists := m.ServiceManager.DockerManager.ExistsImage(dockerImageUri)
+	if isImageExists {
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image already exists")
+	} else {
+		scanner, err := m.ServiceManager.DockerManager.PullImage(deployment.DeployableDockerImageURI()) // TODO: add support for providing auth credentials
+		if err != nil {
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to pull docker image")
+			return err
+		}
+		// read the logs
+		if scanner != nil {
+			var data map[string]interface{}
+			for scanner.Scan() {
+				err = json.Unmarshal(scanner.Bytes(), &data)
+				if err != nil {
+					continue
 				}
-				if strings.HasPrefix(status, "Pulling from") ||
-					strings.Compare(status, "Pulling fs layer") == 0 ||
-					strings.Compare(status, "Verifying Checksum") == 0 ||
-					strings.Compare(status, "Download complete") == 0 ||
-					strings.Compare(status, "Pull complete") == 0 ||
-					strings.HasPrefix(status, "Digest:") ||
-					strings.HasPrefix(status, "Status:") {
-					logContent := fmt.Sprintf("%s %s", status, id)
-					addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, logContent)
-				}
+				if data["status"] != nil {
+					status := data["status"].(string)
+					id := ""
+					if data["id"] != nil {
+						id = data["id"].(string)
+					}
+					if strings.HasPrefix(status, "Pulling from") ||
+						strings.Compare(status, "Pulling fs layer") == 0 ||
+						strings.Compare(status, "Verifying Checksum") == 0 ||
+						strings.Compare(status, "Download complete") == 0 ||
+						strings.Compare(status, "Pull complete") == 0 ||
+						strings.HasPrefix(status, "Digest:") ||
+						strings.HasPrefix(status, "Status:") {
+						logContent := fmt.Sprintf("%s %s", status, id)
+						addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, logContent)
+					}
 
+				}
 			}
 		}
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image pulled successfully")
 	}
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image pulled successfully")
 	// create service
 	service := containermanger.Service{
 		Name:         application.Name,

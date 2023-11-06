@@ -41,7 +41,7 @@ func (m Manager) DeleteApplication(request DeleteApplicationRequest) error {
 	// delete application from swarm manager
 	err = dockerManager.RemoveService(application.Name)
 	if err != nil {
-		log.Println("error deleting application from swarm manager : " + application.Name)
+		log.Println("[WARN] error deleting application from swarm manager : " + application.Name)
 	}
 
 	return nil

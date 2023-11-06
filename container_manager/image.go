@@ -58,3 +58,13 @@ func (m Manager) PullImage(image string) (*bufio.Scanner, error) {
 	}
 	return bufio.NewScanner(scanner), nil
 }
+
+// ExistsImage checks if a Docker image exists locally.
+func (m Manager) ExistsImage(image string) bool {
+	// Check if the image exists locally
+	_, _, err := m.client.ImageInspectWithRaw(m.ctx, image)
+	if err != nil {
+		return false
+	}
+	return true
+}

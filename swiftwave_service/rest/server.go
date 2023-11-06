@@ -12,5 +12,5 @@ func (server *Server) Initialize() {
 
 func (server *Server) initiateProjectRoutes(e *echo.Echo) {
 	// Initiating Routes for Project
-	e.GET("/upload/code", server.uploadTarFile)
+	e.POST("/upload/code", server.uploadTarFile)
 }
