@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"github.com/google/uuid"
-	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	"gorm.io/gorm"
 	"time"
 )
@@ -41,31 +40,12 @@ func FindDeploymentsByApplicationId(ctx context.Context, db gorm.DB, id string) 
 	return deployments, nil
 }
 
-func DeleteDeploymentsByApplicationId(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager, id string) ([]string, error) {
-	// deployment ids
-	var deploymentIds = make([]string, 0)
-	// fetch deployments
-	deployments, err := FindDeploymentsByApplicationId(ctx, db, id)
-	if err != nil {
-		return deploymentIds, err
-	}
-	// delete deployments
-	for _, deployment := range deployments {
-		err = deployment.Delete(ctx, db, dockerManager)
-		if err != nil {
-			return deploymentIds, err
-		}
-		deploymentIds = append(deploymentIds, deployment.ID)
-	}
-	return deploymentIds, nil
-}
-
 func (deployment *Deployment) FindById(ctx context.Context, db gorm.DB, id string) error {
 	tx := db.First(&deployment, "id = ?", id)
 	return tx.Error
 }
 
-func (deployment *Deployment) Create(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
+func (deployment *Deployment) Create(ctx context.Context, db gorm.DB) error {
 	deployment.ID = uuid.NewString()
 	deployment.CreatedAt = time.Now()
 	deployment.Status = DeploymentStatusPending
@@ -77,7 +57,7 @@ func (deployment *Deployment) Create(ctx context.Context, db gorm.DB, dockerMana
 // always recreate deployment, no update [except status]
 // fetch latest deployment
 // the `deployment` object seem to be updated by the caller and ID should be the old one
-func (deployment *Deployment) Update(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) (*DeploymentUpdateResult, error) {
+func (deployment *Deployment) Update(ctx context.Context, db gorm.DB) (*DeploymentUpdateResult, error) {
 	// fetch latest deployment
 	latestDeployment := &Deployment{}
 	tx := db.Preload("BuildArgs").Find(&latestDeployment, "id = ?", deployment.ID)
@@ -123,7 +103,7 @@ func (deployment *Deployment) Update(ctx context.Context, db gorm.DB, dockerMana
 
 	// recreate deployment
 	if recreationRequired {
-		err := deployment.Create(ctx, db, dockerManager)
+		err := deployment.Create(ctx, db)
 		if err != nil {
 			return nil, err
 		} else {
@@ -143,13 +123,13 @@ func (deployment *Deployment) Update(ctx context.Context, db gorm.DB, dockerMana
 	return result, nil
 }
 
-func (deployment *Deployment) UpdateStatus(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager, status DeploymentStatus) error {
+func (deployment *Deployment) UpdateStatus(ctx context.Context, db gorm.DB, status DeploymentStatus) error {
 	// update status
 	tx := db.Model(&deployment).Update("status", status)
 	return tx.Error
 }
 
-func (deployment *Deployment) Delete(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
+func (deployment *Deployment) Delete(ctx context.Context, db gorm.DB) error {
 	// delete all build args
 	tx := db.Where("deployment_id = ?", deployment.ID).Delete(&BuildArg{})
 	if tx.Error != nil {

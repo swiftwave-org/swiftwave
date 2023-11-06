@@ -179,7 +179,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		// other fields
 		Dockerfile: application.LatestDeployment.Dockerfile,
 	}
-	err = createdDeployment.Create(ctx, db, dockerManager)
+	err = createdDeployment.Create(ctx, db)
 	if err != nil {
 		return err
 	}
@@ -333,7 +333,7 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 	// set deployment id
 	application.LatestDeployment.ID = currentDeploymentID
 	// send call to update deployment
-	updateDeploymentStatus, err := application.LatestDeployment.Update(ctx, db, dockerManager)
+	updateDeploymentStatus, err := application.LatestDeployment.Update(ctx, db)
 	if err != nil {
 		return nil, err
 	}

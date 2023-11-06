@@ -136,7 +136,7 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 		err = m.ServiceManager.DockerManager.CreateService(service)
 		if err != nil {
 			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to deploy the application")
-			err := deployment.UpdateStatus(ctx, dbWithoutTx, m.ServiceManager.DockerManager, core.DeploymentStatusFailed)
+			err := deployment.UpdateStatus(ctx, dbWithoutTx, core.DeploymentStatusFailed)
 			if err != nil {
 				log.Println("Failed to update deployment status to failed")
 			}
@@ -150,7 +150,7 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 		err = m.ServiceManager.DockerManager.UpdateService(service)
 		if err != nil {
 			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update the application")
-			err := deployment.UpdateStatus(ctx, dbWithoutTx, m.ServiceManager.DockerManager, core.DeploymentStatusFailed)
+			err := deployment.UpdateStatus(ctx, dbWithoutTx, core.DeploymentStatusFailed)
 			if err != nil {
 				log.Println("Failed to update deployment status to failed")
 			}
@@ -160,7 +160,7 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application re-deployed successfully")
 	}
 	// update deployment status
-	err = deployment.UpdateStatus(ctx, dbWithoutTx, m.ServiceManager.DockerManager, core.DeploymentStatusLive)
+	err = deployment.UpdateStatus(ctx, dbWithoutTx, core.DeploymentStatusLive)
 	if err != nil {
 		return err
 	}
