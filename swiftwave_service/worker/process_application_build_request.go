@@ -68,6 +68,7 @@ func (m Manager) BuildApplication(request BuildApplicationRequest) error {
 
 // private functions
 func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, ctx context.Context, containerManager containermanger.Manager, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client) error {
+	// TODO: add support for registry authentication
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "As the upstream type is image, no build is required")
 	err := deployment.UpdateStatus(ctx, dbWithoutTx, containerManager, core.DeploymentStatusDeployPending)
 	if err != nil {
@@ -88,27 +89,34 @@ func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, ctx
 }
 
 func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context.Context, containerManager containermanger.Manager, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client) error {
-	// fetch git credentials
-	gitCredentials := &core.GitCredential{}
-	if deployment.GitCredentialID == nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Git credential id is not provided")
-		err := deployment.UpdateStatus(ctx, dbWithoutTx, containerManager, core.DeploymentStatusFailed)
-		if err != nil {
-			return err
+	gitUsername := ""
+	gitPassword := ""
+
+	if deployment.GitCredentialID != nil {
+		// fetch git credentials
+		gitCredentials := &core.GitCredential{}
+		if deployment.GitCredentialID == nil {
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Git credential id is not provided")
+			err := deployment.UpdateStatus(ctx, dbWithoutTx, containerManager, core.DeploymentStatusFailed)
+			if err != nil {
+				return err
+			}
+			return nil
 		}
-		return nil
-	}
-	err := gitCredentials.FindById(ctx, db, *deployment.GitCredentialID)
-	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch git credentials")
-		err := deployment.UpdateStatus(ctx, dbWithoutTx, containerManager, core.DeploymentStatusFailed)
+		err := gitCredentials.FindById(ctx, db, *deployment.GitCredentialID)
 		if err != nil {
-			return err
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch git credentials")
+			err := deployment.UpdateStatus(ctx, dbWithoutTx, containerManager, core.DeploymentStatusFailed)
+			if err != nil {
+				return err
+			}
 		}
+		gitUsername = gitCredentials.Username
+		gitPassword = gitCredentials.Password
 	}
 	// create temporary directory for git clone
 	tempDirectory := "/tmp/" + uuid.New().String()
-	err = os.Mkdir(tempDirectory, 0777)
+	err := os.Mkdir(tempDirectory, 0777)
 	if err != nil {
 		return err
 	}
@@ -120,7 +128,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context
 		}
 	}(tempDirectory)
 	// fetch commit hash
-	commitHash, err := gitmanager.FetchLatestCommitHash(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitCredentials.Username, gitCredentials.Password)
+	commitHash, err := gitmanager.FetchLatestCommitHash(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitUsername, gitPassword)
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch latest commit hash")
 		err := deployment.UpdateStatus(ctx, dbWithoutTx, containerManager, core.DeploymentStatusFailed)
@@ -134,7 +142,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context
 	deployment.CommitHash = commitHash
 	// clone git repository
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Cloning git repository > "+deployment.GitRepositoryURL())
-	err = gitmanager.CloneRepository(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitCredentials.Username, gitCredentials.Password, tempDirectory)
+	err = gitmanager.CloneRepository(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitUsername, gitPassword, tempDirectory)
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to clone git repository")
 		err := deployment.UpdateStatus(ctx, dbWithoutTx, containerManager, core.DeploymentStatusFailed)
@@ -164,6 +172,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image")
 		return err
 	}
+	isErrorEncountered := false
 	if scanner != nil {
 		var data map[string]interface{}
 		for scanner.Scan() {
@@ -174,7 +183,22 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context
 			if data["stream"] != nil {
 				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["stream"].(string))
 			}
+			if data["error"] != nil {
+				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["error"].(string))
+				isErrorEncountered = true
+				break
+			}
 		}
+	}
+	if isErrorEncountered {
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed")
+		// update status
+		err = deployment.UpdateStatus(ctx, dbWithoutTx, containerManager, core.DeploymentStatusFailed)
+		if err != nil {
+			return err
+		}
+		// retuning nil as we don't want to requeue the job because it may fail for same reason
+		return nil
 	}
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully")
 	// update status
@@ -251,6 +275,7 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, ctx con
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image")
 		return err
 	}
+	isErrorEncountered := false
 	if scanner != nil {
 		var data map[string]interface{}
 		for scanner.Scan() {
@@ -261,7 +286,23 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, ctx con
 			if data["stream"] != nil {
 				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["stream"].(string))
 			}
+			if data["error"] != nil {
+				println(data["error"].(string))
+				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["error"].(string))
+				isErrorEncountered = true
+				break
+			}
 		}
+	}
+	if isErrorEncountered {
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed")
+		// update status
+		err = deployment.UpdateStatus(ctx, dbWithoutTx, containerManager, core.DeploymentStatusFailed)
+		if err != nil {
+			return err
+		}
+		// retuning nil as we don't want to requeue the job because it may fail for same reason
+		return nil
 	}
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully")
 	// update status
