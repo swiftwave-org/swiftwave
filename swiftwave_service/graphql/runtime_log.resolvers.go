@@ -8,10 +8,10 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"io"
 	"time"
 
+	dbmodel "github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
 

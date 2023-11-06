@@ -7,6 +7,7 @@ package graphql
 import (
 	"context"
 	"errors"
+
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
@@ -153,7 +154,7 @@ func (r *mutationResolver) DeleteApplication(ctx context.Context, id string) (bo
 		return false, err
 	}
 	// delete record
-	err = record.Delete(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
+	err = record.SoftDelete(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
 	if err != nil {
 		return false, err
 	}

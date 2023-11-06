@@ -97,15 +97,15 @@ type Application struct {
 	Name string `json:"name" gorm:"unique"`
 	// Environment Variables
 	// On change of environment variables, deployment will be triggered by force update
-	EnvironmentVariables []EnvironmentVariable `json:"environmentVariables" gorm:"foreignKey:ApplicationID"`
+	EnvironmentVariables []EnvironmentVariable `json:"environmentVariables" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// Persistent Volumes
 	// On change of persistent volumes, deployment will be triggered by force update
-	PersistentVolumeBindings []PersistentVolumeBinding `json:"persistentVolumeBindings" gorm:"foreignKey:ApplicationID"`
+	PersistentVolumeBindings []PersistentVolumeBinding `json:"persistentVolumeBindings" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// No of replicas to be deployed
 	DeploymentMode DeploymentMode `json:"deploymentMode"`
 	Replicas       uint           `json:"replicas"`
 	// Deployments
-	Deployments []Deployment `json:"deployments" gorm:"foreignKey:ApplicationID"`
+	Deployments []Deployment `json:"deployments" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// Latest Deployment
 	LatestDeployment Deployment `json:"-"`
 	// Ingress Rules
@@ -132,10 +132,10 @@ type Deployment struct {
 	DockerImage               string `json:"dockerImage"`
 	ImageRegistryCredentialID *uint  `json:"imageRegistryCredentialID"`
 	// Common Fields
-	BuildArgs  []BuildArg `json:"buildArgs" gorm:"foreignKey:DeploymentID"`
+	BuildArgs  []BuildArg `json:"buildArgs" gorm:"foreignKey:DeploymentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Dockerfile string     `json:"dockerfile"`
 	// Logs
-	Logs []DeploymentLog `json:"logs" gorm:"foreignKey:DeploymentID"`
+	Logs []DeploymentLog `json:"logs" gorm:"foreignKey:DeploymentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// Deployment Status
 	Status DeploymentStatus `json:"status"`
 	// Created At

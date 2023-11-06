@@ -19,6 +19,7 @@ type Application struct {
 	DeploymentMode           DeploymentMode             `json:"deploymentMode"`
 	Replicas                 uint                       `json:"replicas"`
 	IngressRules             []*IngressRule             `json:"ingressRules"`
+	IsDeleted                bool                       `json:"isDeleted"`
 }
 
 type ApplicationInput struct {
@@ -268,26 +269,26 @@ func (e DeploymentMode) MarshalGQL(w io.Writer) {
 type DeploymentStatus string
 
 const (
-	DeploymentStatusPending   DeploymentStatus = "pending"
-	DeploymentStatusQueued    DeploymentStatus = "queued"
-	DeploymentStatusDeploying DeploymentStatus = "deploying"
-	DeploymentStatusRunning   DeploymentStatus = "running"
-	DeploymentStatusStopped   DeploymentStatus = "stopped"
-	DeploymentStatusFailed    DeploymentStatus = "failed"
+	DeploymentStatusPending       DeploymentStatus = "pending"
+	DeploymentStatusDeployPending DeploymentStatus = "deployPending"
+	DeploymentStatusDeploying     DeploymentStatus = "deploying"
+	DeploymentStatusLive          DeploymentStatus = "live"
+	DeploymentStatusStopped       DeploymentStatus = "stopped"
+	DeploymentStatusFailed        DeploymentStatus = "failed"
 )
 
 var AllDeploymentStatus = []DeploymentStatus{
 	DeploymentStatusPending,
-	DeploymentStatusQueued,
+	DeploymentStatusDeployPending,
 	DeploymentStatusDeploying,
-	DeploymentStatusRunning,
+	DeploymentStatusLive,
 	DeploymentStatusStopped,
 	DeploymentStatusFailed,
 }
 
 func (e DeploymentStatus) IsValid() bool {
 	switch e {
-	case DeploymentStatusPending, DeploymentStatusQueued, DeploymentStatusDeploying, DeploymentStatusRunning, DeploymentStatusStopped, DeploymentStatusFailed:
+	case DeploymentStatusPending, DeploymentStatusDeployPending, DeploymentStatusDeploying, DeploymentStatusLive, DeploymentStatusStopped, DeploymentStatusFailed:
 		return true
 	}
 	return false
@@ -320,17 +321,19 @@ const (
 	DomainSSLStatusNone    DomainSSLStatus = "none"
 	DomainSSLStatusPending DomainSSLStatus = "pending"
 	DomainSSLStatusIssued  DomainSSLStatus = "issued"
+	DomainSSLStatusFailed  DomainSSLStatus = "failed"
 )
 
 var AllDomainSSLStatus = []DomainSSLStatus{
 	DomainSSLStatusNone,
 	DomainSSLStatusPending,
 	DomainSSLStatusIssued,
+	DomainSSLStatusFailed,
 }
 
 func (e DomainSSLStatus) IsValid() bool {
 	switch e {
-	case DomainSSLStatusNone, DomainSSLStatusPending, DomainSSLStatusIssued:
+	case DomainSSLStatusNone, DomainSSLStatusPending, DomainSSLStatusIssued, DomainSSLStatusFailed:
 		return true
 	}
 	return false

@@ -13,6 +13,7 @@ type Application {
     deploymentMode: DeploymentMode!
     replicas: Uint!
     ingressRules: [IngressRule!]!
+    isDeleted: Boolean!
 }
 
 input ApplicationInput {

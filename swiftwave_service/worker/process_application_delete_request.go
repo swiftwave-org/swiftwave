@@ -26,44 +26,10 @@ func (m Manager) DeleteApplication(request DeleteApplicationRequest) error {
 	// start a db transaction
 	tx := dbWithoutTx.Begin()
 	// delete application
-	err = application.Delete(ctx, *tx, dockerManager)
+	err = application.HardDelete(ctx, *tx, dockerManager)
 	if err != nil {
 		tx.Rollback()
 		return err
-	}
-	// delete persistent volume bindings
-	err = core.DeletePersistentVolumeBindingsByApplicationId(ctx, *tx, request.Id)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	// delete environment variables
-	err = core.DeleteEnvironmentVariablesByApplicationId(ctx, *tx, request.Id)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	// delete deployments
-	deploymentIds, err := core.DeleteDeploymentsByApplicationId(ctx, *tx, dockerManager, request.Id)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	for _, deploymentId := range deploymentIds {
-		// delete build args
-		err = core.DeleteBuildArgsByDeploymentId(ctx, *tx, deploymentId)
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
-		// delete build logs
-		err = core.DeleteBuildLogsByDeploymentId(ctx, *tx, deploymentId)
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
 	}
 
 	// commit the transaction

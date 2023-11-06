@@ -37,7 +37,7 @@ func IsExistApplicationName(ctx context.Context, db gorm.DB, dockerManager conta
 
 func FindAllApplications(ctx context.Context, db gorm.DB) ([]*Application, error) {
 	var applications []*Application
-	tx := db.Where("is_deleted = ?", false).Find(&applications)
+	tx := db.Find(&applications)
 	return applications, tx.Error
 }
 
@@ -45,10 +45,6 @@ func (application *Application) FindById(ctx context.Context, db gorm.DB, id str
 	tx := db.Where("id = ?", id).First(&application)
 	if tx.Error != nil {
 		return tx.Error
-	}
-	// check if it's deleted
-	if application.IsDeleted {
-		return errors.New("application is deleted")
 	}
 	return nil
 }
@@ -328,7 +324,7 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 	}, nil
 }
 
-func (application *Application) Delete(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
+func (application *Application) SoftDelete(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
 	// ensure that application is not deleted
 	isDeleted, err := application.IsApplicationDeleted(ctx, db)
 	if err != nil {
@@ -347,6 +343,20 @@ func (application *Application) Delete(ctx context.Context, db gorm.DB, dockerMa
 	}
 	// do soft delete
 	tx := db.Model(&application).Update("is_deleted", true)
+	return tx.Error
+}
+
+func (application *Application) HardDelete(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
+	// ensure there is no ingress rule associated with this application
+	ingressRules, err := FindIngressRulesByApplicationID(ctx, db, application.ID)
+	if err != nil {
+		return err
+	}
+	if ingressRules != nil && len(ingressRules) > 0 {
+		return errors.New("application has ingress rules associated with it")
+	}
+	// delete application
+	tx := db.Delete(&application)
 	return tx.Error
 }
 

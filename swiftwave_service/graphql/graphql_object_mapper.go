@@ -169,6 +169,7 @@ func applicationToGraphqlObject(record *core.Application) *model.Application {
 		Name:           record.Name,
 		DeploymentMode: model.DeploymentMode(record.DeploymentMode),
 		Replicas:       record.Replicas,
+		IsDeleted:      record.IsDeleted,
 	}
 }
 

@@ -99,8 +99,8 @@ func (r *mutationResolver) IssueSsl(ctx context.Context, id uint) (*model.Domain
 }
 
 // AddCustomSsl is the resolver for the addCustomSSL field.
-// TODO: add support for custom ssl
 func (r *mutationResolver) AddCustomSsl(ctx context.Context, id uint, input model.CustomSSLInput) (*model.Domain, error) {
+	// TODO: add support for custom ssl
 	// fetch record
 	record := core.Domain{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
