@@ -124,6 +124,7 @@ echo "$haproxy_cfg" >"$SWIFTWAVE_HAPROXY_FOLDER/haproxy.cfg"
 # Pull docker images
 sudo docker load --input /app/.images/swiftwave-dashboard.tar
 sudo docker load --input /app/.images/haproxy-debian.tar
+sudo docker load --input /app/.images/postgres.tar
 # Start the services
 sudo docker stack deploy -c /app/dev/docker-compose.dev.yml $STACK_NAME
 
@@ -143,9 +144,7 @@ export ADMIN_PASSWORD="$SWIFTWAVE_ADMIN_PASSWORD_HASH"
 export CODE_TARBALL_DIR="$SWIFTWAVE_APP_TARBALL_FOLDER"
 export SWARM_NETWORK="$SWARM_NETWORK"
 export HAPROXY_SERVICE_NAME="swiftwave_haproxy"
-export DATABASE_TYPE="sqlite"
-export SQLITE_DATABASE="/app/.data/gorm.db"
-export POSTGRESQL_URI=""
+export POSTGRESQL_DSN="host=localhost user=postgres password=postgres dbname=swiftwave_development port=5432 sslmode=disable TimeZone=Asia/Kolkata"
 export REDIS_ADDRESS="127.0.0.1:6379"
 export REDIS_PASSWORD=""
 export ACCOUNT_EMAIL_ID="$SWIFTWAVE_ADMIN_EMAIL"

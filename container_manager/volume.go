@@ -2,12 +2,10 @@ package containermanger
 
 import (
 	"errors"
-	"fmt"
-
 	"github.com/docker/docker/api/types/volume"
 )
 
-// Create a new volume, return id of the volume
+// CreateVolume : Create a new volume, return id of the volume
 func (m Manager) CreateVolume(name string) error {
 	_, err := m.client.VolumeCreate(m.ctx, volume.CreateOptions{
 		Name: name,
@@ -18,7 +16,7 @@ func (m Manager) CreateVolume(name string) error {
 	return nil
 }
 
-// Remove a volume by id
+// RemoveVolume : Remove a volume by id
 func (m Manager) RemoveVolume(id string) error {
 	err := m.client.VolumeRemove(m.ctx, id, true)
 	if err != nil {
@@ -27,14 +25,13 @@ func (m Manager) RemoveVolume(id string) error {
 	return nil
 }
 
-// Check if volume exists
+// ExistsVolume : Check if volume exists
 func (m Manager) ExistsVolume(id string) bool {
-	d, err := m.client.VolumeInspect(m.ctx, id)
-	fmt.Println(d)
+	_, err := m.client.VolumeInspect(m.ctx, id)
 	return err == nil
 }
 
-// Fetch all volumes
+// FetchVolumes Fetch all volumes
 func (m Manager) FetchVolumes() ([]string, error) {
 	volumes, err := m.client.VolumeList(m.ctx, volume.ListOptions{})
 	if err != nil {

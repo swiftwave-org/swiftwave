@@ -1,0 +1,52 @@
+enum DeploymentMode {
+    replicated
+    global
+}
+
+type Application {
+    id: String!
+    name: String!
+    environmentVariables: [EnvironmentVariable!]!
+    persistentVolumeBindings: [PersistentVolumeBinding!]!
+    latestDeployment: Deployment!
+    deployments: [Deployment!]!
+    deploymentMode: DeploymentMode!
+    replicas: Uint!
+    ingressRules: [IngressRule!]!
+    isDeleted: Boolean!
+}
+
+input ApplicationInput {
+    name: String!
+    environmentVariables: [EnvironmentVariableInput!]! # dont change with each deployment
+    persistentVolumeBindings: [PersistentVolumeBindingInput!]! # dont change with each deployment
+    dockerfile: String # required for upstreamType = "git" or "SourceCode"
+    buildArgs: [BuildArgInput!]!
+    deploymentMode: DeploymentMode! # dont change with each deployment
+    replicas: Uint # dont change with each deployment
+    upstreamType: UpstreamType!
+    # required for upstreamType = "git"
+    gitCredentialID: Uint
+    gitProvider: GitProvider
+    repositoryOwner: String
+    repositoryName: String
+    repositoryBranch: String
+    commitHash: String
+    # required for upstreamType = "SourceCode"
+    sourceCodeCompressedFileName: String
+    # required for upstreamType = "Image"
+    dockerImage: String
+    imageRegistryCredentialID: Uint
+}
+
+extend type Query {
+    application(id: String!): Application!
+    applications: [Application!]!
+    isExistApplicationName(name: String!): Boolean!
+}
+
+extend type Mutation {
+    createApplication(input: ApplicationInput!): Application!
+    updateApplication(id: String!, input: ApplicationInput!): Application!
+    deleteApplication(id: String!): Boolean!
+}

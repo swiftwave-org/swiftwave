@@ -1,0 +1,99 @@
+# Where are all the schema files located? globs are supported eg  src/**/*.graphqls
+schema:
+  - graphql/schema/*.graphqls
+
+# Where should the generated server code go?
+exec:
+  filename: graphql/generated.go
+  package: graphql
+
+# Where should any generated models go?
+model:
+  filename: graphql/model/models_gen.go
+  package: model
+
+# Where should the resolver implementations go?
+resolver:
+  layout: follow-schema
+  dir: graphql
+  package: graphql
+  filename_template: "{name}.resolvers.go"
+
+autobind:
+#  - "github.com/swiftwave-org/swiftwave/swiftwave/graphql/model"
+
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.ID
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Int32
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Int32
+  Uint:
+    model:
+      - github.com/99designs/gqlgen/graphql.Uint
+      - github.com/99designs/gqlgen/graphql.Uint64
+      - github.com/99designs/gqlgen/graphql.Uint32
+  Application:
+    fields:
+      environmentVariables:
+        resolver: true
+      persistentVolumeBindings:
+        resolver: true
+      latestDeployment:
+        resolver: true
+      deployments:
+        resolver: true
+      ingressRules:
+        resolver: true
+  PersistentVolume:
+    fields:
+      persistentVolumeBindings:
+        resolver: true
+  PersistentVolumeBinding:
+    fields:
+      persistentVolume:
+        resolver: true
+      application:
+        resolver: true
+  Deployment:
+    fields:
+      application:
+        resolver: true
+      gitCredential:
+        resolver: true
+      imageRegistryCredential:
+        resolver: true
+      buildArgs:
+        resolver: true
+  ImageRegistryCredential:
+    fields:
+      deployments:
+        resolver: true
+  GitCredential:
+    fields:
+      deployments:
+        resolver: true
+  Domain:
+    fields:
+      ingressRules:
+        resolver: true
+      redirectRules:
+        resolver: true
+  IngressRule:
+    fields:
+      domain:
+        resolver: true
+      application:
+        resolver: true
+  RedirectRule:
+    fields:
+      domain:
+        resolver: true
+      application:
+        resolver: true

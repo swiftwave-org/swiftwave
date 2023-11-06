@@ -1,0 +1,47 @@
+enum UpstreamType {
+    git
+    sourceCode
+    image
+}
+
+enum DeploymentStatus {
+    pending
+    deployPending
+    deploying
+    live
+    stopped
+    failed
+}
+
+enum GitProvider {
+    none
+    github
+    gitlab
+}
+
+type Deployment {
+    id: String!
+    applicationID: String!
+    application: Application!
+    upstreamType: UpstreamType!
+    # required for upstreamType = "git"
+    gitCredentialID: Uint!
+    gitCredential: GitCredential!
+    gitProvider: GitProvider!
+    repositoryOwner: String!
+    repositoryName: String!
+    repositoryBranch: String!
+    commitHash: String!
+    # required for upstreamType = "SourceCode"
+    sourceCodeCompressedFileName: String!
+    # required for upstreamType = "Image"
+    dockerImage: String!
+    imageRegistryCredentialID: Uint!
+    imageRegistryCredential: ImageRegistryCredential!
+    # Common Fields
+    buildArgs: [BuildArg!]!
+    dockerfile: String!
+    # meta
+    status: DeploymentStatus!
+    createdAt: Time!
+}

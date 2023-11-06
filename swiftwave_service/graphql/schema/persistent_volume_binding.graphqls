@@ -1,0 +1,13 @@
+type PersistentVolumeBinding {
+    id: Uint!
+    persistentVolumeID: Uint!
+    persistentVolume: PersistentVolume!
+    applicationID: String!
+    application: Application!
+    mountingPath: String!
+}
+
+input PersistentVolumeBindingInput {
+    persistentVolumeID: Uint!
+    mountingPath: String!
+}

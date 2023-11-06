@@ -1,0 +1,8 @@
+type RuntimeLog {
+    content: String!
+    createdAt: Time!
+}
+
+extend type Subscription {
+    fetchRuntimeLog(applicationId: String!): RuntimeLog!
+}

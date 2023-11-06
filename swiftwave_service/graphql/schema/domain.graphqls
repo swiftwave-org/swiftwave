@@ -1,0 +1,48 @@
+enum ProtocolType {
+    http
+    https
+    tcp
+}
+
+enum DomainSSLStatus {
+    none
+    pending
+    issued
+    failed
+}
+
+input DomainInput {
+    name: String!
+}
+
+input CustomSSLInput {
+    fullChain: String!
+    privateKey: String!
+    sslIssuer: String!
+}
+
+type Domain {
+    id : Uint!
+    name: String!
+    sslStatus: DomainSSLStatus!
+    sslFullChain: String!
+    sslPrivateKey: String! # obfuscated
+    sslIssuedAt: Time!
+    sslIssuer: String!
+    sslAutoRenew: Boolean!
+    ingressRules: [IngressRule!]!
+    redirectRules: [RedirectRule!]!
+}
+
+extend type Query {
+    domains: [Domain!]!
+    domain(id: Uint!): Domain!
+    verifyDomainConfiguration(name: String!): Boolean!
+}
+
+extend type Mutation {
+    addDomain(input: DomainInput!): Domain!
+    removeDomain(id: Uint!): Boolean!
+    issueSSL(id: Uint!): Domain!
+    addCustomSSL(id: Uint!, input: CustomSSLInput!): Domain!
+}

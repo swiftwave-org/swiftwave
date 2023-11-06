@@ -35,8 +35,10 @@ fi
 echo -e "${GREEN}Fetching required images...${NC}"
 sudo docker pull ghcr.io/swiftwave-org/dashboard:develop
 sudo docker pull haproxytech/haproxy-debian:2.9
+sudo docker pull postgres:14
 sudo docker save -o ./.images/swiftwave-dashboard.tar ghcr.io/swiftwave-org/dashboard:develop
 sudo docker save -o ./.images/haproxy-debian.tar haproxytech/haproxy-debian:2.9
+sudo docker save -o ./.images/postgres.tar postgres:14
 
 # build docker image
 echo "${GREEN}Building docker image...${NC}"

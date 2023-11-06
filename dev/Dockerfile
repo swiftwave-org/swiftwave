@@ -4,7 +4,7 @@ FROM docker:dind
 USER root
 
 # Install packages
-RUN apk update --no-cache && apk add --no-cache gcc g++ make sqlite iproute2 net-tools bind-tools bash apache2-utils sudo shadow redis
+RUN apk update --no-cache && apk add --no-cache gcc g++ make git sqlite iproute2 net-tools bind-tools bash apache2-utils sudo shadow redis htop
 
 ARG NEWUSER=user
 # Create non-root user
@@ -20,9 +20,9 @@ RUN addgroup docker
 RUN addgroup ${NEWUSER} docker
 
 # Download and install Go
-RUN wget https://go.dev/dl/go1.21.0.linux-amd64.tar.gz
-RUN tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
-RUN rm go1.21.0.linux-amd64.tar.gz
+RUN wget https://go.dev/dl/go1.21.3.linux-amd64.tar.gz
+RUN tar -C /usr/local -xzf go1.21.3.linux-amd64.tar.gz
+RUN rm go1.21.3.linux-amd64.tar.gz
 RUN echo "export PATH=\$PATH:/usr/local/go/bin" >> /home/${NEWUSER}/.bashrc
 
 

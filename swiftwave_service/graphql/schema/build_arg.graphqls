@@ -1,0 +1,9 @@
+type BuildArg {
+    key: String!
+    value: String!
+}
+
+input BuildArgInput {
+    key: String!
+    value: String!
+}
