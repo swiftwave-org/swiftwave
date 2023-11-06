@@ -85,6 +85,30 @@ type DeploymentLog struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
+type DockerConfigBuildArg struct {
+	Key          string `json:"key"`
+	Description  string `json:"description"`
+	Type         string `json:"type"`
+	DefaultValue string `json:"defaultValue"`
+}
+
+type DockerConfigGeneratorInput struct {
+	SourceType                   DockerConfigSourceType `json:"sourceType"`
+	GitCredentialID              *uint                  `json:"gitCredentialID,omitempty"`
+	GitProvider                  *GitProvider           `json:"gitProvider,omitempty"`
+	RepositoryOwner              *string                `json:"repositoryOwner,omitempty"`
+	RepositoryName               *string                `json:"repositoryName,omitempty"`
+	RepositoryBranch             *string                `json:"repositoryBranch,omitempty"`
+	SourceCodeCompressedFileName *string                `json:"sourceCodeCompressedFileName,omitempty"`
+	CustomDockerFile             *string                `json:"customDockerFile,omitempty"`
+}
+
+type DockerConfigGeneratorOutput struct {
+	DetectedServiceName *string                 `json:"detectedServiceName,omitempty"`
+	DockerFile          *string                 `json:"dockerFile,omitempty"`
+	DockerBuildArgs     []*DockerConfigBuildArg `json:"dockerBuildArgs,omitempty"`
+}
+
 type Domain struct {
 	ID            uint            `json:"id"`
 	Name          string          `json:"name"`
@@ -312,6 +336,49 @@ func (e *DeploymentStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e DeploymentStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type DockerConfigSourceType string
+
+const (
+	DockerConfigSourceTypeGit        DockerConfigSourceType = "git"
+	DockerConfigSourceTypeSourceCode DockerConfigSourceType = "sourceCode"
+	DockerConfigSourceTypeCustom     DockerConfigSourceType = "custom"
+)
+
+var AllDockerConfigSourceType = []DockerConfigSourceType{
+	DockerConfigSourceTypeGit,
+	DockerConfigSourceTypeSourceCode,
+	DockerConfigSourceTypeCustom,
+}
+
+func (e DockerConfigSourceType) IsValid() bool {
+	switch e {
+	case DockerConfigSourceTypeGit, DockerConfigSourceTypeSourceCode, DockerConfigSourceTypeCustom:
+		return true
+	}
+	return false
+}
+
+func (e DockerConfigSourceType) String() string {
+	return string(e)
+}
+
+func (e *DockerConfigSourceType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DockerConfigSourceType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DockerConfigSourceType", str)
+	}
+	return nil
+}
+
+func (e DockerConfigSourceType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

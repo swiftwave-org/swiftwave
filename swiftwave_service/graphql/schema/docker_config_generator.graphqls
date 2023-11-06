@@ -1,0 +1,36 @@
+enum DockerConfigSourceType {
+    git
+    sourceCode
+    custom
+}
+
+input DockerConfigGeneratorInput {
+    sourceType: DockerConfigSourceType!
+    #  sourceType == git
+    gitCredentialID: Uint
+    gitProvider: GitProvider
+    repositoryOwner: String
+    repositoryName: String
+    repositoryBranch: String
+    #  sourceType == sourceCode
+    sourceCodeCompressedFileName: String
+    #  sourceType == custom
+    customDockerFile: String
+}
+
+type DockerConfigBuildArg {
+    key: String!
+    description: String!
+    type: String!
+    defaultValue: String!
+}
+
+type DockerConfigGeneratorOutput {
+    detectedServiceName: String
+    dockerFile: String
+    dockerBuildArgs: [DockerConfigBuildArg]
+}
+
+extend type Query {
+    dockerConfigGenerator(input: DockerConfigGeneratorInput!): DockerConfigGeneratorOutput
+}

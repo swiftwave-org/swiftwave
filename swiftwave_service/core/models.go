@@ -10,7 +10,7 @@ type GitCredential struct {
 	Name        string       `json:"name"`
 	Username    string       `json:"username"`
 	Password    string       `json:"password"`
-	Deployments []Deployment `json:"deployments" gorm:"foreignKey:GitCredentialID"`
+	Deployments []Deployment `json:"deployments" gorm:"foreignKey:GitCredentialID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" `
 }
 
 // ImageRegistryCredential : credential for docker image registry
@@ -19,7 +19,7 @@ type ImageRegistryCredential struct {
 	Url         string       `json:"url"`
 	Username    string       `json:"username"`
 	Password    string       `json:"password"`
-	Deployments []Deployment `json:"deployments" gorm:"foreignKey:ImageRegistryCredentialID"`
+	Deployments []Deployment `json:"deployments" gorm:"foreignKey:ImageRegistryCredentialID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 // Domain : hold information about domain

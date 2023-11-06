@@ -104,6 +104,19 @@ type ComplexityRoot struct {
 		CreatedAt func(childComplexity int) int
 	}
 
+	DockerConfigBuildArg struct {
+		DefaultValue func(childComplexity int) int
+		Description  func(childComplexity int) int
+		Key          func(childComplexity int) int
+		Type         func(childComplexity int) int
+	}
+
+	DockerConfigGeneratorOutput struct {
+		DetectedServiceName func(childComplexity int) int
+		DockerBuildArgs     func(childComplexity int) int
+		DockerFile          func(childComplexity int) int
+	}
+
 	Domain struct {
 		ID            func(childComplexity int) int
 		IngressRules  func(childComplexity int) int
@@ -202,6 +215,7 @@ type ComplexityRoot struct {
 		Application                        func(childComplexity int, id string) int
 		Applications                       func(childComplexity int) int
 		CheckGitCredentialRepositoryAccess func(childComplexity int, input model.GitCredentialRepositoryAccessInput) int
+		DockerConfigGenerator              func(childComplexity int, input model.DockerConfigGeneratorInput) int
 		Domain                             func(childComplexity int, id uint) int
 		Domains                            func(childComplexity int) int
 		GitCredential                      func(childComplexity int, id uint) int
@@ -306,6 +320,7 @@ type QueryResolver interface {
 	Application(ctx context.Context, id string) (*model.Application, error)
 	Applications(ctx context.Context) ([]*model.Application, error)
 	IsExistApplicationName(ctx context.Context, name string) (bool, error)
+	DockerConfigGenerator(ctx context.Context, input model.DockerConfigGeneratorInput) (*model.DockerConfigGeneratorOutput, error)
 	Domains(ctx context.Context) ([]*model.Domain, error)
 	Domain(ctx context.Context, id uint) (*model.Domain, error)
 	VerifyDomainConfiguration(ctx context.Context, name string) (bool, error)
@@ -579,6 +594,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DeploymentLog.CreatedAt(childComplexity), true
+
+	case "DockerConfigBuildArg.defaultValue":
+		if e.complexity.DockerConfigBuildArg.DefaultValue == nil {
+			break
+		}
+
+		return e.complexity.DockerConfigBuildArg.DefaultValue(childComplexity), true
+
+	case "DockerConfigBuildArg.description":
+		if e.complexity.DockerConfigBuildArg.Description == nil {
+			break
+		}
+
+		return e.complexity.DockerConfigBuildArg.Description(childComplexity), true
+
+	case "DockerConfigBuildArg.key":
+		if e.complexity.DockerConfigBuildArg.Key == nil {
+			break
+		}
+
+		return e.complexity.DockerConfigBuildArg.Key(childComplexity), true
+
+	case "DockerConfigBuildArg.type":
+		if e.complexity.DockerConfigBuildArg.Type == nil {
+			break
+		}
+
+		return e.complexity.DockerConfigBuildArg.Type(childComplexity), true
+
+	case "DockerConfigGeneratorOutput.detectedServiceName":
+		if e.complexity.DockerConfigGeneratorOutput.DetectedServiceName == nil {
+			break
+		}
+
+		return e.complexity.DockerConfigGeneratorOutput.DetectedServiceName(childComplexity), true
+
+	case "DockerConfigGeneratorOutput.dockerBuildArgs":
+		if e.complexity.DockerConfigGeneratorOutput.DockerBuildArgs == nil {
+			break
+		}
+
+		return e.complexity.DockerConfigGeneratorOutput.DockerBuildArgs(childComplexity), true
+
+	case "DockerConfigGeneratorOutput.dockerFile":
+		if e.complexity.DockerConfigGeneratorOutput.DockerFile == nil {
+			break
+		}
+
+		return e.complexity.DockerConfigGeneratorOutput.DockerFile(childComplexity), true
 
 	case "Domain.id":
 		if e.complexity.Domain.ID == nil {
@@ -1175,6 +1239,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.CheckGitCredentialRepositoryAccess(childComplexity, args["input"].(model.GitCredentialRepositoryAccessInput)), true
 
+	case "Query.dockerConfigGenerator":
+		if e.complexity.Query.DockerConfigGenerator == nil {
+			break
+		}
+
+		args, err := ec.field_Query_dockerConfigGenerator_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.DockerConfigGenerator(childComplexity, args["input"].(model.DockerConfigGeneratorInput)), true
+
 	case "Query.domain":
 		if e.complexity.Query.Domain == nil {
 			break
@@ -1437,6 +1513,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputApplicationInput,
 		ec.unmarshalInputBuildArgInput,
 		ec.unmarshalInputCustomSSLInput,
+		ec.unmarshalInputDockerConfigGeneratorInput,
 		ec.unmarshalInputDomainInput,
 		ec.unmarshalInputEnvironmentVariableInput,
 		ec.unmarshalInputGitCredentialInput,
@@ -1559,7 +1636,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/deployment.graphqls.graphqls" "schema/deployment_log.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_binding.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls"
+//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/deployment.graphqls.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_binding.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -1576,6 +1653,7 @@ var sources = []*ast.Source{
 	{Name: "schema/build_arg.graphqls", Input: sourceData("schema/build_arg.graphqls"), BuiltIn: false},
 	{Name: "schema/deployment.graphqls.graphqls", Input: sourceData("schema/deployment.graphqls.graphqls"), BuiltIn: false},
 	{Name: "schema/deployment_log.graphqls", Input: sourceData("schema/deployment_log.graphqls"), BuiltIn: false},
+	{Name: "schema/docker_config_generator.graphqls", Input: sourceData("schema/docker_config_generator.graphqls"), BuiltIn: false},
 	{Name: "schema/domain.graphqls", Input: sourceData("schema/domain.graphqls"), BuiltIn: false},
 	{Name: "schema/environment_variable.graphqls", Input: sourceData("schema/environment_variable.graphqls"), BuiltIn: false},
 	{Name: "schema/git_credential.graphqls", Input: sourceData("schema/git_credential.graphqls"), BuiltIn: false},
@@ -1950,6 +2028,21 @@ func (ec *executionContext) field_Query_checkGitCredentialRepositoryAccess_args(
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNGitCredentialRepositoryAccessInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitCredentialRepositoryAccessInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_dockerConfigGenerator_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.DockerConfigGeneratorInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNDockerConfigGeneratorInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerConfigGeneratorInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3784,6 +3877,315 @@ func (ec *executionContext) fieldContext_DeploymentLog_createdAt(ctx context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerConfigBuildArg_key(ctx context.Context, field graphql.CollectedField, obj *model.DockerConfigBuildArg) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerConfigBuildArg_key(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerConfigBuildArg_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerConfigBuildArg",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerConfigBuildArg_description(ctx context.Context, field graphql.CollectedField, obj *model.DockerConfigBuildArg) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerConfigBuildArg_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerConfigBuildArg_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerConfigBuildArg",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerConfigBuildArg_type(ctx context.Context, field graphql.CollectedField, obj *model.DockerConfigBuildArg) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerConfigBuildArg_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerConfigBuildArg_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerConfigBuildArg",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerConfigBuildArg_defaultValue(ctx context.Context, field graphql.CollectedField, obj *model.DockerConfigBuildArg) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerConfigBuildArg_defaultValue(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DefaultValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerConfigBuildArg_defaultValue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerConfigBuildArg",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerConfigGeneratorOutput_detectedServiceName(ctx context.Context, field graphql.CollectedField, obj *model.DockerConfigGeneratorOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerConfigGeneratorOutput_detectedServiceName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DetectedServiceName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerConfigGeneratorOutput_detectedServiceName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerConfigGeneratorOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerConfigGeneratorOutput_dockerFile(ctx context.Context, field graphql.CollectedField, obj *model.DockerConfigGeneratorOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerConfigGeneratorOutput_dockerFile(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DockerFile, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerConfigGeneratorOutput_dockerFile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerConfigGeneratorOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerConfigGeneratorOutput_dockerBuildArgs(ctx context.Context, field graphql.CollectedField, obj *model.DockerConfigGeneratorOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerConfigGeneratorOutput_dockerBuildArgs(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DockerBuildArgs, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.DockerConfigBuildArg)
+	fc.Result = res
+	return ec.marshalODockerConfigBuildArg2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerConfigBuildArg(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerConfigGeneratorOutput_dockerBuildArgs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerConfigGeneratorOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "key":
+				return ec.fieldContext_DockerConfigBuildArg_key(ctx, field)
+			case "description":
+				return ec.fieldContext_DockerConfigBuildArg_description(ctx, field)
+			case "type":
+				return ec.fieldContext_DockerConfigBuildArg_type(ctx, field)
+			case "defaultValue":
+				return ec.fieldContext_DockerConfigBuildArg_defaultValue(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DockerConfigBuildArg", field.Name)
 		},
 	}
 	return fc, nil
@@ -7575,6 +7977,66 @@ func (ec *executionContext) fieldContext_Query_isExistApplicationName(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_dockerConfigGenerator(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_dockerConfigGenerator(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DockerConfigGenerator(rctx, fc.Args["input"].(model.DockerConfigGeneratorInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.DockerConfigGeneratorOutput)
+	fc.Result = res
+	return ec.marshalODockerConfigGeneratorOutput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerConfigGeneratorOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_dockerConfigGenerator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "detectedServiceName":
+				return ec.fieldContext_DockerConfigGeneratorOutput_detectedServiceName(ctx, field)
+			case "dockerFile":
+				return ec.fieldContext_DockerConfigGeneratorOutput_dockerFile(ctx, field)
+			case "dockerBuildArgs":
+				return ec.fieldContext_DockerConfigGeneratorOutput_dockerBuildArgs(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DockerConfigGeneratorOutput", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_dockerConfigGenerator_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_domains(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_domains(ctx, field)
 	if err != nil {
@@ -11354,6 +11816,98 @@ func (ec *executionContext) unmarshalInputCustomSSLInput(ctx context.Context, ob
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDockerConfigGeneratorInput(ctx context.Context, obj interface{}) (model.DockerConfigGeneratorInput, error) {
+	var it model.DockerConfigGeneratorInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"sourceType", "gitCredentialID", "gitProvider", "repositoryOwner", "repositoryName", "repositoryBranch", "sourceCodeCompressedFileName", "customDockerFile"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "sourceType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceType"))
+			data, err := ec.unmarshalNDockerConfigSourceType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerConfigSourceType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SourceType = data
+		case "gitCredentialID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gitCredentialID"))
+			data, err := ec.unmarshalOUint2ᚖuint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GitCredentialID = data
+		case "gitProvider":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gitProvider"))
+			data, err := ec.unmarshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GitProvider = data
+		case "repositoryOwner":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryOwner"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RepositoryOwner = data
+		case "repositoryName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RepositoryName = data
+		case "repositoryBranch":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryBranch"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RepositoryBranch = data
+		case "sourceCodeCompressedFileName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceCodeCompressedFileName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SourceCodeCompressedFileName = data
+		case "customDockerFile":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("customDockerFile"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CustomDockerFile = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputDomainInput(ctx context.Context, obj interface{}) (model.DomainInput, error) {
 	var it model.DomainInput
 	asMap := map[string]interface{}{}
@@ -12315,6 +12869,100 @@ func (ec *executionContext) _DeploymentLog(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var dockerConfigBuildArgImplementors = []string{"DockerConfigBuildArg"}
+
+func (ec *executionContext) _DockerConfigBuildArg(ctx context.Context, sel ast.SelectionSet, obj *model.DockerConfigBuildArg) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, dockerConfigBuildArgImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DockerConfigBuildArg")
+		case "key":
+			out.Values[i] = ec._DockerConfigBuildArg_key(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._DockerConfigBuildArg_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._DockerConfigBuildArg_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "defaultValue":
+			out.Values[i] = ec._DockerConfigBuildArg_defaultValue(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var dockerConfigGeneratorOutputImplementors = []string{"DockerConfigGeneratorOutput"}
+
+func (ec *executionContext) _DockerConfigGeneratorOutput(ctx context.Context, sel ast.SelectionSet, obj *model.DockerConfigGeneratorOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, dockerConfigGeneratorOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DockerConfigGeneratorOutput")
+		case "detectedServiceName":
+			out.Values[i] = ec._DockerConfigGeneratorOutput_detectedServiceName(ctx, field, obj)
+		case "dockerFile":
+			out.Values[i] = ec._DockerConfigGeneratorOutput_dockerFile(ctx, field, obj)
+		case "dockerBuildArgs":
+			out.Values[i] = ec._DockerConfigGeneratorOutput_dockerBuildArgs(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -13377,6 +14025,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "dockerConfigGenerator":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_dockerConfigGenerator(ctx, field)
 				return res
 			}
 
@@ -14494,6 +15161,21 @@ func (ec *executionContext) marshalNDeploymentStatus2githubᚗcomᚋswiftwaveᚑ
 	return v
 }
 
+func (ec *executionContext) unmarshalNDockerConfigGeneratorInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerConfigGeneratorInput(ctx context.Context, v interface{}) (model.DockerConfigGeneratorInput, error) {
+	res, err := ec.unmarshalInputDockerConfigGeneratorInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNDockerConfigSourceType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerConfigSourceType(ctx context.Context, v interface{}) (model.DockerConfigSourceType, error) {
+	var res model.DockerConfigSourceType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDockerConfigSourceType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerConfigSourceType(ctx context.Context, sel ast.SelectionSet, v model.DockerConfigSourceType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNDomain2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx context.Context, sel ast.SelectionSet, v model.Domain) graphql.Marshaler {
 	return ec._Domain(ctx, sel, &v)
 }
@@ -15395,6 +16077,61 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) marshalODockerConfigBuildArg2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerConfigBuildArg(ctx context.Context, sel ast.SelectionSet, v []*model.DockerConfigBuildArg) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalODockerConfigBuildArg2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerConfigBuildArg(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalODockerConfigBuildArg2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerConfigBuildArg(ctx context.Context, sel ast.SelectionSet, v *model.DockerConfigBuildArg) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._DockerConfigBuildArg(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalODockerConfigGeneratorOutput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerConfigGeneratorOutput(ctx context.Context, sel ast.SelectionSet, v *model.DockerConfigGeneratorOutput) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._DockerConfigGeneratorOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, v interface{}) (*model.GitProvider, error) {

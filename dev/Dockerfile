@@ -4,7 +4,7 @@ FROM docker:dind
 USER root
 
 # Install packages
-RUN apk update --no-cache && apk add --no-cache gcc g++ make sqlite iproute2 net-tools bind-tools bash apache2-utils sudo shadow redis htop
+RUN apk update --no-cache && apk add --no-cache gcc g++ make git sqlite iproute2 net-tools bind-tools bash apache2-utils sudo shadow redis htop
 
 ARG NEWUSER=user
 # Create non-root user

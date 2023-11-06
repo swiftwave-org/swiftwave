@@ -132,7 +132,7 @@ func (m Manager) generateConfigFromSourceCodeDirectory(directory string) (Docker
 }
 
 // Generate DockerConfig from custom dockerfile. If GenerateConfigFromGitRepository fails to detect service, this function will be used.
-func (m Manager) GenerateConfigFromCustomDocker(dockerfile string) DockerFileConfig {
+func (m Manager) GenerateConfigFromCustomDocker(dockerfile string) (DockerFileConfig, error) {
 	dockerConfig := DockerFileConfig{}
 	dockerConfig.DetectedService = "Custom Dockerfile"
 	dockerConfig.DockerFile = dockerfile
@@ -140,7 +140,7 @@ func (m Manager) GenerateConfigFromCustomDocker(dockerfile string) DockerFileCon
 	if dockerConfig.Variables == nil {
 		dockerConfig.Variables = map[string]Variable{}
 	}
-	return dockerConfig
+	return dockerConfig, nil
 }
 
 // DefaultArgs returns default arguments for a service.

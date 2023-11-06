@@ -39,7 +39,6 @@ func main() {
 	// Create Echo Server
 	echoServer := echo.New()
 	echoServer.Pre(middleware.RemoveTrailingSlash())
-	echoServer.Use(middleware.Logger())
 	echoServer.Use(middleware.Recover())
 	echoServer.Use(middleware.CORS())
 

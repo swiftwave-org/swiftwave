@@ -59,12 +59,20 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	if isExist {
 		return errors.New("application name not available")
 	}
+	// State
+	isGitCredentialExist := false
+	isImageRegistryCredentialExist := false
 	// For UpstreamType = Git, verify git record id
 	if application.LatestDeployment.UpstreamType == UpstreamTypeGit {
-		var gitCredential = &GitCredential{}
-		err := gitCredential.FindById(ctx, db, *application.LatestDeployment.GitCredentialID)
-		if err != nil {
-			return err
+		if application.LatestDeployment.GitCredentialID != nil {
+			var gitCredential = &GitCredential{}
+			err := gitCredential.FindById(ctx, db, *application.LatestDeployment.GitCredentialID)
+			if err != nil {
+				return err
+			}
+			isGitCredentialExist = true
+		} else {
+			isGitCredentialExist = false
 		}
 	}
 	// For UpstreamType = Image, verify image registry credential id
@@ -75,6 +83,9 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 			if err != nil {
 				return err
 			}
+			isImageRegistryCredentialExist = true
+		} else {
+			isImageRegistryCredentialExist = false
 		}
 	}
 	// For UpstreamType = SourceCode, verify source code compressed file exists
@@ -141,12 +152,20 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 			return tx.Error
 		}
 	}
+	var gitCredentialID *uint = nil
+	if isGitCredentialExist {
+		gitCredentialID = application.LatestDeployment.GitCredentialID
+	}
+	var imageRegistryCredentialID *uint = nil
+	if isImageRegistryCredentialExist {
+		imageRegistryCredentialID = application.LatestDeployment.ImageRegistryCredentialID
+	}
 	// create deployment
 	createdDeployment := Deployment{
 		ApplicationID: createdApplication.ID,
 		UpstreamType:  application.LatestDeployment.UpstreamType,
 		// Fields for UpstreamType = Git
-		GitCredentialID:  application.LatestDeployment.GitCredentialID,
+		GitCredentialID:  gitCredentialID,
 		GitProvider:      application.LatestDeployment.GitProvider,
 		RepositoryOwner:  application.LatestDeployment.RepositoryOwner,
 		RepositoryName:   application.LatestDeployment.RepositoryName,
@@ -156,7 +175,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		SourceCodeCompressedFileName: application.LatestDeployment.SourceCodeCompressedFileName,
 		// Fields for UpstreamType = Image
 		DockerImage:               application.LatestDeployment.DockerImage,
-		ImageRegistryCredentialID: application.LatestDeployment.ImageRegistryCredentialID,
+		ImageRegistryCredentialID: imageRegistryCredentialID,
 		// other fields
 		Dockerfile: application.LatestDeployment.Dockerfile,
 	}
