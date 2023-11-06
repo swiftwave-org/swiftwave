@@ -289,6 +289,7 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, ctx con
 }
 
 func addDeploymentLog(dbClient gorm.DB, pubSubClient pubsub.Client, deploymentId string, content string) {
+	log.Println(deploymentId+" > ", content)
 	deploymentLog := &core.DeploymentLog{
 		DeploymentID: deploymentId,
 		Content:      content,
@@ -297,8 +298,10 @@ func addDeploymentLog(dbClient gorm.DB, pubSubClient pubsub.Client, deploymentId
 	if err != nil {
 		log.Println("failed to add deployment log")
 	}
+	log.Println("Deployment log added successfully")
 	err = pubSubClient.Publish(fmt.Sprintf("deployment-log-%s", deploymentId), content)
 	if err != nil {
 		log.Println("failed to publish deployment log")
 	}
+	log.Println("Deployment log published successfully")
 }

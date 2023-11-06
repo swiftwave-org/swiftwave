@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/swiftwave-org/swiftwave/container_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"gorm.io/gorm"
 	"log"
+	"strings"
 )
 
 func (m Manager) DeployApplication(request DeployApplicationRequest) error {
@@ -90,8 +92,23 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 			if err != nil {
 				continue
 			}
-			if data["stream"] != nil {
-				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["stream"].(string))
+			if data["status"] != nil {
+				status := data["status"].(string)
+				id := ""
+				if data["id"] != nil {
+					id = data["id"].(string)
+				}
+				if strings.HasPrefix(status, "Pulling from") ||
+					strings.Compare(status, "Pulling fs layer") == 0 ||
+					strings.Compare(status, "Verifying Checksum") == 0 ||
+					strings.Compare(status, "Download complete") == 0 ||
+					strings.Compare(status, "Pull complete") == 0 ||
+					strings.HasPrefix(status, "Digest:") ||
+					strings.HasPrefix(status, "Status:") {
+					logContent := fmt.Sprintf("%s %s", status, id)
+					addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, logContent)
+				}
+
 			}
 		}
 	}
@@ -120,6 +137,7 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 			// dont requeue the job
 			return nil
 		}
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application deployed successfully")
 	} else {
 		// update service
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application already exists, updating the application")
