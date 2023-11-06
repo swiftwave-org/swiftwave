@@ -15,6 +15,10 @@ import (
 // CreateRedirectRule is the resolver for the createRedirectRule field.
 func (r *mutationResolver) CreateRedirectRule(ctx context.Context, input model.RedirectRuleInput) (*model.RedirectRule, error) {
 	record := redirectRuleInputToDatabaseObject(&input)
+	// TODO: add support for http, https and http at another port
+	if record.Port != 80 {
+		return nil, errors.New("currently only port 80 is supported")
+	}
 	err := record.Create(ctx, r.ServiceManager.DbClient)
 	if err != nil {
 		return nil, err
