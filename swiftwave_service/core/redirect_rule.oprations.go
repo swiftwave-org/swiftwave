@@ -76,7 +76,7 @@ func (redirectRule *RedirectRule) isDeleting() bool {
 
 func (redirectRule *RedirectRule) UpdateStatus(ctx context.Context, db gorm.DB, status RedirectRuleStatus) error {
 	// update record
-	tx := db.Where("id = ?", redirectRule.ID).Model(&redirectRule).Update("status", status)
+	tx := db.Model(&redirectRule).Update("status", status)
 	return tx.Error
 
 }
