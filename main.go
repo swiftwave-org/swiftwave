@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	swiftwave "github.com/swiftwave-org/swiftwave/swiftwave_service"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/cronjob"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/worker"
 	"log"
 )
@@ -28,6 +29,10 @@ func main() {
 		panic(err)
 	}
 
+	// Create the cronjob manager
+	cronjobManager := cronjob.NewManager(&config, &manager)
+	cronjobManager.Start(true)
+
 	// create a channel to block the main thread
 	var waitForever chan struct{}
 
@@ -42,6 +47,8 @@ func main() {
 	go swiftwave.StartServer(&config, &manager, echoServer, workerManager, true)
 	// Wait for consumers
 	go workerManager.WaitForConsumers()
+	// Wait for cronjobs
+	go cronjobManager.Wait()
 
 	<-waitForever
 }
