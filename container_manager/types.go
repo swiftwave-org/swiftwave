@@ -11,14 +11,22 @@ type Manager struct {
 	client *client.Client
 }
 
+type DeploymentMode string
+
+const (
+	DeploymentModeReplicated DeploymentMode = "replicated"
+	DeploymentModeGlobal     DeploymentMode = "global"
+)
+
 type Service struct {
-	Name         string            `json:"name"`
-	Image        string            `json:"image"`
-	Command      []string          `json:"command,omitempty"`
-	Env          map[string]string `json:"env,omitempty"`
-	VolumeMounts []VolumeMount     `json:"volumemounts,omitempty"`
-	Networks     []string          `json:"networks,omitempty"`
-	Replicas     uint64            `json:"replicas"`
+	Name           string            `json:"name"`
+	Image          string            `json:"image"`
+	Command        []string          `json:"command,omitempty"`
+	Env            map[string]string `json:"env,omitempty"`
+	VolumeMounts   []VolumeMount     `json:"volumemounts,omitempty"`
+	Networks       []string          `json:"networks,omitempty"`
+	DeploymentMode DeploymentMode    `json:"deploymentmode"`
+	Replicas       uint64            `json:"replicas"`
 }
 
 type ServiceRealtimeInfo struct {

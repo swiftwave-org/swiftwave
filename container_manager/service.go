@@ -216,6 +216,24 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 		env = append(env, key+"="+value)
 	}
 
+	var serviceMode swarm.ServiceMode
+
+	if service.DeploymentMode == DeploymentModeReplicated {
+		// allow replicated service
+		serviceMode = swarm.ServiceMode{
+			Replicated: &swarm.ReplicatedService{
+				Replicas: &service.Replicas,
+			},
+		}
+	} else if service.DeploymentMode == DeploymentModeGlobal {
+		// allow global service
+		serviceMode = swarm.ServiceMode{
+			Global: &swarm.GlobalService{},
+		}
+	} else {
+		panic("invalid deployment mode")
+	}
+
 	// Build service spec
 	serviceSpec := swarm.ServiceSpec{
 		// Set name of the service
@@ -235,11 +253,7 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 			Networks: networkAttachmentConfigs,
 		},
 		// allow replicated service
-		Mode: swarm.ServiceMode{
-			Replicated: &swarm.ReplicatedService{
-				Replicas: &service.Replicas,
-			},
-		},
+		Mode: serviceMode,
 		// constant endpoint
 		EndpointSpec: &swarm.EndpointSpec{
 			Mode: swarm.ResolutionModeDNSRR,
