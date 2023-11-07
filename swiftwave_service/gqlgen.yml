@@ -51,6 +51,8 @@ models:
         resolver: true
       ingressRules:
         resolver: true
+      realtimeInfo:
+        resolver: true
   PersistentVolume:
     fields:
       persistentVolumeBindings:
