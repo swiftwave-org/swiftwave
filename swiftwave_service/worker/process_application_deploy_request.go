@@ -121,13 +121,14 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 	}
 	// create service
 	service := containermanger.Service{
-		Name:         application.Name,
-		Image:        dockerImageUri,
-		Command:      []string{},
-		Env:          environmentVariablesMap,
-		Networks:     []string{m.ServiceConfig.SwarmNetwork},
-		Replicas:     uint64(application.Replicas),
-		VolumeMounts: volumeMounts,
+		Name:           application.Name,
+		Image:          dockerImageUri,
+		Command:        []string{},
+		Env:            environmentVariablesMap,
+		Networks:       []string{m.ServiceConfig.SwarmNetwork},
+		DeploymentMode: containermanger.DeploymentMode(application.DeploymentMode),
+		Replicas:       uint64(application.Replicas),
+		VolumeMounts:   volumeMounts,
 	}
 	// check if the service already exists
 	_, err = m.ServiceManager.DockerManager.GetService(service.Name)
