@@ -69,6 +69,7 @@ type ComplexityRoot struct {
 		LatestDeployment         func(childComplexity int) int
 		Name                     func(childComplexity int) int
 		PersistentVolumeBindings func(childComplexity int) int
+		RealtimeInfo             func(childComplexity int) int
 		Replicas                 func(childComplexity int) int
 	}
 
@@ -233,6 +234,13 @@ type ComplexityRoot struct {
 		VerifyDomainConfiguration          func(childComplexity int, name string) int
 	}
 
+	RealtimeInfo struct {
+		DeploymentMode  func(childComplexity int) int
+		DesiredReplicas func(childComplexity int) int
+		InfoFound       func(childComplexity int) int
+		RunningReplicas func(childComplexity int) int
+	}
+
 	RedirectRule struct {
 		CreatedAt   func(childComplexity int) int
 		Domain      func(childComplexity int) int
@@ -259,6 +267,7 @@ type ComplexityRoot struct {
 type ApplicationResolver interface {
 	EnvironmentVariables(ctx context.Context, obj *model.Application) ([]*model.EnvironmentVariable, error)
 	PersistentVolumeBindings(ctx context.Context, obj *model.Application) ([]*model.PersistentVolumeBinding, error)
+	RealtimeInfo(ctx context.Context, obj *model.Application) (*model.RealtimeInfo, error)
 	LatestDeployment(ctx context.Context, obj *model.Application) (*model.Deployment, error)
 	Deployments(ctx context.Context, obj *model.Application) ([]*model.Deployment, error)
 
@@ -426,6 +435,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Application.PersistentVolumeBindings(childComplexity), true
+
+	case "Application.realtimeInfo":
+		if e.complexity.Application.RealtimeInfo == nil {
+			break
+		}
+
+		return e.complexity.Application.RealtimeInfo(childComplexity), true
 
 	case "Application.replicas":
 		if e.complexity.Application.Replicas == nil {
@@ -1400,6 +1416,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.VerifyDomainConfiguration(childComplexity, args["name"].(string)), true
+
+	case "RealtimeInfo.DeploymentMode":
+		if e.complexity.RealtimeInfo.DeploymentMode == nil {
+			break
+		}
+
+		return e.complexity.RealtimeInfo.DeploymentMode(childComplexity), true
+
+	case "RealtimeInfo.DesiredReplicas":
+		if e.complexity.RealtimeInfo.DesiredReplicas == nil {
+			break
+		}
+
+		return e.complexity.RealtimeInfo.DesiredReplicas(childComplexity), true
+
+	case "RealtimeInfo.InfoFound":
+		if e.complexity.RealtimeInfo.InfoFound == nil {
+			break
+		}
+
+		return e.complexity.RealtimeInfo.InfoFound(childComplexity), true
+
+	case "RealtimeInfo.RunningReplicas":
+		if e.complexity.RealtimeInfo.RunningReplicas == nil {
+			break
+		}
+
+		return e.complexity.RealtimeInfo.RunningReplicas(childComplexity), true
 
 	case "RedirectRule.createdAt":
 		if e.complexity.RedirectRule.CreatedAt == nil {
@@ -2450,6 +2494,60 @@ func (ec *executionContext) fieldContext_Application_persistentVolumeBindings(ct
 	return fc, nil
 }
 
+func (ec *executionContext) _Application_realtimeInfo(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_realtimeInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Application().RealtimeInfo(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.RealtimeInfo)
+	fc.Result = res
+	return ec.marshalNRealtimeInfo2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRealtimeInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_realtimeInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "InfoFound":
+				return ec.fieldContext_RealtimeInfo_InfoFound(ctx, field)
+			case "DesiredReplicas":
+				return ec.fieldContext_RealtimeInfo_DesiredReplicas(ctx, field)
+			case "RunningReplicas":
+				return ec.fieldContext_RealtimeInfo_RunningReplicas(ctx, field)
+			case "DeploymentMode":
+				return ec.fieldContext_RealtimeInfo_DeploymentMode(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RealtimeInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Application_latestDeployment(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Application_latestDeployment(ctx, field)
 	if err != nil {
@@ -3041,6 +3139,8 @@ func (ec *executionContext) fieldContext_Deployment_application(ctx context.Cont
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "realtimeInfo":
+				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
 				return ec.fieldContext_Application_latestDeployment(ctx, field)
 			case "deployments":
@@ -5892,6 +5992,8 @@ func (ec *executionContext) fieldContext_IngressRule_application(ctx context.Con
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "realtimeInfo":
+				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
 				return ec.fieldContext_Application_latestDeployment(ctx, field)
 			case "deployments":
@@ -6134,6 +6236,8 @@ func (ec *executionContext) fieldContext_Mutation_createApplication(ctx context.
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "realtimeInfo":
+				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
 				return ec.fieldContext_Application_latestDeployment(ctx, field)
 			case "deployments":
@@ -6211,6 +6315,8 @@ func (ec *executionContext) fieldContext_Mutation_updateApplication(ctx context.
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "realtimeInfo":
+				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
 				return ec.fieldContext_Application_latestDeployment(ctx, field)
 			case "deployments":
@@ -7716,6 +7822,8 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_application(ctx
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "realtimeInfo":
+				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
 				return ec.fieldContext_Application_latestDeployment(ctx, field)
 			case "deployments":
@@ -7826,6 +7934,8 @@ func (ec *executionContext) fieldContext_Query_application(ctx context.Context, 
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "realtimeInfo":
+				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
 				return ec.fieldContext_Application_latestDeployment(ctx, field)
 			case "deployments":
@@ -7903,6 +8013,8 @@ func (ec *executionContext) fieldContext_Query_applications(ctx context.Context,
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "realtimeInfo":
+				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
 				return ec.fieldContext_Application_latestDeployment(ctx, field)
 			case "deployments":
@@ -9124,6 +9236,182 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RealtimeInfo_InfoFound(ctx context.Context, field graphql.CollectedField, obj *model.RealtimeInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RealtimeInfo_InfoFound(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InfoFound, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RealtimeInfo_InfoFound(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RealtimeInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RealtimeInfo_DesiredReplicas(ctx context.Context, field graphql.CollectedField, obj *model.RealtimeInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RealtimeInfo_DesiredReplicas(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DesiredReplicas, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RealtimeInfo_DesiredReplicas(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RealtimeInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RealtimeInfo_RunningReplicas(ctx context.Context, field graphql.CollectedField, obj *model.RealtimeInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RealtimeInfo_RunningReplicas(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RunningReplicas, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RealtimeInfo_RunningReplicas(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RealtimeInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RealtimeInfo_DeploymentMode(ctx context.Context, field graphql.CollectedField, obj *model.RealtimeInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RealtimeInfo_DeploymentMode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeploymentMode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DeploymentMode)
+	fc.Result = res
+	return ec.marshalNDeploymentMode2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeploymentMode(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RealtimeInfo_DeploymentMode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RealtimeInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DeploymentMode does not have child fields")
 		},
 	}
 	return fc, nil
@@ -12405,6 +12693,42 @@ func (ec *executionContext) _Application(ctx context.Context, sel ast.SelectionS
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "realtimeInfo":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Application_realtimeInfo(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "latestDeployment":
 			field := field
 
@@ -14408,6 +14732,60 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
+var realtimeInfoImplementors = []string{"RealtimeInfo"}
+
+func (ec *executionContext) _RealtimeInfo(ctx context.Context, sel ast.SelectionSet, obj *model.RealtimeInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, realtimeInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RealtimeInfo")
+		case "InfoFound":
+			out.Values[i] = ec._RealtimeInfo_InfoFound(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "DesiredReplicas":
+			out.Values[i] = ec._RealtimeInfo_DesiredReplicas(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "RunningReplicas":
+			out.Values[i] = ec._RealtimeInfo_RunningReplicas(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "DeploymentMode":
+			out.Values[i] = ec._RealtimeInfo_DeploymentMode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var redirectRuleImplementors = []string{"RedirectRule"}
 
 func (ec *executionContext) _RedirectRule(ctx context.Context, sel ast.SelectionSet, obj *model.RedirectRule) graphql.Marshaler {
@@ -15553,6 +15931,21 @@ func (ec *executionContext) marshalNIngressRuleStatus2githubᚗcomᚋswiftwave�
 	return v
 }
 
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) marshalNPersistentVolume2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v model.PersistentVolume) graphql.Marshaler {
 	return ec._PersistentVolume(ctx, sel, &v)
 }
@@ -15656,6 +16049,20 @@ func (ec *executionContext) unmarshalNProtocolType2githubᚗcomᚋswiftwaveᚑor
 
 func (ec *executionContext) marshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐProtocolType(ctx context.Context, sel ast.SelectionSet, v model.ProtocolType) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNRealtimeInfo2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRealtimeInfo(ctx context.Context, sel ast.SelectionSet, v model.RealtimeInfo) graphql.Marshaler {
+	return ec._RealtimeInfo(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRealtimeInfo2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRealtimeInfo(ctx context.Context, sel ast.SelectionSet, v *model.RealtimeInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RealtimeInfo(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNRedirectRule2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRule(ctx context.Context, sel ast.SelectionSet, v model.RedirectRule) graphql.Marshaler {

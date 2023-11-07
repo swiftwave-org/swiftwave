@@ -3,11 +3,19 @@ enum DeploymentMode {
     global
 }
 
+type RealtimeInfo {
+    InfoFound: Boolean!
+    DesiredReplicas: Int!
+    RunningReplicas: Int!
+    DeploymentMode: DeploymentMode!
+}
+
 type Application {
     id: String!
     name: String!
     environmentVariables: [EnvironmentVariable!]!
     persistentVolumeBindings: [PersistentVolumeBinding!]!
+    realtimeInfo: RealtimeInfo!
     latestDeployment: Deployment!
     deployments: [Deployment!]!
     deploymentMode: DeploymentMode!

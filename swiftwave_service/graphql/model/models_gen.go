@@ -14,6 +14,7 @@ type Application struct {
 	Name                     string                     `json:"name"`
 	EnvironmentVariables     []*EnvironmentVariable     `json:"environmentVariables"`
 	PersistentVolumeBindings []*PersistentVolumeBinding `json:"persistentVolumeBindings"`
+	RealtimeInfo             *RealtimeInfo              `json:"realtimeInfo"`
 	LatestDeployment         *Deployment                `json:"latestDeployment"`
 	Deployments              []*Deployment              `json:"deployments"`
 	DeploymentMode           DeploymentMode             `json:"deploymentMode"`
@@ -223,6 +224,13 @@ type PersistentVolumeBindingInput struct {
 
 type PersistentVolumeInput struct {
 	Name string `json:"name"`
+}
+
+type RealtimeInfo struct {
+	InfoFound       bool           `json:"InfoFound"`
+	DesiredReplicas int            `json:"DesiredReplicas"`
+	RunningReplicas int            `json:"RunningReplicas"`
+	DeploymentMode  DeploymentMode `json:"DeploymentMode"`
 }
 
 type RedirectRule struct {
