@@ -40,20 +40,20 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 		}
 	}
 	// log message
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment starting...")
+	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment starting...", false)
 	// verify deployment is not failed or pending
 	if deployment.Status == core.DeploymentStatusFailed {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment failed, please check the logs")
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment failed, please check the logs", true)
 		return nil
 	}
 	if deployment.Status == core.DeploymentStatusPending {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment is already in progress\nIf for long time deployment is not completed, please re-deploy the application")
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment is already in progress\nIf for long time deployment is not completed, please re-deploy the application", false)
 		return nil
 	}
 	// fetch environment variables
 	environmentVariables, err := core.FindEnvironmentVariablesByApplicationId(ctx, dbWithoutTx, request.AppId)
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch environment variables")
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch environment variables", false)
 		return err
 	}
 	var environmentVariablesMap = make(map[string]string)
@@ -68,7 +68,7 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 		var persistentVolume core.PersistentVolume
 		err := persistentVolume.FindById(ctx, dbWithoutTx, persistentVolumeBinding.PersistentVolumeID)
 		if err != nil {
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch persistent volume")
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch persistent volume", false)
 			return err
 		}
 		volumeMounts = append(volumeMounts, containermanger.VolumeMount{
@@ -82,11 +82,11 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 	// check if image exists
 	isImageExists := m.ServiceManager.DockerManager.ExistsImage(dockerImageUri)
 	if isImageExists {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image already exists")
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image already exists", false)
 	} else {
 		scanner, err := m.ServiceManager.DockerManager.PullImage(deployment.DeployableDockerImageURI()) // TODO: add support for providing auth credentials
 		if err != nil {
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to pull docker image")
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to pull docker image", false)
 			return err
 		}
 		// read the logs
@@ -111,13 +111,13 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 						strings.HasPrefix(status, "Digest:") ||
 						strings.HasPrefix(status, "Status:") {
 						logContent := fmt.Sprintf("%s %s", status, id)
-						addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, logContent)
+						addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, logContent, false)
 					}
 
 				}
 			}
 		}
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image pulled successfully")
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image pulled successfully", false)
 	}
 	// create service
 	service := containermanger.Service{
@@ -135,7 +135,7 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 		// create service
 		err = m.ServiceManager.DockerManager.CreateService(service)
 		if err != nil {
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to deploy the application")
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to deploy the application", true)
 			err := deployment.UpdateStatus(ctx, dbWithoutTx, core.DeploymentStatusFailed)
 			if err != nil {
 				log.Println("Failed to update deployment status to failed")
@@ -143,13 +143,13 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 			// dont requeue the job
 			return nil
 		}
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application deployed successfully")
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application deployed successfully", false)
 	} else {
 		// update service
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application already exists, updating the application")
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application already exists, updating the application", false)
 		err = m.ServiceManager.DockerManager.UpdateService(service)
 		if err != nil {
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update the application")
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update the application", true)
 			err := deployment.UpdateStatus(ctx, dbWithoutTx, core.DeploymentStatusFailed)
 			if err != nil {
 				log.Println("Failed to update deployment status to failed")
@@ -157,7 +157,7 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 			// dont requeue the job
 			return nil
 		}
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application re-deployed successfully")
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application re-deployed successfully", true)
 	}
 	// update deployment status
 	err = deployment.UpdateStatus(ctx, dbWithoutTx, core.DeploymentStatusLive)
