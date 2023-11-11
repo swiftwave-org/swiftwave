@@ -2,11 +2,12 @@ package worker
 
 import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/system_config"
 )
 
 // Manager : hold references to other functions of service
 type Manager struct {
-	ServiceConfig  *core.ServiceConfig
+	ServiceConfig  *system_config.Config
 	ServiceManager *core.ServiceManager
 }
 

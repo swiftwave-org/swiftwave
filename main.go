@@ -1,36 +1,42 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	swiftwave "github.com/swiftwave-org/swiftwave/swiftwave_service"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/cronjob"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/worker"
+	"github.com/swiftwave-org/swiftwave/system_config"
 	"log"
+	"os"
 )
 
 func main() {
-	err := godotenv.Load()
+	// Load config path from environment variable
+	systemConfigPath := os.Getenv("SWIFTWAVE_CONFIG_PATH")
+	if systemConfigPath == "" {
+		systemConfigPath = "~/swiftwave/config.yaml"
+		log.Println("SWIFTWAVE_CONFIG_PATH not set, using default path > ", systemConfigPath)
+	}
+	// Load the config
+	config, err := system_config.ReadFromFile(systemConfigPath)
 	if err != nil {
-		log.Println("WARN: error loading .env file. Ignoring")
+		panic(err)
 	}
 	// Load the manager
-	config := core.ServiceConfig{}
 	manager := core.ServiceManager{}
-	config.Load()
 	manager.Load()
 
 	// Create the worker manager
-	workerManager := worker.NewManager(&config, &manager)
+	workerManager := worker.NewManager(config, &manager)
 	err = workerManager.StartConsumers(true)
 	if err != nil {
 		panic(err)
 	}
 
 	// Create the cronjob manager
-	cronjobManager := cronjob.NewManager(&config, &manager)
+	cronjobManager := cronjob.NewManager(config, &manager)
 	cronjobManager.Start(true)
 
 	// create a channel to block the main thread

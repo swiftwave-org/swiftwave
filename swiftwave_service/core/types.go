@@ -10,20 +10,7 @@ import (
 	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
 	"github.com/swiftwave-org/swiftwave/task_queue"
 	"gorm.io/gorm"
-	"time"
 )
-
-// ServiceConfig : holds the config of the service
-type ServiceConfig struct {
-	Port                      int
-	HaproxyService            string
-	CodeTarballDir            string
-	SwarmNetwork              string
-	RestrictedPorts           []int
-	SessionTokens             map[string]time.Time
-	SessionTokenExpiryMinutes int
-	Environment               string
-}
 
 // ServiceManager : holds the instance of all the managers
 type ServiceManager struct {

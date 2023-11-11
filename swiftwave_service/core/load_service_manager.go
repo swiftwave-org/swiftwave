@@ -8,16 +8,13 @@ import (
 	HAPROXY "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/pubsub"
 	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
+	"github.com/swiftwave-org/swiftwave/system_config"
 	"github.com/swiftwave-org/swiftwave/task_queue"
-	"log"
-	"os"
-	"strconv"
-	"strings"
 )
 
-func (manager *ServiceManager) Load() {
+func (manager *ServiceManager) Load(config system_config.Config) {
 	// Initiating database client
-	dbClient, err := createDbClient()
+	dbClient, err := createDbClient(config.PostgresqlConfig.DSN())
 	if err != nil {
 		panic(err.Error())
 	}
@@ -25,9 +22,9 @@ func (manager *ServiceManager) Load() {
 
 	// Initiating SSL Manager
 	options := SSL.ManagerOptions{
-		IsStaging:                 strings.Compare(os.Getenv("ENVIRONMENT"), "production") != 0,
-		Email:                     os.Getenv("ACCOUNT_EMAIL_ID"),
-		AccountPrivateKeyFilePath: os.Getenv("ACCOUNT_PRIVATE_KEY_FILE_PATH"),
+		IsStaging:                 config.LetsEncryptConfig.StagingEnvironment,
+		Email:                     config.LetsEncryptConfig.EmailID,
+		AccountPrivateKeyFilePath: config.LetsEncryptConfig.PrivateKeyPath,
 	}
 	sslManager := SSL.Manager{}
 	err = sslManager.Init(context.Background(), *dbClient, options)
@@ -38,16 +35,12 @@ func (manager *ServiceManager) Load() {
 
 	// Initiating HAPROXY Manager
 	var haproxyManager = HAPROXY.Manager{}
-	haproxyPort, err := strconv.Atoi(os.Getenv("HAPROXY_MANAGER_PORT"))
-	if err != nil {
-		log.Fatal("HAPROXY_MANAGER_PORT environment variable is not set")
-	}
-	haproxyManager.InitTcpSocket(os.Getenv("HAPROXY_MANAGER_HOST"), haproxyPort)
-	haproxyManager.Auth(os.Getenv("HAPROXY_MANAGER_USERNAME"), os.Getenv("HAPROXY_MANAGER_PASSWORD"))
+	haproxyManager.InitUnixSocket(config.HAProxyConfig.UnixSocketPath)
+	haproxyManager.Auth(config.HAProxyConfig.User, config.HAProxyConfig.Password)
 	manager.HaproxyManager = haproxyManager
 
 	// Initiating Docker Manager
-	dockerClient, err := DOCKER_CLIENT.NewClientWithOpts(DOCKER_CLIENT.WithHost(os.Getenv("DOCKER_HOST")))
+	dockerClient, err := DOCKER_CLIENT.NewClientWithOpts(DOCKER_CLIENT.WithHost("unix://"+config.ServiceConfig.DockerUnixSocketPath), DOCKER_CLIENT.WithAPIVersionNegotiation())
 	if err != nil {
 		panic(err)
 	}
