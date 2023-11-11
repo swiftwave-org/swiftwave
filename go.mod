@@ -10,7 +10,7 @@ require (
 	github.com/go-git/go-git/v5 v5.10.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/hashicorp/go-set v0.1.14
-	github.com/labstack/echo/v4 v4.11.2
+	github.com/labstack/echo/v4 v4.11.3
 	github.com/mholt/acmez v1.2.0
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/vektah/gqlparser/v2 v2.5.10
