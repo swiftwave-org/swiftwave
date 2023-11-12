@@ -12,6 +12,7 @@ type Config struct {
 }
 
 type ServiceConfig struct {
+	AutoMigrateDatabase  bool     `yaml:"auto_migrate_database"`
 	AutoTLS              bool     `yaml:"auto_tls"`
 	TLSCacheDir          string   `yaml:"tls_cache_dir"`
 	WhiteListedDomains   []string `yaml:"whitelisted_domains"`

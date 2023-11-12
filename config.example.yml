@@ -15,6 +15,7 @@ service:
     - 7946 # docker swarm port
     - 4789 # docker swarm port
     - 3333 # swiftwave port
+  auto_migrate_database: true # true or false
 haproxy:
   service_name: haproxy
   image: ghcr.io/swiftwave-org/haproxy:2.9

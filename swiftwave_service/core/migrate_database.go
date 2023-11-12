@@ -1,10 +1,11 @@
 package core
 
 import (
+	"errors"
 	"gorm.io/gorm"
 )
 
-func MigrateDatabase(dbClient *gorm.DB) {
+func MigrateDatabase(dbClient *gorm.DB) error {
 	// Migrate the schema
 	err := dbClient.AutoMigrate(
 		&Domain{},
@@ -21,6 +22,7 @@ func MigrateDatabase(dbClient *gorm.DB) {
 		&DeploymentLog{},
 	)
 	if err != nil {
-		panic("failed to migrate database")
+		return errors.New("failed to migrate database \n" + err.Error())
 	}
+	return nil
 }
