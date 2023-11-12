@@ -217,7 +217,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context
 }
 
 func (m Manager) buildApplicationForTarball(deployment *core.Deployment, ctx context.Context, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client) error {
-	tarballPath := filepath.Join(m.ServiceConfig.CodeTarballDir, deployment.SourceCodeCompressedFileName)
+	tarballPath := filepath.Join(m.SystemConfig.ServiceConfig.DataDir, deployment.SourceCodeCompressedFileName)
 	// Verify file exists
 	if _, err := os.Stat(tarballPath); os.IsNotExist(err) {
 		// mark as failed

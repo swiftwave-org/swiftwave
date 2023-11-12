@@ -22,7 +22,7 @@ func (r *queryResolver) DockerConfigGenerator(ctx context.Context, input model.D
 			return nil, errors.New("invalid source code provided")
 		}
 		filename := sanitizeFileName(*input.SourceCodeCompressedFileName)
-		filename = filepath.Join(r.ServiceConfig.CodeTarballDir, filename)
+		filename = filepath.Join(r.ServiceConfig.ServiceConfig.DataDir, filename)
 		config, err := r.ServiceManager.DockerConfigGenerator.GenerateConfigFromSourceCodeTar(filename)
 		if err != nil {
 			return nil, errors.New("failed to generate docker config from source code")

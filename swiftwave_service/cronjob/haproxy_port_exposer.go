@@ -25,9 +25,8 @@ func (m Manager) HaProxyPortExposer() {
 		// add 80 and 443 to ports
 		portsMap[80] = true
 		portsMap[443] = true
-		portsMap[5555] = true
 		// Check if ports are changed
-		exposedPorts, err := m.ServiceManager.DockerManager.FetchPublishedHostPorts(m.ServiceConfig.HaproxyService)
+		exposedPorts, err := m.ServiceManager.DockerManager.FetchPublishedHostPorts(m.SystemConfig.HAProxyConfig.ServiceName)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -48,7 +47,7 @@ func (m Manager) HaProxyPortExposer() {
 				})
 			}
 			// Update exposed ports
-			err := m.ServiceManager.DockerManager.UpdatePublishedHostPorts(m.ServiceConfig.HaproxyService, portsUpdateRequired)
+			err := m.ServiceManager.DockerManager.UpdatePublishedHostPorts(m.SystemConfig.HAProxyConfig.ServiceName, portsUpdateRequired)
 			if err != nil {
 				log.Println(err)
 			} else {

@@ -3,12 +3,11 @@ package core
 import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"os"
 )
 
-func createDbClient() (*gorm.DB, error) {
+func createDbClient(dsn string) (*gorm.DB, error) {
 	// Initiating database client
-	dbDialect := postgres.Open(os.Getenv("POSTGRESQL_DSN"))
+	dbDialect := postgres.Open(dsn)
 	client, err := gorm.Open(dbDialect, &gorm.Config{})
 	if err != nil {
 		return nil, err
