@@ -15,7 +15,11 @@ import (
 )
 
 // Start will start the swiftwave service [including worker manager, pubsub, cronjob, server]
-func Start(config *system_config.Config, manager *core.ServiceManager) {
+func Start(config *system_config.Config) {
+	// Load the manager
+	manager := &core.ServiceManager{}
+	manager.Load(*config)
+
 	// Create the worker manager
 	workerManager := worker.NewManager(config, manager)
 	err := workerManager.StartConsumers(true)

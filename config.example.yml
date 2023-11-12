@@ -8,7 +8,7 @@ service:
   bind_address: 0.0.0.0
   bind_port: 3333 # choose any other ports except 80 and 443
   network_name: swiftwave_network # docker swarm overflow network name
-  data_dir: ~/swiftwave/data
+  data_dir: /etc/swiftwave/data
   docker_unix_socket_path: /var/run/docker.sock
   restricted_ports: # ports that can't be exposed and bound to haproxy
     - 2377 # docker swarm port
@@ -19,7 +19,7 @@ service:
 haproxy:
   service_name: haproxy
   image: ghcr.io/swiftwave-org/haproxy:2.9
-  unix_socket_path: ~/swiftwave/dataplaneapi.sock
+  unix_socket_path: /etc/swiftwave/dataplaneapi.sock
   user: admin
   password: admin
 postgresql:
@@ -32,7 +32,7 @@ postgresql:
 lets_encrypt:
   staging_environment: false # true or false
   email_id: test@gmail.com
-  account_private_key_path: ~/swiftwave/account.key
+  account_private_key_path: /etc/swiftwave/account.key
 pubsub:
   mode: local # local or remote
   buffer_length: 1000

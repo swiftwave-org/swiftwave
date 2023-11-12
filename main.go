@@ -1,25 +1,30 @@
 package main
 
 import (
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"fmt"
+	"github.com/swiftwave-org/swiftwave/cmd"
 	"github.com/swiftwave-org/swiftwave/system_config"
-	"log"
 	"os"
 )
 
 func main() {
-	// Load config path from environment variable
-	systemConfigPath := os.Getenv("SWIFTWAVE_CONFIG_PATH")
-	if systemConfigPath == "" {
-		systemConfigPath = "~/swiftwave/config.yaml"
-		log.Println("SWIFTWAVE_CONFIG_PATH environment variable not set, using default path > ", systemConfigPath)
+	var config *system_config.Config
+	var err error
+	// Check whether first argument is "install" or no arguments
+	if (len(os.Args) > 1 && os.Args[1] == "install") ||
+		len(os.Args) == 1 {
+		config = nil
+	} else {
+		// Load config path from environment variable
+		systemConfigPath := "/etc/swiftwave/config.yaml"
+		// Load the config
+		config, err = system_config.ReadFromFile(systemConfigPath)
+		if err != nil {
+			fmt.Println("failed to load config file > ", err)
+			os.Exit(1)
+		}
 	}
-	// Load the config
-	config, err := system_config.ReadFromFile(systemConfigPath)
-	if err != nil {
-		panic(err)
-	}
-	// Load the manager
-	manager := core.ServiceManager{}
-	manager.Load(*config)
+
+	// Start the command line interface
+	cmd.Execute(config)
 }
