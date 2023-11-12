@@ -1,9 +1,6 @@
 package haproxymanager
 
 type Manager struct {
-	Host           string
-	Port           int
-	isUnix         bool // If true, Host is a path to a unix socket
 	unixSocketPath string
 	username       string
 	password       string

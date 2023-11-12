@@ -2,7 +2,6 @@ package haproxymanager
 
 // Init HaProxy Manager with a unix socket
 func (s *Manager) InitUnixSocket(unixSocketPath string) {
-	s.isUnix = true
 	s.unixSocketPath = unixSocketPath
 }
 
