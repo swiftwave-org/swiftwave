@@ -14,14 +14,14 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, ech
 	// Create Rest Server
 	restServer := rest.Server{
 		EchoServer:     echoServer,
-		ServiceConfig:  config,
+		SystemConfig:   config,
 		ServiceManager: manager,
 		WorkerManager:  workerManager,
 	}
 	// Create GraphQL Server
 	graphqlServer := graphql.Server{
 		EchoServer:     echoServer,
-		ServiceConfig:  config,
+		SystemConfig:   config,
 		ServiceManager: manager,
 		WorkerManager:  workerManager,
 	}

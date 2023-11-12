@@ -43,7 +43,7 @@ func (server *Server) uploadTarFile(c echo.Context) error {
 
 	// Destination
 	destFilename := uuid.New().String() + ".tar"
-	destFile := filepath.Join(server.ServiceConfig.ServiceConfig.DataDir, destFilename)
+	destFile := filepath.Join(server.SystemConfig.ServiceConfig.DataDir, destFilename)
 	dst, err := os.Create(destFile)
 	if err != nil {
 		log.Println(err)

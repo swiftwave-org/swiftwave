@@ -10,7 +10,7 @@ import (
 // Server : hold references to other components of service
 type Server struct {
 	EchoServer     *echo.Echo
-	ServiceConfig  *system_config.Config
+	SystemConfig   *system_config.Config
 	ServiceManager *core.ServiceManager
 	WorkerManager  *worker.Manager
 }

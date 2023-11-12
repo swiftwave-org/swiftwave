@@ -75,7 +75,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest) error {
 			}
 		} else {
 			// for other ports, use custom frontend
-			err = m.ServiceManager.HaproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, haproxymanager.HTTPMode, m.ServiceConfig.ServiceConfig.RestrictedPorts)
+			err = m.ServiceManager.HaproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, haproxymanager.HTTPMode, m.SystemConfig.ServiceConfig.RestrictedPorts)
 			if err != nil {
 				// set status as failed and exit
 				_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
@@ -85,7 +85,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest) error {
 			}
 		}
 	} else if ingressRule.Protocol == core.TCPProtocol {
-		err = m.ServiceManager.HaproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, haproxymanager.TCPMode, m.ServiceConfig.ServiceConfig.RestrictedPorts)
+		err = m.ServiceManager.HaproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, haproxymanager.TCPMode, m.SystemConfig.ServiceConfig.RestrictedPorts)
 		if err != nil {
 			// set status as failed and exit
 			_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)

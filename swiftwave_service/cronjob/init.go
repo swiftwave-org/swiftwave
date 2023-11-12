@@ -14,7 +14,7 @@ func NewManager(config *system_config.Config, manager *core.ServiceManager) Cron
 		panic("manager cannot be nil")
 	}
 	return Manager{
-		ServiceConfig:  config,
+		SystemConfig:   config,
 		ServiceManager: manager,
 		wg:             &sync.WaitGroup{},
 	}

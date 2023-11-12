@@ -13,7 +13,7 @@ func NewManager(config *system_config.Config, manager *core.ServiceManager) *Man
 		panic("manager cannot be nil")
 	}
 	workerManager := Manager{
-		ServiceConfig:  config,
+		SystemConfig:   config,
 		ServiceManager: manager,
 	}
 	workerManager.registerWorkerFunctions()

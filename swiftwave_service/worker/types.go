@@ -7,7 +7,7 @@ import (
 
 // Manager : hold references to other functions of service
 type Manager struct {
-	ServiceConfig  *system_config.Config
+	SystemConfig   *system_config.Config
 	ServiceManager *core.ServiceManager
 }
 

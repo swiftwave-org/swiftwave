@@ -11,7 +11,7 @@ func (server *Server) Initialize() {
 	graphqlHandler := handler.NewDefaultServer(
 		NewExecutableSchema(
 			Config{Resolvers: &Resolver{
-				ServiceConfig:  *server.ServiceConfig,
+				ServiceConfig:  *server.SystemConfig,
 				ServiceManager: *server.ServiceManager,
 				WorkerManager:  *server.WorkerManager,
 			}},

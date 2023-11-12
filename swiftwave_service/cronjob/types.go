@@ -12,7 +12,7 @@ type CronJob interface {
 }
 
 type Manager struct {
-	ServiceConfig  *system_config.Config
+	SystemConfig   *system_config.Config
 	ServiceManager *core.ServiceManager
 	wg             *sync.WaitGroup
 }
