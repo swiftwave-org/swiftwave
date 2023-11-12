@@ -1,8 +1,6 @@
 package main
 
 import (
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	swiftwave "github.com/swiftwave-org/swiftwave/swiftwave_service"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/cronjob"
@@ -43,14 +41,8 @@ func main() {
 	// create a channel to block the main thread
 	var waitForever chan struct{}
 
-	// Create Echo Server
-	echoServer := echo.New()
-	echoServer.Pre(middleware.RemoveTrailingSlash())
-	echoServer.Use(middleware.Recover())
-	echoServer.Use(middleware.CORS())
-
 	// Start the swift wave server
-	go swiftwave.StartServer(config, &manager, echoServer, workerManager, true)
+	go swiftwave.StartServer(config, &manager, workerManager, true)
 	// Wait for consumers
 	go workerManager.WaitForConsumers()
 	// Wait for cronjobs
