@@ -27,7 +27,7 @@ postgresql:
   time_zone: Asia/Kolkata
 lets_encrypt:
   staging_environment: false # true or false
-  email: test@gmail.com
+  email_id: test@gmail.com
   account_private_key_path: ~/swiftwave/account.key
 pubsub:
   mode: local # local or remote

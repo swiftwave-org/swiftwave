@@ -24,6 +24,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	// Load the manager
 	manager := core.ServiceManager{}
 	manager.Load(*config)
