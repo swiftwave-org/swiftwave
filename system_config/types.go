@@ -12,13 +12,15 @@ type Config struct {
 }
 
 type ServiceConfig struct {
-	AutoTLS              bool   `yaml:"auto_tls"`
-	BindAddress          string `yaml:"bind_address"`
-	BindPort             int    `yaml:"bind_port"`
-	NetworkName          string `yaml:"network_name"`
-	DataDir              string `yaml:"data_dir"`
-	DockerUnixSocketPath string `yaml:"docker_unix_socket_path"`
-	RestrictedPorts      []int  `yaml:"restricted_ports"`
+	AutoTLS              bool     `yaml:"auto_tls"`
+	TLSCacheDir          string   `yaml:"tls_cache_dir"`
+	WhiteListedDomains   []string `yaml:"whitelisted_domains"`
+	BindAddress          string   `yaml:"bind_address"`
+	BindPort             int      `yaml:"bind_port"`
+	NetworkName          string   `yaml:"network_name"`
+	DataDir              string   `yaml:"data_dir"`
+	DockerUnixSocketPath string   `yaml:"docker_unix_socket_path"`
+	RestrictedPorts      []int    `yaml:"restricted_ports"`
 }
 
 type PostgresqlConfig struct {

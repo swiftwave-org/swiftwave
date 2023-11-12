@@ -2,6 +2,9 @@ version: 1.0
 mode: standalone # standalone or cluster
 service:
   auto_tls: true # true or false
+  tls_cache_dir: /var/www/.cache
+  whitelisted_domains: # domains that can be used to access the service and generate certificates
+    - *
   bind_address: 0.0.0.0
   bind_port: 3333 # choose any other ports except 80 and 443
   network_name: swiftwave_network # docker swarm overflow network name
