@@ -3,7 +3,6 @@ package system_config
 type Config struct {
 	Version           string            `yaml:"version"`
 	Mode              Mode              `yaml:"mode"`
-	Environment       Environment       `yaml:"environment"`
 	ServiceConfig     ServiceConfig     `yaml:"service"`
 	HAProxyConfig     HAProxyConfig     `yaml:"haproxy"`
 	PostgresqlConfig  PostgresqlConfig  `yaml:"postgresql"`
@@ -33,15 +32,16 @@ type PostgresqlConfig struct {
 
 type HAProxyConfig struct {
 	ServiceName    string `yaml:"service_name"`
+	DockerImage    string `yaml:"image"`
 	UnixSocketPath string `yaml:"unix_socket_path"`
 	User           string `yaml:"user"`
 	Password       string `yaml:"password"`
 }
 
 type LetsEncryptConfig struct {
-	StagingEnvironment bool   `yaml:"staging_environment"`
-	EmailID            string `yaml:"email_id"`
-	PrivateKeyPath     string `yaml:"private_key_path"`
+	StagingEnvironment    bool   `yaml:"staging_environment"`
+	EmailID               string `yaml:"email_id"`
+	AccountPrivateKeyPath string `yaml:"account_private_key_path"`
 }
 
 type PubSubConfig struct {

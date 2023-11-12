@@ -1,12 +1,5 @@
 package system_config
 
-type Environment string
-
-const (
-	Development Environment = "development"
-	Production  Environment = "production"
-)
-
 type Mode string
 
 const (
