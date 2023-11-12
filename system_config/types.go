@@ -4,12 +4,12 @@ type Config struct {
 	Version           string            `yaml:"version"`
 	Mode              Mode              `yaml:"mode"`
 	Environment       Environment       `yaml:"environment"`
-	ServiceConfig     ServiceConfig     `yaml:"service_config"`
-	HAProxyConfig     HAProxyConfig     `yaml:"haproxy_config"`
-	PostgresqlConfig  PostgresqlConfig  `yaml:"postgresql_config"`
-	LetsEncryptConfig LetsEncryptConfig `yaml:"lets_encrypt_config"`
-	PubSubConfig      PubSubConfig      `yaml:"pubsub_config"`
-	TaskQueueConfig   TaskQueueConfig   `yaml:"task_queue_config"`
+	ServiceConfig     ServiceConfig     `yaml:"service"`
+	HAProxyConfig     HAProxyConfig     `yaml:"haproxy"`
+	PostgresqlConfig  PostgresqlConfig  `yaml:"postgresql"`
+	LetsEncryptConfig LetsEncryptConfig `yaml:"lets_encrypt"`
+	PubSubConfig      PubSubConfig      `yaml:"pubsub"`
+	TaskQueueConfig   TaskQueueConfig   `yaml:"task_queue"`
 }
 
 type ServiceConfig struct {
@@ -47,13 +47,13 @@ type LetsEncryptConfig struct {
 type PubSubConfig struct {
 	Mode         PubSubMode  `yaml:"mode"`
 	BufferLength int         `yaml:"buffer_length"`
-	RedisConfig  RedisConfig `yaml:"redis_config"`
+	RedisConfig  RedisConfig `yaml:"redis"`
 }
 
 type TaskQueueConfig struct {
 	Mode                           TaskQueueMode `yaml:"mode"`
 	MaxOutstandingMessagesPerQueue int           `yaml:"max_outstanding_messages_per_queue"`
-	AMQPConfig                     AMQPConfig    `yaml:"amqp_config"`
+	AMQPConfig                     AMQPConfig    `yaml:"amqp"`
 }
 
 type RedisConfig struct {
