@@ -32,6 +32,7 @@ type PostgresqlConfig struct {
 }
 
 type HAProxyConfig struct {
+	ServiceName    string `yaml:"service_name"`
 	UnixSocketPath string `yaml:"unix_socket_path"`
 	User           string `yaml:"user"`
 	Password       string `yaml:"password"`
@@ -52,7 +53,7 @@ type PubSubConfig struct {
 type TaskQueueConfig struct {
 	Mode                           TaskQueueMode `yaml:"mode"`
 	MaxOutstandingMessagesPerQueue int           `yaml:"max_outstanding_messages_per_queue"`
-	RedisConfig                    RedisConfig
+	AMQPConfig                     AMQPConfig    `yaml:"amqp_config"`
 }
 
 type RedisConfig struct {

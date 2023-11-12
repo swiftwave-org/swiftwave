@@ -17,7 +17,7 @@ func main() {
 	systemConfigPath := os.Getenv("SWIFTWAVE_CONFIG_PATH")
 	if systemConfigPath == "" {
 		systemConfigPath = "~/swiftwave/config.yaml"
-		log.Println("SWIFTWAVE_CONFIG_PATH not set, using default path > ", systemConfigPath)
+		log.Println("SWIFTWAVE_CONFIG_PATH environment variable not set, using default path > ", systemConfigPath)
 	}
 	// Load the config
 	config, err := system_config.ReadFromFile(systemConfigPath)
@@ -26,7 +26,7 @@ func main() {
 	}
 	// Load the manager
 	manager := core.ServiceManager{}
-	manager.Load()
+	manager.Load(*config)
 
 	// Create the worker manager
 	workerManager := worker.NewManager(config, &manager)
@@ -49,7 +49,7 @@ func main() {
 	echoServer.Use(middleware.CORS())
 
 	// Start the swift wave server
-	go swiftwave.StartServer(&config, &manager, echoServer, workerManager, true)
+	go swiftwave.StartServer(config, &manager, echoServer, workerManager, true)
 	// Wait for consumers
 	go workerManager.WaitForConsumers()
 	// Wait for cronjobs

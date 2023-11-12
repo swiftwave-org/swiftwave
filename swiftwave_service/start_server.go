@@ -1,15 +1,16 @@
 package swiftwave
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/rest"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/worker"
-	"strconv"
+	"github.com/swiftwave-org/swiftwave/system_config"
 )
 
-func StartServer(config *core.ServiceConfig, manager *core.ServiceManager, echoServer *echo.Echo, workerManager *worker.Manager, migrateDatabase bool) {
+func StartServer(config *system_config.Config, manager *core.ServiceManager, echoServer *echo.Echo, workerManager *worker.Manager, migrateDatabase bool) {
 	// Create Rest Server
 	restServer := rest.Server{
 		EchoServer:     echoServer,
@@ -33,5 +34,6 @@ func StartServer(config *core.ServiceConfig, manager *core.ServiceManager, echoS
 		core.MigrateDatabase(&manager.DbClient)
 	}
 	// Start the server
-	echoServer.Logger.Fatal(echoServer.Start(":" + strconv.Itoa(config.Port)))
+	address := fmt.Sprintf("%s:%d", config.ServiceConfig.BindAddress, config.ServiceConfig.BindPort)
+	echoServer.Logger.Fatal(echoServer.Start(address))
 }

@@ -125,7 +125,7 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 		Image:          dockerImageUri,
 		Command:        []string{},
 		Env:            environmentVariablesMap,
-		Networks:       []string{m.ServiceConfig.SwarmNetwork},
+		Networks:       []string{m.ServiceConfig.ServiceConfig.NetworkName},
 		DeploymentMode: containermanger.DeploymentMode(application.DeploymentMode),
 		Replicas:       uint64(application.Replicas),
 		VolumeMounts:   volumeMounts,

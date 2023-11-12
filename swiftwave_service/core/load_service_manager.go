@@ -2,7 +2,9 @@ package core
 
 import (
 	"context"
+	"fmt"
 	DOCKER_CLIENT "github.com/docker/docker/client"
+	"github.com/go-redis/redis/v8"
 	DOCKER "github.com/swiftwave-org/swiftwave/container_manager"
 	DOCKER_CONFIG_GENERATOR "github.com/swiftwave-org/swiftwave/docker_config_generator"
 	HAPROXY "github.com/swiftwave-org/swiftwave/haproxy_manager"
@@ -59,25 +61,63 @@ func (manager *ServiceManager) Load(config system_config.Config) {
 	}
 	manager.DockerConfigGenerator = dockerConfigGenerator
 
-	// TODO based on configuration use remote or local redis
-	pubSubClient, err := pubsub.NewClient(pubsub.Options{
-		Type:         pubsub.Local,
-		BufferLength: 1000,
-		RedisClient:  nil,
-	})
-	if err != nil {
-		panic(err)
+	// Create PubSub client
+	if config.PubSubConfig.Mode == system_config.LocalPubSub {
+		pubSubClient, err := pubsub.NewClient(pubsub.Options{
+			Type:         pubsub.Local,
+			BufferLength: config.PubSubConfig.BufferLength,
+			RedisClient:  nil,
+		})
+		if err != nil {
+			panic(err)
+		}
+		manager.PubSubClient = pubSubClient
+	} else if config.PubSubConfig.Mode == system_config.RemotePubSub {
+		pubSubClient, err := pubsub.NewClient(pubsub.Options{
+			Type:         pubsub.Remote,
+			BufferLength: config.PubSubConfig.BufferLength,
+			RedisClient: redis.NewClient(&redis.Options{
+				Addr:     fmt.Sprintf("%s:%d", config.PubSubConfig.RedisConfig.Host, config.PubSubConfig.RedisConfig.Port),
+				Password: config.PubSubConfig.RedisConfig.Password,
+				DB:       config.PubSubConfig.RedisConfig.DatabaseID,
+			}),
+			TopicsChannelName: "topics",
+			EventsChannelName: "events",
+		})
+		if err != nil {
+			panic(err)
+		}
+		manager.PubSubClient = pubSubClient
+	} else {
+		panic("Invalid PubSub Mode in config")
 	}
-	manager.PubSubClient = pubSubClient
 
-	taskQueueClient, err := task_queue.NewClient(task_queue.Options{
-		Type:                task_queue.Local,
-		Mode:                task_queue.Both,
-		MaxMessagesPerQueue: 1000,
-	})
-	if err != nil {
-		panic(err)
+	// Create TaskQueue client
+	if config.TaskQueueConfig.Mode == system_config.LocalTaskQueue {
+		taskQueueClient, err := task_queue.NewClient(task_queue.Options{
+			Type:                task_queue.Local,
+			Mode:                task_queue.Both,
+			MaxMessagesPerQueue: config.TaskQueueConfig.MaxOutstandingMessagesPerQueue,
+		})
+		if err != nil {
+			panic(err)
+		}
+		manager.TaskQueueClient = taskQueueClient
+	} else if config.TaskQueueConfig.Mode == system_config.RemoteTaskQueue {
+		taskQueueClient, err := task_queue.NewClient(task_queue.Options{
+			Type:                task_queue.Remote,
+			Mode:                task_queue.Both,
+			MaxMessagesPerQueue: config.TaskQueueConfig.MaxOutstandingMessagesPerQueue,
+			AMQPUri:             config.TaskQueueConfig.AMQPConfig.URI(),
+			AMQPVhost:           config.TaskQueueConfig.AMQPConfig.VHost,
+			AMQPClientName:      config.TaskQueueConfig.AMQPConfig.ClientName,
+		})
+		if err != nil {
+			panic(err)
+		}
+		manager.TaskQueueClient = taskQueueClient
+	} else {
+		panic("Invalid TaskQueue Mode in config")
 	}
-	manager.TaskQueueClient = taskQueueClient
 
 }
