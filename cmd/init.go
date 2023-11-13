@@ -40,6 +40,16 @@ var initCmd = &cobra.Command{
 			return
 		}
 
+		// ensure if docker is installed
+		if !checkIfCommandExists("docker") {
+			// exit with message
+			printError("Docker is not installed on your system. Please install docker and try again.")
+			printInfo("You can use the following command to install docker on your linux system : ")
+			printInfo("curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh")
+			printInfo("For more information, visit https://docs.docker.com/engine/install/")
+			return
+		}
+
 		// Create folder at /etc/swiftwave if not exists
 		if !checkIfFolderExists("/etc/swiftwave") {
 			err := createFolder("/etc/swiftwave")

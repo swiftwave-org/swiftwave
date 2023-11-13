@@ -1,9 +1,14 @@
 package system_config
 
 type Config struct {
+<<<<<<< HEAD
 	Version string `yaml:"version"`
 	Mode    Mode   `yaml:"mode"`
 
+=======
+	Version           string            `yaml:"version"`
+	Mode              Mode              `yaml:"mode"`
+>>>>>>> 5f6e33e0fb2a7d5fd0d52314aef4a850df72ec56
 	ServiceConfig     ServiceConfig     `yaml:"service"`
 	HAProxyConfig     HAProxyConfig     `yaml:"haproxy"`
 	PostgresqlConfig  PostgresqlConfig  `yaml:"postgresql"`
@@ -13,6 +18,7 @@ type Config struct {
 }
 
 type ServiceConfig struct {
+<<<<<<< HEAD
 	AutoMigrateDatabase  bool     `yaml:"auto_migrate_database"`
 	AutoTLS              bool     `yaml:"auto_tls"`
 	TLSCacheDir          string   `yaml:"tls_cache_dir"`
@@ -24,6 +30,15 @@ type ServiceConfig struct {
 	DataDir              string   `yaml:"data_dir"`
 	DockerUnixSocketPath string   `yaml:"docker_unix_socket_path"`
 	RestrictedPorts      []int    `yaml:"restricted_ports"`
+=======
+	AutoTLS              bool   `yaml:"auto_tls"`
+	BindAddress          string `yaml:"bind_address"`
+	BindPort             int    `yaml:"bind_port"`
+	NetworkName          string `yaml:"network_name"`
+	DataDir              string `yaml:"data_dir"`
+	DockerUnixSocketPath string `yaml:"docker_unix_socket_path"`
+	RestrictedPorts      []int  `yaml:"restricted_ports"`
+>>>>>>> 5f6e33e0fb2a7d5fd0d52314aef4a850df72ec56
 }
 
 type PostgresqlConfig struct {

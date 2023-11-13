@@ -2,7 +2,10 @@ package system_config
 
 import (
 	"errors"
+<<<<<<< HEAD
 	"fmt"
+=======
+>>>>>>> 5f6e33e0fb2a7d5fd0d52314aef4a850df72ec56
 	"gopkg.in/yaml.v3"
 	"io"
 	"os"
@@ -34,7 +37,10 @@ func ReadFromFile(path string) (*Config, error) {
 	// parse yaml
 	err = yaml.Unmarshal(content, &config)
 	if err != nil {
+<<<<<<< HEAD
 		fmt.Println(err)
+=======
+>>>>>>> 5f6e33e0fb2a7d5fd0d52314aef4a850df72ec56
 		return nil, errors.New("failed to parse config file")
 	}
 	// validate config
