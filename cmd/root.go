@@ -9,6 +9,8 @@ import (
 
 var systemConfig *system_config.Config
 
+var configFilePath = "/etc/swiftwave/config.yml"
+
 var rootCmd = &cobra.Command{
 	Use:   "swiftwave",
 	Short: "SwiftWave is a self-hosted lightweight PaaS solution",

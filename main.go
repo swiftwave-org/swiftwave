@@ -11,7 +11,7 @@ func main() {
 	var config *system_config.Config
 	var err error
 	// Check whether first argument is "install" or no arguments
-	if (len(os.Args) > 1 && os.Args[1] == "install") ||
+	if (len(os.Args) > 1 && (os.Args[1] == "install" || os.Args[1] == "init" || os.Args[1] == "config" || os.Args[1] == "completion" || os.Args[1] == "--help")) ||
 		len(os.Args) == 1 {
 		config = nil
 	} else {

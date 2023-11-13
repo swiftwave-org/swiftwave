@@ -2,13 +2,13 @@ version: 1.0
 mode: standalone # standalone or cluster
 service:
   auto_tls: true # true or false
-  tls_cache_dir: /var/www/.cache
+  tls_cache_dir: /var/lib/swiftwave/.tls_cache
   whitelisted_domains: # domains that can be used to access the service and generate certificates
     - *
   bind_address: 0.0.0.0
   bind_port: 3333 # choose any other ports except 80 and 443
   network_name: swiftwave_network # docker swarm overflow network name
-  data_dir: /etc/swiftwave/data
+  data_dir: /var/lib/swiftwave/data
   docker_unix_socket_path: /var/run/docker.sock
   restricted_ports: # ports that can't be exposed and bound to haproxy
     - 2377 # docker swarm port
@@ -16,6 +16,10 @@ service:
     - 4789 # docker swarm port
     - 3333 # swiftwave port
   auto_migrate_database: true # true or false
+lets_encrypt:
+  staging_environment: false # true or false
+  email_id: test@gmail.com
+  account_private_key_path: /etc/swiftwave/account.key
 haproxy:
   service_name: haproxy
   image: ghcr.io/swiftwave-org/haproxy:2.9
@@ -29,10 +33,6 @@ postgresql:
   password: postgres
   database: swiftwave
   time_zone: Asia/Kolkata
-lets_encrypt:
-  staging_environment: false # true or false
-  email_id: test@gmail.com
-  account_private_key_path: /etc/swiftwave/account.key
 pubsub:
   mode: local # local or remote
   buffer_length: 1000
@@ -49,5 +49,5 @@ task_queue:
     host: localhost
     user: guest
     password: guest
-    vhost:
-    client_name: swiftwave
+    vhost: vhost
+    client_name: system_hostname # this client name will be shown in rabbitmq management console
