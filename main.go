@@ -2,12 +2,18 @@ package main
 
 import (
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/swiftwave-org/swiftwave/cmd"
 	"github.com/swiftwave-org/swiftwave/system_config"
 	"os"
 )
 
 func main() {
+	// ensure program is run as root
+	if os.Geteuid() != 0 {
+		color.Red("This program must be run as root. Aborting.")
+		os.Exit(1)
+	}
 	var config *system_config.Config
 	var err error
 	// Check whether first argument is "install" or no arguments
