@@ -5,6 +5,7 @@ service:
   tls_cache_dir: /var/lib/swiftwave/.tls_cache
   whitelisted_domains: # domains that can be used to access the service and generate certificates
     - *
+  address_of_current_node: example.com # provide a domain name associated with the current node
   bind_address: 0.0.0.0
   bind_port: 3333 # choose any other ports except 80 and 443
   network_name: swiftwave_network # docker swarm overflow network name

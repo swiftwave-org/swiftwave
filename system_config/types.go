@@ -1,8 +1,9 @@
 package system_config
 
 type Config struct {
-	Version           string            `yaml:"version"`
-	Mode              Mode              `yaml:"mode"`
+	Version string `yaml:"version"`
+	Mode    Mode   `yaml:"mode"`
+
 	ServiceConfig     ServiceConfig     `yaml:"service"`
 	HAProxyConfig     HAProxyConfig     `yaml:"haproxy"`
 	PostgresqlConfig  PostgresqlConfig  `yaml:"postgresql"`
@@ -15,6 +16,7 @@ type ServiceConfig struct {
 	AutoMigrateDatabase  bool     `yaml:"auto_migrate_database"`
 	AutoTLS              bool     `yaml:"auto_tls"`
 	TLSCacheDir          string   `yaml:"tls_cache_dir"`
+	AddressOfCurrentNode string   `yaml:"address_of_current_node"`
 	WhiteListedDomains   []string `yaml:"whitelisted_domains"`
 	BindAddress          string   `yaml:"bind_address"`
 	BindPort             int      `yaml:"bind_port"`
