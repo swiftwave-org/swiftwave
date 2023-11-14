@@ -130,12 +130,14 @@ var initCmd = &cobra.Command{
 			if mode == "standalone" {
 				msg =
 					`You need to edit at-least the following parameters in the config file:
+- Address (domain name) for current server
 - Let's Encrypt email address
 - Postgres database credentials
 `
 			} else if mode == "cluster" {
 				msg =
 					`You need to edit at-least the following parameters in the config file:
+- Address (domain name) for current server
 - Let's Encrypt email address
 - Postgres database credentials
 - Redis database credentials
