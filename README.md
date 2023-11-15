@@ -78,6 +78,15 @@ Thanks go to these wonderful people
 <!--  - You can also sponsor to keep development of this software running . 
    - Sponsor [@tanmoysrt](https://github.com/sponsors/tanmoysrt) -->
 
+### Sponsors
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.jetbrains.com/"><img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" width="100px;"/></a><br><a href="https://www.jetbrains.com/">Jetbrains</a></td>
+    </tr>
+  </tbody>
+</table>
+
 ### Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=swiftwave-org/swiftwave&type=Date)](https://star-history.com/#swiftwave-org/swiftwave&Date)
