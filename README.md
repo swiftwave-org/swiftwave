@@ -72,11 +72,20 @@ Thanks go to these wonderful people
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
+### Sponsors
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.jetbrains.com/"><img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" width="100px;"/></a><br><a href="https://www.jetbrains.com/">JetBrains</a></td>
+    </tr>
+  </tbody>
+</table>
+
 ### Support Us
 - Support our work by ⭐ this repo and share it in your community
 - Contribute to our codebase to make it stable and have a great software in hand
-<!--  - You can also sponsor to keep development of this software running . 
-   - Sponsor [@tanmoysrt](https://github.com/sponsors/tanmoysrt) -->
+- You can also sponsor to keep development of this software running . 
+   - Sponsor [@swiftwave](https://opencollective.com/swiftwave)
 
 ### Star History
 
