@@ -164,10 +164,7 @@ func createStandaloneConfig(configFilePath string) bool {
 		}
 	}(file)
 	_, err = file.Write(standaloneConfigSample)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 func createClusterConfig(configFilePath string) bool {
@@ -183,8 +180,5 @@ func createClusterConfig(configFilePath string) bool {
 		}
 	}(file)
 	_, err = file.Write(clusterConfigSample)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
