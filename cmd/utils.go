@@ -10,21 +10,13 @@ import (
 func checkIfCommandExists(command string) bool {
 	cmd := exec.Command("which", command)
 	err := cmd.Run()
-
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 func checkIfFolderExists(folder string) bool {
 	cmd := exec.Command("ls", folder)
 	err := cmd.Run()
-
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 func createFolder(folder string) error {
@@ -41,11 +33,7 @@ func createFolder(folder string) error {
 func checkIfFileExists(file string) bool {
 	cmd := exec.Command("ls", file)
 	err := cmd.Run()
-
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 func openFileInEditor(filePath string) {
