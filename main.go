@@ -24,7 +24,7 @@ func main() {
 	}
 	var config *system_config.Config
 	// Check whether first argument is "install" or no arguments
-	if (len(os.Args) > 1 && (os.Args[1] == "install" || os.Args[1] == "init" || os.Args[1] == "config" || os.Args[1] == "completion" || os.Args[1] == "--help")) ||
+	if (len(os.Args) > 1 && (os.Args[1] == "init" || os.Args[1] == "completion" || os.Args[1] == "--help")) ||
 		len(os.Args) == 1 {
 		config = nil
 	} else {
@@ -34,12 +34,10 @@ func main() {
 		config, err = system_config.ReadFromFile(systemConfigPath)
 		if err != nil {
 			color.Red(err.Error())
-			color.Blue("Please run 'swiftwave init' to initialize the system.")
+			color.Blue("Please run 'swiftwave init' to initialize a configuration file.")
 			os.Exit(1)
 		}
 	}
-
-	// TODO: ensure docker is installed and swarm is configured
 
 	// Start the command line interface
 	cmd.Execute(config)
