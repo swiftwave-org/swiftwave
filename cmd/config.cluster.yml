@@ -28,7 +28,7 @@ haproxy:
   user: admin
   password: admin
 postgresql:
-  host: localhost
+  host: 127.0.0.1
   port: 5432
   user: postgres
   password: postgres
