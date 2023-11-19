@@ -3,9 +3,15 @@ package cmd
 import (
 	_ "embed"
 	"fmt"
-	"github.com/spf13/cobra"
+	"io"
 	"log"
+	"net/http"
 	"os"
+	"strings"
+
+	"github.com/spf13/cobra"
+	"github.com/swiftwave-org/swiftwave/system_config"
+	"gopkg.in/yaml.v3"
 )
 
 //go:embed config.standalone.yml
@@ -17,8 +23,11 @@ var clusterConfigSample []byte
 func init() {
 	rootCmd.AddCommand(initCmd)
 	initCmd.Flags().String("mode", "standalone", "Mode of operation [standalone or cluster]")
-	initCmd.Flags().Bool("overwrite", false, "Overwrite existing configuration [true or false]")
-	initCmd.Flags().StringP("editor", "e", "", "Editor to use")
+	initCmd.Flags().String("letsencrypt-email", "", "Email address for Let's Encrypt")
+	initCmd.Flags().String("haproxy-user", "admin", "Username for HAProxy stats page")
+	initCmd.Flags().String("haproxy-password", "admin", "Password for HAProxy stats page")
+	initCmd.Flags().Bool("auto-domain", false, "Resolve domain name automatically")
+	initCmd.Flags().Bool("overwrite", false, "Overwrite existing configuration")
 }
 
 var initCmd = &cobra.Command{
@@ -26,12 +35,10 @@ var initCmd = &cobra.Command{
 	Short: "Initialize SwiftWave configuration on server",
 	Run: func(cmd *cobra.Command, args []string) {
 		isOverwrite := cmd.Flag("overwrite").Value.String() == "true"
-		// ensure if vim is installed
-		if !checkIfCommandExists("vim") {
-			// exit with message
-			printError("Vim is not installed on your system. Please install vim and try again.")
-			return
-		}
+		isAutoDomainResolve := cmd.Flag("auto-domain").Value.String() == "true"
+		letsEncryptEmail := cmd.Flag("letsencrypt-email").Value.String()
+		haproxyUser := cmd.Flag("haproxy-user").Value.String()
+		haproxyPassword := cmd.Flag("haproxy-password").Value.String()
 
 		// ensure if git is installed
 		if !checkIfCommandExists("git") {
@@ -112,17 +119,73 @@ var initCmd = &cobra.Command{
 			}
 		}
 
+		// Get Domain Name
+		domainName, err := resolveQuickDNSDomain()
+		if err != nil {
+			printError(err.Error())
+			if isAutoDomainResolve {
+				os.Exit(1)
+			}
+		}
+
+		if !isAutoDomainResolve {
+			// Ask user to enter domain name with default value as resolved domain name
+			fmt.Print("Domain Name [default: " + domainName + "]: ")
+
+			var inputDomainName string
+			_, err = fmt.Scanln(&inputDomainName, "")
+			if err != nil {
+				inputDomainName = ""
+			}
+			if strings.TrimSpace(inputDomainName) != "" {
+				domainName = inputDomainName
+				printInfo("Domain name set to " + domainName)
+			}
+		}
+
+		// Ask user to enter email address for Let's Encrypt
+		if strings.TrimSpace(letsEncryptEmail) == "" {
+			fmt.Print("Enter Email Address (will be used for LetsEncrypt): ")
+			_, err = fmt.Scanln(&letsEncryptEmail)
+			if err != nil {
+				letsEncryptEmail = ""
+			}
+			if strings.TrimSpace(letsEncryptEmail) == "" {
+				printError("Email address is required for Let's Encrypt. Retry !")
+				os.Exit(1)
+			}
+		}
+
 		// If not exists, create config file
 		mode := cmd.Flag("mode").Value.String()
+		// create config pointer object
+		var configTemplate system_config.Config
 		var isCreated bool = false
-		if mode == "standalone" {
-			isCreated = createStandaloneConfig(configFilePath)
-		} else if mode == "cluster" {
-			isCreated = createClusterConfig(configFilePath)
+		if mode == string(system_config.Standalone) {
+			err = yaml.Unmarshal(standaloneConfigSample, &configTemplate)
+			if err != nil {
+				printError("failed to unmarshal standalone config template, please report the issue in github")
+				os.Exit(1)
+			}
+			isCreated = true
+		} else if mode == string(system_config.Cluster) {
+			err = yaml.Unmarshal(clusterConfigSample, &configTemplate)
+			if err != nil {
+				printError("failed to unmarshal cluster config template, please report the issue in github")
+				os.Exit(1)
+			}
 		} else {
 			printError("Invalid mode of operation. Use --mode flag to specify mode of operation")
 			return
 		}
+
+		configTemplate.ServiceConfig.AddressOfCurrentNode = domainName
+		configTemplate.LetsEncryptConfig.EmailID = letsEncryptEmail
+		configTemplate.HAProxyConfig.User = haproxyUser
+		configTemplate.HAProxyConfig.Password = haproxyPassword
+
+		isCreated = createConfig(configTemplate, configFilePath)
+
 		if isCreated {
 			printSuccess("Config file created at /etc/swiftwave/config.yml")
 			printInfo("Run `swiftwave config` to open the config file in editor")
@@ -130,15 +193,11 @@ var initCmd = &cobra.Command{
 			if mode == "standalone" {
 				msg =
 					`You need to edit at-least the following parameters in the config file:
-- Address (domain name) for current server
-- Let's Encrypt email address
-- Postgres database credentials
+- Postgres database credentials (If you want to use external database)
 `
 			} else if mode == "cluster" {
 				msg =
 					`You need to edit at-least the following parameters in the config file:
-- Address (domain name) for current server
-- Let's Encrypt email address
 - Postgres database credentials
 - Redis database credentials
 - RabbitMQ credentials`
@@ -151,7 +210,7 @@ var initCmd = &cobra.Command{
 	},
 }
 
-func createStandaloneConfig(configFilePath string) bool {
+func createConfig(config system_config.Config, configFilePath string) bool {
 	// open and write to file
 	file, err := os.OpenFile(configFilePath, os.O_CREATE|os.O_WRONLY, 0640)
 	if err != nil {
@@ -163,22 +222,46 @@ func createStandaloneConfig(configFilePath string) bool {
 			printError(err.Error())
 		}
 	}(file)
-	_, err = file.Write(standaloneConfigSample)
+	yamlMarshalledBytes, err := yaml.Marshal(config)
+	if err != nil {
+		return false
+	}
+	_, err = file.Write(yamlMarshalledBytes)
 	return err == nil
 }
 
-func createClusterConfig(configFilePath string) bool {
-	// open and write to file
-	file, err := os.OpenFile(configFilePath, os.O_CREATE|os.O_WRONLY, 0640)
+func resolveQuickDNSDomain() (string, error) {
+	// fetch ip address
+	ipAddress, err := getIPAddress()
 	if err != nil {
-		return false
+		return "", err
 	}
-	defer func(file *os.File) {
-		err := file.Close()
+	// create domain name
+	ipAddress = strings.ReplaceAll(ipAddress, ".", "-")
+	quickDNSDomain := fmt.Sprintf("ip-%s.swiftwave.xyz", ipAddress)
+	return quickDNSDomain, nil
+}
+
+func getIPAddress() (string, error) {
+	// send a GET request to https://api.ipify.org/
+	resp, err := http.Get("https://api.ipify.org/")
+	if err != nil {
+		return "", err
+	}
+	// if response is not 200, return error
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("failed to fetch ip address")
+	}
+	defer func(resp *http.Response) {
+		err := resp.Body.Close()
 		if err != nil {
-			printError(err.Error())
+			log.Println(err.Error())
 		}
-	}(file)
-	_, err = file.Write(clusterConfigSample)
-	return err == nil
+	}(resp)
+	// read response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
 }

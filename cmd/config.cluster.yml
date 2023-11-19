@@ -5,7 +5,7 @@ service:
   tls_cache_dir: /var/lib/swiftwave/.tls_cache
   whitelisted_domains: # domains that can be used to access the service and generate certificates
     - "*"
-  address_of_current_node: example.com # provide a domain name associated with the current node
+  address_of_current_node: will_be_overridden # provide a domain name associated with the current node
   bind_address: 0.0.0.0
   bind_port: 3333 # choose any other ports except 80 and 443
   network_name: swiftwave_network # docker swarm overflow network name
@@ -19,14 +19,14 @@ service:
   auto_migrate_database: true # true or false
 lets_encrypt:
   staging_environment: false # true or false
-  email_id: test@gmail.com
+  email_id: will_be_overridden
   account_private_key_path: /etc/swiftwave/account.key
 haproxy:
   service_name: haproxy
   image: ghcr.io/swiftwave-org/haproxy:2.9
   unix_socket_path: /etc/swiftwave/dataplaneapi.sock
-  user: admin
-  password: admin
+  user: will_be_overridden
+  password: will_be_overridden
 postgresql:
   host: 127.0.0.1
   port: 5432
