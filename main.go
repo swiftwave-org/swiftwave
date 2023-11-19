@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/swiftwave-org/swiftwave/cmd"
@@ -20,6 +21,13 @@ func main() {
 	_, err = exec.LookPath("docker")
 	if err != nil {
 		color.Red("Docker is not installed. Aborting.")
+		os.Exit(1)
+	}
+	// ensure docker swarm is initialized
+	if !isSwarmInitailized() {
+		color.Red("Docker swarm is not initialized. Aborting.")
+		color.Blue("Please run 'docker swarm init' to initialize docker swarm node.")
+		color.Blue("If you are setting up cluster, you can join the cluster by `docker swarm join` command.")
 		os.Exit(1)
 	}
 	var config *system_config.Config
@@ -41,4 +49,14 @@ func main() {
 
 	// Start the command line interface
 	cmd.Execute(config)
+}
+
+// private function
+func isSwarmInitailized() bool {
+	cmd := exec.Command("docker", "info", "--format", "{{.Swarm.LocalNodeState}}")
+	output, err := cmd.Output()
+	if err != nil {
+		return false
+	}
+	return strings.TrimSpace(string(output)) == "active"
 }

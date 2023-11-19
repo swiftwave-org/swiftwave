@@ -40,6 +40,7 @@ type HAProxyConfig struct {
 	UnixSocketPath string `yaml:"unix_socket_path"`
 	User           string `yaml:"user"`
 	Password       string `yaml:"password"`
+	DataDir        string `yaml:"data_dir"`
 }
 
 type LetsEncryptConfig struct {

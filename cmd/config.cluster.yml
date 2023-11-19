@@ -27,6 +27,7 @@ haproxy:
   unix_socket_path: /etc/swiftwave/dataplaneapi.sock
   user: will_be_overridden
   password: will_be_overridden
+  data_dir: /var/lib/swiftwave/haproxy
 postgresql:
   host: 127.0.0.1
   port: 5432

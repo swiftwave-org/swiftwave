@@ -216,6 +216,11 @@ func createConfig(config system_config.Config, configFilePath string) bool {
 	if err != nil {
 		return false
 	}
+	// Truncate the file
+	err = file.Truncate(0)
+	if err != nil {
+		return false
+	}
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
