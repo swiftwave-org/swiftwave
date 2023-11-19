@@ -30,6 +30,17 @@ func createFolder(folder string) error {
 	return nil
 }
 
+func createFile(file string) error {
+	// touch
+	cmd := exec.Command("touch", file)
+	err := cmd.Run()
+
+	if err != nil {
+		return errors.New("failed to create file > " + file)
+	}
+	return nil
+}
+
 func checkIfFileExists(file string) bool {
 	cmd := exec.Command("ls", file)
 	err := cmd.Run()

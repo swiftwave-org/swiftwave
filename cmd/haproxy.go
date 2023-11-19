@@ -53,6 +53,7 @@ var haproxyStatusCmd = &cobra.Command{
 	Long:  "Show HAProxy service status",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Show HAProxy service status
+		
 	},
 }
 
