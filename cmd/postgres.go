@@ -86,6 +86,15 @@ var postgresStartCmd = &cobra.Command{
 			}
 		}
 
+		// create folder at /var/lib/swiftwave/postgres if not exists
+		if !checkIfFolderExists("/var/lib/swiftwave/postgres") {
+			err := createFolder("/var/lib/swiftwave/postgres")
+			if err != nil {
+				printError("Failed to create folder > /var/lib/swiftwave/postgres")
+				return
+			}
+		}
+
 		// Create postgres container
 		dockerCmd := exec.Command("docker", "run", "-d", "--name", postgresContainerName,
 			"-e", "POSTGRESQL_DATABASE="+systemConfig.PostgresqlConfig.Database,
