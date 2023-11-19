@@ -17,6 +17,7 @@ func init() {
 	rootCmd.AddCommand(setupCmd)
 	rootCmd.AddCommand(infoCmd)
 	rootCmd.AddCommand(configCmd)
+	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(haproxyCmd)
 	rootCmd.AddCommand(postgresCmd)
 }
