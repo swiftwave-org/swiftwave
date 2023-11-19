@@ -54,18 +54,6 @@ var setupCmd = &cobra.Command{
 				printSuccess("Created HAProxy unix socket directory [" + dir + "]")
 			}
 		}
-		// Create a blank file for haproxy.unix_socket_path if it doesn't exist
-		file := systemConfig.HAProxyConfig.UnixSocketPath
-		if checkIfFileExists(file) {
-			printSuccess("HAProxy unix socket file [" + file + "] already exists")
-		} else {
-			err := createFile(file)
-			if err != nil {
-				printError("Failed to create HAProxy unix socket file [" + file + "]")
-			} else {
-				printSuccess("Created HAProxy unix socket file [" + file + "]")
-			}
-		}
 		// Create service.data_dir if it doesn't exist
 		dir = systemConfig.ServiceConfig.DataDir
 		if checkIfFolderExists(dir) {
