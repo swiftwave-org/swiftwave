@@ -35,6 +35,7 @@ postgresql:
   password: postgres
   database: swiftwave
   time_zone: Asia/Kolkata
+  ssl_mode: disable # disable or require
 pubsub:
   mode: remote # local or remote
   buffer_length: 1000

@@ -32,6 +32,7 @@ type PostgresqlConfig struct {
 	Password string `yaml:"password"`
 	Database string `yaml:"database"`
 	TimeZone string `yaml:"time_zone"`
+	SSLMode  string `yaml:"ssl_mode"`
 }
 
 type HAProxyConfig struct {
