@@ -43,13 +43,12 @@ func init() {
 	postgresCmd.AddCommand(postgresStatusCmd)
 	postgresCmd.AddCommand(postgresStartCmd)
 	postgresCmd.AddCommand(postgresStopCmd)
-	rootCmd.AddCommand(postgresCmd)
 }
 
 var postgresCmd = &cobra.Command{
 	Use:   "postgres",
-	Short: "Manage local postgres database",
-	Long:  "Manage local postgres database (Recommended only for standalone installations)",
+	Short: "Manage local postgres database (Only for standalone installation)",
+	Long:  "Manage local postgres database (Only for standalone installation)",
 }
 
 var postgresStartCmd = &cobra.Command{

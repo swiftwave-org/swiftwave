@@ -21,7 +21,7 @@ var standaloneConfigSample []byte
 var clusterConfigSample []byte
 
 func init() {
-	rootCmd.AddCommand(initCmd)
+	initCmd.Flags().SortFlags = false
 	initCmd.Flags().String("mode", "standalone", "Mode of operation [standalone or cluster]")
 	initCmd.Flags().String("letsencrypt-email", "", "Email address for Let's Encrypt")
 	initCmd.Flags().String("haproxy-user", "admin", "Username for HAProxy stats page")

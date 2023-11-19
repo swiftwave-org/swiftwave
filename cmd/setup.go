@@ -7,13 +7,10 @@ import (
 	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 )
 
-func init() {
-	rootCmd.AddCommand(setupCmd)
-}
-
 var setupCmd = &cobra.Command{
-	Use:  "setup",
-	Long: "Setup the environment for the first time",
+	Use:   "setup",
+	Short: "Prepare the environment for swiftwave",
+	Long:  "Prepare the environment for swiftwave",
 	Run: func(cmd *cobra.Command, args []string) {
 		var dir string
 		// Create service.tls_cache_dir if it doesn't exist

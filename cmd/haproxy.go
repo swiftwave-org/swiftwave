@@ -39,10 +39,9 @@ docker service create \
 */
 
 func init() {
+	haproxyCmd.AddCommand(haproxyStatusCmd)
 	haproxyCmd.AddCommand(haproxyStartCmd)
 	haproxyCmd.AddCommand(haproxyStopCmd)
-	haproxyCmd.AddCommand(haproxyStatusCmd)
-	rootCmd.AddCommand(haproxyCmd)
 }
 
 var haproxyCmd = &cobra.Command{

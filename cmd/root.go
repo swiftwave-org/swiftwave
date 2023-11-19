@@ -2,14 +2,24 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/swiftwave-org/swiftwave/system_config"
-	"os"
 )
 
 var systemConfig *system_config.Config
 
 var configFilePath = "/etc/swiftwave/config.yml"
+
+func init() {
+	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(setupCmd)
+	rootCmd.AddCommand(infoCmd)
+	rootCmd.AddCommand(configCmd)
+	rootCmd.AddCommand(haproxyCmd)
+	rootCmd.AddCommand(postgresCmd)
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "swiftwave",

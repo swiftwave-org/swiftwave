@@ -6,10 +6,6 @@ import (
 	"strconv"
 )
 
-func init() {
-	rootCmd.AddCommand(infoCmd)
-}
-
 var infoCmd = &cobra.Command{
 	Use:   "info",
 	Short: "Print info of swiftwave",

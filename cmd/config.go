@@ -6,7 +6,6 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(configCmd)
 	configCmd.Flags().StringP("editor", "e", "", "Editor to use (vi, vim, nano, gedit, etc.)")
 }
 
