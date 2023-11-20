@@ -20,6 +20,7 @@ func init() {
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(haproxyCmd)
 	rootCmd.AddCommand(postgresCmd)
+	rootCmd.AddCommand(generateTLSCommand)
 }
 
 var rootCmd = &cobra.Command{

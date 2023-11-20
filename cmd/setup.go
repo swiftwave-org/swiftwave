@@ -13,16 +13,16 @@ var setupCmd = &cobra.Command{
 	Long:  "Prepare the environment for swiftwave",
 	Run: func(cmd *cobra.Command, args []string) {
 		var dir string
-		// Create service.tls_cache_dir if it doesn't exist
-		dir = systemConfig.ServiceConfig.TLSCacheDir
+		// Create service.ssl_certificate_dir if it doesn't exist
+		dir = systemConfig.ServiceConfig.SSLCertificateDir
 		if checkIfFolderExists(dir) {
-			printSuccess("TLS cache directory [" + dir + "] already exists")
+			printSuccess("Swiftwave Service Certificate directory [" + dir + "] already exists")
 		} else {
 			err := createFolder(dir)
 			if err != nil {
-				printError("Failed to create TLS cache directory [" + dir + "]")
+				printError("Failed to create Swiftwave Service Certificate [" + dir + "]")
 			} else {
-				printSuccess("Created TLS cache directory [" + dir + "]")
+				printSuccess("Created Swiftwave Service Certificate [" + dir + "]")
 			}
 		}
 		// Create lets_encrypt.account_private_key_path base directory if it doesn't exist

@@ -2,6 +2,8 @@ package swiftwave
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
@@ -10,8 +12,6 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/rest"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/worker"
 	"github.com/swiftwave-org/swiftwave/system_config"
-	"golang.org/x/crypto/acme/autocert"
-	"log"
 )
 
 // Start will start the swiftwave service [including worker manager, pubsub, cronjob, server]
@@ -53,14 +53,6 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 	echoServer.Use(middleware.Recover())
 	echoServer.Use(middleware.Logger())
 	echoServer.Use(middleware.CORS())
-	// enable host whitelist if not all domains are allowed
-	if !config.ServiceConfig.IsAllDomainsAllowed() {
-		echoServer.AutoTLSManager.HostPolicy = autocert.HostWhitelist(config.ServiceConfig.WhiteListedDomains...)
-	}
-	// Configure Auto TLS
-	if config.ServiceConfig.AutoTLS {
-		echoServer.AutoTLSManager.HostPolicy = autocert.HostWhitelist(config.ServiceConfig.NetworkName)
-	}
 	// Create Rest Server
 	restServer := rest.Server{
 		EchoServer:     echoServer,
@@ -91,8 +83,8 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 	}
 	// Start the server
 	address := fmt.Sprintf("%s:%d", config.ServiceConfig.BindAddress, config.ServiceConfig.BindPort)
-	if config.ServiceConfig.AutoTLS {
-		echoServer.Logger.Fatal(echoServer.StartAutoTLS(address))
+	if config.ServiceConfig.UseTLS {
+		// TODO: Add TLS Support
 	} else {
 		echoServer.Logger.Fatal(echoServer.Start(address))
 	}

@@ -19,7 +19,7 @@ func (s *Manager) Init(ctx context.Context, db gorm.DB, options ManagerOptions) 
 	s.dbClient = db
 	s.options = options
 	// Migrate database
-	err := db.AutoMigrate(&KeyAuthorizationToken{})
+	err := db.AutoMigrate(&KeyAuthorizationToken{}) // TODO: migrate seperate tables
 	if err != nil {
 		return errors.New("error while migrating database")
 	}
