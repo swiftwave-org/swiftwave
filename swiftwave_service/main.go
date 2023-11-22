@@ -117,8 +117,6 @@ func fetchCertificates(certFolderPath string) []tls.Certificate {
 	for _, file := range files {
 		if file.IsDir() {
 			// fetch the certificate
-			println(fmt.Sprintf("%s/%s/certificate.crt", certFolderPath, file.Name()))
-			println(fmt.Sprintf("%s/%s/private.key", certFolderPath, file.Name()))
 			cert, err := tls.LoadX509KeyPair(fmt.Sprintf("%s/%s/certificate.crt", certFolderPath, file.Name()), fmt.Sprintf("%s/%s/private.key", certFolderPath, file.Name()))
 			if err != nil {
 				log.Println("Error loading certificate: ", err)
