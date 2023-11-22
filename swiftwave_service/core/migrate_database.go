@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"gorm.io/gorm"
+	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
 )
 
 func MigrateDatabase(dbClient *gorm.DB) error {
@@ -20,6 +21,7 @@ func MigrateDatabase(dbClient *gorm.DB) error {
 		&Deployment{},
 		&BuildArg{},
 		&DeploymentLog{},
+		&SSL.KeyAuthorizationToken{},
 	)
 	if err != nil {
 		return errors.New("failed to migrate database \n" + err.Error())
