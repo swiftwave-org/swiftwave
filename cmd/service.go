@@ -22,6 +22,11 @@ var serviceCmd = &cobra.Command{
 	Short: "Manage Swiftwave Daemon Service",
 	Long:  `Manage Swiftwave Daemon Service`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// print help
+		err := cmd.Help()
+		if err != nil {
+			return
+		}
 	},
 }
 
@@ -83,6 +88,11 @@ var disableServiceCmd = &cobra.Command{
 		} else {
 			printSuccess("Disabled swiftwave service")
 		}
+		// Remove swiftwave.service from /etc/systemd/system/
+		err = os.Remove("/etc/systemd/system/swiftwave.service")
+		if err != nil {
+			printError("Failed to remove swiftwave.service file")
+		}
 		// Reload systemd daemon
 		runCommand = exec.Command("systemctl", "daemon-reload")
 		err = runCommand.Run()
@@ -90,11 +100,6 @@ var disableServiceCmd = &cobra.Command{
 			printError("Failed to reload systemd daemon")
 		} else {
 			printSuccess("Reloaded systemd daemon")
-		}
-		// Remove swiftwave.service from /etc/systemd/system/
-		err = os.Remove("/etc/systemd/system/swiftwave.service")
-		if err != nil {
-			printError("Failed to remove swiftwave.service file")
 		}
 	},
 }
@@ -106,11 +111,13 @@ var statusServiceCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// Get status of swiftwave service
 		runCommand := exec.Command("systemctl", "status", "swiftwave.service")
+		runCommand.Stdout = os.Stdout
+		runCommand.Stderr = os.Stderr
 		err := runCommand.Run()
 		if err != nil {
 			printError("Failed to get status of swiftwave service")
 		} else {
 			printSuccess("Got status of swiftwave service")
 		}
-	},	
+	},
 }

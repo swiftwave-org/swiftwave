@@ -3,7 +3,7 @@ Description=Swiftwave Service
 After=multi-user.target
 
 [Service]
-ExecStart=/usr/bin/swiftwave
+ExecStart=/usr/bin/swiftwave start
 Type=simple
 
 [Install]
