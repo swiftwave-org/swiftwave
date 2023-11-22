@@ -12,15 +12,16 @@ type Config struct {
 }
 
 type ServiceConfig struct {
-	AutoTLS              bool     `yaml:"auto_tls"`
-	TLSCacheDir          string   `yaml:"tls_cache_dir"`
-	WhiteListedDomains   []string `yaml:"whitelisted_domains"`
-	BindAddress          string   `yaml:"bind_address"`
-	BindPort             int      `yaml:"bind_port"`
-	NetworkName          string   `yaml:"network_name"`
-	DataDir              string   `yaml:"data_dir"`
-	DockerUnixSocketPath string   `yaml:"docker_unix_socket_path"`
-	RestrictedPorts      []int    `yaml:"restricted_ports"`
+	AutoMigrateDatabase  bool   `yaml:"auto_migrate_database"`
+	UseTLS               bool   `yaml:"use_tls"`
+	SSLCertificateDir    string `yaml:"ssl_certificate_dir"`
+	AddressOfCurrentNode string `yaml:"address_of_current_node"`
+	BindAddress          string `yaml:"bind_address"`
+	BindPort             int    `yaml:"bind_port"`
+	NetworkName          string `yaml:"network_name"`
+	DataDir              string `yaml:"data_dir"`
+	DockerUnixSocketPath string `yaml:"docker_unix_socket_path"`
+	RestrictedPorts      []int  `yaml:"restricted_ports"`
 }
 
 type PostgresqlConfig struct {
@@ -30,6 +31,7 @@ type PostgresqlConfig struct {
 	Password string `yaml:"password"`
 	Database string `yaml:"database"`
 	TimeZone string `yaml:"time_zone"`
+	SSLMode  string `yaml:"ssl_mode"`
 }
 
 type HAProxyConfig struct {
@@ -38,6 +40,7 @@ type HAProxyConfig struct {
 	UnixSocketPath string `yaml:"unix_socket_path"`
 	User           string `yaml:"user"`
 	Password       string `yaml:"password"`
+	DataDir        string `yaml:"data_dir"`
 }
 
 type LetsEncryptConfig struct {

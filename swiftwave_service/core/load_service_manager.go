@@ -3,9 +3,9 @@ package core
 import (
 	"context"
 	"fmt"
-	DOCKER_CLIENT "github.com/docker/docker/client"
+
 	"github.com/go-redis/redis/v8"
-	DOCKER "github.com/swiftwave-org/swiftwave/container_manager"
+	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	DOCKER_CONFIG_GENERATOR "github.com/swiftwave-org/swiftwave/docker_config_generator"
 	HAPROXY "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/pubsub"
@@ -42,16 +42,11 @@ func (manager *ServiceManager) Load(config system_config.Config) {
 	manager.HaproxyManager = haproxyManager
 
 	// Initiating Docker Manager
-	dockerClient, err := DOCKER_CLIENT.NewClientWithOpts(DOCKER_CLIENT.WithHost("unix://"+config.ServiceConfig.DockerUnixSocketPath), DOCKER_CLIENT.WithAPIVersionNegotiation())
+	dockerManager, err := containermanger.NewDockerManager(config.ServiceConfig.DockerUnixSocketPath)
 	if err != nil {
 		panic(err)
 	}
-	dockerManager := DOCKER.Manager{}
-	err = dockerManager.Init(context.Background(), *dockerClient)
-	if err != nil {
-		panic(err)
-	}
-	manager.DockerManager = dockerManager
+	manager.DockerManager = *dockerManager
 
 	// Initiating Docker Config Generator
 	dockerConfigGenerator := DOCKER_CONFIG_GENERATOR.Manager{}

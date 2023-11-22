@@ -13,6 +13,7 @@ require (
 	github.com/labstack/echo/v4 v4.11.3
 	github.com/mholt/acmez v1.2.0
 	github.com/rabbitmq/amqp091-go v1.9.0
+	github.com/spf13/cobra v1.8.0
 	github.com/vektah/gqlparser/v2 v2.5.10
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.5.4
@@ -26,7 +27,7 @@ require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudflare/circl v1.3.3 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
@@ -51,6 +52,8 @@ require (
 require (
 	github.com/containerd/containerd v1.7.2 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
+	github.com/fatih/color v1.16.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
@@ -59,6 +62,7 @@ require (
 	github.com/opencontainers/runc v1.1.8 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
@@ -74,7 +78,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/moby/term v0.5.0 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect

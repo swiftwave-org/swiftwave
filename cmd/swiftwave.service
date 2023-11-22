@@ -1,0 +1,10 @@
+[Unit]
+Description=Swiftwave Service
+After=multi-user.target
+
+[Service]
+ExecStart=/usr/bin/swiftwave start
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

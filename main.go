@@ -1,52 +1,62 @@
 package main
 
 import (
-	swiftwave "github.com/swiftwave-org/swiftwave/swiftwave_service"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/cronjob"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/worker"
-	"github.com/swiftwave-org/swiftwave/system_config"
-	"log"
 	"os"
+	"os/exec"
+	"strings"
+
+	"github.com/fatih/color"
+	"github.com/swiftwave-org/swiftwave/cmd"
+	"github.com/swiftwave-org/swiftwave/system_config"
 )
 
 func main() {
-	// Load config path from environment variable
-	systemConfigPath := os.Getenv("SWIFTWAVE_CONFIG_PATH")
-	if systemConfigPath == "" {
-		systemConfigPath = "~/swiftwave/config.yaml"
-		log.Println("SWIFTWAVE_CONFIG_PATH environment variable not set, using default path > ", systemConfigPath)
+	// ensure program is run as root
+	if os.Geteuid() != 0 {
+		color.Red("This program must be run as root. Aborting.")
+		os.Exit(1)
 	}
-	// Load the config
-	config, err := system_config.ReadFromFile(systemConfigPath)
+	var err error
+	// ensure docker is installed
+	_, err = exec.LookPath("docker")
 	if err != nil {
-		panic(err)
+		color.Red("Docker is not installed. Aborting.")
+		os.Exit(1)
+	}
+	// ensure docker swarm is initialized
+	if !isSwarmInitailized() {
+		color.Red("Docker swarm is not initialized. Aborting.")
+		color.Blue("Please run 'docker swarm init' to initialize docker swarm node.")
+		color.Blue("If you are setting up cluster, you can join the cluster by `docker swarm join` command.")
+		os.Exit(1)
+	}
+	var config *system_config.Config
+	// Check whether first argument is "install" or no arguments
+	if (len(os.Args) > 1 && (os.Args[1] == "init" || os.Args[1] == "completion" || os.Args[1] == "--help")) ||
+		len(os.Args) == 1 {
+		config = nil
+	} else {
+		// Load config path from environment variable
+		systemConfigPath := "/etc/swiftwave/config.yml"
+		// Load the config
+		config, err = system_config.ReadFromFile(systemConfigPath)
+		if err != nil {
+			color.Red(err.Error())
+			color.Blue("Please run 'swiftwave init' to initialize a configuration file.")
+			os.Exit(1)
+		}
 	}
 
-	// Load the manager
-	manager := core.ServiceManager{}
-	manager.Load(*config)
+	// Start the command line interface
+	cmd.Execute(config)
+}
 
-	// Create the worker manager
-	workerManager := worker.NewManager(config, &manager)
-	err = workerManager.StartConsumers(true)
+// private function
+func isSwarmInitailized() bool {
+	cmd := exec.Command("docker", "info", "--format", "{{.Swarm.LocalNodeState}}")
+	output, err := cmd.Output()
 	if err != nil {
-		panic(err)
+		return false
 	}
-
-	// Create the cronjob manager
-	cronjobManager := cronjob.NewManager(config, &manager)
-	cronjobManager.Start(true)
-
-	// create a channel to block the main thread
-	var waitForever chan struct{}
-
-	// Start the swift wave server
-	go swiftwave.StartServer(config, &manager, workerManager, true)
-	// Wait for consumers
-	go workerManager.WaitForConsumers()
-	// Wait for cronjobs
-	go cronjobManager.Wait()
-
-	<-waitForever
+	return strings.TrimSpace(string(output)) == "active"
 }

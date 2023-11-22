@@ -1,39 +1,41 @@
 version: 1.0
-mode: standalone # standalone or cluster
+mode: cluster # standalone or cluster
 service:
-  auto_tls: true # true or false
-  tls_cache_dir: /var/www/.cache
-  whitelisted_domains: # domains that can be used to access the service and generate certificates
-    - *
+  use_tls: true # true or false
+  ssl_certificate_dir: /var/lib/swiftwave/certs
+  address_of_current_node: will_be_overridden # provide a domain name associated with the current node
   bind_address: 0.0.0.0
   bind_port: 3333 # choose any other ports except 80 and 443
   network_name: swiftwave_network # docker swarm overflow network name
-  data_dir: ~/swiftwave/data
+  data_dir: /var/lib/swiftwave/data
   docker_unix_socket_path: /var/run/docker.sock
   restricted_ports: # ports that can't be exposed and bound to haproxy
     - 2377 # docker swarm port
     - 7946 # docker swarm port
     - 4789 # docker swarm port
     - 3333 # swiftwave port
+  auto_migrate_database: true # true or false
+lets_encrypt:
+  staging_environment: false # true or false
+  email_id: will_be_overridden
+  account_private_key_path: /etc/swiftwave/letsencrypt/account.key
 haproxy:
   service_name: haproxy
   image: ghcr.io/swiftwave-org/haproxy:2.9
-  unix_socket_path: ~/swiftwave/dataplaneapi.sock
-  user: admin
-  password: admin
+  unix_socket_path: /etc/swiftwave/haproxy/dataplaneapi.sock # should end with dataplaneapi.sock
+  user: will_be_overridden
+  password: will_be_overridden
+  data_dir: /var/lib/swiftwave/haproxy
 postgresql:
-  host: localhost
+  host: 127.0.0.1
   port: 5432
   user: postgres
   password: postgres
   database: swiftwave
   time_zone: Asia/Kolkata
-lets_encrypt:
-  staging_environment: false # true or false
-  email_id: test@gmail.com
-  account_private_key_path: ~/swiftwave/account.key
+  ssl_mode: disable # disable or require
 pubsub:
-  mode: local # local or remote
+  mode: remote # local or remote
   buffer_length: 1000
   redis: # all the info should be filled if mode is remote
     host: localhost
@@ -41,12 +43,12 @@ pubsub:
     password: ""
     database_id: 0
 task_queue:
-  mode: local # local or remote
+  mode: remote # local or remote
   max_outstanding_messages_per_queue: 1000
   amqp: # all the info should be filled if mode is remote
     protocol: amqp # amqp or amqps
     host: localhost
     user: guest
     password: guest
-    vhost:
-    client_name: swiftwave
+    vhost: vhost
+    client_name: system_hostname # this client name will be shown in rabbitmq management console
