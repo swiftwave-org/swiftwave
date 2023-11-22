@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"errors"
-	"github.com/fatih/color"
+	"net"
 	"os"
 	"os/exec"
+
+	"github.com/fatih/color"
 )
 
 func checkIfCommandExists(command string) bool {
@@ -34,6 +36,16 @@ func checkIfFileExists(file string) bool {
 	cmd := exec.Command("ls", file)
 	err := cmd.Run()
 	return err == nil
+}
+
+func checkIfPortIsInUse(port string) bool {
+	// Attempt to establish a connection to the address
+	conn, err := net.Dial("tcp", ":"+port)
+	if err != nil {
+		return false
+	}
+	defer conn.Close()
+	return true
 }
 
 func openFileInEditor(filePath string) {

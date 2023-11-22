@@ -10,12 +10,7 @@ import (
 // Run this before requesting certificate from ACME
 func (s Manager) VerifyDomain(domain string) bool {
 	// TODO: sanitize domain name
-	req, err := http.NewRequest("GET", "http://"+domain+"/.well-known/pre-authorize/", nil)
-	if err != nil {
-		return false
-	}
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := http.Get("http://" + domain + "/.well-known/pre-authorize/")
 	if err != nil {
 		return false
 	}
@@ -28,8 +23,7 @@ func (s Manager) VerifyDomain(domain string) bool {
 	}(resp.Body)
 	if resp.StatusCode == 200 {
 		// Read response body
-		respBody := make([]byte, 1024)
-		_, err = resp.Body.Read(respBody)
+		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return false
 		} else {
