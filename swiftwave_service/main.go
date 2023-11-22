@@ -1,8 +1,11 @@
 package swiftwave
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -49,6 +52,7 @@ func Start(config *system_config.Config) {
 func StartServer(config *system_config.Config, manager *core.ServiceManager, workerManager *worker.Manager) {
 	// Create Echo Server
 	echoServer := echo.New()
+	echoServer.HideBanner = true
 	echoServer.Pre(middleware.RemoveTrailingSlash())
 	echoServer.Use(middleware.Recover())
 	echoServer.Use(middleware.Logger())
@@ -81,11 +85,47 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 			log.Println("Database Migration Complete")
 		}
 	}
+
 	// Start the server
 	address := fmt.Sprintf("%s:%d", config.ServiceConfig.BindAddress, config.ServiceConfig.BindPort)
 	if config.ServiceConfig.UseTLS {
-		// TODO: Add TLS Support
+		println("Starting TLS Server")
+		
+		tlsCfg := &tls.Config{
+			Certificates: fetchCertificates(config.ServiceConfig.SSLCertificateDir),
+		}
+
+		s := http.Server{
+			Addr:      address,
+			Handler:   echoServer,
+			TLSConfig: tlsCfg,
+		}
+		echoServer.Logger.Fatal(s.ListenAndServeTLS("", ""))
 	} else {
 		echoServer.Logger.Fatal(echoServer.Start(address))
 	}
+}
+
+// private functions
+func fetchCertificates(certFolderPath string) []tls.Certificate {
+	var certificates []tls.Certificate
+	// fetch all folders in the cert folder
+	files, err := os.ReadDir(certFolderPath)
+	if err != nil {
+		return certificates
+	}
+	for _, file := range files {
+		if file.IsDir() {
+			// fetch the certificate
+			println(fmt.Sprintf("%s/%s/certificate.crt", certFolderPath, file.Name()))
+			println(fmt.Sprintf("%s/%s/private.key", certFolderPath, file.Name()))
+			cert, err := tls.LoadX509KeyPair(fmt.Sprintf("%s/%s/certificate.crt", certFolderPath, file.Name()), fmt.Sprintf("%s/%s/private.key", certFolderPath, file.Name()))
+			if err != nil {
+				log.Println("Error loading certificate: ", err)
+				continue
+			}
+			certificates = append(certificates, cert)
+		}
+	}
+	return certificates
 }
