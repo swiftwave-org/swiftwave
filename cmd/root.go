@@ -22,6 +22,7 @@ func init() {
 	rootCmd.AddCommand(postgresCmd)
 	rootCmd.AddCommand(generateTLSCommand)
 	rootCmd.AddCommand(dbMigrateCmd)
+	rootCmd.AddCommand(serviceCmd)
 }
 
 var rootCmd = &cobra.Command{
