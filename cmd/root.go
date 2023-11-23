@@ -13,6 +13,7 @@ var systemConfig *system_config.Config
 var configFilePath = "/etc/swiftwave/config.yml"
 
 func init() {
+	rootCmd.PersistentFlags().Bool("dev", false, "Run in development mode")
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(setupCmd)
 	rootCmd.AddCommand(infoCmd)

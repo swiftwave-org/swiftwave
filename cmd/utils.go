@@ -7,6 +7,7 @@ import (
 	"os/exec"
 
 	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 )
 
 func checkIfCommandExists(command string) bool {
@@ -86,4 +87,9 @@ func printError(message string) {
 
 func printInfo(message string) {
 	color.Blue(InfoSymbol + " " + message)
+}
+
+func isDevelopmentMode(cmd *cobra.Command) bool {
+	dev, _ := cmd.Flags().GetBool("dev")
+	return dev
 }
