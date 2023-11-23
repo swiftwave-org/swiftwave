@@ -15,3 +15,4 @@ node_modules
 swiftwave
 dump.rdb
 ignore_*
+graphql-docs
