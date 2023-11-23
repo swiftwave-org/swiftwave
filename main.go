@@ -45,6 +45,8 @@ func main() {
 			color.Blue("Please run 'swiftwave init' to initialize a configuration file.")
 			os.Exit(1)
 		}
+		// Set the development mode to false
+		config.IsDevelopmentMode = false
 	}
 
 	// Start the command line interface

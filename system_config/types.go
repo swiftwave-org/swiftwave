@@ -2,6 +2,7 @@ package system_config
 
 type Config struct {
 	Version           string            `yaml:"version"`
+	IsDevelopmentMode bool              `yaml:"-"`
 	Mode              Mode              `yaml:"mode"`
 	ServiceConfig     ServiceConfig     `yaml:"service"`
 	HAProxyConfig     HAProxyConfig     `yaml:"haproxy"`

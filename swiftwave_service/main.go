@@ -89,7 +89,7 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 	// Start the server
 	address := fmt.Sprintf("%s:%d", config.ServiceConfig.BindAddress, config.ServiceConfig.BindPort)
 	if config.ServiceConfig.UseTLS {
-		println("Starting TLS Server")
+		println("TLS Server Started on " + address)
 		
 		tlsCfg := &tls.Config{
 			Certificates: fetchCertificates(config.ServiceConfig.SSLCertificateDir),
