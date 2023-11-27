@@ -1,10 +1,14 @@
 {
   "scripts": {
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "build:docs": "node ./build_docs.js"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.7.2",
     "@commitlint/config-conventional": "^17.7.0",
+    "@magidoc/cli": "^4.1.2",
+    "axios": "^1.6.2",
+    "gh-pages": "^6.1.0",
     "husky": "^8.0.3"
   }
 }
