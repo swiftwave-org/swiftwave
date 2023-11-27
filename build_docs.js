@@ -15,7 +15,7 @@ const ghpages = require('gh-pages');
 
 // Constant variables
 const CURRENT_DIRECTORY = process.cwd()
-const GITHUB_REPO = 'tanmoysrt/swiftwave'
+const GITHUB_REPO = 'swiftwave-org/swiftwave'
 const GRAPHQL_DOCUMENTATION_BRANCH = 'docs/graphql'
 const CURRENT_BRANCH = execSync(`git branch | grep \\* | cut -d ' ' -f2`, { cwd: CURRENT_DIRECTORY, stdio: 'pipe' }).toString().trim()
 const CNAME = 'graphql.swiftwave.org'
