@@ -1,0 +1,31 @@
+name: Deploy Documentation
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: development
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Latest Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+    - name: Install Dependencies (Including Dev dependencies)
+      run: npm install
+    - name: Set up Git
+      run: |
+        git config --global user.name "github-actions-bot"
+        git config --global user.email "support+actions@github.com"
+        git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+    - name: Build Documentation
+      run: npm run build:docs
