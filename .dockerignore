@@ -9,3 +9,4 @@ tarball
 .env
 dev
 swiftwave
+*.zip
