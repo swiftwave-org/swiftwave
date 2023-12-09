@@ -18,10 +18,12 @@ const CURRENT_DIRECTORY = process.cwd()
 const GITHUB_REPO = 'swiftwave-org/swiftwave'
 const GRAPHQL_DOCUMENTATION_BRANCH = 'docs/graphql'
 const CURRENT_BRANCH = execSync(`git branch | grep \\* | cut -d ' ' -f2`, { cwd: CURRENT_DIRECTORY, stdio: 'pipe' }).toString().trim()
-const CNAME = 'graphql.swiftwave.org'
+
+// Index page for documentation
+const INDEX_PAGE = ``
+
 
 // Build docs for GraphQL
-
 async function buildGraphQlDocs() {
     const WORKING_DIRECTORY = path.join(CURRENT_DIRECTORY, ".build_docs_tmp")
 
@@ -117,10 +119,12 @@ async function buildGraphQlDocs() {
     // Move CURRENT_DIRECTORY/graphql-docs to WORKING_DIRECTORY/graphql-docs/
     execSync(`mv ${CURRENT_DIRECTORY_GRAPHQL_DOCUMENTATION_FOLDER}/* ${GRAPHQL_DOCUMENTATION_CURRENT_BRANCH_FOLDER}`, { stdio: 'inherit' })
 
+    // Copy `graphql.docs.html` to `GRAPHQL_DOCUMENTATION_FOLDER/index.html`
+    execSync(`cp ./graphql.docs.html ${GRAPHQL_DOCUMENTATION_FOLDER}/index.html`, { stdio: 'inherit' })
+
     // Publish the GraphQL documentation
     await ghpages.publish(GRAPHQL_DOCUMENTATION_FOLDER, {
-        branch: GRAPHQL_DOCUMENTATION_BRANCH,
-        cname: CNAME,
+        branch: GRAPHQL_DOCUMENTATION_BRANCH
     })
 
     console.log('Published GraphQL documentation')
