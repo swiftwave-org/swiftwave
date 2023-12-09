@@ -17,3 +17,4 @@ dump.rdb
 ignore_*
 graphql-docs
 *.zip
+.build_docs_tmp

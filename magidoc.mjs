@@ -8,7 +8,7 @@ export default {
         output: './graphql-docs',
         options: {
             appTitle: 'Swiftwave GraphQL Documentation',
-            appLogo: 'https://github.com/swiftwave-org.png',
+            appLogo: 'https://github.com/swiftwave-org.png'
         }
     }
   }
