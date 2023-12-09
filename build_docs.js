@@ -23,10 +23,10 @@ const CNAME = 'graphql.swiftwave.org'
 // Build docs for GraphQL
 
 async function buildGraphQlDocs() {
-    const WORKING_DIRECTORY = path.join(os.tmpdir(), crypto.randomBytes(12).toString('hex'))
+    const WORKING_DIRECTORY = path.join(CURRENT_DIRECTORY, ".build_docs_tmp")
 
     // Create a working directory in the system's temp folder
-    fs.mkdirSync(WORKING_DIRECTORY, {recursive: true})
+    fs.mkdirSync(WORKING_DIRECTORY, { recursive: true })
     console.log(`Created temporary directory: ${WORKING_DIRECTORY}`)
 
     // Repo URL
@@ -35,9 +35,9 @@ async function buildGraphQlDocs() {
 
     // Create the folder to move existing docs
     const GRAPHQL_DOCUMENTATION_FOLDER = path.join(WORKING_DIRECTORY, 'graphql-docs')
-    fs.mkdirSync(GRAPHQL_DOCUMENTATION_FOLDER, {recursive: true})
+    fs.mkdirSync(GRAPHQL_DOCUMENTATION_FOLDER, { recursive: true })
     console.log(`Created folder: ${GRAPHQL_DOCUMENTATION_FOLDER}`)
-    
+
     // Check if the branch exists in the repo by HEAD request
     let isExistGraphQLDocsBranch = false
     try {
@@ -79,18 +79,19 @@ async function buildGraphQlDocs() {
         // Extract the zip file in a tmp folder
         const extract = require('extract-zip')
         const extractPath = path.join(WORKING_DIRECTORY, 'downloaded-zip-content')
-        await extract(zipFilePath, {dir: extractPath})
+        await extract(zipFilePath, { dir: extractPath })
         console.log('Extracted zip file')
 
         // Move extractPath/swiftwave-<branch_name>/ to WORKING_DIRECTORY/graphql-docs
-        const extractedFolder = path.join(extractPath, `swiftwave-${GRAPHQL_DOCUMENTATION_BRANCH}`)
+        const docs_branch_folder = GRAPHQL_DOCUMENTATION_BRANCH.split('/').join('-')
+        const extractedFolder = path.join(extractPath, `swiftwave-${docs_branch_folder}`)
         fs.renameSync(extractedFolder, GRAPHQL_DOCUMENTATION_FOLDER)
-        console.log('Moved extracted folder to graphql-docs')        
+        console.log('Moved extracted folder to graphql-docs')
     }
 
     // Generate the GraphQL documentation
     // Run `npx magidoc generate`
-    const magidocCommand = 'npx magidoc generate'
+    const magidocCommand = 'npx magidoc generate --file ' + generateMjs(CURRENT_BRANCH)
     execSync(magidocCommand, { cwd: CURRENT_DIRECTORY, stdio: 'inherit' })
     console.log('Generated GraphQL documentation')
 
@@ -133,6 +134,30 @@ async function buildGraphQlDocs() {
     catch (err) {
         console.log("Temporary folder failed to delete > ", WORKING_DIRECTORY)
     }
+}
+
+// Function to generate mjs for specific branch
+function generateMjs(branchName) {
+    const mjsContent = `export default {
+        introspection: {
+          type: 'sdl',
+          paths: ['swiftwave_service/graphql/schema/**/*.graphqls'],
+        },
+        website: {
+            template: 'carbon-multi-page',
+            output: './graphql-docs',
+            options: {
+                siteRoot: '/${branchName}',
+                appTitle: 'Swiftwave GraphQL Documentation',
+                appLogo: 'https://github.com/swiftwave-org.png'
+            }
+        }
+    }`
+    const tmpFolder = path.join(os.tmpdir(), crypto.randomBytes(20).toString('hex'))
+    fs.mkdirSync(tmpFolder, { recursive: true })
+    const mjsFilePath = path.join(tmpFolder, 'magidoc.mjs')
+    fs.writeFileSync(mjsFilePath, mjsContent)
+    return mjsFilePath
 }
 
 buildGraphQlDocs()
