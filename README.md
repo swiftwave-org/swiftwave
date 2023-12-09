@@ -43,6 +43,8 @@
 ### Documentation
 We are working on the development and documentation of the project. We target to release the documentation soon to make it easy for contributors
 
+**GraphQL Documentation** - https://graphql.docs.swiftwave.org/
+
 ### Community
 We would love to hear from you and brainstorm on ideas! We communicate on Slack:
 
