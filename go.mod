@@ -8,7 +8,7 @@ require (
 	github.com/99designs/gqlgen v0.17.41
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/fatih/color v1.16.0
-	github.com/go-git/go-git/v5 v5.10.1
+	github.com/go-git/go-git/v5 v5.11.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/hashicorp/go-set v0.1.14
 	github.com/labstack/echo/v4 v4.11.3
@@ -90,7 +90,7 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.16.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/net v0.18.0 // indirect
+	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.13.0 // indirect
