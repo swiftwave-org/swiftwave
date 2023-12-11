@@ -15,6 +15,7 @@ service:
     - 4789 # docker swarm port
     - 3333 # swiftwave port
   auto_migrate_database: true # true or false
+  jwt_secret_key: not_a_secured_key # should be a random string
 lets_encrypt:
   staging_environment: false # true or false
   email_id: will_be_overridden

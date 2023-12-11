@@ -14,6 +14,7 @@ type Config struct {
 
 type ServiceConfig struct {
 	AutoMigrateDatabase  bool   `yaml:"auto_migrate_database"`
+	JwtSecretKey         string `yaml:"jwt_secret_key"`
 	UseTLS               bool   `yaml:"use_tls"`
 	SSLCertificateDir    string `yaml:"ssl_certificate_dir"`
 	AddressOfCurrentNode string `yaml:"address_of_current_node"`
