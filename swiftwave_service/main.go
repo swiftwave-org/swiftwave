@@ -3,9 +3,11 @@ package swiftwave
 import (
 	"crypto/tls"
 	"fmt"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -57,6 +59,17 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 	echoServer.Use(middleware.Recover())
 	echoServer.Use(middleware.Logger())
 	echoServer.Use(middleware.CORS())
+	// JWT Middleware
+	echoServer.Use(echojwt.WithConfig(echojwt.Config{
+		SigningKey: []byte(config.ServiceConfig.JwtSecretKey),
+		ErrorHandler: func(c echo.Context, err error) error {
+			if strings.HasPrefix(c.Request().URL.Path, "/auth") ||
+				strings.HasPrefix(c.Request().URL.Path, "/playground") {
+				return nil
+			}
+			return err
+		},
+	}))
 	// Create Rest Server
 	restServer := rest.Server{
 		EchoServer:     echoServer,
@@ -90,7 +103,7 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 	address := fmt.Sprintf("%s:%d", config.ServiceConfig.BindAddress, config.ServiceConfig.BindPort)
 	if config.ServiceConfig.UseTLS {
 		println("TLS Server Started on " + address)
-		
+
 		tlsCfg := &tls.Config{
 			Certificates: fetchCertificates(config.ServiceConfig.SSLCertificateDir),
 		}

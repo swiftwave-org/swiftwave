@@ -11,6 +11,8 @@ func (server *Server) Initialize() {
 }
 
 func (server *Server) initiateProjectRoutes(e *echo.Echo) {
+	// Initiating Routes for Auth
+	e.POST("/auth/login", server.login)
 	// Initiating Routes for Project
 	e.POST("/upload/code", server.uploadTarFile)
 }
