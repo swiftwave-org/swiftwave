@@ -1,0 +1,26 @@
+type User {
+    id : Uint!
+    username : String!
+}
+
+input UserInput {
+    username : String!
+    password : String!
+}
+
+input PasswordUpdateInput {
+    oldPassword : String!
+    newPassword : String!
+}
+
+extend type Query {
+    users : [User]!
+    user(id: Uint!) : User
+    currentUser : User!
+}
+
+extend type Mutation {
+    createUser(input: UserInput): User
+    deleteUser(id: Uint!) : Boolean!
+    changePassword(input: PasswordUpdateInput) : Boolean!
+}

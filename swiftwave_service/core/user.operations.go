@@ -35,12 +35,18 @@ func FindUserByUsername(ctx context.Context, db gorm.DB, username string) (User,
 
 // CreateUser : create user
 func CreateUser(ctx context.Context, db gorm.DB, user User) (User, error) {
+	if user.Username == "" {
+		return User{}, errors.New("username cannot be empty")
+	}
+	if user.PasswordHash == "" {
+		return User{}, errors.New("password cannot be empty")
+	}
 	err := db.Create(&user).Error
 	return user, err
 }
 
-// DeleteUserByID : delete user by id
-func DeleteUserByID(ctx context.Context, db gorm.DB, id uint) error {
+// DeleteUser : delete user by id
+func DeleteUser(ctx context.Context, db gorm.DB, id uint) error {
 	err := db.Delete(&User{}, id).Error
 	// Don't return error if record not found -- assume it's already deleted
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -49,12 +55,24 @@ func DeleteUserByID(ctx context.Context, db gorm.DB, id uint) error {
 	return err
 }
 
-// DeleteUserByUsername : delete user by username
-func DeleteUserByUsername(ctx context.Context, db gorm.DB, username string) error {
-	err := db.Where("username = ?", username).Delete(&User{}).Error
-	// Don't return error if record not found -- assume it's already deleted
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil
+// ChangePassword : change user password
+func ChangePassword(ctx context.Context, db gorm.DB, username string, oldPassword string, newPassword string) error {
+	// Fetch user
+	user, err := FindUserByUsername(ctx, db, username)
+	if err != nil {
+		return errors.New("user not found")
 	}
+	// Check old password
+	isCorrect := user.CheckPassword(oldPassword)
+	if !isCorrect {
+		return errors.New("old password is incorrect")
+	}
+	// Set new password
+	err = user.SetPassword(newPassword)
+	if err != nil {
+		return errors.New("failed to set new password")
+	}
+	// Update user
+	err = db.Save(&user).Error
 	return err
 }

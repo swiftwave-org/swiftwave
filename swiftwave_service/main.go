@@ -1,6 +1,7 @@
 package swiftwave
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
@@ -79,15 +80,21 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 	echoServer.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			token, ok := c.Get("jwt_data").(*jwt.Token)
+			ctx := c.Request().Context()
 			if !ok {
 				c.Set("authorized", false)
 				c.Set("username", "")
+				ctx = context.WithValue(ctx, "authorized", false)
+				ctx = context.WithValue(ctx, "username", "")
 			} else {
 				claims := token.Claims.(jwt.MapClaims)
 				username := claims["username"].(string)
 				c.Set("authorized", true)
 				c.Set("username", username)
+				ctx = context.WithValue(ctx, "authorized", true)
+				ctx = context.WithValue(ctx, "username", username)
 			}
+			c.SetRequest(c.Request().WithContext(ctx))
 			return next(c)
 		}
 	})

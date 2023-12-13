@@ -286,3 +286,14 @@ func deploymentLogToGraphqlObject(record *core.DeploymentLog) *model.DeploymentL
 		CreatedAt: record.CreatedAt,
 	}
 }
+
+// userToGraphqlObject : converts User to UserGraphqlObject
+func userToGraphqlObject(record *core.User) *model.User {
+	if record == nil {
+		return nil
+	}
+	return &model.User{
+		ID:       record.ID,
+		Username: record.Username,
+	}
+}
