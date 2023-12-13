@@ -3,6 +3,7 @@ package swiftwave
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"log"
 	"net/http"
@@ -57,7 +58,9 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 	echoServer.HideBanner = true
 	echoServer.Pre(middleware.RemoveTrailingSlash())
 	echoServer.Use(middleware.Recover())
-	echoServer.Use(middleware.Logger())
+	echoServer.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "${method} ${uri} | ${remote_ip} | ${status} ${error}\n",
+	}))
 	echoServer.Use(middleware.CORS())
 	// JWT Middleware
 	echoServer.Use(echojwt.WithConfig(echojwt.Config{
@@ -69,7 +72,25 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 			return false
 		},
 		SigningKey: []byte(config.ServiceConfig.JwtSecretKey),
+		ContextKey: "jwt_data",
 	}))
+	// Authorization Middleware
+	// Add `authorized` & `username` key to the context
+	echoServer.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			token, ok := c.Get("jwt_data").(*jwt.Token)
+			if !ok {
+				c.Set("authorized", false)
+				c.Set("username", "")
+			} else {
+				claims := token.Claims.(jwt.MapClaims)
+				username := claims["username"].(string)
+				c.Set("authorized", true)
+				c.Set("username", username)
+			}
+			return next(c)
+		}
+	})
 	// Create Rest Server
 	restServer := rest.Server{
 		EchoServer:     echoServer,

@@ -6,7 +6,6 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"strconv"
 )
 
 func init() {
@@ -23,10 +22,18 @@ var createUserCmd = &cobra.Command{
 		password := cmd.Flag("password").Value.String()
 		if username == "" {
 			printError("Username is required")
+			err := cmd.Help()
+			if err != nil {
+				return
+			}
 			return
 		}
 		if password == "" {
 			printError("Password is required")
+			err := cmd.Help()
+			if err != nil {
+				return
+			}
 			return
 		}
 		// Initiating database client
@@ -50,6 +57,6 @@ var createUserCmd = &cobra.Command{
 			printError("Failed to create user")
 			return
 		}
-		printSuccess("Created user with ID: " + strconv.Itoa(int(createUser.ID)) + " and username: " + createUser.Username)
+		printSuccess("Created user > username: " + createUser.Username)
 	},
 }

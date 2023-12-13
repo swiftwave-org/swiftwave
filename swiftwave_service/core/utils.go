@@ -29,10 +29,9 @@ func (user *User) GenerateJWT(jwtSecret string) (string, error) {
 		"nbf":      time.Now().Unix(),
 		"exp":      time.Now().Add(time.Hour * 1).Unix(),
 		"iat":      time.Now().Unix(),
-		"iss":      "swiftwave",
 		"username": user.Username,
 	})
 
 	// Sign and get the complete encoded token as a string using the secret
-	return token.SignedString(jwtSecret)
+	return token.SignedString([]byte(jwtSecret))
 }
