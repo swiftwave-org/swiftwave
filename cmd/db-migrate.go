@@ -3,8 +3,6 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 var dbMigrateCmd = &cobra.Command{
@@ -13,8 +11,7 @@ var dbMigrateCmd = &cobra.Command{
 	Long:  `Migrate the database`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Initiating database client
-		dbDialect := postgres.Open(systemConfig.PostgresqlConfig.DSN())
-		client, err := gorm.Open(dbDialect, &gorm.Config{})
+		client, err := getDBClient()
 		if err != nil {
 			printError("Failed to create database client")
 		}

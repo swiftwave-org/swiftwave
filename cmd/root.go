@@ -16,9 +16,10 @@ func init() {
 	rootCmd.PersistentFlags().Bool("dev", false, "Run in development mode")
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(setupCmd)
-	rootCmd.AddCommand(infoCmd)
 	rootCmd.AddCommand(configCmd)
+	rootCmd.AddCommand(infoCmd)
 	rootCmd.AddCommand(createUserCmd)
+	rootCmd.AddCommand(deleteUserCmd)
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(haproxyCmd)
 	rootCmd.AddCommand(postgresCmd)
@@ -32,6 +33,7 @@ var rootCmd = &cobra.Command{
 	Short: "SwiftWave is a self-hosted lightweight PaaS solution",
 	Long:  `SwiftWave is a self-hosted lightweight PaaS solution to deploy and manage your applications on any VPS without any hassle of managing servers.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		systemConfig.IsDevelopmentMode = isDevelopmentMode(cmd)
 		// print help
 		err := cmd.Help()
 		if err != nil {
