@@ -1,11 +1,15 @@
 package swiftwave
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -55,8 +59,45 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 	echoServer.HideBanner = true
 	echoServer.Pre(middleware.RemoveTrailingSlash())
 	echoServer.Use(middleware.Recover())
-	echoServer.Use(middleware.Logger())
+	echoServer.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "${method} ${uri} | ${remote_ip} | ${status} ${error}\n",
+	}))
 	echoServer.Use(middleware.CORS())
+	// JWT Middleware
+	echoServer.Use(echojwt.WithConfig(echojwt.Config{
+		Skipper: func(c echo.Context) bool {
+			if strings.HasPrefix(c.Request().URL.Path, "/auth") ||
+				strings.HasPrefix(c.Request().URL.Path, "/playground") {
+				return true
+			}
+			return false
+		},
+		SigningKey: []byte(config.ServiceConfig.JwtSecretKey),
+		ContextKey: "jwt_data",
+	}))
+	// Authorization Middleware
+	// Add `authorized` & `username` key to the context
+	echoServer.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			token, ok := c.Get("jwt_data").(*jwt.Token)
+			ctx := c.Request().Context()
+			if !ok {
+				c.Set("authorized", false)
+				c.Set("username", "")
+				ctx = context.WithValue(ctx, "authorized", false)
+				ctx = context.WithValue(ctx, "username", "")
+			} else {
+				claims := token.Claims.(jwt.MapClaims)
+				username := claims["username"].(string)
+				c.Set("authorized", true)
+				c.Set("username", username)
+				ctx = context.WithValue(ctx, "authorized", true)
+				ctx = context.WithValue(ctx, "username", username)
+			}
+			c.SetRequest(c.Request().WithContext(ctx))
+			return next(c)
+		}
+	})
 	// Create Rest Server
 	restServer := rest.Server{
 		EchoServer:     echoServer,
@@ -90,7 +131,7 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 	address := fmt.Sprintf("%s:%d", config.ServiceConfig.BindAddress, config.ServiceConfig.BindPort)
 	if config.ServiceConfig.UseTLS {
 		println("TLS Server Started on " + address)
-		
+
 		tlsCfg := &tls.Config{
 			Certificates: fetchCertificates(config.ServiceConfig.SSLCertificateDir),
 		}

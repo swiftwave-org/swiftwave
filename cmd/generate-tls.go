@@ -15,8 +15,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/spf13/cobra"
 	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 func init() {
@@ -44,8 +42,7 @@ var generateTLSCommand = &cobra.Command{
 		echoServer.HideBanner = true
 		echoServer.Pre(middleware.RemoveTrailingSlash())
 		// Initiating database client
-		dbDialect := postgres.Open(systemConfig.PostgresqlConfig.DSN())
-		dbClient, err := gorm.Open(dbDialect, &gorm.Config{})
+		dbClient, err := getDBClient()
 		if err != nil {
 			printError("Failed to connect to database")
 			return
@@ -68,7 +65,7 @@ var generateTLSCommand = &cobra.Command{
 			err := echoServer.Start(":80")
 			if err != nil {
 				if errors.Is(err, http.ErrServerClosed) {
-				printSuccess("http-01 challenge server has been stopped")
+					printSuccess("http-01 challenge server has been stopped")
 				} else {
 					printError("Failed to start http-01 challenge server")
 					os.Exit(1)

@@ -202,6 +202,11 @@ type IngressRuleInput struct {
 	TargetPort    uint         `json:"targetPort"`
 }
 
+type PasswordUpdateInput struct {
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `json:"newPassword"`
+}
+
 type PersistentVolume struct {
 	ID                       uint                       `json:"id"`
 	Name                     string                     `json:"name"`
@@ -255,6 +260,16 @@ type RedirectRuleInput struct {
 type RuntimeLog struct {
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+type User struct {
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+}
+
+type UserInput struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type DeploymentMode string

@@ -24,7 +24,7 @@ func main() {
 		os.Exit(1)
 	}
 	// ensure docker swarm is initialized
-	if !isSwarmInitailized() {
+	if !isSwarmInitialized() {
 		color.Red("Docker swarm is not initialized. Aborting.")
 		color.Blue("Please run 'docker swarm init' to initialize docker swarm node.")
 		color.Blue("If you are setting up cluster, you can join the cluster by `docker swarm join` command.")
@@ -54,9 +54,9 @@ func main() {
 }
 
 // private function
-func isSwarmInitailized() bool {
-	cmd := exec.Command("docker", "info", "--format", "{{.Swarm.LocalNodeState}}")
-	output, err := cmd.Output()
+func isSwarmInitialized() bool {
+	command := exec.Command("docker", "info", "--format", "{{.Swarm.LocalNodeState}}")
+	output, err := command.Output()
 	if err != nil {
 		return false
 	}

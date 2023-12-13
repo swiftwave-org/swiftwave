@@ -2,13 +2,14 @@ package core
 
 import (
 	"errors"
-	"gorm.io/gorm"
 	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
+	"gorm.io/gorm"
 )
 
 func MigrateDatabase(dbClient *gorm.DB) error {
 	// Migrate the schema
 	err := dbClient.AutoMigrate(
+		&User{},
 		&Domain{},
 		&RedirectRule{},
 		&PersistentVolume{},

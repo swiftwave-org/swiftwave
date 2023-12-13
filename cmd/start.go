@@ -10,7 +10,6 @@ var startCmd = &cobra.Command{
 	Short: "Start swiftwave service",
 	Long:  `Start swiftwave service`,
 	Run: func(cmd *cobra.Command, args []string) {
-		systemConfig.IsDevelopmentMode = isDevelopmentMode(cmd)
 		swiftwave.Start(systemConfig)
 	},
 }

@@ -4,6 +4,13 @@ import (
 	"time"
 )
 
+// User : hold information about user
+type User struct {
+	ID           uint   `json:"id" gorm:"primaryKey"`
+	Username     string `json:"username" gorm:"unique"`
+	PasswordHash string `json:"passwordHash"`
+}
+
 // GitCredential : credential for git client
 type GitCredential struct {
 	ID          uint         `json:"id" gorm:"primaryKey"`

@@ -2,6 +2,9 @@ package cmd
 
 import (
 	"errors"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"net"
 	"os"
 	"os/exec"
@@ -9,6 +12,16 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
+
+func getDBClient() (*gorm.DB, error) {
+	dbDialect := postgres.Open(systemConfig.PostgresqlConfig.DSN())
+	if systemConfig.IsDevelopmentMode {
+		return gorm.Open(dbDialect, &gorm.Config{})
+	}
+	return gorm.Open(dbDialect, &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	})
+}
 
 func checkIfCommandExists(command string) bool {
 	cmd := exec.Command("which", command)
