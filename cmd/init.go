@@ -133,7 +133,7 @@ var initCmd = &cobra.Command{
 			fmt.Print("Domain Name [default: " + domainName + "]: ")
 
 			var inputDomainName string
-			_, err = fmt.Scanln(&inputDomainName, "")
+			_, err = fmt.Scanln(&inputDomainName)
 			if err != nil {
 				inputDomainName = ""
 			}
