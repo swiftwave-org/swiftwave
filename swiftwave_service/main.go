@@ -61,14 +61,14 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 	echoServer.Use(middleware.CORS())
 	// JWT Middleware
 	echoServer.Use(echojwt.WithConfig(echojwt.Config{
-		SigningKey: []byte(config.ServiceConfig.JwtSecretKey),
-		ErrorHandler: func(c echo.Context, err error) error {
+		Skipper: func(c echo.Context) bool {
 			if strings.HasPrefix(c.Request().URL.Path, "/auth") ||
 				strings.HasPrefix(c.Request().URL.Path, "/playground") {
-				return nil
+				return true
 			}
-			return err
+			return false
 		},
+		SigningKey: []byte(config.ServiceConfig.JwtSecretKey),
 	}))
 	// Create Rest Server
 	restServer := rest.Server{
