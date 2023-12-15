@@ -31,10 +31,8 @@
 ### 🤔 How to Setup locally for contribution ?
 **Checkout [`DEVELOPMENT.MD`](https://github.com/swiftwave-org/swiftwave/blob/develop/docs/setup/development.md) for detailed installation steps**
 
-
 ### 🤔 How to Setup in Production ?
 **Checkout [`PRODUCTION.MD`](https://github.com/swiftwave-org/swiftwave/blob/develop/docs/setup/production.md) for detailed installation steps**
-
 ### 👀 How to interact with Swiftwave ?
 #### Introducting `Swiftwave Dashboard`
 ![Swiftwave Dashboard](https://github.com/swiftwave-org/swiftwave/assets/57363826/a85c2b14-dd32-448d-a5a1-81bc01d97ef5)

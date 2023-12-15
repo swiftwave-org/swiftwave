@@ -1,6 +1,7 @@
 ## Development Setup
 
 **Documentation -** https://github.com/swiftwave-org/swiftwave/blob/develop/docs/api_docs.md
+
 > **Note** : You need to be on linux or mac to setup the project locally. Windows is not supported yet.
 
 **Prerequisites**
