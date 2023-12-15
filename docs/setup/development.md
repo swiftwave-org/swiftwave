@@ -1,11 +1,7 @@
-## Documentation
-We are working on the development and documentation of the project. We target to release the documentation soon to make it easy for contributors
-
-**GraphQL Documentation** - https://graphql.docs.swiftwave.org/
-
----
-
 ## Development Setup
+
+**Documentation -** https://github.com/swiftwave-org/swiftwave/blob/develop/docs/api_docs.md
+
 > **Note** : You need to be on linux or mac to setup the project locally. Windows is not supported yet.
 
 **Prerequisites**
@@ -52,4 +48,18 @@ We are working on the development and documentation of the project. We target to
 11. Swiftwave Service will be available on `http://localhost:3333`
 
 #### Access GrqphQL Playground
-Go to `http://localhost:3333/playground`
+1. Create a new user using CLI
+   ```bash
+   go run . create-user
+   ```
+2. Use Login Endpoint for generating a JWT Token. **Ref** - [REST Api Documentation](https://github.com/swiftwave-org/swiftwave/blob/develop/docs/rest_api.md)
+3. Go to `http://localhost:3333/playground`
+4. In headers section, add authorization details
+   ```json
+   {
+     "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDI0OTc4MDMsImlhdCI6MTcwMjQ5NDIwMywibmJmIjoxNzAyNDk0MjAzLCJ1c2VybmFtZSI6InRhbm1veXNydCJ9.9Bx_Og9FzG09Wi-TjNndzO7U1yLZURT1itmz3VxjuV8"
+   }
+   ```
+5. Now, click on `refresh` icon on playground to get schema details and avail the auto-complete feature
+6. You can now start querying and mutating data
+7. Refer the docs for more information - [API DOCS](https://github.com/swiftwave-org/swiftwave/blob/develop/docs/api_docs.md)
