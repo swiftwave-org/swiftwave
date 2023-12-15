@@ -13,12 +13,6 @@ WORKDIR /build
 # Copy source code
 COPY . .
 
-# Copy AptFile [optional]
-RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || true
-
-# Copy SetupCommand [optional]
-RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
-
 # Fetch dependencies
 RUN go mod download
 
@@ -36,16 +30,6 @@ WORKDIR /user
 
 # Copy binary
 COPY --from=builder /build/${BINARY_NAME} .
-
-# Install OS dependencies
-
-# Copy AptFile [optional]
-COPY AptFile* ./
-RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || true
-
-# Copy SetupCommand [optional]
-COPY SetupCommand* ./
-RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
 
 # Create entrypoint
 RUN echo ${START_COMMAND} > /user/entrypoint.sh

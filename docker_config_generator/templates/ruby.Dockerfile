@@ -22,17 +22,11 @@ RUN mkdir -p /etc/apt/keyrings \
 # Copy the main application.
 COPY . .
 
-# Copy AptFile [optional]
-RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || true
-
 # Install dependencies
 RUN ${INSTALL_COMMAND} 
 
 # Clean up
 RUN apt clean && rm -rf /var/lib/apt/lists/*
-
-# Copy SetupCommand [optional]
-RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
 
 # Setup entrypoint
 RUN echo "${START_COMMAND}" > /app/entrypoint.sh

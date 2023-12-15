@@ -1,14 +1,6 @@
 FROM node:18.11-slim AS builder
 WORKDIR /app
 
-# Copy AptFile [optional]
-COPY AptFile* ./
-RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || true
-
-# Copy SetupCommand [optional]
-COPY SetupCommand* ./
-RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
-
 # Copy source code
 COPY . .
 
@@ -30,14 +22,6 @@ RUN ${BUILD_COMMAND}
 
 # Production image, copy all the files and run next
 FROM node:18.11-slim AS runner
-
-# Copy AptFile [optional]
-COPY AptFile* ./
-RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || true
-
-# Copy SetupCommand [optional]
-COPY SetupCommand* ./
-RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
 
 WORKDIR /app
 

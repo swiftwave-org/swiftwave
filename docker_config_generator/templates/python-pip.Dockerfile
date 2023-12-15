@@ -10,12 +10,6 @@ WORKDIR /app
 # Copy source code
 COPY . .
 
-# Install OS dependencies
-RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || true
-
-# Run SetupCommand
-RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
-
 # Install dependencies
 RUN ${SETUP_COMMAND}
 
