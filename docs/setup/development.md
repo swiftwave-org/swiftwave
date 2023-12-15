@@ -43,7 +43,7 @@
    ```
 10. Start SwiftWave
    ```bash
-   go run . start
+   go run . start --dev
    ```
 11. Swiftwave Service will be available on `http://localhost:3333`
 
