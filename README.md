@@ -28,22 +28,16 @@
 * Very lightweight [Must run in a 1GB RAM 1 vCPU Cloud Instance with couple of applications]
     > You can get free  cloud instance from AWS [1 year], Digitalocean[1 year with Github Education] & Oracle Cloud [Lifetime Free]
 
-### 🤔 How to Install ?
-**Checkout [`SETUP.MD`](https://github.com/swiftwave-org/swiftwave/blob/main/SETUP.md) for detailed installation steps**
+### 🤔 How to Setup locally for contribution ?
+**Checkout [`DEVELOPMENT.MD`](https://github.com/swiftwave-org/swiftwave/blob/develop/docs/setup/development.md) for detailed installation steps**
 
+### 🤔 How to Setup in Production ?
+**Checkout [`PRODUCTION.MD`](https://github.com/swiftwave-org/swiftwave/blob/develop/docs/setup/production.md) for detailed installation steps**
 ### 👀 How to interact with Swiftwave ?
-#### Introducting `Swiftwave Dashboard` ([Source Code](https://github.com/swiftwave-org/swiftwave-dashboard))
+#### Introducting `Swiftwave Dashboard`
 ![Swiftwave Dashboard](https://github.com/swiftwave-org/swiftwave/assets/57363826/a85c2b14-dd32-448d-a5a1-81bc01d97ef5)
-#### Steps
-- Go to `server_ip:9999`
-- At the bottom of the page, from the tab update IP address of your server and port (default port 3333)
-- Enter the `username` and `password` you have set during the installation of the software
-- That's all 🍻
 
-### Documentation
-We are working on the development and documentation of the project. We target to release the documentation soon to make it easy for contributors
-
-**GraphQL Documentation** - https://graphql.docs.swiftwave.org/
+**Checkout here >** [swiftwave-org/swiftwave-dashboard](https://github.com/swiftwave-org/swiftwave-dashboard)
 
 ### Community
 We would love to hear from you and brainstorm on ideas! We communicate on Slack:
