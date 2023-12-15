@@ -33,9 +33,6 @@ var rootCmd = &cobra.Command{
 	Short: "SwiftWave is a self-hosted lightweight PaaS solution",
 	Long:  `SwiftWave is a self-hosted lightweight PaaS solution to deploy and manage your applications on any VPS without any hassle of managing servers.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if systemConfig != nil {
-			systemConfig.IsDevelopmentMode = isDevelopmentMode(cmd)
-		}
 		// print help
 		err := cmd.Help()
 		if err != nil {
