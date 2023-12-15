@@ -4,12 +4,6 @@ WORKDIR /app
 # Copy source code
 COPY . .
 
-# Copy AptFile [optional]
-RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || true
-
-# Copy SetupCommand [optional]
-RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
-
 # Install dependencies
 ARG SETUP_COMMAND="npm install"
 RUN ${SETUP_COMMAND}

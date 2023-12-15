@@ -13,12 +13,6 @@ COPY . .
 # Update file permissions
 RUN chmod +x ./mvnw
 
-# Install OS dependencies
-RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || true
-
-# Run SetupCommand
-RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
-
 # Download dependencies
 RUN ${DOWNLOAD_DEPENDENCY_COMMAND}
 
@@ -34,14 +28,6 @@ ARG START_COMMAND
 
 # Setup Workdir
 WORKDIR /opt/app
-
-# Install OS dependencies
-COPY AptFile* ./
-RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || true
-
-# Run SetupCommand
-COPY SetupCommand* ./
-RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
 
 # Copy jar file
 COPY --from=builder /opt/app/target/*.jar ./${OUTPUT_JAR_FILE}

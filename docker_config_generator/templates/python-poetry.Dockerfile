@@ -36,12 +36,6 @@ WORKDIR /app
 # Copy Project
 COPY . .
 
-# Copy AptFile [optional]
-RUN test -f AptFile && apt update -yqq && xargs -a AptFile apt install -yqq || true
-
-# Copy SetupCommand [optional]
-RUN test -f SetupCommand && while read -r cmd; do eval "$cmd"; done < SetupCommand || true
-
 # Install Dependencies
 RUN ${SETUP_COMMAND}
 
