@@ -52,7 +52,7 @@ require (
 )
 
 require (
-	github.com/containerd/containerd v1.7.2 // indirect
+	github.com/containerd/containerd v1.7.11 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
@@ -62,7 +62,7 @@ require (
 	github.com/moby/sys/sequential v0.5.0 // indirect
 	github.com/opencontainers/runc v1.1.8 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
-	github.com/sirupsen/logrus v1.9.0 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
