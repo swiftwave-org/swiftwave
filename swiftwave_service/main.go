@@ -67,7 +67,8 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 	// JWT Middleware
 	echoServer.Use(echojwt.WithConfig(echojwt.Config{
 		Skipper: func(c echo.Context) bool {
-			if strings.HasPrefix(c.Request().URL.Path, "/auth") ||
+			if strings.Compare(c.Request().URL.Path, "/") == 0 ||
+				strings.HasPrefix(c.Request().URL.Path, "/auth") ||
 				strings.HasPrefix(c.Request().URL.Path, "/dashboard") ||
 				strings.HasPrefix(c.Request().URL.Path, "/playground") {
 				return true

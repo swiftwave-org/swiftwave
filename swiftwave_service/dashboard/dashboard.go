@@ -17,4 +17,8 @@ var (
 func RegisterHandlers(e *echo.Echo) {
 	e.FileFS("/dashboard", "index.html", distIndexHtml)
 	e.StaticFS("/dashboard", distDirFS)
+	// Re-direct / to /dashboard
+	e.GET("/", func(c echo.Context) error {
+		return c.Redirect(302, "/dashboard")
+	})
 }
