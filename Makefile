@@ -2,10 +2,10 @@
 DIST_DIR = swiftwave_service/dashboard/www
 SUBMOD_DIR = dashboard
 
-main: | check build
+main: build
 
-deps: 
-	cd $(SUBMOD_DIR) && npm i
+deps:
+	git submodule update --init && cd $(SUBMOD_DIR) && npm i
 
 build_dashboard: | deps
 	cd $(SUBMOD_DIR) &&	npm run build:swiftwave
@@ -22,7 +22,3 @@ build: | copy_dashboard
 	
 install: build
 	cp swiftwave /usr/bin/swiftwave
-	
-check:
-	if [[ -z `ls -A $(SUBMOD_DIR)` ]] ; then echo "Run \`git submodule update --init\`" && exit 1; fi
-
