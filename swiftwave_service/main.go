@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/dashboard"
 	"log"
 	"net/http"
 	"os"
@@ -66,7 +67,9 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 	// JWT Middleware
 	echoServer.Use(echojwt.WithConfig(echojwt.Config{
 		Skipper: func(c echo.Context) bool {
-			if strings.HasPrefix(c.Request().URL.Path, "/auth") ||
+			if strings.Compare(c.Request().URL.Path, "/") == 0 ||
+				strings.HasPrefix(c.Request().URL.Path, "/auth") ||
+				strings.HasPrefix(c.Request().URL.Path, "/dashboard") ||
 				strings.HasPrefix(c.Request().URL.Path, "/playground") {
 				return true
 			}
@@ -112,6 +115,8 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 		ServiceManager: manager,
 		WorkerManager:  workerManager,
 	}
+	// Initialize Dashboard Web App
+	dashboard.RegisterHandlers(echoServer)
 	// Initialize Rest Server
 	restServer.Initialize()
 	// Initialize GraphQL Server

@@ -17,35 +17,58 @@
 1. Fork this repository [if you want to contribute]
 2. Clone the repository
     ```bash
-    git clone git@github.com:<username>/swiftwave.git
+    git clone git@github.com:<username>/swiftwave.git --recursive
     ```
 3. Go to the cloned directory
     ```bash
     cd swiftwave
     ```
 4. Run `npm install`
-5. Open a root terminal in correct directory `sudo su`
-6. Generate SwiftWave default configuration
+5. Run `npm run build:dashboard`
+6. Initialize Docker Swarm (if not already initialized)
+   ```bash
+   docker swarm init
+   ```
+7. Open a root terminal in correct directory `sudo su`
+Generate SwiftWave default configuration
    ```bash
    go run . init
    ```
-7. Prepare SwiftWave environment
+8. Prepare SwiftWave environment
    ```bash
    go run . setup
    ```
-8. Start Local Postgres Database
+9. Disable `TLS` in configuration
+
+   a. Open a root terminal in correct directory `sudo su`
+   
+   b. Run `EDITOR=nano go run . config` or `EDITOR=vim go run . config`
+   
+   c. Change `service.use_tls` to `false`
+   
+   d. Save the file and exit
+
+10. Start Local Postgres Database
    ```bash
    go run . postgres start
    ```
-9. Start HAProxy Service
+11. Start HAProxy Service
    ```bash
    go run . haproxy start
    ```
-10. Start SwiftWave
+12. Start SwiftWave
    ```bash
    go run . start --dev
    ```
-11. Swiftwave Service will be available on `http://localhost:3333`
+13. Swiftwave Service will be available on `http://localhost:3333`
+
+#### Access Swiftwave Dashboard
+1. Go to `http://localhost:3333`
+2. Login using your credentials
+   > If you have not created any user, you can create one using CLI
+   ```bash
+    go run . create-user
+    ```
 
 #### Access GrqphQL Playground
 1. Create a new user using CLI
@@ -53,11 +76,17 @@
    go run . create-user
    ```
 2. Use Login Endpoint for generating a JWT Token. **Ref** - [REST Api Documentation](https://github.com/swiftwave-org/swiftwave/blob/develop/docs/rest_api.md)
+   You can also generate the token using curl command
+    ```bash
+   curl --location 'http://localhost:3333/auth/login' \
+   --form 'username="admin"' \
+   --form 'password="admin"'
+   ```
 3. Go to `http://localhost:3333/playground`
 4. In headers section, add authorization details
    ```json
    {
-     "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDI0OTc4MDMsImlhdCI6MTcwMjQ5NDIwMywibmJmIjoxNzAyNDk0MjAzLCJ1c2VybmFtZSI6InRhbm1veXNydCJ9.9Bx_Og9FzG09Wi-TjNndzO7U1yLZURT1itmz3VxjuV8"
+     "Authorization": "Bearer <token_retrieved_from_login>"
    }
    ```
 5. Now, click on `refresh` icon on playground to get schema details and avail the auto-complete feature
