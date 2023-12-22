@@ -2,23 +2,13 @@
 DIST_DIR = swiftwave_service/dashboard/www
 SUBMOD_DIR = dashboard
 
-main: build
+main: build_service
 
-deps:
-	git submodule update --init && cd $(SUBMOD_DIR) && npm i
-
-build_dashboard: | deps
-	cd $(SUBMOD_DIR) &&	npm run build:swiftwave
+build_dashboard:
+	npm run build:dashboard
 	
-clean_mkdir:
-	rm -rf $(DIST_DIR) || true && \
-	mkdir -p $(DIST_DIR)
-	
-copy_dashboard: | clean_mkdir build_dashboard
-	cp -r $(SUBMOD_DIR)/dist/* $(DIST_DIR)
-	
-build: | copy_dashboard
+build_service: | build_dashboard
 	go build .
 	
-install: build
+install: build_service
 	cp swiftwave /usr/bin/swiftwave

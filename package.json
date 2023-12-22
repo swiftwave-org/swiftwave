@@ -1,7 +1,9 @@
 {
   "scripts": {
     "prepare": "husky install",
-    "build:docs": "node ./build_docs.js"
+    "build:docs": "node ./build_docs.js",
+    "prepare:dashboard_build": "git submodule update --init && cd dashboard && npm i && cd .. && (rm -rf swiftwave_service/dashboard/www || true) && mkdir -p swiftwave_service/dashboard/www",
+    "build:dashboard": "npm run prepare:dashboard_build && cd dashboard && npm run build:prod && cd .. && cp -r dashboard/dist/* swiftwave_service/dashboard/www/"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.7.2",
