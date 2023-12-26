@@ -66,15 +66,8 @@ var haproxyStartCmd = &cobra.Command{
 		}
 		// base directory for socket file
 		mountDir := filepath.Dir(systemConfig.HAProxyConfig.UnixSocketPath)
-		// Service endpoint
-		SERVICE_ENDPOINT := systemConfig.ServiceConfig.AddressOfCurrentNode
-		if systemConfig.ServiceConfig.UseTLS {
-			SERVICE_ENDPOINT = "https://" + SERVICE_ENDPOINT
-		} else {
-			SERVICE_ENDPOINT = "http://" + SERVICE_ENDPOINT
-		}
 		// add port
-		SERVICE_ENDPOINT = SERVICE_ENDPOINT + ":" + strconv.Itoa(systemConfig.ServiceConfig.BindPort)
+		SERVICE_ENDPOINT := systemConfig.ServiceConfig.AddressOfCurrentNode + ":" + strconv.Itoa(systemConfig.ServiceConfig.BindPort)
 		// Start HAProxy service
 		dockerCmd := exec.Command("docker", "service", "create",
 			"--name", systemConfig.HAProxyConfig.ServiceName,
