@@ -66,6 +66,15 @@ var haproxyStartCmd = &cobra.Command{
 		}
 		// base directory for socket file
 		mountDir := filepath.Dir(systemConfig.HAProxyConfig.UnixSocketPath)
+		// Service endpoint
+		SERVICE_ENDPOINT := systemConfig.ServiceConfig.AddressOfCurrentNode
+		if systemConfig.ServiceConfig.UseTLS {
+			SERVICE_ENDPOINT = "https://" + SERVICE_ENDPOINT
+		} else {
+			SERVICE_ENDPOINT = "http://" + SERVICE_ENDPOINT
+		}
+		// add port
+		SERVICE_ENDPOINT = SERVICE_ENDPOINT + ":" + strconv.Itoa(systemConfig.ServiceConfig.BindPort)
 		// Start HAProxy service
 		dockerCmd := exec.Command("docker", "service", "create",
 			"--name", systemConfig.HAProxyConfig.ServiceName,
@@ -77,7 +86,7 @@ var haproxyStartCmd = &cobra.Command{
 			"--publish", "mode=host,target=443,published=443",
 			"--env", "ADMIN_USER="+systemConfig.HAProxyConfig.User,
 			"--env", "ADMIN_PASSWORD="+systemConfig.HAProxyConfig.Password,
-			"--env", "SWIFTWAVE_SERVICE_ENDPOINT="+systemConfig.ServiceConfig.AddressOfCurrentNode,
+			"--env", "SWIFTWAVE_SERVICE_ENDPOINT="+SERVICE_ENDPOINT,
 			systemConfig.HAProxyConfig.DockerImage)
 		dockerCmd.Stdout = os.Stdout
 		dockerCmd.Stderr = os.Stderr
