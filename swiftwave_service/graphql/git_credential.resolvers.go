@@ -6,6 +6,8 @@ package graphql
 
 import (
 	"context"
+	"errors"
+	"strings"
 
 	GIT "github.com/swiftwave-org/swiftwave/git_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
@@ -30,8 +32,14 @@ func (r *gitCredentialResolver) Deployments(ctx context.Context, obj *model.GitC
 // CreateGitCredential is the resolver for the createGitCredential field.
 func (r *mutationResolver) CreateGitCredential(ctx context.Context, input model.GitCredentialInput) (*model.GitCredential, error) {
 	record := gitCredentialInputToDatabaseObject(&input)
+	if record.Name == "" {
+		return nil, errors.New("name is required")
+	}
 	err := record.Create(ctx, r.ServiceManager.DbClient)
 	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key") {
+			return nil, errors.New("git credential with same name already exists")
+		}
 		return nil, err
 	}
 	return gitCredentialToGraphqlObject(record), nil
