@@ -7,6 +7,7 @@ package graphql
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
@@ -42,8 +43,14 @@ func (r *domainResolver) RedirectRules(ctx context.Context, obj *model.Domain) (
 // AddDomain is the resolver for the addDomain field.
 func (r *mutationResolver) AddDomain(ctx context.Context, input model.DomainInput) (*model.Domain, error) {
 	record := domainInputToDatabaseObject(&input)
+	if record.Name == "" {
+		return nil, errors.New("name is required")
+	}
 	err := record.Create(ctx, r.ServiceManager.DbClient)
 	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key") {
+			return nil, errors.New("domain with same name already exists")
+		}
 		return nil, err
 	}
 	return domainToGraphqlObject(record), nil
