@@ -43,9 +43,9 @@ func (r *mutationResolver) DeleteRedirectRule(ctx context.Context, id uint) (boo
 		return false, err
 	}
 	// publish event
-	err = r.WorkerManager.EnqueueRedirectRuleApplyRequest(record.ID)
+	err = r.WorkerManager.EnqueueRedirectRuleDeleteRequest(record.ID)
 	if err != nil {
-		return false, errors.New("failed to enqueue redirect rule apply request")
+		return false, errors.New("failed to enqueue redirect rule delete request")
 	}
 	return true, nil
 }

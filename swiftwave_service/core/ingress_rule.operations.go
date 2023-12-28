@@ -65,14 +65,18 @@ func (ingressRule *IngressRule) Update(ctx context.Context, db gorm.DB) error {
 func (ingressRule *IngressRule) Delete(ctx context.Context, db gorm.DB, force bool) error {
 	if !force {
 		// verify if ingress rule is not deleting
-		isDeleting := ingressRule.isDeleting()
-		if isDeleting {
+		if ingressRule.isDeleting() {
 			return errors.New("ingress rule is deleting")
 		}
+		// update status to deleting
+		tx := db.Model(&ingressRule).Update("status", IngressRuleStatusDeleting)
+		return tx.Error
+	} else {
+		// Delete ingress rule
+		tx := db.Delete(&ingressRule)
+		return tx.Error
 	}
-	// update status to deleting
-	tx := db.Model(&ingressRule).Update("status", IngressRuleStatusDeleting)
-	return tx.Error
+
 }
 
 func (ingressRule *IngressRule) isDeleting() bool {
