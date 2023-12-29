@@ -1,6 +1,11 @@
 package cmd
 
 import (
+	"errors"
+	"fmt"
+	"github.com/swiftwave-org/swiftwave/system_config"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -69,14 +74,20 @@ var haproxyStartCmd = &cobra.Command{
 			dockerImage = dockerImage + "-http"
 		}
 		// base directory for socket file
-		mountDir := filepath.Dir(systemConfig.HAProxyConfig.UnixSocketPath)
+		unixSocketMountDir := filepath.Dir(systemConfig.HAProxyConfig.UnixSocketPath)
+		err := generateDefaultHAProxyConfiguration(systemConfig)
+		if err != nil {
+			printError("Failed to generate default HAProxy configuration")
+			printError("Error : " + err.Error())
+			return
+		}
 		// Start HAProxy service
 		dockerCmd := exec.Command("docker", "service", "create",
 			"--name", systemConfig.HAProxyConfig.ServiceName,
 			"--mode", "global",
 			"--network", systemConfig.ServiceConfig.NetworkName,
-			"--mount", "type=bind,source="+systemConfig.HAProxyConfig.DataDir+",destination=/var/lib/haproxy",
-			"--mount", "type=bind,source="+mountDir+",destination=/home/",
+			"--mount", "type=bind,source="+systemConfig.HAProxyConfig.DataDir+",destination=/etc/haproxy",
+			"--mount", "type=bind,source="+unixSocketMountDir+",destination=/home/",
 			"--publish", "mode=host,target=80,published=80",
 			"--publish", "mode=host,target=443,published=443",
 			"--env", "ADMIN_USER="+systemConfig.HAProxyConfig.User,
@@ -86,7 +97,7 @@ var haproxyStartCmd = &cobra.Command{
 		dockerCmd.Stdout = os.Stdout
 		dockerCmd.Stderr = os.Stderr
 		dockerCmd.Stdin = os.Stdin
-		err := dockerCmd.Run()
+		err = dockerCmd.Run()
 		if err != nil {
 			printError("Failed to start HAProxy service")
 			return
@@ -158,4 +169,98 @@ func removeHashFromDockerImageName(image string) string {
 	}
 	// return the first part
 	return s[0]
+}
+
+func generateDefaultHAProxyConfiguration(config *system_config.Config) error {
+	// Check if the directory exists
+	if _, err := os.Stat(config.HAProxyConfig.DataDir); os.IsNotExist(err) {
+		return errors.New(fmt.Sprintf("Directory does not exist > %s", config.HAProxyConfig.DataDir))
+	}
+	baseUrl, err := generateHAProxyConfigDownloadBaseUrl(config)
+	if err != nil {
+		return err
+	}
+	// Check if `haproxy.cfg` file exists
+	if !checkIfFileExists(config.HAProxyConfig.DataDir + "/haproxy.cfg") {
+		err := downloadFile(baseUrl+"/haproxy.cfg", config.HAProxyConfig.DataDir+"/haproxy.cfg")
+		if err != nil {
+			return err
+		} else {
+			printSuccess("Downloaded `haproxy.cfg` file")
+		}
+	}
+	// Check if `dataplaneapi.yaml` file exists
+	if !checkIfFileExists(config.HAProxyConfig.DataDir + "/dataplaneapi.yaml") {
+		err := downloadFile(baseUrl+"/dataplaneapi.yaml", config.HAProxyConfig.DataDir+"/dataplaneapi.yaml")
+		if err != nil {
+			return err
+		} else {
+			printSuccess("Downloaded `dataplaneapi.yaml` file")
+		}
+	}
+	// Create `ssl` directory if it does not exist
+	if _, err := os.Stat(config.HAProxyConfig.DataDir + "/ssl"); os.IsNotExist(err) {
+		err := os.MkdirAll(config.HAProxyConfig.DataDir+"/ssl", os.ModePerm)
+		if err != nil {
+			return err
+		} else {
+			printSuccess("Created `ssl` directory")
+		}
+	}
+	// Check if `ssl/default.pem` file exists
+	if !checkIfFileExists(config.HAProxyConfig.DataDir + "/ssl/default.pem") {
+		err := downloadFile(baseUrl+"/default.pem", config.HAProxyConfig.DataDir+"/ssl/default.pem")
+		if err != nil {
+			return err
+		} else {
+			printSuccess("Downloaded `ssl/default.pem` file")
+		}
+	}
+	return nil
+}
+
+func generateHAProxyConfigDownloadBaseUrl(config *system_config.Config) (string, error) {
+	if config == nil {
+		return "", errors.New("config is nil")
+	}
+	splitString := strings.Split(config.HAProxyConfig.DockerImage, ":")
+	if len(splitString) < 2 {
+		return "", errors.New("invalid docker image name")
+	}
+	version := splitString[1]
+	url := "https://raw.githubusercontent.com/swiftwave-org/haproxy/main/" + version
+	return url, nil
+}
+
+func downloadFile(url string, filePath string) error {
+	// download with GET request
+	res, err := http.Get(url)
+	if err != nil {
+		return errors.New("failed to download file > " + url)
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			printError("Failed to close response body")
+		}
+	}(res.Body)
+
+	// Create the file
+	out, err := os.Create(filePath)
+	if err != nil {
+		return errors.New("failed to create file > " + filePath)
+	}
+	defer func(out *os.File) {
+		err := out.Close()
+		if err != nil {
+			printError("Failed to close file")
+		}
+	}(out)
+
+	// Write the body to file
+	_, err = io.Copy(out, res.Body)
+	if err != nil {
+		return errors.New("failed to write file > " + filePath)
+	}
+	return nil
 }
