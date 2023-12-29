@@ -61,10 +61,14 @@ func (redirectRule *RedirectRule) Delete(ctx context.Context, db gorm.DB, force 
 		if redirectRule.isDeleting() {
 			return errors.New("redirect rule is already deleting")
 		}
+		// update record
+		tx := db.Model(&redirectRule).Update("status", RedirectRuleStatusDeleting)
+		return tx.Error
+	} else {
+		// delete record
+		tx := db.Delete(&redirectRule)
+		return tx.Error
 	}
-	// update record
-	tx := db.Model(&redirectRule).Update("status", RedirectRuleStatusDeleting)
-	return tx.Error
 }
 
 func (redirectRule *RedirectRule) isDeleting() bool {
