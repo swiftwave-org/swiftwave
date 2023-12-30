@@ -180,24 +180,41 @@ func generateDefaultHAProxyConfiguration(config *system_config.Config) error {
 	if err != nil {
 		return err
 	}
+
 	// Check if `haproxy.cfg` file exists
 	if !checkIfFileExists(config.HAProxyConfig.DataDir + "/haproxy.cfg") {
-		err := downloadFile(baseUrl+"/haproxy.cfg", config.HAProxyConfig.DataDir+"/haproxy.cfg")
+		content, err := downloadContent(baseUrl + "/haproxy.cfg")
 		if err != nil {
 			return err
 		} else {
 			printSuccess("Downloaded `haproxy.cfg` file")
+			err = writeContent(config.HAProxyConfig.DataDir+"/haproxy.cfg", content)
+			if err != nil {
+				return err
+			} else {
+				printSuccess("Created `haproxy.cfg` file")
+			}
 		}
 	}
+
 	// Check if `dataplaneapi.yaml` file exists
 	if !checkIfFileExists(config.HAProxyConfig.DataDir + "/dataplaneapi.yaml") {
-		err := downloadFile(baseUrl+"/dataplaneapi.yaml", config.HAProxyConfig.DataDir+"/dataplaneapi.yaml")
+		content, err := downloadContent(baseUrl + "/dataplaneapi.yaml")
 		if err != nil {
 			return err
 		} else {
 			printSuccess("Downloaded `dataplaneapi.yaml` file")
+			content = strings.ReplaceAll(content, "ADMIN_USERNAME", config.HAProxyConfig.User)
+			content = strings.ReplaceAll(content, "ADMIN_PASSWORD", config.HAProxyConfig.Password)
+			err = writeContent(config.HAProxyConfig.DataDir+"/dataplaneapi.yaml", content)
+			if err != nil {
+				return err
+			} else {
+				printSuccess("Created `dataplaneapi.yaml` file")
+			}
 		}
 	}
+
 	// Create `ssl` directory if it does not exist
 	if _, err := os.Stat(config.HAProxyConfig.DataDir + "/ssl"); os.IsNotExist(err) {
 		err := os.MkdirAll(config.HAProxyConfig.DataDir+"/ssl", os.ModePerm)
@@ -207,13 +224,20 @@ func generateDefaultHAProxyConfiguration(config *system_config.Config) error {
 			printSuccess("Created `ssl` directory")
 		}
 	}
+
 	// Check if `ssl/default.pem` file exists
 	if !checkIfFileExists(config.HAProxyConfig.DataDir + "/ssl/default.pem") {
-		err := downloadFile(baseUrl+"/default.pem", config.HAProxyConfig.DataDir+"/ssl/default.pem")
+		content, err := downloadContent(baseUrl + "/default.pem")
 		if err != nil {
 			return err
 		} else {
 			printSuccess("Downloaded `ssl/default.pem` file")
+			err = writeContent(config.HAProxyConfig.DataDir+"/ssl/default.pem", content)
+			if err != nil {
+				return err
+			} else {
+				printSuccess("Created `ssl/default.pem` file")
+			}
 		}
 	}
 	return nil
@@ -232,11 +256,11 @@ func generateHAProxyConfigDownloadBaseUrl(config *system_config.Config) (string,
 	return url, nil
 }
 
-func downloadFile(url string, filePath string) error {
+func downloadContent(url string) (string, error) {
 	// download with GET request
 	res, err := http.Get(url)
 	if err != nil {
-		return errors.New("failed to download file > " + url)
+		return "", errors.New("failed to download file > " + url)
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -245,22 +269,34 @@ func downloadFile(url string, filePath string) error {
 		}
 	}(res.Body)
 
-	// Create the file
-	out, err := os.Create(filePath)
+	var fileStringBytes []byte
+	// Read the body into bytes
+	fileStringBytes, err = io.ReadAll(res.Body)
 	if err != nil {
-		return errors.New("failed to create file > " + filePath)
+		return "", errors.New("failed to read response body")
 	}
-	defer func(out *os.File) {
-		err := out.Close()
-		if err != nil {
-			printError("Failed to close file")
-		}
-	}(out)
 
-	// Write the body to file
-	_, err = io.Copy(out, res.Body)
+	// Convert bytes to string
+	fileString := string(fileStringBytes)
+
+	return fileString, nil
+}
+
+func writeContent(filePath string, content string) error {
+	// Create the file
+	file, err := os.Create(filePath)
 	if err != nil {
-		return errors.New("failed to write file > " + filePath)
+		return err
+	}
+	// Write the content
+	_, err = file.WriteString(content)
+	if err != nil {
+		return err
+	}
+	// Close the file
+	err = file.Close()
+	if err != nil {
+		return err
 	}
 	return nil
 }
