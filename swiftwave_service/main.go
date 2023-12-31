@@ -74,6 +74,14 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 				strings.HasPrefix(c.Request().URL.Path, "/playground") {
 				return true
 			}
+			// check if a GET request at /graphql and a websocket upgrade request
+			if strings.HasPrefix(c.Request().URL.Path, "/graphql") &&
+				strings.Compare(c.Request().Method, http.MethodGet) == 0 &&
+				strings.Compare(c.Request().URL.RawQuery, "") == 0 &&
+				strings.Compare(c.Request().Header.Get("Connection"), "Upgrade") == 0 &&
+				strings.Compare(c.Request().Header.Get("Upgrade"), "websocket") == 0 {
+				return true
+			}
 			return false
 		},
 		SigningKey: []byte(config.ServiceConfig.JwtSecretKey),
