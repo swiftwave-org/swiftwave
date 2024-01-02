@@ -131,6 +131,17 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context
 	}
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Fetched latest commit hash > "+commitHash, false)
 	deployment.CommitHash = commitHash
+	// update deployment
+	err = db.Model(&deployment).Update("commit_hash", commitHash).Error
+	if err != nil {
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update commit hash", true)
+		err := deployment.UpdateStatus(ctx, dbWithoutTx, core.DeploymentStatusFailed)
+		if err != nil {
+			return err
+		}
+		// retuning nil as we don't want to requeue the job because it may fail for same reason
+		return nil
+	}
 	// clone git repository
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Cloning git repository > "+deployment.GitRepositoryURL(), false)
 	err = gitmanager.CloneRepository(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitUsername, gitPassword, tempDirectory)
