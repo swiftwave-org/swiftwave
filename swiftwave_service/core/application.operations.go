@@ -218,7 +218,7 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 	isReloadRequired := false
 	// fetch application with environment variables and persistent volume bindings
 	var applicationFull = &Application{}
-	tx := db.Preload("EnvironmentVariables").Preload("PersistentVolumeBindings").First(&applicationFull, application.ID)
+	tx := db.Preload("EnvironmentVariables").Preload("PersistentVolumeBindings").Where("id = ?", application.ID).First(&applicationFull)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
