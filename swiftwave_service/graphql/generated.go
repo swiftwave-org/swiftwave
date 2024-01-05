@@ -220,6 +220,7 @@ type ComplexityRoot struct {
 		Applications                       func(childComplexity int) int
 		CheckGitCredentialRepositoryAccess func(childComplexity int, input model.GitCredentialRepositoryAccessInput) int
 		CurrentUser                        func(childComplexity int) int
+		Deployment                         func(childComplexity int, id string) int
 		DockerConfigGenerator              func(childComplexity int, input model.DockerConfigGeneratorInput) int
 		Domain                             func(childComplexity int, id uint) int
 		Domains                            func(childComplexity int) int
@@ -343,6 +344,7 @@ type QueryResolver interface {
 	Application(ctx context.Context, id string) (*model.Application, error)
 	Applications(ctx context.Context) ([]*model.Application, error)
 	IsExistApplicationName(ctx context.Context, name string) (bool, error)
+	Deployment(ctx context.Context, id string) (*model.Deployment, error)
 	DockerConfigGenerator(ctx context.Context, input model.DockerConfigGeneratorInput) (*model.DockerConfigGeneratorOutput, error)
 	Domains(ctx context.Context) ([]*model.Domain, error)
 	Domain(ctx context.Context, id uint) (*model.Domain, error)
@@ -1315,6 +1317,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.CurrentUser(childComplexity), true
 
+	case "Query.deployment":
+		if e.complexity.Query.Deployment == nil {
+			break
+		}
+
+		args, err := ec.field_Query_deployment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Deployment(childComplexity, args["id"].(string)), true
+
 	case "Query.dockerConfigGenerator":
 		if e.complexity.Query.DockerConfigGenerator == nil {
 			break
@@ -2218,6 +2232,21 @@ func (ec *executionContext) field_Query_checkGitCredentialRepositoryAccess_args(
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_deployment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -8407,6 +8436,101 @@ func (ec *executionContext) fieldContext_Query_isExistApplicationName(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_isExistApplicationName_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_deployment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_deployment(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Deployment(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Deployment)
+	fc.Result = res
+	return ec.marshalNDeployment2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDeployment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_deployment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Deployment_id(ctx, field)
+			case "applicationID":
+				return ec.fieldContext_Deployment_applicationID(ctx, field)
+			case "application":
+				return ec.fieldContext_Deployment_application(ctx, field)
+			case "upstreamType":
+				return ec.fieldContext_Deployment_upstreamType(ctx, field)
+			case "gitCredentialID":
+				return ec.fieldContext_Deployment_gitCredentialID(ctx, field)
+			case "gitCredential":
+				return ec.fieldContext_Deployment_gitCredential(ctx, field)
+			case "gitProvider":
+				return ec.fieldContext_Deployment_gitProvider(ctx, field)
+			case "repositoryOwner":
+				return ec.fieldContext_Deployment_repositoryOwner(ctx, field)
+			case "repositoryName":
+				return ec.fieldContext_Deployment_repositoryName(ctx, field)
+			case "repositoryBranch":
+				return ec.fieldContext_Deployment_repositoryBranch(ctx, field)
+			case "commitHash":
+				return ec.fieldContext_Deployment_commitHash(ctx, field)
+			case "sourceCodeCompressedFileName":
+				return ec.fieldContext_Deployment_sourceCodeCompressedFileName(ctx, field)
+			case "dockerImage":
+				return ec.fieldContext_Deployment_dockerImage(ctx, field)
+			case "imageRegistryCredentialID":
+				return ec.fieldContext_Deployment_imageRegistryCredentialID(ctx, field)
+			case "imageRegistryCredential":
+				return ec.fieldContext_Deployment_imageRegistryCredential(ctx, field)
+			case "buildArgs":
+				return ec.fieldContext_Deployment_buildArgs(ctx, field)
+			case "dockerfile":
+				return ec.fieldContext_Deployment_dockerfile(ctx, field)
+			case "status":
+				return ec.fieldContext_Deployment_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Deployment_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Deployment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_deployment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -14887,6 +15011,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_isExistApplicationName(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "deployment":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_deployment(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

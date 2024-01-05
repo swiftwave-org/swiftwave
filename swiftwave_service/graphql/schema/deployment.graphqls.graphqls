@@ -45,3 +45,7 @@ type Deployment {
     status: DeploymentStatus!
     createdAt: Time!
 }
+
+extend type Query {
+    deployment(id: String!): Deployment!
+}

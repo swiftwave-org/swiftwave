@@ -201,6 +201,9 @@ type IngressRuleInput struct {
 	TargetPort    uint         `json:"targetPort"`
 }
 
+type Mutation struct {
+}
+
 type PasswordUpdateInput struct {
 	OldPassword string `json:"oldPassword"`
 	NewPassword string `json:"newPassword"`
@@ -228,6 +231,9 @@ type PersistentVolumeBindingInput struct {
 
 type PersistentVolumeInput struct {
 	Name string `json:"name"`
+}
+
+type Query struct {
 }
 
 type RealtimeInfo struct {
@@ -259,6 +265,9 @@ type RedirectRuleInput struct {
 type RuntimeLog struct {
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+type Subscription struct {
 }
 
 type User struct {
