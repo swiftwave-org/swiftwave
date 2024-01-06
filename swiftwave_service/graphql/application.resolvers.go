@@ -145,6 +145,8 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 	// convert input to database object
 	var databaseObject = applicationInputToDatabaseObject(&input)
 	databaseObject.ID = record.ID
+	databaseObject.LatestDeployment.ApplicationID = record.ID
+
 	// update record
 	result, err := databaseObject.Update(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
 	if err != nil {
