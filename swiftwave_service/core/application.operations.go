@@ -244,6 +244,9 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 					delete(newEnvironmentVariableMap, environmentVariable.Key)
 					// reload application
 					isReloadRequired = true
+				} else {
+					// delete from newEnvironmentVariableMap
+					delete(newEnvironmentVariableMap, environmentVariable.Key)
 				}
 			} else {
 				// delete environment variable
@@ -299,6 +302,9 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 					delete(newPersistentVolumeBindingMap, persistentVolumeBinding.MountingPath)
 					// reload application
 					isReloadRequired = true
+				} else {
+					// delete from newPersistentVolumeBindingMap
+					delete(newPersistentVolumeBindingMap, persistentVolumeBinding.MountingPath)
 				}
 			} else {
 				// delete persistent volume binding
