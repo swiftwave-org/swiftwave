@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 
+	gitmanager "github.com/swiftwave-org/swiftwave/git_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
@@ -146,6 +147,24 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 	var databaseObject = applicationInputToDatabaseObject(&input)
 	databaseObject.ID = record.ID
 	databaseObject.LatestDeployment.ApplicationID = record.ID
+	if databaseObject.LatestDeployment.UpstreamType == core.UpstreamTypeGit {
+		gitUsername := ""
+		gitPassword := ""
+		if databaseObject.LatestDeployment.GitCredentialID != nil {
+			var gitCredential core.GitCredential
+			if err := gitCredential.FindById(ctx, r.ServiceManager.DbClient, *databaseObject.LatestDeployment.GitCredentialID); err != nil {
+				return nil, errors.New("invalid git credential provided")
+			}
+			gitUsername = gitCredential.Username
+			gitPassword = gitCredential.Password
+		}
+		
+		commitHash, err := gitmanager.FetchLatestCommitHash(databaseObject.LatestDeployment.GitRepositoryURL(), databaseObject.LatestDeployment.RepositoryBranch, gitUsername, gitPassword)
+		if err != nil {
+			return nil, errors.New("failed to fetch latest commit hash")
+		}
+		databaseObject.LatestDeployment.CommitHash = commitHash
+	}
 
 	// update record
 	result, err := databaseObject.Update(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
