@@ -101,7 +101,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		ID:             uuid.NewString(),
 		Name:           application.Name,
 		DeploymentMode: application.DeploymentMode,
-		Replicas:       uint(int(application.Replicas)),
+		Replicas:       application.Replicas,
 	}
 	tx := db.Create(&createdApplication)
 	if tx.Error != nil {
@@ -217,10 +217,30 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 	// status
 	isReloadRequired := false
 	// fetch application with environment variables and persistent volume bindings
-	var applicationFull = &Application{}
-	tx := db.Preload("EnvironmentVariables").Preload("PersistentVolumeBindings").Where("id = ?", application.ID).First(&applicationFull)
+	var applicationExistingFull = &Application{}
+	tx := db.Preload("EnvironmentVariables").Preload("PersistentVolumeBindings").Where("id = ?", application.ID).First(&applicationExistingFull)
 	if tx.Error != nil {
 		return nil, tx.Error
+	}
+	// check if DeploymentMode is changed
+	if applicationExistingFull.DeploymentMode != application.DeploymentMode {
+		// update deployment mode
+		err = db.Model(&applicationExistingFull).Update("deployment_mode", application.DeploymentMode).Error
+		if err != nil {
+			return nil, err
+		}
+		// reload application
+		isReloadRequired = true
+	}
+	// if replicated deployment, check if Replicas is changed
+	if application.DeploymentMode == DeploymentModeReplicated && applicationExistingFull.Replicas != application.Replicas {
+		// update replicas
+		err = db.Model(&applicationExistingFull).Update("replicas", application.Replicas).Error
+		if err != nil {
+			return nil, err
+		}
+		// reload application
+		isReloadRequired = true
 	}
 	// create array of environment variables
 	var newEnvironmentVariableMap = make(map[string]string)
@@ -228,8 +248,8 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 		newEnvironmentVariableMap[environmentVariable.Key] = environmentVariable.Value
 	}
 	// update environment variables -- if required
-	if applicationFull.EnvironmentVariables != nil {
-		for _, environmentVariable := range applicationFull.EnvironmentVariables {
+	if applicationExistingFull.EnvironmentVariables != nil {
+		for _, environmentVariable := range applicationExistingFull.EnvironmentVariables {
 			// check if environment variable is present in new environment variables
 			if _, ok := newEnvironmentVariableMap[environmentVariable.Key]; ok {
 				// check if value is changed
@@ -286,8 +306,8 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 		newPersistentVolumeBindingMap[persistentVolumeBinding.MountingPath] = persistentVolumeBinding.PersistentVolumeID
 	}
 	// update persistent volume bindings -- if required
-	if applicationFull.PersistentVolumeBindings != nil {
-		for _, persistentVolumeBinding := range applicationFull.PersistentVolumeBindings {
+	if applicationExistingFull.PersistentVolumeBindings != nil {
+		for _, persistentVolumeBinding := range applicationExistingFull.PersistentVolumeBindings {
 			// check if persistent volume binding is present in new persistent volume bindings
 			if _, ok := newPersistentVolumeBindingMap[persistentVolumeBinding.MountingPath]; ok {
 				// check if value is changed
