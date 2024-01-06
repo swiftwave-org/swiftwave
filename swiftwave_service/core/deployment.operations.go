@@ -111,15 +111,6 @@ func (deployment *Deployment) Update(ctx context.Context, db gorm.DB) (*Deployme
 			return result, nil
 		}
 	}
-	// check if status update was requested
-	if deployment.Status != latestDeployment.Status {
-		// update status
-		tx = db.Model(&latestDeployment).Update("status", deployment.Status)
-		if tx.Error != nil {
-			return nil, tx.Error
-		}
-	}
-
 	return result, nil
 }
 
