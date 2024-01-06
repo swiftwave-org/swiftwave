@@ -1,9 +1,10 @@
 package graphql
 
 import (
+	"time"
+
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
-	"time"
 )
 
 // This file contains object mappers
@@ -80,6 +81,7 @@ func persistentVolumeBindingToGraphqlObject(record *core.PersistentVolumeBinding
 		ID:                 record.ID,
 		PersistentVolumeID: record.PersistentVolumeID,
 		MountingPath:       record.MountingPath,
+		ApplicationID:      record.ApplicationID,
 	}
 }
 
