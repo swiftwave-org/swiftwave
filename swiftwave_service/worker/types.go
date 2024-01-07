@@ -27,7 +27,8 @@ const (
 
 // DeployApplicationRequest : request payload for deploy application
 type DeployApplicationRequest struct {
-	AppId string `json:"app_id"`
+	AppId        string `json:"app_id"`
+	DeploymentId string `json:"deployment_id"`
 }
 
 // BuildApplicationRequest : request payload for deploy application

@@ -70,10 +70,13 @@ func (r *applicationResolver) RealtimeInfo(ctx context.Context, obj *model.Appli
 
 // LatestDeployment is the resolver for the latestDeployment field.
 func (r *applicationResolver) LatestDeployment(ctx context.Context, obj *model.Application) (*model.Deployment, error) {
-	// fetch record
-	record, err := core.FindLatestDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
+	// fetch running instance
+	record, err := core.FindCurrentLiveDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
-		return nil, err
+		record, err = core.FindLatestDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return deploymentToGraphqlObject(record), nil
 }
@@ -158,7 +161,7 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 			gitUsername = gitCredential.Username
 			gitPassword = gitCredential.Password
 		}
-		
+
 		commitHash, err := gitmanager.FetchLatestCommitHash(databaseObject.LatestDeployment.GitRepositoryURL(), databaseObject.LatestDeployment.RepositoryBranch, gitUsername, gitPassword)
 		if err != nil {
 			return nil, errors.New("failed to fetch latest commit hash")
@@ -172,17 +175,12 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 		return nil, err
 	} else {
 		if result.RebuildRequired {
-			// fetch latest deployment
-			latestDeployment, err := core.FindLatestDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, record.ID)
-			if err != nil {
-				return nil, err
-			}
-			err = r.WorkerManager.EnqueueBuildApplicationRequest(record.ID, latestDeployment.ID)
+			err = r.WorkerManager.EnqueueBuildApplicationRequest(record.ID, result.DeploymentId)
 			if err != nil {
 				return nil, errors.New("failed to process application build request")
 			}
 		} else if result.ReloadRequired {
-			err = r.WorkerManager.EnqueueDeployApplicationRequest(record.ID)
+			err = r.WorkerManager.EnqueueDeployApplicationRequest(record.ID, result.DeploymentId)
 			if err != nil {
 				return nil, errors.New("failed to process application deploy request")
 			}

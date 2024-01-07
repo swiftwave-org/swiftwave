@@ -62,6 +62,7 @@ const (
 	DeploymentStatusLive          DeploymentStatus = "live"
 	DeploymentStatusStopped       DeploymentStatus = "stopped"
 	DeploymentStatusFailed        DeploymentStatus = "failed"
+	DeploymentStalled             DeploymentStatus = "stalled"
 )
 
 // ProtocolType : type of protocol for ingress rule
@@ -105,9 +106,11 @@ const (
 type ApplicationUpdateResult struct {
 	RebuildRequired bool
 	ReloadRequired  bool
+	DeploymentId    string
 }
 
 // DeploymentUpdateResult : result of deployment update
 type DeploymentUpdateResult struct {
 	RebuildRequired bool
+	DeploymentId    string
 }

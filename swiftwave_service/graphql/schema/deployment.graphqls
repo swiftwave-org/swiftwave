@@ -11,6 +11,7 @@ enum DeploymentStatus {
     live
     stopped
     failed
+    Stalled
 }
 
 enum GitProvider {

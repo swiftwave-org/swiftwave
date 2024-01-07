@@ -13,14 +13,34 @@ import (
 )
 
 func (m Manager) DeployApplication(request DeployApplicationRequest) error {
+	err := m.deployApplicationHelper(request)
+	if err != nil {
+		// mark as failed
+		ctx := context.Background()
+		addDeploymentLog(m.ServiceManager.DbClient, m.ServiceManager.PubSubClient, request.DeploymentId, "Deployment failed \n"+err.Error(), false)
+		deployment := &core.Deployment{}
+		deployment.ID = request.DeploymentId
+		err = deployment.UpdateStatus(ctx, m.ServiceManager.DbClient, core.DeploymentStatusFailed)
+		if err != nil {
+			log.Println("failed to update deployment status to failed", err)
+		}
+	}
+	return nil
+}
+
+func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error {
 	// context
 	ctx := context.Background()
 	dbWithoutTx := m.ServiceManager.DbClient
+	db := m.ServiceManager.DbClient.Begin()
+	defer func() {
+		db.Rollback()
+	}()
 	// pubSub client
 	pubSubClient := m.ServiceManager.PubSubClient
 	// fetch application
 	var application core.Application
-	err := application.FindById(ctx, dbWithoutTx, request.AppId)
+	err := application.FindById(ctx, *db, request.AppId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// return nil as don't want to requeue the job
@@ -30,7 +50,9 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 		}
 	}
 	// fetch deployment
-	deployment, err := core.FindLatestDeploymentByApplicationId(ctx, dbWithoutTx, request.AppId)
+	deployment := &core.Deployment{}
+	deployment.ID = request.DeploymentId
+	err = deployment.FindById(ctx, *db, request.DeploymentId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// create new deployment
@@ -41,17 +63,8 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 	}
 	// log message
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment starting...", false)
-	// verify deployment is not failed or pending
-	if deployment.Status == core.DeploymentStatusFailed {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment failed, please check the logs", true)
-		return nil
-	}
-	if deployment.Status == core.DeploymentStatusPending {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment is already in progress\nIf for long time deployment is not completed, please re-deploy the application", false)
-		return nil
-	}
 	// fetch environment variables
-	environmentVariables, err := core.FindEnvironmentVariablesByApplicationId(ctx, dbWithoutTx, request.AppId)
+	environmentVariables, err := core.FindEnvironmentVariablesByApplicationId(ctx, *db, request.AppId)
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch environment variables", false)
 		return err
@@ -61,7 +74,7 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 		environmentVariablesMap[environmentVariable.Key] = environmentVariable.Value
 	}
 	// fetch persistent volumes
-	persistentVolumeBindings, err := core.FindPersistentVolumeBindingsByApplicationId(ctx, dbWithoutTx, request.AppId)
+	persistentVolumeBindings, err := core.FindPersistentVolumeBindingsByApplicationId(ctx, *db, request.AppId)
 	var volumeMounts = make([]containermanger.VolumeMount, 0)
 	for _, persistentVolumeBinding := range persistentVolumeBindings {
 		// fetch the volume
@@ -74,7 +87,7 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 		volumeMounts = append(volumeMounts, containermanger.VolumeMount{
 			Source:   persistentVolume.Name,
 			Target:   persistentVolumeBinding.MountingPath,
-			ReadOnly: false, // TODO : make it configurable from UI
+			ReadOnly: false,
 		})
 	}
 	// docker pull image
@@ -130,19 +143,32 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 		Replicas:       uint64(application.Replicas),
 		VolumeMounts:   volumeMounts,
 	}
+	// find current deployment and mark it as stalled
+	currentDeployment, err := core.FindCurrentLiveDeploymentByApplicationId(ctx, *db, request.AppId)
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+	} else {
+		// Update status to stalled
+		err = currentDeployment.UpdateStatus(ctx, *db, core.DeploymentStalled)
+		if err != nil {
+			return err
+		}
+	}
+	// update deployment status
+	err = deployment.UpdateStatus(ctx, *db, core.DeploymentStatusLive)
+	if err != nil {
+		return err
+	}
+
 	// check if the service already exists
 	_, err = m.ServiceManager.DockerManager.GetService(service.Name)
 	if err != nil {
 		// create service
 		err = m.ServiceManager.DockerManager.CreateService(service)
 		if err != nil {
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to deploy the application", true)
-			err := deployment.UpdateStatus(ctx, dbWithoutTx, core.DeploymentStatusFailed)
-			if err != nil {
-				log.Println("Failed to update deployment status to failed")
-			}
-			// dont requeue the job
-			return nil
+			return err
 		}
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application deployed successfully", false)
 	} else {
@@ -150,20 +176,21 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application already exists, updating the application", false)
 		err = m.ServiceManager.DockerManager.UpdateService(service)
 		if err != nil {
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update the application", true)
-			err := deployment.UpdateStatus(ctx, dbWithoutTx, core.DeploymentStatusFailed)
-			if err != nil {
-				log.Println("Failed to update deployment status to failed")
-			}
-			// dont requeue the job
-			return nil
+			return err
 		}
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application re-deployed successfully", true)
 	}
-	// update deployment status
-	err = deployment.UpdateStatus(ctx, dbWithoutTx, core.DeploymentStatusLive)
+	// commit the changes
+	err = db.Commit().Error
+	// if error occurs rollback the service
 	if err != nil {
-		return err
+		// rollback the service
+		err = m.ServiceManager.DockerManager.RollbackService(service.Name)
+		if err != nil {
+			// don't throw error as it will create an un-recoverable state
+			log.Println("failed to rollback service > "+service.Name, err)
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to rollback service", false)
+		}
 	}
-	return nil
+	return err
 }
