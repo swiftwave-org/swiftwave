@@ -163,7 +163,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context
 	if scanner != nil {
 		var data map[string]interface{}
 		for scanner.Scan() {
-			err = json.Unmarshal(scanner.Bytes(), &data)
+		err = json.Unmarshal(scanner.Bytes(), &data)
 			if err != nil {
 				continue
 			}

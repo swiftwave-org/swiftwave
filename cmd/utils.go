@@ -16,9 +16,12 @@ import (
 func getDBClient() (*gorm.DB, error) {
 	dbDialect := postgres.Open(systemConfig.PostgresqlConfig.DSN())
 	if systemConfig.IsDevelopmentMode {
-		return gorm.Open(dbDialect, &gorm.Config{})
+		return gorm.Open(dbDialect, &gorm.Config{
+			SkipDefaultTransaction: true,
+		})
 	}
 	return gorm.Open(dbDialect, &gorm.Config{
+		SkipDefaultTransaction: true,
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
 }
