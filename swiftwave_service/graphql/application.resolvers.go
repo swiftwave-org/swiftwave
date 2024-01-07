@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 
+	gitmanager "github.com/swiftwave-org/swiftwave/git_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
@@ -69,10 +70,13 @@ func (r *applicationResolver) RealtimeInfo(ctx context.Context, obj *model.Appli
 
 // LatestDeployment is the resolver for the latestDeployment field.
 func (r *applicationResolver) LatestDeployment(ctx context.Context, obj *model.Application) (*model.Deployment, error) {
-	// fetch record
-	record, err := core.FindLatestDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
+	// fetch running instance
+	record, err := core.FindCurrentLiveDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
-		return nil, err
+		record, err = core.FindLatestDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return deploymentToGraphqlObject(record), nil
 }
@@ -145,23 +149,38 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 	// convert input to database object
 	var databaseObject = applicationInputToDatabaseObject(&input)
 	databaseObject.ID = record.ID
+	databaseObject.LatestDeployment.ApplicationID = record.ID
+	if databaseObject.LatestDeployment.UpstreamType == core.UpstreamTypeGit {
+		gitUsername := ""
+		gitPassword := ""
+		if databaseObject.LatestDeployment.GitCredentialID != nil {
+			var gitCredential core.GitCredential
+			if err := gitCredential.FindById(ctx, r.ServiceManager.DbClient, *databaseObject.LatestDeployment.GitCredentialID); err != nil {
+				return nil, errors.New("invalid git credential provided")
+			}
+			gitUsername = gitCredential.Username
+			gitPassword = gitCredential.Password
+		}
+
+		commitHash, err := gitmanager.FetchLatestCommitHash(databaseObject.LatestDeployment.GitRepositoryURL(), databaseObject.LatestDeployment.RepositoryBranch, gitUsername, gitPassword)
+		if err != nil {
+			return nil, errors.New("failed to fetch latest commit hash")
+		}
+		databaseObject.LatestDeployment.CommitHash = commitHash
+	}
+
 	// update record
 	result, err := databaseObject.Update(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
 	if err != nil {
 		return nil, err
 	} else {
 		if result.RebuildRequired {
-			// fetch latest deployment
-			latestDeployment, err := core.FindLatestDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, record.ID)
-			if err != nil {
-				return nil, err
-			}
-			err = r.WorkerManager.EnqueueBuildApplicationRequest(record.ID, latestDeployment.ID)
+			err = r.WorkerManager.EnqueueBuildApplicationRequest(record.ID, result.DeploymentId)
 			if err != nil {
 				return nil, errors.New("failed to process application build request")
 			}
 		} else if result.ReloadRequired {
-			err = r.WorkerManager.EnqueueDeployApplicationRequest(record.ID)
+			err = r.WorkerManager.EnqueueDeployApplicationRequest(record.ID, result.DeploymentId)
 			if err != nil {
 				return nil, errors.New("failed to process application deploy request")
 			}

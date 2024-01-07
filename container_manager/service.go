@@ -76,9 +76,9 @@ func (m Manager) UpdateService(service Service) error {
 	return nil
 }
 
-// Rollback a service
-func (m Manager) RollbackService(service Service) error {
-	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, service.Name, types.ServiceInspectOptions{})
+// RollbackService a service
+func (m Manager) RollbackService(serviceName string) error {
+	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
 	if err != nil {
 		return errors.New("error getting swarm server version")
 	}
@@ -88,7 +88,7 @@ func (m Manager) RollbackService(service Service) error {
 	if err != nil {
 		return errors.New("error getting swarm server version")
 	}
-	_, err = m.client.ServiceUpdate(m.ctx, service.Name, version, *serviceData.PreviousSpec, types.ServiceUpdateOptions{})
+	_, err = m.client.ServiceUpdate(m.ctx, serviceName, version, *serviceData.PreviousSpec, types.ServiceUpdateOptions{})
 	if err != nil {
 		return errors.New("error updating service")
 	}

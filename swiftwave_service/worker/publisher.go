@@ -7,9 +7,10 @@ func (m Manager) EnqueueBuildApplicationRequest(applicationId string, deployment
 	})
 }
 
-func (m Manager) EnqueueDeployApplicationRequest(applicationId string) error {
+func (m Manager) EnqueueDeployApplicationRequest(applicationId string, deploymentId string) error {
 	return m.ServiceManager.TaskQueueClient.EnqueueTask(deployApplicationQueueName, DeployApplicationRequest{
-		AppId: applicationId,
+		AppId:        applicationId,
+		DeploymentId: deploymentId,
 	})
 }
 

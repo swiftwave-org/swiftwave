@@ -1789,7 +1789,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/deployment.graphqls.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_binding.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/user.graphqls.graphqls"
+//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_binding.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/user.graphqls.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -1804,7 +1804,7 @@ var sources = []*ast.Source{
 	{Name: "schema/application.graphqls", Input: sourceData("schema/application.graphqls"), BuiltIn: false},
 	{Name: "schema/base.graphqls", Input: sourceData("schema/base.graphqls"), BuiltIn: false},
 	{Name: "schema/build_arg.graphqls", Input: sourceData("schema/build_arg.graphqls"), BuiltIn: false},
-	{Name: "schema/deployment.graphqls.graphqls", Input: sourceData("schema/deployment.graphqls.graphqls"), BuiltIn: false},
+	{Name: "schema/deployment.graphqls", Input: sourceData("schema/deployment.graphqls"), BuiltIn: false},
 	{Name: "schema/deployment_log.graphqls", Input: sourceData("schema/deployment_log.graphqls"), BuiltIn: false},
 	{Name: "schema/docker_config_generator.graphqls", Input: sourceData("schema/docker_config_generator.graphqls"), BuiltIn: false},
 	{Name: "schema/domain.graphqls", Input: sourceData("schema/domain.graphqls"), BuiltIn: false},

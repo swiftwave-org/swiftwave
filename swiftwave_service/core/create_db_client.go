@@ -8,7 +8,9 @@ import (
 func createDbClient(dsn string) (*gorm.DB, error) {
 	// Initiating database client
 	dbDialect := postgres.Open(dsn)
-	client, err := gorm.Open(dbDialect, &gorm.Config{})
+	client, err := gorm.Open(dbDialect, &gorm.Config{
+		SkipDefaultTransaction: true,
+	})
 	if err != nil {
 		return nil, err
 	}

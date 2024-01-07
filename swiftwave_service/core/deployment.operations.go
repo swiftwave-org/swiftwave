@@ -22,6 +22,15 @@ func FindLatestDeploymentByApplicationId(ctx context.Context, db gorm.DB, id str
 	return deployment, nil
 }
 
+func FindCurrentLiveDeploymentByApplicationId(ctx context.Context, db gorm.DB, id string) (*Deployment, error) {
+	var deployment = &Deployment{}
+	tx := db.Where("application_id = ? AND status = ?", id, DeploymentStatusLive).Order("created_at desc").First(&deployment)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return deployment, nil
+}
+
 func FindLatestDeploymentIDByApplicationId(ctx context.Context, db gorm.DB, id string) (string, error) {
 	var deployment = &Deployment{}
 	tx := db.Select("id").Where("application_id = ?", id).Order("created_at desc").First(&deployment)
@@ -67,6 +76,7 @@ func (deployment *Deployment) Update(ctx context.Context, db gorm.DB) (*Deployme
 	// state
 	result := &DeploymentUpdateResult{
 		RebuildRequired: false,
+		DeploymentId:    latestDeployment.ID,
 	}
 	recreationRequired := false
 	// verify all params are same
@@ -108,15 +118,8 @@ func (deployment *Deployment) Update(ctx context.Context, db gorm.DB) (*Deployme
 			return nil, err
 		} else {
 			result.RebuildRequired = true
+			result.DeploymentId = deployment.ID
 			return result, nil
-		}
-	}
-	// check if status update was requested
-	if deployment.Status != latestDeployment.Status {
-		// update status
-		tx = db.Model(&latestDeployment).Update("status", deployment.Status)
-		if tx.Error != nil {
-			return nil, tx.Error
 		}
 	}
 
