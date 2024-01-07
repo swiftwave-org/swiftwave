@@ -35,6 +35,26 @@ func (r *subscriptionResolver) FetchDeploymentLog(ctx context.Context, id string
 			}
 		}()
 
+		// fetch all deployment logs
+		deploymentLogs, err := core.FindAllDeploymentLogsByDeploymentId(ctx, r.ServiceManager.DbClient, id)
+		if err == nil {
+			for _, deploymentLog := range deploymentLogs {
+				var deploymentLogGraphqlObject = deploymentLogToGraphqlObject(&deploymentLog)
+				// check if channel full
+				if len(channel) == cap(channel) {
+					// remove first element
+					<-channel
+				}
+				select {
+				case <-ctx.Done():
+					return
+				case channel <- deploymentLogGraphqlObject:
+				}
+			}
+		} else {
+			log.Println(err)
+		}
+
 		// check if deployment is pending or deploy_pending stage
 		if *deploymentStatus == core.DeploymentStatusPending || *deploymentStatus == core.DeploymentStatusDeployPending {
 			// from pubsub
@@ -77,26 +97,6 @@ func (r *subscriptionResolver) FetchDeploymentLog(ctx context.Context, id string
 					case channel <- deploymentLog:
 					}
 				}
-			}
-		} else {
-			// fetch all deployment logs
-			deploymentLogs, err := core.FindAllDeploymentLogsByDeploymentId(ctx, r.ServiceManager.DbClient, id)
-			if err == nil {
-				for _, deploymentLog := range deploymentLogs {
-					var deploymentLogGraphqlObject = deploymentLogToGraphqlObject(&deploymentLog)
-					// check if channel full
-					if len(channel) == cap(channel) {
-						// remove first element
-						<-channel
-					}
-					select {
-					case <-ctx.Done():
-						return
-					case channel <- deploymentLogGraphqlObject:
-					}
-				}
-			} else {
-				log.Println(err)
 			}
 		}
 	}()
