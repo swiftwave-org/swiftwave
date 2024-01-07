@@ -82,6 +82,7 @@ func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, ctx
 	// push task to queue for deployment
 	err = m.ServiceManager.TaskQueueClient.EnqueueTask("deploy_application", DeployApplicationRequest{
 		AppId: deployment.ApplicationID,
+		DeploymentId: deployment.ID,
 	})
 	if err == nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete", false)
@@ -281,6 +282,7 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, ctx con
 	// push task to queue for deployment
 	err = m.ServiceManager.TaskQueueClient.EnqueueTask("deploy_application", DeployApplicationRequest{
 		AppId: deployment.ApplicationID,
+		DeploymentId: deployment.ID,
 	})
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete", false)
