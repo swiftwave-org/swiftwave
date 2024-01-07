@@ -19,7 +19,7 @@ import (
 func (m Manager) BuildApplication(request BuildApplicationRequest) error {
 	err := m.buildApplicationHelper(request)
 	if err != nil {
-		addDeploymentLog(m.ServiceManager.DbClient, m.ServiceManager.PubSubClient, request.DeploymentId, "failed to build application\n"+err.Error(), true)
+		addDeploymentLog(m.ServiceManager.DbClient, m.ServiceManager.PubSubClient, request.DeploymentId, "Failed to build application\n"+err.Error()+"\n", true)
 		// update status
 		deployment := &core.Deployment{}
 		deployment.ID = request.DeploymentId
@@ -68,7 +68,7 @@ func (m Manager) buildApplicationHelper(request BuildApplicationRequest) error {
 
 func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, ctx context.Context, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client) error {
 	// TODO: add support for registry authentication
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "As the upstream type is image, no build is required", false)
+	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "As the upstream type is image, no build is required\n", false)
 	err := deployment.UpdateStatus(ctx, db, core.DeploymentStatusDeployPending)
 	if err != nil {
 		return err
@@ -85,7 +85,7 @@ func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, ctx
 		DeploymentId: deployment.ID,
 	})
 	if err == nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete", false)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete\n", false)
 	}
 	return err
 }
@@ -99,7 +99,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context
 		gitCredentials := &core.GitCredential{}
 		err := gitCredentials.FindById(ctx, db, *deployment.GitCredentialID)
 		if err != nil {
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch git credentials", true)
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch git credentials\n", true)
 			return err
 		}
 		gitUsername = gitCredentials.Username
@@ -121,27 +121,27 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context
 	// fetch commit hash
 	commitHash, err := gitmanager.FetchLatestCommitHash(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitUsername, gitPassword)
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch latest commit hash", true)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch latest commit hash\n", true)
 		return err
 	}
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Fetched latest commit hash > "+commitHash, false)
+	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Fetched latest commit hash > "+commitHash+"\n", false)
 	deployment.CommitHash = commitHash
 	// update deployment
 	err = db.Model(&deployment).Update("commit_hash", commitHash).Error
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update commit hash", true)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update commit hash\n", true)
 		return err
 	}
 	// clone git repository
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Cloning git repository > "+deployment.GitRepositoryURL(), false)
+	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Cloning git repository > "+deployment.GitRepositoryURL()+"\n", false)
 	err = gitmanager.CloneRepository(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitUsername, gitPassword, tempDirectory)
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to clone git repository", true)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to clone git repository\n", true)
 		return err
 	}
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Cloned git repository successfully", false)
+	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Cloned git repository successfully\n", false)
 	// build docker image
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Started building docker image", false)
+	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Started building docker image\n", false)
 	// fetch build args
 	var buildArgs []*core.BuildArg
 	err = db.Where("deployment_id = ?", deployment.ID).Find(&buildArgs).Error
@@ -156,7 +156,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context
 	// start building docker image
 	scanner, err := m.ServiceManager.DockerManager.CreateImage(deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.DeployableDockerImageURI())
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image", true)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image\n", true)
 		return err
 	}
 	isErrorEncountered := false
@@ -178,10 +178,10 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context
 		}
 	}
 	if isErrorEncountered {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed", true)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed\n", true)
 		return err
 	}
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully", false)
+	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully\n", false)
 	// update status
 	err = deployment.UpdateStatus(ctx, db, core.DeploymentStatusDeployPending)
 	if err != nil {
@@ -198,7 +198,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context
 		DeploymentId: deployment.ID,
 	})
 	if err == nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete", false)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete\n", false)
 	}
 	return err
 }
@@ -228,7 +228,7 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, ctx con
 		return errors.New("failed to extract tarball")
 	}
 	// build docker image
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Started building docker image", false)
+	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Started building docker image\n", false)
 	// fetch build args
 	var buildArgs []*core.BuildArg
 	err = db.Where("deployment_id = ?", deployment.ID).Find(&buildArgs).Error
@@ -243,7 +243,7 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, ctx con
 	// start building docker image
 	scanner, err := m.ServiceManager.DockerManager.CreateImage(deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.DeployableDockerImageURI())
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image", true)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image\n", true)
 		return err
 	}
 	isErrorEncountered := false
@@ -265,10 +265,10 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, ctx con
 		}
 	}
 	if isErrorEncountered {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed", true)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed\n", true)
 		return errors.New("unexpected failure at the time of building docker image")
 	}
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully", false)
+	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully\n", false)
 	// update status
 	err = deployment.UpdateStatus(ctx, db, core.DeploymentStatusDeployPending)
 	if err != nil {
@@ -285,7 +285,7 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, ctx con
 		DeploymentId: deployment.ID,
 	})
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete", false)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete\n", false)
 	}
 	return err
 }

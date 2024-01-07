@@ -18,7 +18,7 @@ func (m Manager) DeployApplication(request DeployApplicationRequest) error {
 	if err != nil {
 		// mark as failed
 		ctx := context.Background()
-		addDeploymentLog(m.ServiceManager.DbClient, m.ServiceManager.PubSubClient, request.DeploymentId, "Deployment failed \n"+err.Error(), false)
+		addDeploymentLog(m.ServiceManager.DbClient, m.ServiceManager.PubSubClient, request.DeploymentId, "Deployment failed > \n"+err.Error()+"\n", false)
 		deployment := &core.Deployment{}
 		deployment.ID = request.DeploymentId
 		err = deployment.UpdateStatus(ctx, m.ServiceManager.DbClient, core.DeploymentStatusFailed)
@@ -63,11 +63,11 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 		}
 	}
 	// log message
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment starting...", false)
+	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment starting...\n", false)
 	// fetch environment variables
 	environmentVariables, err := core.FindEnvironmentVariablesByApplicationId(ctx, *db, request.AppId)
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch environment variables", false)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch environment variables\n", false)
 		return err
 	}
 	var environmentVariablesMap = make(map[string]string)
@@ -82,7 +82,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 		var persistentVolume core.PersistentVolume
 		err := persistentVolume.FindById(ctx, dbWithoutTx, persistentVolumeBinding.PersistentVolumeID)
 		if err != nil {
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch persistent volume", false)
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch persistent volume\n", false)
 			return err
 		}
 		volumeMounts = append(volumeMounts, containermanger.VolumeMount{
@@ -96,11 +96,11 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 	// check if image exists
 	isImageExists := m.ServiceManager.DockerManager.ExistsImage(dockerImageUri)
 	if isImageExists {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image already exists", false)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image already exists\n", false)
 	} else {
 		scanner, err := m.ServiceManager.DockerManager.PullImage(deployment.DeployableDockerImageURI()) // TODO: add support for providing auth credentials
 		if err != nil {
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to pull docker image", false)
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to pull docker image\n", false)
 			return err
 		}
 		// read the logs
@@ -131,7 +131,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 				}
 			}
 		}
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image pulled successfully", false)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image pulled successfully\n", false)
 	}
 	// create service
 	service := containermanger.Service{
@@ -171,15 +171,15 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 		if err != nil {
 			return err
 		}
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application deployed successfully", false)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application deployed successfully\n", false)
 	} else {
 		// update service
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application already exists, updating the application", false)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application already exists, updating the application\n", false)
 		err = m.ServiceManager.DockerManager.UpdateService(service)
 		if err != nil {
 			return err
 		}
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application re-deployed successfully", true)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application re-deployed successfully\n", true)
 	}
 	// commit the changes
 	err = db.Commit().Error
@@ -190,7 +190,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 		if err != nil {
 			// don't throw error as it will create an un-recoverable state
 			log.Println("failed to rollback service > "+service.Name, err)
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to rollback service", false)
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to rollback service\n", false)
 		}
 	}
 	return err
