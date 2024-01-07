@@ -3,12 +3,13 @@ package core
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
+
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-set"
 	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	"gorm.io/gorm"
-	"os"
-	"path/filepath"
 )
 
 // This file contains the operations for the Application model.
@@ -366,6 +367,7 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 	return &ApplicationUpdateResult{
 		ReloadRequired:  isReloadRequired,
 		RebuildRequired: updateDeploymentStatus.RebuildRequired,
+		DeploymentId:    updateDeploymentStatus.DeploymentId,
 	}, nil
 }
 
