@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/swiftwave-org/swiftwave/container_manager"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
-	"gorm.io/gorm"
 	"log"
 	"strings"
+
+	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"gorm.io/gorm"
 )
 
 func (m Manager) DeployApplication(request DeployApplicationRequest) error {
