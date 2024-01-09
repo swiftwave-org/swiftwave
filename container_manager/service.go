@@ -2,12 +2,11 @@ package containermanger
 
 import (
 	"errors"
-	"io"
-
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/swarm"
+	"io"
 )
 
 // Get Service
@@ -148,7 +147,7 @@ func (m Manager) RealtimeInfoRunningServices() (map[string]ServiceRealtimeInfo, 
 		tasks, err := m.client.TaskList(m.ctx, types.TaskListOptions{
 			Filters: filters.NewArgs(
 				filters.Arg("desired-state", "running"),
-				filters.Arg("name", serviceData.Spec.Name),
+				filters.Arg("service", serviceData.Spec.Name),
 			),
 		})
 		if err != nil {
@@ -212,7 +211,7 @@ func (m Manager) RealtimeInfoService(serviceName string, ignoreNodeDetails bool)
 	tasks, err := m.client.TaskList(m.ctx, types.TaskListOptions{
 		Filters: filters.NewArgs(
 			filters.Arg("desired-state", "running"),
-			filters.Arg("name", serviceData.Spec.Name),
+			filters.Arg("service", serviceData.Spec.Name),
 		),
 	})
 	if err != nil {
