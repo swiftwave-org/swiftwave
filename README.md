@@ -1,8 +1,3 @@
-### 🚧🚧 We are under rapid development with frequent changes 🚧🚧
-- The codebase of `develop` branch may not be suitable for normal usecase. You should check out [v1.0.x-alpha](https://github.com/swiftwave-org/swiftwave/tree/v1.0.x-alpha).
-- You can as well checkout [`SETUP.MD`](https://github.com/swiftwave-org/swiftwave/blob/develop/SETUP.md#production-setup) for production setup guide. 
-
-
 # 🚀 Swiftwave [🚧 Alpha]
 
 [![Publish Docker](https://github.com/swiftwave-org/swiftwave/actions/workflows/docker-publish.yml/badge.svg?branch=main)](https://github.com/swiftwave-org/swiftwave/actions/workflows/docker-publish.yml)

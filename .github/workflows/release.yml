@@ -1,0 +1,47 @@
+# .github/workflows/release.yaml
+
+on:
+  release:
+    types: [created]
+  
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  releases-matrix:
+    name: Release Swiftwave Binary
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux]
+        goarch: ["386", amd64, arm64]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+    - name: Prepare environment
+      run: |
+        cd dashboard
+        npm i
+        cd ..
+        (rm -rf swiftwave_service/dashboard/www || true)
+        mkdir -p swiftwave_service/dashboard/www
+    - name: Build Dashboard
+      run: |
+        cd dashboard
+        npm run build:prod
+        cd ..
+        cp -r dashboard/dist/* swiftwave_service/dashboard/www/
+    - name: Build and publish
+      uses: wangyoucao577/go-release-action@v1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: ${{ matrix.goos }}
+        goarch: ${{ matrix.goarch }}
+        goversion: "https://dl.google.com/go/go1.21.3.linux-amd64.tar.gz"
+        project_path: "."
+        binary_name: "swiftwave"
