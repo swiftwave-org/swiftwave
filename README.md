@@ -1,7 +1,5 @@
 # 🚀 Swiftwave [🚧 Alpha]
 
-[![Publish Docker](https://github.com/swiftwave-org/swiftwave/actions/workflows/docker-publish.yml/badge.svg?branch=main)](https://github.com/swiftwave-org/swiftwave/actions/workflows/docker-publish.yml)
-
 <img align="right" src="https://avatars.githubusercontent.com/u/140562189?s=100&v=4" height="100px"/>
 
 ### 💁 SwiftWave is a self-hosted lightweight PaaS solution to deploy and manage your applications
