@@ -2,6 +2,7 @@ package containermanger
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"os"
 
@@ -15,6 +16,16 @@ It takes the Dockerfile content as a string, a map of build arguments, the path 
 It returns a scanner to read the build logs and an error if any.
 */
 func (m Manager) CreateImage(dockerfile string, buildargs map[string]string, codepath string, imagename string) (*bufio.Scanner, error) {
+	return m.CreateImageWithContext(m.ctx, dockerfile, buildargs, codepath, imagename)
+}
+
+/*
+CreateImageWithContext builds a Docker image from a Dockerfile and returns a scanner to read the build logs.
+It takes the Dockerfile content as a string, a map of build arguments, the path to the code directory, and the name of the image to be built.
+It returns a scanner to read the build logs and an error if any.
+It takes a context.Context as an additional argument.
+*/
+func (m Manager) CreateImageWithContext(ctx context.Context, dockerfile string, buildargs map[string]string, codepath string, imagename string) (*bufio.Scanner, error) {
 	// Move the dockerfile to the codepath
 	err := os.WriteFile(codepath+"/Dockerfile", []byte(dockerfile), 0777)
 	if err != nil {
@@ -35,7 +46,7 @@ func (m Manager) CreateImage(dockerfile string, buildargs map[string]string, cod
 		return nil, errors.New("failed to tar the codepath")
 	}
 	// Build the image
-	response, err := m.client.ImageBuild(m.ctx, tar, types.ImageBuildOptions{
+	response, err := m.client.ImageBuild(ctx, tar, types.ImageBuildOptions{
 		Dockerfile: "Dockerfile",
 		Remove:     true,
 		Tags:       []string{imagename},

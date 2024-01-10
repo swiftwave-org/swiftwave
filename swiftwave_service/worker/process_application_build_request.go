@@ -16,7 +16,7 @@ import (
 	"path/filepath"
 )
 
-func (m Manager) BuildApplication(request BuildApplicationRequest) error {
+func (m Manager) BuildApplication(request BuildApplicationRequest, ctx context.Context, cancelContext context.CancelFunc) error {
 	err := m.buildApplicationHelper(request)
 	if err != nil {
 		addDeploymentLog(m.ServiceManager.DbClient, m.ServiceManager.PubSubClient, request.DeploymentId, "Failed to build application\n"+err.Error()+"\n", true)
@@ -81,7 +81,7 @@ func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, ctx
 
 	// push task to queue for deployment
 	err = m.ServiceManager.TaskQueueClient.EnqueueTask("deploy_application", DeployApplicationRequest{
-		AppId: deployment.ApplicationID,
+		AppId:        deployment.ApplicationID,
 		DeploymentId: deployment.ID,
 	})
 	if err == nil {
@@ -163,7 +163,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context
 	if scanner != nil {
 		var data map[string]interface{}
 		for scanner.Scan() {
-		err = json.Unmarshal(scanner.Bytes(), &data)
+			err = json.Unmarshal(scanner.Bytes(), &data)
 			if err != nil {
 				continue
 			}
@@ -281,7 +281,7 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, ctx con
 	}
 	// push task to queue for deployment
 	err = m.ServiceManager.TaskQueueClient.EnqueueTask("deploy_application", DeployApplicationRequest{
-		AppId: deployment.ApplicationID,
+		AppId:        deployment.ApplicationID,
 		DeploymentId: deployment.ID,
 	})
 	if err != nil {

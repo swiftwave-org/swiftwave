@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (m Manager) DeployApplication(request DeployApplicationRequest) error {
+func (m Manager) DeployApplication(request DeployApplicationRequest, ctx context.Context, cancelContext context.CancelFunc) error {
 	err := m.deployApplicationHelper(request)
 	if err != nil {
 		// mark as failed

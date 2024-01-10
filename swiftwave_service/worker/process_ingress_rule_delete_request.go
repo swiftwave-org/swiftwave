@@ -7,9 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest) error {
+func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context.Context, cancelContext context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
-	ctx := context.Background()
 	// fetch ingress rule
 	var ingressRule core.IngressRule
 	err := ingressRule.FindById(ctx, dbWithoutTx, request.Id)

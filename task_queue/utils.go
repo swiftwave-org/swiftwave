@@ -1,6 +1,7 @@
 package task_queue
 
 import (
+	"context"
 	"reflect"
 	"strings"
 )
@@ -15,8 +16,14 @@ func getTypeName(object interface{}) string {
 }
 
 func invokeFunction(function interface{}, argument interface{}, argumentType ArgumentType) error {
+	// create context with cancel
+	ctx, cancel := context.WithCancel(context.Background())
 	// create argument slice
-	argumentSlice := []reflect.Value{reflect.ValueOf(argument)}
+	argumentSlice := []reflect.Value{
+		reflect.ValueOf(argument),
+		reflect.ValueOf(ctx),
+		reflect.ValueOf(cancel),
+	}
 	// invoke function
 	functionValue := reflect.ValueOf(function)
 	returnValues := functionValue.Call(argumentSlice)

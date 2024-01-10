@@ -164,12 +164,7 @@ func (l *localTaskQueue) listenForTasks(queueName string, wg *sync.WaitGroup) {
 
 		err := invokeFunction(functionMetadata.function, argument, functionMetadata.argumentType)
 		if err != nil {
-			// Enqueue the task again in case of error
-			err = l.EnqueueTask(queueName, argument)
-			if err != nil {
-				log.Println("error while enqueuing task again for queue [" + queueName + "]")
-				log.Println("error: " + err.Error())
-			}
+			log.Println("error while invoking function for queue [" + queueName + "]")
 		}
 	}
 
