@@ -11,7 +11,7 @@ enum DeploymentStatus {
     live
     stopped
     failed
-    Stalled
+    stalled
 }
 
 enum GitProvider {
@@ -49,4 +49,8 @@ type Deployment {
 
 extend type Query {
     deployment(id: String!): Deployment!
+}
+
+extend type Mutation {
+    cancelDeployment(id: String!): Boolean!
 }

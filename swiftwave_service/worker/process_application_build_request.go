@@ -17,7 +17,41 @@ import (
 )
 
 func (m Manager) BuildApplication(request BuildApplicationRequest, ctx context.Context, cancelContext context.CancelFunc) error {
-	err := m.buildApplicationHelper(request, ctx, cancelContext)
+	isFailed, err := core.IsDeploymentFailed(context.Background(), m.ServiceManager.DbClient, request.DeploymentId)
+	if err == nil {
+		if isFailed {
+			return nil
+		}
+	}
+	fmt.Println("hello subscription")
+	subscriptionId, subscriptionChannel, err := m.ServiceManager.PubSubClient.Subscribe(m.ServiceManager.CancelImageBuildTopic)
+	fmt.Println("got subscription")
+	defer func(id string) {
+		fmt.Println("unsubscribing")
+		err := m.ServiceManager.PubSubClient.Unsubscribe(m.ServiceManager.CancelImageBuildTopic, id)
+		fmt.Println("unsubscribed")
+		if err != nil {
+			log.Println("failed to unsubscribe from topic > " + m.ServiceManager.CancelImageBuildTopic)
+		}
+	}(subscriptionId)
+
+	isHelperExited := make(chan bool, 1)
+	go func(deploymentId string, cancelContext context.CancelFunc) {
+		for {
+			select {
+			case <-isHelperExited:
+				return
+			case id := <-subscriptionChannel:
+				if id == deploymentId {
+					cancelContext()
+					return
+				}
+			}
+		}
+	}(request.DeploymentId, cancelContext)
+
+	err = m.buildApplicationHelper(request, ctx, cancelContext)
+	isHelperExited <- true
 	if err != nil {
 		addDeploymentLog(m.ServiceManager.DbClient, m.ServiceManager.PubSubClient, request.DeploymentId, "Failed to build application\n"+err.Error()+"\n", true)
 		// update status
@@ -176,30 +210,36 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 			}
 		}
 	}
-	if isErrorEncountered {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed\n", true)
+	select {
+	case <-ctx.Done():
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build cancelled !\n", true)
+		return errors.New("docker image build cancelled")
+	default:
+		if isErrorEncountered {
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed\n", true)
+			return err
+		}
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully\n", false)
+		// update status
+		err = deployment.UpdateStatus(ctx, db, core.DeploymentStatusDeployPending)
+		if err != nil {
+			return err
+		}
+		// commit the transaction
+		err = db.Commit().Error
+		if err != nil {
+			return err
+		}
+		// push task to queue for deployment
+		err = m.ServiceManager.TaskQueueClient.EnqueueTask("deploy_application", DeployApplicationRequest{
+			AppId:        deployment.ApplicationID,
+			DeploymentId: deployment.ID,
+		})
+		if err == nil {
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete\n", false)
+		}
 		return err
 	}
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully\n", false)
-	// update status
-	err = deployment.UpdateStatus(ctx, db, core.DeploymentStatusDeployPending)
-	if err != nil {
-		return err
-	}
-	// commit the transaction
-	err = db.Commit().Error
-	if err != nil {
-		return err
-	}
-	// push task to queue for deployment
-	err = m.ServiceManager.TaskQueueClient.EnqueueTask("deploy_application", DeployApplicationRequest{
-		AppId:        deployment.ApplicationID,
-		DeploymentId: deployment.ID,
-	})
-	if err == nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete\n", false)
-	}
-	return err
 }
 
 func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, cancelContext context.CancelFunc) error {

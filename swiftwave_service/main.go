@@ -25,12 +25,20 @@ import (
 // Start will start the swiftwave service [including worker manager, pubsub, cronjob, server]
 func Start(config *system_config.Config) {
 	// Load the manager
-	manager := &core.ServiceManager{}
+	manager := &core.ServiceManager{
+		CancelImageBuildTopic: "cancel_image_build",
+	}
 	manager.Load(*config)
+
+	// Create pubsub default topics
+	err := manager.PubSubClient.CreateTopic(manager.CancelImageBuildTopic)
+	if err != nil {
+		log.Println(fmt.Sprintf("Error creating topic %s: %s", manager.CancelImageBuildTopic, err.Error()))
+	}
 
 	// Create the worker manager
 	workerManager := worker.NewManager(config, manager)
-	err := workerManager.StartConsumers(true)
+	err = workerManager.StartConsumers(true)
 	if err != nil {
 		panic(err)
 	}

@@ -6,7 +6,7 @@ package graphql
 
 import (
 	"context"
-
+	"errors"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
@@ -59,6 +59,24 @@ func (r *deploymentResolver) BuildArgs(ctx context.Context, obj *model.Deploymen
 		result = append(result, buildArgToGraphqlObject(record))
 	}
 	return result, nil
+}
+
+// CancelDeployment is the resolver for the cancelDeployment field.
+func (r *mutationResolver) CancelDeployment(ctx context.Context, id string) (bool, error) {
+	deployment := &core.Deployment{}
+	deployment.ID = id
+	err := deployment.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	if deployment.Status != core.DeploymentStatusPending {
+		return false, errors.New("pending deployment only can be cancelled")
+	}
+	err = r.ServiceManager.PubSubClient.Publish(r.ServiceManager.CancelImageBuildTopic, id)
+	if err != nil {
+		return false, errors.New("failed to request deployment cancellation")
+	}
+	return true, nil
 }
 
 // Deployment is the resolver for the deployment field.

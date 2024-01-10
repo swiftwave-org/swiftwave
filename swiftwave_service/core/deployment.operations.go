@@ -49,6 +49,15 @@ func FindDeploymentsByApplicationId(ctx context.Context, db gorm.DB, id string) 
 	return deployments, nil
 }
 
+func IsDeploymentFailed(ctx context.Context, db gorm.DB, id string) (bool, error) {
+	var deployment = &Deployment{}
+	tx := db.Select("status").Where("id = ?", id).First(&deployment)
+	if tx.Error != nil {
+		return false, tx.Error
+	}
+	return deployment.Status == DeploymentStatusFailed, nil
+}
+
 func (deployment *Deployment) FindById(ctx context.Context, db gorm.DB, id string) error {
 	tx := db.First(&deployment, "id = ?", id)
 	return tx.Error

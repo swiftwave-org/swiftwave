@@ -61,7 +61,12 @@ func (r *remotePubSub) Subscribe(topic string) (string, <-chan string, error) {
 		return "", nil, err
 	}
 	if !exists {
-		return "", nil, errors.New("topic does not exist")
+		err := r.redisClient.SAdd(context.Background(), r.topicsChannelName, topic).Err()
+		if err != nil {
+			return "", nil, err
+		}
+		// create a map for this topic
+		r.subscriptions[topic] = make(map[string]remotePubSubSubscription)
 	}
 	// open a channel for this topic
 	// docs: https://redis.io/commands/subscribe/

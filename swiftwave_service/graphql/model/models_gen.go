@@ -330,7 +330,7 @@ const (
 	DeploymentStatusLive          DeploymentStatus = "live"
 	DeploymentStatusStopped       DeploymentStatus = "stopped"
 	DeploymentStatusFailed        DeploymentStatus = "failed"
-	DeploymentStatusStalled       DeploymentStatus = "Stalled"
+	DeploymentStatusStalled       DeploymentStatus = "stalled"
 )
 
 var AllDeploymentStatus = []DeploymentStatus{

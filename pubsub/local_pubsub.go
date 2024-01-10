@@ -77,7 +77,9 @@ func (l *localPubSub) Subscribe(topic string) (string, <-chan string, error) {
 	defer l.mutex.Unlock()
 	// check if topic exists
 	if !l.topics.Contains(topic) {
-		return "", nil, errors.New("topic does not exist")
+		// insert topic
+		l.topics.Insert(topic)
+		l.subscriptions[topic] = make(map[string]localPubSubSubscription)
 	}
 	// create a new subscription id
 	subscriptionId := topic + "_" + uuid.NewString()
@@ -100,8 +102,8 @@ func (l *localPubSub) Unsubscribe(topic string, subscriptionId string) error {
 		return errors.New("pubsub client is closed")
 	}
 	// lock main mutex
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
+	l.mutex.RLock()
+	defer l.mutex.RUnlock()
 	// check if topic exists
 	if !l.topics.Contains(topic) {
 		return errors.New("topic does not exist")
