@@ -48,13 +48,23 @@ func inspectFunction(function WorkerFunctionType) (functionMetadata, error) {
 	}
 
 	// ensure provided function has only one argument
-	if fnType.NumIn() != 1 {
-		return metadata, errors.New("function must have only one argument")
+	if fnType.NumIn() != 3 {
+		return metadata, errors.New("function must have only one custom argument and a context and cancel context function")
 	}
 
 	// ensure values are provided as value and not as pointer
 	if fnType.In(0).Kind() == reflect.Ptr {
 		return metadata, errors.New("function argument must be a value and not a pointer")
+	}
+
+	// ensure 2nd argument is context
+	if fnType.In(1).Kind() != reflect.Interface || fnType.In(1).Name() != "Context" {
+		return metadata, errors.New("function 2nd argument must be a context")
+	}
+
+	// ensure 3rd argument is cancel context function
+	if fnType.In(2).Kind() != reflect.Func || fnType.In(2).Name() != "CancelFunc" {
+		return metadata, errors.New("function 3rd argument must be a cancel function")
 	}
 
 	// ensure values are need to be some kind of struct

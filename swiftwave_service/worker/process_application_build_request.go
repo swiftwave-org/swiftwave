@@ -17,7 +17,7 @@ import (
 )
 
 func (m Manager) BuildApplication(request BuildApplicationRequest, ctx context.Context, cancelContext context.CancelFunc) error {
-	err := m.buildApplicationHelper(request)
+	err := m.buildApplicationHelper(request, ctx, cancelContext)
 	if err != nil {
 		addDeploymentLog(m.ServiceManager.DbClient, m.ServiceManager.PubSubClient, request.DeploymentId, "Failed to build application\n"+err.Error()+"\n", true)
 		// update status
@@ -33,7 +33,7 @@ func (m Manager) BuildApplication(request BuildApplicationRequest, ctx context.C
 }
 
 // private functions
-func (m Manager) buildApplicationHelper(request BuildApplicationRequest) error {
+func (m Manager) buildApplicationHelper(request BuildApplicationRequest, ctx context.Context, cancelContext context.CancelFunc) error {
 	// database client to work without transaction
 	dbWithoutTx := m.ServiceManager.DbClient
 	// pubSub client
@@ -43,7 +43,6 @@ func (m Manager) buildApplicationHelper(request BuildApplicationRequest) error {
 	defer func() {
 		db.Rollback()
 	}()
-	ctx := context.Background()
 	// find out the deployment
 	deployment := &core.Deployment{}
 	err := deployment.FindById(ctx, *db, request.DeploymentId)
@@ -53,20 +52,20 @@ func (m Manager) buildApplicationHelper(request BuildApplicationRequest) error {
 	// #####  FOR IMAGE  ######
 	// build for docker image
 	if deployment.UpstreamType == core.UpstreamTypeImage {
-		return m.buildApplicationForDockerImage(deployment, ctx, *db, dbWithoutTx, pubSubClient)
+		return m.buildApplicationForDockerImage(deployment, *db, dbWithoutTx, pubSubClient, ctx, cancelContext)
 	}
 	// #####  FOR GIT  ######
 	if deployment.UpstreamType == core.UpstreamTypeGit {
-		return m.buildApplicationForGit(deployment, ctx, *db, dbWithoutTx, pubSubClient)
+		return m.buildApplicationForGit(deployment, *db, dbWithoutTx, pubSubClient, ctx, cancelContext)
 	}
 	// #####  FOR SOURCE CODE TARBALL  ######
 	if deployment.UpstreamType == core.UpstreamTypeSourceCode {
-		return m.buildApplicationForTarball(deployment, ctx, *db, dbWithoutTx, pubSubClient)
+		return m.buildApplicationForTarball(deployment, *db, dbWithoutTx, pubSubClient, ctx, cancelContext)
 	}
 	return nil
 }
 
-func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, ctx context.Context, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client) error {
+func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, cancelContext context.CancelFunc) error {
 	// TODO: add support for registry authentication
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "As the upstream type is image, no build is required\n", false)
 	err := deployment.UpdateStatus(ctx, db, core.DeploymentStatusDeployPending)
@@ -90,7 +89,7 @@ func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, ctx
 	return err
 }
 
-func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context.Context, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client) error {
+func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, cancelContext context.CancelFunc) error {
 	gitUsername := ""
 	gitPassword := ""
 
@@ -154,7 +153,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context
 	}
 
 	// start building docker image
-	scanner, err := m.ServiceManager.DockerManager.CreateImage(deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.DeployableDockerImageURI())
+	scanner, err := m.ServiceManager.DockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.DeployableDockerImageURI())
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image\n", true)
 		return err
@@ -203,7 +202,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, ctx context
 	return err
 }
 
-func (m Manager) buildApplicationForTarball(deployment *core.Deployment, ctx context.Context, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client) error {
+func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, cancelContext context.CancelFunc) error {
 	tarballPath := filepath.Join(m.SystemConfig.ServiceConfig.DataDir, deployment.SourceCodeCompressedFileName)
 	// Verify file exists
 	if _, err := os.Stat(tarballPath); os.IsNotExist(err) {
@@ -241,14 +240,16 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, ctx con
 	}
 
 	// start building docker image
-	scanner, err := m.ServiceManager.DockerManager.CreateImage(deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.DeployableDockerImageURI())
+	scanner, err := m.ServiceManager.DockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.DeployableDockerImageURI())
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image\n", true)
 		return err
 	}
+
 	isErrorEncountered := false
 	if scanner != nil {
 		var data map[string]interface{}
+
 		for scanner.Scan() {
 			err = json.Unmarshal(scanner.Bytes(), &data)
 			if err != nil {
@@ -266,6 +267,7 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, ctx con
 	}
 	if isErrorEncountered {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed\n", true)
+		cancelContext()
 		return errors.New("unexpected failure at the time of building docker image")
 	}
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully\n", false)
