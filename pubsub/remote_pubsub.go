@@ -25,16 +25,16 @@ func (r *remotePubSub) CreateTopic(topic string) error {
 }
 
 func (r *remotePubSub) RemoveTopic(topic string) error {
+	// lock mutex
+	r.mutex.Lock()
+	// unlock mutex
+	defer r.mutex.Unlock()
 	// remove this from `SET` of redis
 	// docs: https://redis.io/commands/srem/
 	err := r.redisClient.SRem(context.Background(), r.topicsChannelName, topic).Err()
 	if err != nil {
 		return err
 	}
-	// lock mutex
-	r.mutex.Lock()
-	// unlock mutex
-	defer r.mutex.Unlock()
 	// check if topic exists
 	if _, ok := r.subscriptions[topic]; !ok {
 		return nil
@@ -51,23 +51,27 @@ func (r *remotePubSub) RemoveTopic(topic string) error {
 
 func (r *remotePubSub) Subscribe(topic string) (string, <-chan string, error) {
 	// lock mutex
-	r.mutex.Lock()
-	// unlock mutex
-	defer r.mutex.Unlock()
+	r.mutex.RLock()
 	// check if topic exists in `SET` of redis
 	// docs: https://redis.io/commands/sismember/
 	exists, err := r.redisClient.SIsMember(context.Background(), r.topicsChannelName, topic).Result()
+	r.mutex.RUnlock()
 	if err != nil {
 		return "", nil, err
 	}
 	if !exists {
+		r.mutex.Lock()
 		err := r.redisClient.SAdd(context.Background(), r.topicsChannelName, topic).Err()
 		if err != nil {
+			r.mutex.Unlock()
 			return "", nil, err
 		}
 		// create a map for this topic
 		r.subscriptions[topic] = make(map[string]remotePubSubSubscription)
+		r.mutex.Unlock()
 	}
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	// open a channel for this topic
 	// docs: https://redis.io/commands/subscribe/
 	// docs: https://redis.io/topics/pubsub
@@ -87,25 +91,27 @@ func (r *remotePubSub) Subscribe(topic string) (string, <-chan string, error) {
 
 func (r *remotePubSub) Unsubscribe(topic string, subscriptionId string) error {
 	// lock mutex
-	r.mutex.Lock()
-	// unlock mutex
-	defer r.mutex.Unlock()
+	r.mutex.RLock()
 	// check if topic exists in `SET` of redis
 	// docs: https://redis.io/commands/sismember/
 	exists, err := r.redisClient.SIsMember(context.Background(), r.topicsChannelName, topic).Result()
+	// unlock mutex
+	r.mutex.RUnlock()
 	if err != nil {
 		return err
 	}
 	if !exists {
-		return errors.New("topic does not exist")
+		return nil
 	}
 	// cancel subscription
 	err = r.cancelSubscription(topic, subscriptionId)
 	if err != nil {
 		return err
 	}
+	r.mutex.Lock()
 	// delete subscription
 	delete(r.subscriptions[topic], subscriptionId)
+	r.mutex.Unlock()
 	return nil
 }
 
@@ -117,13 +123,16 @@ func (r *remotePubSub) Publish(topic string, data string) error {
 
 func (r *remotePubSub) Close() error {
 	// lock mutex
-	r.mutex.Lock()
+	r.mutex.RLock()
+	subscriptions := r.subscriptions
 	// unlock mutex
-	defer r.mutex.Unlock()
+	r.mutex.RUnlock()
 	// close all subscriptions
-	for topic := range r.subscriptions {
+	for topic := range subscriptions {
 		r.cancelAllSubscriptionsOfTopic(topic)
 	}
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	// close redis client
 	err := r.redisClient.Close()
 	if err != nil {
@@ -169,11 +178,15 @@ func (r *remotePubSub) castChannelType(topic string, subscriptionId string, chan
 func (r *remotePubSub) cancelAllSubscriptionsOfTopic(topic string) {
 	// NOTE: a lock is need to be acquired before calling this function
 	// verify topic exists with ok
+	r.mutex.RLock()
 	if _, ok := r.subscriptions[topic]; !ok {
+		r.mutex.RUnlock()
 		return
 	}
 	// iterate over all subscriptions
-	for id := range r.subscriptions[topic] {
+	subscriptions := r.subscriptions[topic]
+	r.mutex.RUnlock()
+	for id := range subscriptions {
 		err := r.cancelSubscription(topic, id)
 		if err != nil {
 			log.Println("error in canceling subscription of topic", topic, "with id", id, ":", err)
@@ -182,16 +195,20 @@ func (r *remotePubSub) cancelAllSubscriptionsOfTopic(topic string) {
 }
 
 func (r *remotePubSub) cancelSubscription(topic string, subscriptionId string) error {
+	r.mutex.RLock()
 	// verify topic exists locally
 	if _, ok := r.subscriptions[topic]; !ok {
+		r.mutex.RUnlock()
 		return nil
 	}
 	// verify subscription exists locally
 	if _, ok := r.subscriptions[topic][subscriptionId]; !ok {
+		r.mutex.RUnlock()
 		return nil
 	}
 	// fetch subscription record
 	subscriptionRecord := r.subscriptions[topic][subscriptionId]
+	r.mutex.RUnlock()
 	// lock
 	mutex := subscriptionRecord.Mutex
 	mutex.Lock()
@@ -207,14 +224,12 @@ func (r *remotePubSub) cancelSubscription(topic string, subscriptionId string) e
 }
 
 func (r *remotePubSub) removeTopicAndCleanup(topic string) {
-	// lock
-	r.mutex.Lock()
-	// unlock
-	defer r.mutex.Unlock()
 	// cancel all subscriptions of this topic
 	r.cancelAllSubscriptionsOfTopic(topic)
+	r.mutex.Lock()
 	// delete topic
 	delete(r.subscriptions, topic)
+	r.mutex.Unlock()
 }
 
 func (r *remotePubSub) listenForBroadcastEvents(ctx context.Context) {

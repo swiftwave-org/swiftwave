@@ -213,7 +213,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 	default:
 		if isErrorEncountered {
 			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed\n", true)
-			return err
+			return errors.New("docker image build failed\n")
 		}
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully\n", false)
 		// update status

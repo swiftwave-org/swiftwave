@@ -101,13 +101,13 @@ func (l *localPubSub) Unsubscribe(topic string, subscriptionId string) error {
 	l.mutex.RUnlock()
 	// check if topic exists
 	if !isContains {
-		return errors.New("topic does not exist")
+		return nil
 	}
 	// check if subscription exists
 	l.mutex.RLock()
 	if _, ok := l.subscriptions[topic][subscriptionId]; !ok {
 		l.mutex.RUnlock()
-		return errors.New("subscription does not exist")
+		return nil
 	}
 	// fetch subscription record
 	subscriptionRecord := l.subscriptions[topic][subscriptionId]
