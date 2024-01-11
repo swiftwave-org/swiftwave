@@ -23,13 +23,9 @@ func (m Manager) BuildApplication(request BuildApplicationRequest, ctx context.C
 			return nil
 		}
 	}
-	fmt.Println("hello subscription")
 	subscriptionId, subscriptionChannel, err := m.ServiceManager.PubSubClient.Subscribe(m.ServiceManager.CancelImageBuildTopic)
-	fmt.Println("got subscription")
 	defer func(id string) {
-		fmt.Println("unsubscribing")
 		err := m.ServiceManager.PubSubClient.Unsubscribe(m.ServiceManager.CancelImageBuildTopic, id)
-		fmt.Println("unsubscribed")
 		if err != nil {
 			log.Println("failed to unsubscribe from topic > " + m.ServiceManager.CancelImageBuildTopic)
 		}
