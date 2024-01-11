@@ -40,6 +40,15 @@ func FindLatestDeploymentIDByApplicationId(ctx context.Context, db gorm.DB, id s
 	return deployment.ID, nil
 }
 
+func FindCurrentLiveDeploymentIDByApplicationId(ctx context.Context, db gorm.DB, id string) (string, error) {
+	var deployment = &Deployment{}
+	tx := db.Select("id").Where("application_id = ? AND status = ?", id, DeploymentStatusLive).Order("created_at desc").First(&deployment)
+	if tx.Error != nil {
+		return "", tx.Error
+	}
+	return deployment.ID, nil
+}
+
 func FindDeploymentsByApplicationId(ctx context.Context, db gorm.DB, id string) ([]*Deployment, error) {
 	var deployments = make([]*Deployment, 0)
 	tx := db.Where("application_id = ?", id).Order("created_at desc").Find(&deployments)

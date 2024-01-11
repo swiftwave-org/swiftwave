@@ -3,6 +3,7 @@ package pubsub
 import (
 	"errors"
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-set"
 	"log"
 	"sync"
 )
@@ -11,15 +12,17 @@ func (l *localPubSub) CreateTopic(topic string) error {
 	if l.closed {
 		return errors.New("pubsub client is closed")
 	}
-	if l.topics.Contains(topic) {
+	l.mutex.RLock()
+	isContains := l.topics.Contains(topic)
+	l.mutex.RUnlock()
+	if isContains {
 		return nil
 	} else {
-		// lock
 		l.mutex.Lock()
-		defer l.mutex.Unlock()
 		// insert
 		l.topics.Insert(topic)
 		l.subscriptions[topic] = make(map[string]localPubSubSubscription)
+		l.mutex.Unlock()
 		return nil
 	}
 }
@@ -28,43 +31,27 @@ func (l *localPubSub) RemoveTopic(topic string) error {
 	if l.closed {
 		return errors.New("pubsub client is closed")
 	}
-	// lock
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
+	l.mutex.RLock()
+	isContains := l.topics.Contains(topic)
+	l.mutex.RUnlock()
 	// check if topic exists
-	if !l.topics.Contains(topic) {
+	if !isContains {
 		return nil
 	} else {
-		// close and remove all subscribers
-		for subscriptionRecord := range l.subscriptions[topic] {
-			l.cancelSubscriptions(topic, subscriptionRecord)
+		l.mutex.Lock()
+		// close all subscribers
+		subscriptionRecords := l.subscriptions[topic]
+		for _, subscription := range subscriptionRecords {
+			m := subscription.Mutex
+			m.Lock()
+			close(subscription.Channel)
+			m.Unlock()
 		}
-		// delete subscribers
+		// delete topic
 		delete(l.subscriptions, topic)
+		l.mutex.Unlock()
 	}
 	return nil
-}
-
-func (l *localPubSub) cancelSubscriptions(topic string, subscriptionId string) {
-	if l.closed {
-		return
-	}
-	// verify topic exists with ok
-	if _, ok := l.subscriptions[topic]; !ok {
-		return
-	}
-	// verify subscription exists
-	if _, ok := l.subscriptions[topic][subscriptionId]; !ok {
-		return
-	}
-	// lock
-	mutex := l.subscriptions[topic][subscriptionId].Mutex
-	mutex.Lock()
-	defer mutex.Unlock()
-	// close channel
-	close(l.subscriptions[topic][subscriptionId].Channel)
-	// delete subscription
-	delete(l.subscriptions[topic], subscriptionId)
 }
 
 // Subscribe returns a subscription id and a channel to listen to
@@ -73,13 +60,16 @@ func (l *localPubSub) Subscribe(topic string) (string, <-chan string, error) {
 		return "", nil, errors.New("pubsub client is closed")
 	}
 	// lock
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
+	l.mutex.RLock()
+	isContains := l.topics.Contains(topic)
+	l.mutex.RUnlock()
 	// check if topic exists
-	if !l.topics.Contains(topic) {
+	if !isContains {
+		l.mutex.Lock()
 		// insert topic
 		l.topics.Insert(topic)
 		l.subscriptions[topic] = make(map[string]localPubSubSubscription)
+		l.mutex.Unlock()
 	}
 	// create a new subscription id
 	subscriptionId := topic + "_" + uuid.NewString()
@@ -90,8 +80,12 @@ func (l *localPubSub) Subscribe(topic string) (string, <-chan string, error) {
 		Mutex:   &sync.RWMutex{},
 		Channel: channel,
 	}
+	// critical section
+	l.mutex.Lock()
 	// add subscription record to subscriptions
 	l.subscriptions[topic][subscriptionId] = subscriptionRecord
+	// unlock
+	l.mutex.Unlock()
 	// return subscription id and channel
 	return subscriptionId, channel, nil
 }
@@ -103,27 +97,31 @@ func (l *localPubSub) Unsubscribe(topic string, subscriptionId string) error {
 	}
 	// lock main mutex
 	l.mutex.RLock()
-	defer l.mutex.RUnlock()
+	isContains := l.topics.Contains(topic)
+	l.mutex.RUnlock()
 	// check if topic exists
-	if !l.topics.Contains(topic) {
+	if !isContains {
 		return errors.New("topic does not exist")
 	}
 	// check if subscription exists
+	l.mutex.RLock()
 	if _, ok := l.subscriptions[topic][subscriptionId]; !ok {
+		l.mutex.RUnlock()
 		return errors.New("subscription does not exist")
 	}
 	// fetch subscription record
 	subscriptionRecord := l.subscriptions[topic][subscriptionId]
+	l.mutex.RUnlock()
 	// lock
 	mutex := subscriptionRecord.Mutex
 	mutex.Lock()
-	defer mutex.Unlock()
 	// cleanup channel
-	if _, ok := <-subscriptionRecord.Channel; ok {
-		close(subscriptionRecord.Channel)
-	}
+	close(subscriptionRecord.Channel)
+	mutex.Unlock()
+	l.mutex.Lock()
 	// delete subscription
 	delete(l.subscriptions[topic], subscriptionId)
+	l.mutex.Unlock()
 	return nil
 }
 
@@ -132,29 +130,33 @@ func (l *localPubSub) Publish(topic string, data string) error {
 	if l.closed {
 		return errors.New("pubsub client is closed")
 	}
-	// lock main mutex
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
+	l.mutex.RLock()
+	isContains := l.topics.Contains(topic)
+	l.mutex.RUnlock()
 	// check if topic exists
-	if !l.topics.Contains(topic) {
+	if !isContains {
+		l.mutex.Lock()
 		// insert topic
 		l.topics.Insert(topic)
 		l.subscriptions[topic] = make(map[string]localPubSubSubscription)
+		l.mutex.Unlock()
 	}
 	// fetch all subscriptions
+	l.mutex.RLock()
 	subscriptions := l.subscriptions[topic]
+	l.mutex.RUnlock()
 	// iterate over all subscriptions
 	for _, subscriptionRecord := range subscriptions {
 		// lock subscription mutex
 		mutex := subscriptionRecord.Mutex
 		mutex.Lock()
+		channel := subscriptionRecord.Channel
 		// clear channel if full
-		if len(subscriptionRecord.Channel) == cap(subscriptionRecord.Channel) {
-			<-subscriptionRecord.Channel
+		if len(channel) == cap(channel) {
+			<-channel
 		}
 		// send data
-		subscriptionRecord.Channel <- data
-		// unlock subscription mutex
+		channel <- data
 		mutex.Unlock()
 	}
 	return nil
@@ -178,11 +180,17 @@ func (l *localPubSub) Close() error {
 	}
 	// set closed to true
 	l.closed = true
-	// close and remove all subscribers
+	// close
 	for topic := range l.subscriptions {
-		for subscriptionRecord := range l.subscriptions[topic] {
-			l.cancelSubscriptions(topic, subscriptionRecord)
+		for _, subscription := range l.subscriptions[topic] {
+			m := subscription.Mutex
+			m.Lock()
+			close(subscription.Channel)
+			m.Unlock()
 		}
 	}
+	// remove all topics
+	l.topics = set.New[string](0)
+	l.subscriptions = make(map[string]map[string]localPubSubSubscription)
 	return nil
 }

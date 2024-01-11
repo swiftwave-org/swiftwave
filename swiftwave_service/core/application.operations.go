@@ -353,7 +353,10 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 		isReloadRequired = true
 	}
 	// update deployment -- if required
-	currentDeploymentID, err := FindLatestDeploymentIDByApplicationId(ctx, db, application.ID)
+	currentDeploymentID, err := FindCurrentLiveDeploymentIDByApplicationId(ctx, db, application.ID)
+	if err != nil {
+		currentDeploymentID, err = FindLatestDeploymentIDByApplicationId(ctx, db, application.ID)
+	}
 	if err != nil {
 		return nil, err
 	}
