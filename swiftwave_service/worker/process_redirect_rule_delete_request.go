@@ -7,9 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func (m Manager) RedirectRuleDelete(request RedirectRuleDeleteRequest) error {
+func (m Manager) RedirectRuleDelete(request RedirectRuleDeleteRequest, ctx context.Context, cancelContext context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
-	ctx := context.Background()
 	// fetch redirect rule
 	var redirectRule core.RedirectRule
 	err := redirectRule.FindById(ctx, dbWithoutTx, request.Id)

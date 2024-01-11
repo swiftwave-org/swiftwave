@@ -23,6 +23,7 @@ type ServiceManager struct {
 	RedisClient           redis.Client
 	PubSubClient          pubsub.Client
 	TaskQueueClient       task_queue.Client
+	CancelImageBuildTopic string
 }
 
 // UpstreamType : type of source for the codebase of the application

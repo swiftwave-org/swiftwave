@@ -7,8 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (m Manager) RedirectRuleApply(request RedirectRuleApplyRequest) error {
-	ctx := context.Background()
+func (m Manager) RedirectRuleApply(request RedirectRuleApplyRequest, ctx context.Context, cancelContext context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
 	// fetch redirect rule
 	redirectRule := &core.RedirectRule{}

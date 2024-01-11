@@ -9,8 +9,7 @@ import (
 	"log"
 )
 
-func (m Manager) IngressRuleApply(request IngressRuleApplyRequest) error {
-	ctx := context.Background()
+func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.Context, cancelContext context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
 	// fetch ingress rule
 	ingressRule := &core.IngressRule{}

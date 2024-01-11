@@ -69,6 +69,7 @@ func (r *subscriptionResolver) FetchDeploymentLog(ctx context.Context, id string
 			defer func(PubSubClient pubsub.Client, topic string, subscriptionId string) {
 				err := PubSubClient.Unsubscribe(topic, subscriptionId)
 				if err != nil {
+					log.Println(err)
 					log.Println("error while unsubscribing from pubsub")
 				}
 			}(r.ServiceManager.PubSubClient, channelName, subscriptionId)

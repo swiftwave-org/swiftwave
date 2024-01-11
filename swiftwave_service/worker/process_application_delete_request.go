@@ -8,9 +8,8 @@ import (
 	"log"
 )
 
-func (m Manager) DeleteApplication(request DeleteApplicationRequest) error {
+func (m Manager) DeleteApplication(request DeleteApplicationRequest, ctx context.Context, cancelContext context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
-	ctx := context.Background()
 	dockerManager := m.ServiceManager.DockerManager
 	// find application
 	var application core.Application
