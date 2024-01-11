@@ -120,7 +120,6 @@ func (l *localPubSub) Unsubscribe(topic string, subscriptionId string) error {
 	defer mutex.Unlock()
 	// cleanup channel
 	if _, ok := <-subscriptionRecord.Channel; ok {
-		<-subscriptionRecord.Channel
 		close(subscriptionRecord.Channel)
 	}
 	// delete subscription
