@@ -109,10 +109,7 @@ func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, db 
 	}
 
 	// push task to queue for deployment
-	err = m.ServiceManager.TaskQueueClient.EnqueueTask("deploy_application", DeployApplicationRequest{
-		AppId:        deployment.ApplicationID,
-		DeploymentId: deployment.ID,
-	})
+	err = m.EnqueueDeployApplicationRequest(deployment.ApplicationID, deployment.ID)
 	if err == nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete\n", false)
 	}
@@ -227,10 +224,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 			return err
 		}
 		// push task to queue for deployment
-		err = m.ServiceManager.TaskQueueClient.EnqueueTask("deploy_application", DeployApplicationRequest{
-			AppId:        deployment.ApplicationID,
-			DeploymentId: deployment.ID,
-		})
+		err = m.EnqueueDeployApplicationRequest(deployment.ApplicationID, deployment.ID)
 		if err == nil {
 			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete\n", false)
 		}
@@ -301,31 +295,33 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm
 			}
 		}
 	}
-	if isErrorEncountered {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed\n", true)
-		cancelContext()
-		return errors.New("unexpected failure at the time of building docker image")
-	}
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully\n", false)
-	// update status
-	err = deployment.UpdateStatus(ctx, db, core.DeploymentStatusDeployPending)
-	if err != nil {
+	select {
+	case <-ctx.Done():
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build cancelled !\n", true)
+		return errors.New("docker image build cancelled")
+	default:
+		if isErrorEncountered {
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed\n", true)
+			return errors.New("docker image build failed\n")
+		}
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully\n", false)
+		// update status
+		err = deployment.UpdateStatus(ctx, db, core.DeploymentStatusDeployPending)
+		if err != nil {
+			return err
+		}
+		// commit the transaction
+		err = db.Commit().Error
+		if err != nil {
+			return err
+		}
+		// push task to queue for deployment
+		err = m.EnqueueDeployApplicationRequest(deployment.ApplicationID, deployment.ID)
+		if err == nil {
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete\n", false)
+		}
 		return err
 	}
-	// commit the transaction
-	err = db.Commit().Error
-	if err != nil {
-		return err
-	}
-	// push task to queue for deployment
-	err = m.ServiceManager.TaskQueueClient.EnqueueTask("deploy_application", DeployApplicationRequest{
-		AppId:        deployment.ApplicationID,
-		DeploymentId: deployment.ID,
-	})
-	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete\n", false)
-	}
-	return err
 }
 
 func addDeploymentLog(dbClient gorm.DB, pubSubClient pubsub.Client, deploymentId string, content string, terminate bool) {
