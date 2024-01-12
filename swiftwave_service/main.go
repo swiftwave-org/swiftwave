@@ -30,6 +30,18 @@ func Start(config *system_config.Config) {
 	}
 	manager.Load(*config)
 
+	// Migrate Database
+	if config.ServiceConfig.AutoMigrateDatabase {
+		log.Println("Migrating Database")
+		// Migrate Database
+		err := core.MigrateDatabase(&manager.DbClient)
+		if err != nil {
+			panic(err)
+		} else {
+			log.Println("Database Migration Complete")
+		}
+	}
+
 	// Create pubsub default topics
 	err := manager.PubSubClient.CreateTopic(manager.CancelImageBuildTopic)
 	if err != nil {
@@ -138,16 +150,6 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 	restServer.Initialize()
 	// Initialize GraphQL Server
 	graphqlServer.Initialize()
-	if config.ServiceConfig.AutoMigrateDatabase {
-		log.Println("Migrating Database")
-		// Migrate Database
-		err := core.MigrateDatabase(&manager.DbClient)
-		if err != nil {
-			panic(err)
-		} else {
-			log.Println("Database Migration Complete")
-		}
-	}
 
 	// Start the server
 	address := fmt.Sprintf("%s:%d", config.ServiceConfig.BindAddress, config.ServiceConfig.BindPort)
