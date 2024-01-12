@@ -75,6 +75,27 @@ func (m Manager) UpdateService(service Service) error {
 	return nil
 }
 
+// RestartService: Restart a service
+func (m Manager) RestartService(serviceName string) error {
+	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
+	if err != nil {
+		return errors.New("error getting swarm server version")
+	}
+	version := swarm.Version{
+		Index: serviceData.Version.Index,
+	}
+	if err != nil {
+		return errors.New("error getting swarm server version")
+	}
+	spec := serviceData.Spec
+	spec.TaskTemplate.ForceUpdate++
+	_, err = m.client.ServiceUpdate(m.ctx, serviceName, version, spec, types.ServiceUpdateOptions{})
+	if err != nil {
+		return errors.New("error updating service")
+	}
+	return nil
+}
+
 // RollbackService a service
 func (m Manager) RollbackService(serviceName string) error {
 	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
