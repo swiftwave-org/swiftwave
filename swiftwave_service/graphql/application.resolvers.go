@@ -7,7 +7,6 @@ package graphql
 import (
 	"context"
 	"errors"
-
 	gitmanager "github.com/swiftwave-org/swiftwave/git_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
@@ -206,6 +205,79 @@ func (r *mutationResolver) DeleteApplication(ctx context.Context, id string) (bo
 	err = r.WorkerManager.EnqueueDeleteApplicationRequest(record.ID)
 	if err != nil {
 		return false, errors.New("failed to process application delete request")
+	}
+	return true, nil
+}
+
+// RebuildApplication is the resolver for the rebuildApplication field.
+func (r *mutationResolver) RebuildApplication(ctx context.Context, id string) (bool, error) {
+	// fetch record
+	var record = &core.Application{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	// create a new deployment from latest deployment
+	latestDeployment, err := core.FindCurrentLiveDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, record.ID)
+	if err != nil {
+		latestDeployment, err = core.FindLatestDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, record.ID)
+		if err != nil {
+			return false, errors.New("failed to fetch latest deployment")
+		}
+	}
+
+	// fetch build args
+	buildArgs, err := core.FindBuildArgsByDeploymentId(ctx, r.ServiceManager.DbClient, latestDeployment.ID)
+	if err != nil {
+		return false, err
+	}
+	// create transaction
+	tx := r.ServiceManager.DbClient.Begin()
+	// add new deployment
+	err = latestDeployment.Create(ctx, *tx)
+	if err != nil {
+		tx.Rollback()
+		return false, err
+	}
+	// update build args
+	for _, buildArg := range buildArgs {
+		buildArg.ID = 0
+		buildArg.DeploymentID = latestDeployment.ID
+	}
+	if len(buildArgs) > 0 {
+		err = tx.Create(&buildArgs).Error
+		if err != nil {
+			tx.Rollback()
+			return false, err
+		}
+	}
+	// commit transaction
+	err = tx.Commit().Error
+	if err != nil {
+		return false, errors.New("failed to create new deployment due to database error")
+	}
+	// enqueue build request
+	err = r.WorkerManager.EnqueueBuildApplicationRequest(record.ID, latestDeployment.ID)
+	if err != nil {
+		return false, errors.New("failed to queue build request")
+	}
+	return true, nil
+}
+
+// RestartApplication is the resolver for the restartApplication field.
+func (r *mutationResolver) RestartApplication(ctx context.Context, id string) (bool, error) {
+	// fetch record
+	var record = &core.Application{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	// service name
+	serviceName := record.Name
+	// restart
+	err = r.ServiceManager.DockerManager.RestartService(serviceName)
+	if err != nil {
+		return false, err
 	}
 	return true, nil
 }
