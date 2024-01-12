@@ -47,8 +47,8 @@ func init() {
 
 var postgresCmd = &cobra.Command{
 	Use:   "postgres",
-	Short: "Manage local postgres database (Only for standalone installation)",
-	Long:  "Manage local postgres database (Only for standalone installation)",
+	Short: "Manage local postgres database (Only for standalone installation) [Not recommended]",
+	Long:  "Manage local postgres database (Only for standalone installation) [Not recommended]",
 }
 
 var postgresStartCmd = &cobra.Command{
@@ -61,6 +61,10 @@ var postgresStartCmd = &cobra.Command{
 			printError("Local postgres database is only for standalone installations\n" +
 				"For cluster installations, please use a remote postgres database for a better reliability")
 			return
+		} else {
+			printInfo("It is recommended to use a remote postgres database for a better reliability\n" +
+				"If you restart the host machine, then the local postgres database will not be available\n" +
+				"So, You should start again the local postgres database after restarting the host machine")
 		}
 		// Create /var/lib/swiftwave/postgres directory if it doesn't exist
 		err := createFolder("/var/lib/swiftwave/postgres")
