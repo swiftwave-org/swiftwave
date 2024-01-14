@@ -139,7 +139,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 						strings.Compare(status, "Pull complete") == 0 ||
 						strings.HasPrefix(status, "Digest:") ||
 						strings.HasPrefix(status, "Status:") {
-						logContent := fmt.Sprintf("%s %s", status, id)
+						logContent := fmt.Sprintf("%s %s\n", status, id)
 						addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, logContent, false)
 					}
 
