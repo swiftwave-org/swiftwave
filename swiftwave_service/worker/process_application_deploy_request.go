@@ -98,7 +98,22 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 	if isImageExists {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image already exists\n", false)
 	} else {
-		scanner, err := m.ServiceManager.DockerManager.PullImage(deployment.DeployableDockerImageURI()) // TODO: add support for providing auth credentials
+		registryUsername := ""
+		registryPassword := ""
+
+		if deployment.ImageRegistryCredentialID != nil && *deployment.ImageRegistryCredentialID != 0 {
+			// fetch image registry credential
+			var imageRegistryCredential core.ImageRegistryCredential
+			err := imageRegistryCredential.FindById(ctx, dbWithoutTx, *deployment.ImageRegistryCredentialID)
+			if err != nil {
+				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch image registry credential\n", false)
+				return err
+			}
+			registryUsername = imageRegistryCredential.Username
+			registryPassword = imageRegistryCredential.Password
+		}
+
+		scanner, err := m.ServiceManager.DockerManager.PullImage(deployment.DeployableDockerImageURI(), registryUsername, registryPassword)
 		if err != nil {
 			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to pull docker image\n", false)
 			return err
@@ -166,8 +181,23 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 	// check if the service already exists
 	_, err = m.ServiceManager.DockerManager.GetService(service.Name)
 	if err != nil {
+		registryUsername := ""
+		registryPassword := ""
+
+		if deployment.ImageRegistryCredentialID != nil && *deployment.ImageRegistryCredentialID != 0 {
+			// fetch image registry credential
+			var imageRegistryCredential core.ImageRegistryCredential
+			err := imageRegistryCredential.FindById(ctx, dbWithoutTx, *deployment.ImageRegistryCredentialID)
+			if err != nil {
+				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch image registry credential\n", false)
+				return err
+			}
+			registryUsername = imageRegistryCredential.Username
+			registryPassword = imageRegistryCredential.Password
+		}
+
 		// create service
-		err = m.ServiceManager.DockerManager.CreateService(service)
+		err = m.ServiceManager.DockerManager.CreateService(service, registryUsername, registryPassword)
 		if err != nil {
 			return err
 		}
