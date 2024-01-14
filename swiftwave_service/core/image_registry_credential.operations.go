@@ -33,6 +33,11 @@ func (imageRegistryCredential *ImageRegistryCredential) Update(ctx context.Conte
 }
 
 func (imageRegistryCredential *ImageRegistryCredential) Delete(ctx context.Context, db gorm.DB) error {
+	// set imageRegistryCredentialID null for all deployment using this imageRegistryCredential
+	err := db.Model(&Deployment{}).Where("image_registry_credential_id = ?", imageRegistryCredential.ID).Update("image_registry_credential_id", nil).Error
+	if err != nil {
+		return err
+	}
 	tx := db.Delete(&imageRegistryCredential)
 	return tx.Error
 }

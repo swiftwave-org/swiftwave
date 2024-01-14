@@ -73,7 +73,13 @@ func (r *mutationResolver) DeleteGitCredential(ctx context.Context, id uint) (bo
 		return false, err
 	}
 	// delete record
-	err = record.Delete(ctx, r.ServiceManager.DbClient)
+	tx := r.ServiceManager.DbClient.Begin()
+	err = record.Delete(ctx, *tx)
+	if err != nil {
+		tx.Rollback()
+		return false, err
+	}
+	err = tx.Commit().Error
 	if err != nil {
 		return false, err
 	}
