@@ -91,7 +91,7 @@ func (manager *ServiceManager) Load(config system_config.Config) {
 	if config.TaskQueueConfig.Mode == system_config.LocalTaskQueue {
 		taskQueueClient, err := task_queue.NewClient(task_queue.Options{
 			Type:                task_queue.Local,
-			Mode:                task_queue.Both,
+			Mode:                task_queue.Both, // TODO: option to configure this
 			MaxMessagesPerQueue: config.TaskQueueConfig.MaxOutstandingMessagesPerQueue,
 		})
 		if err != nil {
@@ -101,7 +101,7 @@ func (manager *ServiceManager) Load(config system_config.Config) {
 	} else if config.TaskQueueConfig.Mode == system_config.RemoteTaskQueue {
 		taskQueueClient, err := task_queue.NewClient(task_queue.Options{
 			Type:                task_queue.Remote,
-			Mode:                task_queue.Both,
+			Mode:                task_queue.Both, // TODO: option to configure this
 			MaxMessagesPerQueue: config.TaskQueueConfig.MaxOutstandingMessagesPerQueue,
 			AMQPUri:             config.TaskQueueConfig.AMQPConfig.URI(),
 			AMQPVhost:           config.TaskQueueConfig.AMQPConfig.VHost,

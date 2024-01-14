@@ -42,8 +42,14 @@ func Start(config *system_config.Config) {
 		}
 	}
 
+	// Cancel pending tasks
+	err := worker.CancelPendingTasksLocalQueue(*config, *manager)
+	if err != nil {
+		panic(err)
+	}
+
 	// Create pubsub default topics
-	err := manager.PubSubClient.CreateTopic(manager.CancelImageBuildTopic)
+	err = manager.PubSubClient.CreateTopic(manager.CancelImageBuildTopic)
 	if err != nil {
 		log.Println(fmt.Sprintf("Error creating topic %s: %s", manager.CancelImageBuildTopic, err.Error()))
 	}
