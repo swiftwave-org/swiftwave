@@ -47,7 +47,11 @@ func (r *queryResolver) DockerConfigGenerator(ctx context.Context, input model.D
 			return nil, errors.New("invalid git provider, repository owner, repository name or branch provided")
 		}
 		gitUrl := generateGitUrl(*input.GitProvider, *input.RepositoryOwner, *input.RepositoryName)
-		config, err := r.ServiceManager.DockerConfigGenerator.GenerateConfigFromGitRepository(gitUrl, *input.RepositoryBranch, gitUsername, gitPassword)
+		if input.CodePath == nil {
+			input.CodePath = new(string)
+			*input.CodePath = ""
+		}
+		config, err := r.ServiceManager.DockerConfigGenerator.GenerateConfigFromGitRepository(gitUrl, *input.RepositoryBranch, *input.CodePath, gitUsername, gitPassword)
 		if err != nil {
 			return nil, errors.New("failed to generate docker config from git repository")
 		}
