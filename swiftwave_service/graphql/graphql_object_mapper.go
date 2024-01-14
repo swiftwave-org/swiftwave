@@ -196,6 +196,7 @@ func deploymentToGraphqlObject(record *core.Deployment) *model.Deployment {
 		RepositoryName:               record.RepositoryName,
 		RepositoryBranch:             record.RepositoryBranch,
 		CommitHash:                   record.CommitHash,
+		CodePath:                     record.CodePath,
 		SourceCodeCompressedFileName: record.SourceCodeCompressedFileName,
 		DockerImage:                  record.DockerImage,
 		ImageRegistryCredentialID:    imageRegistryCredentialId,
