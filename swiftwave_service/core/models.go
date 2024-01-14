@@ -132,6 +132,7 @@ type Deployment struct {
 	RepositoryOwner  string      `json:"repositoryOwner"`
 	RepositoryName   string      `json:"repositoryName"`
 	RepositoryBranch string      `json:"repositoryBranch"`
+	CodePath         string      `json:"codePath"`
 	CommitHash       string      `json:"commitHash"`
 	// Fields for UpstreamType = SourceCode
 	SourceCodeCompressedFileName string `json:"sourceCodeCompressedFileName"`

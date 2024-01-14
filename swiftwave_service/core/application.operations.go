@@ -172,6 +172,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		RepositoryName:   application.LatestDeployment.RepositoryName,
 		RepositoryBranch: application.LatestDeployment.RepositoryBranch,
 		CommitHash:       application.LatestDeployment.CommitHash,
+		CodePath:         application.LatestDeployment.CodePath,
 		// Fields for UpstreamType = SourceCode
 		SourceCodeCompressedFileName: application.LatestDeployment.SourceCodeCompressedFileName,
 		// Fields for UpstreamType = Image

@@ -33,6 +33,7 @@ type Deployment {
     repositoryName: String!
     repositoryBranch: String!
     commitHash: String!
+    codePath: String!
     # required for upstreamType = "SourceCode"
     sourceCodeCompressedFileName: String!
     # required for upstreamType = "Image"

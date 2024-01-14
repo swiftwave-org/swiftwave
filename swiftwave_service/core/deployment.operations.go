@@ -105,6 +105,7 @@ func (deployment *Deployment) Update(ctx context.Context, db gorm.DB) (*Deployme
 		deployment.RepositoryName != latestDeployment.RepositoryName ||
 		deployment.RepositoryBranch != latestDeployment.RepositoryBranch ||
 		deployment.CommitHash != latestDeployment.CommitHash ||
+		deployment.CodePath != latestDeployment.CodePath ||
 		deployment.SourceCodeCompressedFileName != latestDeployment.SourceCodeCompressedFileName ||
 		deployment.DockerImage != latestDeployment.DockerImage ||
 		deployment.ImageRegistryCredentialID != latestDeployment.ImageRegistryCredentialID ||

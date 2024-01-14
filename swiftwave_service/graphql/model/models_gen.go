@@ -37,6 +37,7 @@ type ApplicationInput struct {
 	RepositoryOwner              *string                         `json:"repositoryOwner,omitempty"`
 	RepositoryName               *string                         `json:"repositoryName,omitempty"`
 	RepositoryBranch             *string                         `json:"repositoryBranch,omitempty"`
+	CodePath                     *string                         `json:"codePath,omitempty"`
 	SourceCodeCompressedFileName *string                         `json:"sourceCodeCompressedFileName,omitempty"`
 	DockerImage                  *string                         `json:"dockerImage,omitempty"`
 	ImageRegistryCredentialID    *uint                           `json:"imageRegistryCredentialID,omitempty"`
@@ -70,6 +71,7 @@ type Deployment struct {
 	RepositoryName               string                   `json:"repositoryName"`
 	RepositoryBranch             string                   `json:"repositoryBranch"`
 	CommitHash                   string                   `json:"commitHash"`
+	CodePath                     string                   `json:"codePath"`
 	SourceCodeCompressedFileName string                   `json:"sourceCodeCompressedFileName"`
 	DockerImage                  string                   `json:"dockerImage"`
 	ImageRegistryCredentialID    uint                     `json:"imageRegistryCredentialID"`
@@ -99,6 +101,7 @@ type DockerConfigGeneratorInput struct {
 	RepositoryOwner              *string                `json:"repositoryOwner,omitempty"`
 	RepositoryName               *string                `json:"repositoryName,omitempty"`
 	RepositoryBranch             *string                `json:"repositoryBranch,omitempty"`
+	CodePath                     *string                `json:"codePath,omitempty"`
 	SourceCodeCompressedFileName *string                `json:"sourceCodeCompressedFileName,omitempty"`
 	CustomDockerFile             *string                `json:"customDockerFile,omitempty"`
 }

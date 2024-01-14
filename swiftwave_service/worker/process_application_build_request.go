@@ -180,7 +180,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 	}
 
 	// start building docker image
-	scanner, err := m.ServiceManager.DockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.DeployableDockerImageURI())
+	scanner, err := m.ServiceManager.DockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.CodePath, deployment.DeployableDockerImageURI())
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image\n", true)
 		return err
@@ -270,7 +270,7 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm
 	}
 
 	// start building docker image
-	scanner, err := m.ServiceManager.DockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.DeployableDockerImageURI())
+	scanner, err := m.ServiceManager.DockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.CodePath, deployment.DeployableDockerImageURI())
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image\n", true)
 		return err

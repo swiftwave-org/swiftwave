@@ -12,6 +12,7 @@ input DockerConfigGeneratorInput {
     repositoryOwner: String
     repositoryName: String
     repositoryBranch: String
+    codePath: String
     #  sourceType == sourceCode
     sourceCodeCompressedFileName: String
     #  sourceType == custom

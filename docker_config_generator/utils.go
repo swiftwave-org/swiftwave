@@ -13,7 +13,7 @@ import (
 )
 
 // Generate DockerConfig from git repository.
-func (m Manager) GenerateConfigFromGitRepository(git_url string, branch string, username string, password string) (DockerFileConfig, error) {
+func (m Manager) GenerateConfigFromGitRepository(git_url string, branch string, codePath string, username string, password string) (DockerFileConfig, error) {
 	tmpFolder := "/tmp/" + uuid.New().String()
 	if os.Mkdir(tmpFolder, 0777) != nil {
 		return DockerFileConfig{}, errors.New("failed to create tmp folder")
@@ -25,7 +25,7 @@ func (m Manager) GenerateConfigFromGitRepository(git_url string, branch string, 
 		return DockerFileConfig{}, errors.New("failed to clone repository")
 	}
 	// Generate config from source code directory
-	return m.generateConfigFromSourceCodeDirectory(tmpFolder)
+	return m.generateConfigFromSourceCodeDirectory(tmpFolder, codePath)
 }
 
 // Generate DockerConfig from source code .tar file.
@@ -39,11 +39,20 @@ func (m Manager) GenerateConfigFromSourceCodeTar(tarFile string) (DockerFileConf
 		return DockerFileConfig{}, errors.New("failed to extract tar file")
 	}
 	// Generate config from source code directory
-	return m.generateConfigFromSourceCodeDirectory(tmpFolder)
+	return m.generateConfigFromSourceCodeDirectory(tmpFolder, "")
 }
 
 // Generate DockerConfig from source code directory.
-func (m Manager) generateConfigFromSourceCodeDirectory(directory string) (DockerFileConfig, error) {
+func (m Manager) generateConfigFromSourceCodeDirectory(directory string, codePath string) (DockerFileConfig, error) {
+	// add path
+	codePath = strings.TrimSpace(codePath)
+	if codePath != "" && codePath != "/" {
+		directory = directory + "/" + codePath
+		directory = strings.ReplaceAll(directory, "\\", "/")
+		directory = strings.ReplaceAll(directory, "//", "/")
+		directory = strings.ReplaceAll(directory, "../", "")
+		directory = strings.ReplaceAll(directory, "./", "")
+	}
 	// Try to find docker file
 	file, err := os.ReadFile(directory + "/Dockerfile")
 	if err != nil {
