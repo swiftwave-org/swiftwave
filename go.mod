@@ -60,6 +60,7 @@ require (
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/moby/patternmatcher v0.5.0 // indirect
 	github.com/moby/sys/sequential v0.5.0 // indirect
+	github.com/mrz1836/go-sanitize v1.3.1 // indirect
 	github.com/opencontainers/runc v1.1.8 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect

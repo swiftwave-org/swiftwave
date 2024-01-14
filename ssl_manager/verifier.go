@@ -1,16 +1,23 @@
 package Manager
 
 import (
+	"github.com/mrz1836/go-sanitize"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 )
 
-// Verify whether the domain is pointing to the server
+// VerifyDomain Verify whether the domain is pointing to the server
 // Run this before requesting certificate from ACME
 func (s Manager) VerifyDomain(domain string) bool {
-	// TODO: sanitize domain name
-	resp, err := http.Get("http://" + domain + "/.well-known/pre-authorize/")
+	finalDomain := "http://" + domain + "/.well-known/pre-authorize/"
+	sanitizedDomain, err := sanitize.Domain(finalDomain, false, false)
+	if err != nil {
+		log.Println("Error sanitizing domain:", err)
+		return false
+	}
+	resp, err := http.Get(sanitizedDomain)
 	if err != nil {
 		return false
 	}
