@@ -2,7 +2,6 @@ package dockerconfiggenerator
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -53,7 +52,6 @@ func (m Manager) generateConfigFromSourceCodeDirectory(directory string, codePat
 		directory = strings.ReplaceAll(directory, "//", "/")
 		directory = strings.ReplaceAll(directory, "../", "")
 		directory = strings.ReplaceAll(directory, "./", "")
-		fmt.Println(directory)
 	}
 	// Try to find docker file
 	file, err := os.ReadFile(directory + "/Dockerfile")
