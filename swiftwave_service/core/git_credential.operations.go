@@ -33,6 +33,11 @@ func (gitCredential *GitCredential) Update(ctx context.Context, db gorm.DB) erro
 }
 
 func (gitCredential *GitCredential) Delete(ctx context.Context, db gorm.DB) error {
+	// set gitCredentialID null for all deployment using this gitCredential
+	err := db.Model(&Deployment{}).Where("git_credential_id = ?", gitCredential.ID).Update("git_credential_id", nil).Error
+	if err != nil {
+		return err
+	}
 	tx := db.Delete(&gitCredential)
 	return tx.Error
 }
