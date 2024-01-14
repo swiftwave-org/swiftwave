@@ -1,9 +1,7 @@
 package Manager
 
 import (
-	"github.com/mrz1836/go-sanitize"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -12,12 +10,8 @@ import (
 // Run this before requesting certificate from ACME
 func (s Manager) VerifyDomain(domain string) bool {
 	finalDomain := "http://" + domain + "/.well-known/pre-authorize/"
-	sanitizedDomain, err := sanitize.Domain(finalDomain, false, false)
-	if err != nil {
-		log.Println("Error sanitizing domain:", err)
-		return false
-	}
-	resp, err := http.Get(sanitizedDomain)
+	finalDomain = strings.ReplaceAll(finalDomain, "../", "")
+	resp, err := http.Get(finalDomain)
 	if err != nil {
 		return false
 	}

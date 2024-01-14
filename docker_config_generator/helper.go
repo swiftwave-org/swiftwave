@@ -56,8 +56,7 @@ func ExtractTar(tarFilePath string, destFolder string) error {
 
 	for {
 		header, err := tr.Next()
-		// clean header
-		header.Name = strings.ReplaceAll(header.Name, "../", "")
+
 		switch {
 		// if no more files are found return
 		case err == io.EOF:
@@ -71,6 +70,9 @@ func ExtractTar(tarFilePath string, destFolder string) error {
 		case header == nil:
 			continue
 		}
+
+		// clean header
+		header.Name = strings.ReplaceAll(header.Name, "../", "")
 
 		// the target location where the dir/file should be created
 		target := filepath.Join(destFolder, header.Name)
