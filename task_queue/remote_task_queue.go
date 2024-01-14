@@ -82,12 +82,13 @@ func (r *remoteTaskQueue) EnqueueTask(queueName string, argument ArgumentType) e
 	)
 	if err != nil {
 		log.Println("error while publishing message to queue [" + queueName + "]")
+		log.Println(err.Error())
 		return errors.New("error while publishing message to queue")
 	}
 	// Check acknowledgement
-	ack := dConfirmation.Acked()
+	ack := dConfirmation.Wait()
 	if !ack {
-		log.Println("error while publishing message to queue [" + queueName + "]")
+		log.Println("error while publishing message to queue [" + queueName + "] publish ack > false")
 		return errors.New("error while publishing message to queue")
 	}
 	return nil
