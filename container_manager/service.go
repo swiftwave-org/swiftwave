@@ -48,8 +48,14 @@ func (m Manager) GetService(serviceName string) (Service, error) {
 }
 
 // Create a new service
-func (m Manager) CreateService(service Service) error {
-	_, err := m.client.ServiceCreate(m.ctx, m.serviceToServiceSpec(service), types.ServiceCreateOptions{})
+func (m Manager) CreateService(service Service, username string, password string) error {
+	authHeader, err := generateAuthHeader(username, password)
+	if err != nil {
+		return errors.New("failed to generate auth header")
+	}
+	_, err = m.client.ServiceCreate(m.ctx, m.serviceToServiceSpec(service), types.ServiceCreateOptions{
+		EncodedRegistryAuth: authHeader,
+	})
 	if err != nil {
 		return errors.New("error creating service")
 	}

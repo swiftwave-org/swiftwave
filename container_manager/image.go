@@ -62,9 +62,15 @@ func (m Manager) CreateImageWithContext(ctx context.Context, dockerfile string, 
 }
 
 // PullImage pulls a Docker image from a remote registry and returns a scanner to read the pull logs.
-func (m Manager) PullImage(image string) (*bufio.Scanner, error) {
+func (m Manager) PullImage(image string, username string, password string) (*bufio.Scanner, error) {
+	authHeader, err := generateAuthHeader(username, password)
+	if err != nil {
+		return nil, errors.New("failed to generate auth header")
+	}
 	// Pull the image
-	scanner, err := m.client.ImagePull(m.ctx, image, types.ImagePullOptions{})
+	scanner, err := m.client.ImagePull(m.ctx, image, types.ImagePullOptions{
+		RegistryAuth: authHeader,
+	})
 	if err != nil {
 		return nil, errors.New("failed to pull the image")
 	}

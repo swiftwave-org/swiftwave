@@ -124,7 +124,7 @@ func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) 
 		buildArgs = append(buildArgs, *buildArgInputToDatabaseObject(buildArg))
 	}
 	return &core.Deployment{
-		UpstreamType:                 core.UpstreamType(record.UpstreamType), // TODO: Check this
+		UpstreamType:                 core.UpstreamType(record.UpstreamType),
 		GitCredentialID:              record.GitCredentialID,
 		GitProvider:                  core.GitProvider(DefaultGitProvider(record.GitProvider)),
 		RepositoryOwner:              DefaultString(record.RepositoryOwner, ""),
