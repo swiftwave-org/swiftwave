@@ -56,6 +56,8 @@ func ExtractTar(tarFilePath string, destFolder string) error {
 
 	for {
 		header, err := tr.Next()
+		// clean header
+		header.Name = strings.ReplaceAll(header.Name, "../", "")
 		switch {
 		// if no more files are found return
 		case err == io.EOF:
@@ -163,18 +165,4 @@ func hasFileWithExtension(destFolderPath string, extension string) bool {
 	}
 
 	return false
-}
-
-// Sanitize the fileName to remove potentially dangerous characters
-func SanitizeFileName(fileName string) string {
-	// Remove any path components and keep only the file name
-	fileName = filepath.Base(fileName)
-
-	// Remove potentially dangerous characters like ".."
-	fileName = strings.ReplaceAll(fileName, "..", "")
-
-	// Remove potentially dangerous characters like "/"
-	fileName = strings.ReplaceAll(fileName, "/", "")
-
-	return fileName
 }
