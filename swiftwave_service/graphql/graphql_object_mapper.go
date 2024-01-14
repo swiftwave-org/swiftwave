@@ -131,6 +131,7 @@ func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) 
 		RepositoryName:               DefaultString(record.RepositoryName, ""),
 		RepositoryBranch:             DefaultString(record.RepositoryBranch, ""),
 		CommitHash:                   "",
+		CodePath:                     DefaultString(record.CodePath, ""),
 		SourceCodeCompressedFileName: DefaultString(record.SourceCodeCompressedFileName, ""),
 		DockerImage:                  DefaultString(record.DockerImage, ""),
 		ImageRegistryCredentialID:    record.ImageRegistryCredentialID,

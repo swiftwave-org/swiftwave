@@ -5,19 +5,11 @@ import (
 	"context"
 	"errors"
 	"os"
+	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
 )
-
-/*
-CreateImage builds a Docker image from a Dockerfile and returns a scanner to read the build logs.
-It takes the Dockerfile content as a string, a map of build arguments, the path to the code directory, and the name of the image to be built.
-It returns a scanner to read the build logs and an error if any.
-*/
-func (m Manager) CreateImage(dockerfile string, buildargs map[string]string, codepath string, imagename string) (*bufio.Scanner, error) {
-	return m.CreateImageWithContext(m.ctx, dockerfile, buildargs, codepath, imagename)
-}
 
 /*
 CreateImageWithContext builds a Docker image from a Dockerfile and returns a scanner to read the build logs.
@@ -25,9 +17,18 @@ It takes the Dockerfile content as a string, a map of build arguments, the path 
 It returns a scanner to read the build logs and an error if any.
 It takes a context.Context as an additional argument.
 */
-func (m Manager) CreateImageWithContext(ctx context.Context, dockerfile string, buildargs map[string]string, codepath string, imagename string) (*bufio.Scanner, error) {
-	// Move the dockerfile to the codepath
-	err := os.WriteFile(codepath+"/Dockerfile", []byte(dockerfile), 0777)
+func (m Manager) CreateImageWithContext(ctx context.Context, dockerfile string, buildargs map[string]string, sourceCodeDirectory string, codePath string, imagename string) (*bufio.Scanner, error) {
+	// add path
+	codePath = strings.TrimSpace(codePath)
+	if codePath != "" && codePath != "/" {
+		sourceCodeDirectory = sourceCodeDirectory + "/" + codePath
+		sourceCodeDirectory = strings.ReplaceAll(sourceCodeDirectory, "\\", "/")
+		sourceCodeDirectory = strings.ReplaceAll(sourceCodeDirectory, "//", "/")
+		sourceCodeDirectory = strings.ReplaceAll(sourceCodeDirectory, "../", "")
+		sourceCodeDirectory = strings.ReplaceAll(sourceCodeDirectory, "./", "")
+	}
+	// Move the dockerfile to the sourceCodeDirectory
+	err := os.WriteFile(sourceCodeDirectory+"/Dockerfile", []byte(dockerfile), 0777)
 	if err != nil {
 		return nil, errors.New("failed to write the dockerfile")
 	}
@@ -40,10 +41,10 @@ func (m Manager) CreateImageWithContext(ctx context.Context, dockerfile string, 
 		*ptrValue = string(valueBytes)
 		final_buildargs[key] = ptrValue
 	}
-	// tar the codepath
-	tar, err := archive.TarWithOptions(codepath, &archive.TarOptions{})
+	// tar the sourceCodeDirectory
+	tar, err := archive.TarWithOptions(sourceCodeDirectory, &archive.TarOptions{})
 	if err != nil {
-		return nil, errors.New("failed to tar the codepath")
+		return nil, errors.New("failed to tar the sourceCodeDirectory")
 	}
 	// Build the image
 	response, err := m.client.ImageBuild(ctx, tar, types.ImageBuildOptions{
