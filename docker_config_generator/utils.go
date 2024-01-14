@@ -137,7 +137,11 @@ func (m Manager) generateConfigFromSourceCodeDirectory(directory string, codePat
 		}
 	}
 
-	return DockerFileConfig{}, errors.New("failed to detect service")
+	return DockerFileConfig{
+		DetectedService: "Not detected (Write your own Dockerfile)",
+		DockerFile:      "",
+		Variables:       map[string]Variable{},
+	}, nil
 }
 
 // Generate DockerConfig from custom dockerfile. If GenerateConfigFromGitRepository fails to detect service, this function will be used.
