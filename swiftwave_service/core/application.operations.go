@@ -423,3 +423,45 @@ func (application *Application) IsApplicationDeleted(ctx context.Context, db gor
 	}
 	return false, nil
 }
+
+func (application *Application) RebuildApplication(ctx context.Context, db gorm.DB) (deploymentId string, error error) {
+	// fetch record
+	err := application.FindById(ctx, db, application.ID)
+	if err != nil {
+		return "", err
+	}
+	// create a new deployment from latest deployment
+	latestDeployment, err := FindCurrentLiveDeploymentByApplicationId(ctx, db, application.ID)
+	if err != nil {
+		latestDeployment, err = FindLatestDeploymentByApplicationId(ctx, db, application.ID)
+		if err != nil {
+			return "", errors.New("failed to fetch latest deployment")
+		}
+	}
+
+	// fetch build args
+	buildArgs, err := FindBuildArgsByDeploymentId(ctx, db, latestDeployment.ID)
+	if err != nil {
+		return "", err
+	}
+	// create transaction
+	tx := db.Begin()
+	// add new deployment
+	err = latestDeployment.Create(ctx, *tx)
+	if err != nil {
+		tx.Rollback()
+		return "", err
+	}
+	// update build args
+	for _, buildArg := range buildArgs {
+		buildArg.ID = 0
+		buildArg.DeploymentID = latestDeployment.ID
+	}
+	if len(buildArgs) > 0 {
+		err = tx.Create(&buildArgs).Error
+		if err != nil {
+			return "", err
+		}
+	}
+	return latestDeployment.ID, nil
+}

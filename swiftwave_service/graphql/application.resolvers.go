@@ -211,53 +211,21 @@ func (r *mutationResolver) DeleteApplication(ctx context.Context, id string) (bo
 
 // RebuildApplication is the resolver for the rebuildApplication field.
 func (r *mutationResolver) RebuildApplication(ctx context.Context, id string) (bool, error) {
-	// fetch record
-	var record = &core.Application{}
-	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
-	if err != nil {
-		return false, err
-	}
-	// create a new deployment from latest deployment
-	latestDeployment, err := core.FindCurrentLiveDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, record.ID)
-	if err != nil {
-		latestDeployment, err = core.FindLatestDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, record.ID)
-		if err != nil {
-			return false, errors.New("failed to fetch latest deployment")
-		}
-	}
-
-	// fetch build args
-	buildArgs, err := core.FindBuildArgsByDeploymentId(ctx, r.ServiceManager.DbClient, latestDeployment.ID)
-	if err != nil {
-		return false, err
-	}
-	// create transaction
+	// Start transaction
 	tx := r.ServiceManager.DbClient.Begin()
-	// add new deployment
-	err = latestDeployment.Create(ctx, *tx)
-	if err != nil {
-		tx.Rollback()
-		return false, err
+	// fetch record
+	var record = &core.Application{
+		ID: id,
 	}
-	// update build args
-	for _, buildArg := range buildArgs {
-		buildArg.ID = 0
-		buildArg.DeploymentID = latestDeployment.ID
-	}
-	if len(buildArgs) > 0 {
-		err = tx.Create(&buildArgs).Error
-		if err != nil {
-			tx.Rollback()
-			return false, err
-		}
-	}
+	deploymentId, err := record.RebuildApplication(ctx, *tx)
 	// commit transaction
 	err = tx.Commit().Error
 	if err != nil {
+		tx.Rollback()
 		return false, errors.New("failed to create new deployment due to database error")
 	}
 	// enqueue build request
-	err = r.WorkerManager.EnqueueBuildApplicationRequest(record.ID, latestDeployment.ID)
+	err = r.WorkerManager.EnqueueBuildApplicationRequest(record.ID, deploymentId)
 	if err != nil {
 		return false, errors.New("failed to queue build request")
 	}
