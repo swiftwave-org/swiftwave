@@ -28,6 +28,7 @@ haproxy:
   password: will_be_overridden
   data_dir: /var/lib/swiftwave/haproxy
 postgresql:
+  auto_start_local_postgres: false # true or false
   host: 127.0.0.1
   port: 5432
   user: postgres

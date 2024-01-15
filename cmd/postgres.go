@@ -43,6 +43,7 @@ func init() {
 	postgresCmd.AddCommand(postgresStatusCmd)
 	postgresCmd.AddCommand(postgresStartCmd)
 	postgresCmd.AddCommand(postgresStopCmd)
+	postgresCmd.AddCommand(postgresAutoRunCmd)
 }
 
 var postgresCmd = &cobra.Command{
@@ -152,6 +153,20 @@ var postgresStatusCmd = &cobra.Command{
 			printSuccess("Local postgres database is running")
 		} else {
 			printError("Local postgres database is not running")
+		}
+	},
+}
+
+var postgresAutoRunCmd = &cobra.Command{
+	Use:   "auto-run-local",
+	Short: "Auto run postgres locally if `auto_run_local_postgres` is set to true in config file",
+	Long:  "Auto run postgres locally if `auto_run_local_postgres` is set to true in config file",
+	Run: func(cmd *cobra.Command, args []string) {
+		if systemConfig.PostgresqlConfig.AutoStartLocalPostgres && systemConfig.Mode == system_config.Standalone {
+			// Start local postgres database
+			postgresStartCmd.Run(cmd, args)
+		} else {
+			printInfo("Auto run local postgres is disabled in config file")
 		}
 	},
 }
