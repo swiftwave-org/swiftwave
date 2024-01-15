@@ -21,6 +21,7 @@ type Application struct {
 	Replicas                 uint                       `json:"replicas"`
 	IngressRules             []*IngressRule             `json:"ingressRules"`
 	IsDeleted                bool                       `json:"isDeleted"`
+	WebhookToken             string                     `json:"webhookToken"`
 }
 
 type ApplicationInput struct {

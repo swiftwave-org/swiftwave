@@ -22,6 +22,7 @@ type Application {
     replicas: Uint!
     ingressRules: [IngressRule!]!
     isDeleted: Boolean!
+    webhookToken: String!
 }
 
 input ApplicationInput {
@@ -59,4 +60,5 @@ extend type Mutation {
     deleteApplication(id: String!): Boolean!
     rebuildApplication(id: String!): Boolean!
     restartApplication(id: String!): Boolean!
+    regenerateWebhookToken(id: String!): String!
 }

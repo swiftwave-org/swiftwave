@@ -71,6 +71,7 @@ type ComplexityRoot struct {
 		PersistentVolumeBindings func(childComplexity int) int
 		RealtimeInfo             func(childComplexity int) int
 		Replicas                 func(childComplexity int) int
+		WebhookToken             func(childComplexity int) int
 	}
 
 	BuildArg struct {
@@ -197,6 +198,7 @@ type ComplexityRoot struct {
 		DeleteUser                    func(childComplexity int, id uint) int
 		IssueSsl                      func(childComplexity int, id uint) int
 		RebuildApplication            func(childComplexity int, id string) int
+		RegenerateWebhookToken        func(childComplexity int, id string) int
 		RemoveDomain                  func(childComplexity int, id uint) int
 		RestartApplication            func(childComplexity int, id string) int
 		UpdateApplication             func(childComplexity int, id string, input model.ApplicationInput) int
@@ -318,6 +320,7 @@ type MutationResolver interface {
 	DeleteApplication(ctx context.Context, id string) (bool, error)
 	RebuildApplication(ctx context.Context, id string) (bool, error)
 	RestartApplication(ctx context.Context, id string) (bool, error)
+	RegenerateWebhookToken(ctx context.Context, id string) (string, error)
 	CancelDeployment(ctx context.Context, id string) (bool, error)
 	AddDomain(ctx context.Context, input model.DomainInput) (*model.Domain, error)
 	RemoveDomain(ctx context.Context, id uint) (bool, error)
@@ -475,6 +478,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Application.Replicas(childComplexity), true
+
+	case "Application.webhookToken":
+		if e.complexity.Application.WebhookToken == nil {
+			break
+		}
+
+		return e.complexity.Application.WebhookToken(childComplexity), true
 
 	case "BuildArg.key":
 		if e.complexity.BuildArg.Key == nil {
@@ -1205,6 +1215,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RebuildApplication(childComplexity, args["id"].(string)), true
+
+	case "Mutation.regenerateWebhookToken":
+		if e.complexity.Mutation.RegenerateWebhookToken == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_regenerateWebhookToken_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RegenerateWebhookToken(childComplexity, args["id"].(string)), true
 
 	case "Mutation.removeDomain":
 		if e.complexity.Mutation.RemoveDomain == nil {
@@ -2169,6 +2191,21 @@ func (ec *executionContext) field_Mutation_issueSSL_args(ctx context.Context, ra
 }
 
 func (ec *executionContext) field_Mutation_rebuildApplication_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_regenerateWebhookToken_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -3200,6 +3237,50 @@ func (ec *executionContext) fieldContext_Application_isDeleted(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Application_webhookToken(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_webhookToken(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WebhookToken, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_webhookToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _BuildArg_key(ctx context.Context, field graphql.CollectedField, obj *model.BuildArg) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_BuildArg_key(ctx, field)
 	if err != nil {
@@ -3437,6 +3518,8 @@ func (ec *executionContext) fieldContext_Deployment_application(ctx context.Cont
 				return ec.fieldContext_Application_ingressRules(ctx, field)
 			case "isDeleted":
 				return ec.fieldContext_Application_isDeleted(ctx, field)
+			case "webhookToken":
+				return ec.fieldContext_Application_webhookToken(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -6338,6 +6421,8 @@ func (ec *executionContext) fieldContext_IngressRule_application(ctx context.Con
 				return ec.fieldContext_Application_ingressRules(ctx, field)
 			case "isDeleted":
 				return ec.fieldContext_Application_isDeleted(ctx, field)
+			case "webhookToken":
+				return ec.fieldContext_Application_webhookToken(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -6582,6 +6667,8 @@ func (ec *executionContext) fieldContext_Mutation_createApplication(ctx context.
 				return ec.fieldContext_Application_ingressRules(ctx, field)
 			case "isDeleted":
 				return ec.fieldContext_Application_isDeleted(ctx, field)
+			case "webhookToken":
+				return ec.fieldContext_Application_webhookToken(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -6661,6 +6748,8 @@ func (ec *executionContext) fieldContext_Mutation_updateApplication(ctx context.
 				return ec.fieldContext_Application_ingressRules(ctx, field)
 			case "isDeleted":
 				return ec.fieldContext_Application_isDeleted(ctx, field)
+			case "webhookToken":
+				return ec.fieldContext_Application_webhookToken(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -6838,6 +6927,61 @@ func (ec *executionContext) fieldContext_Mutation_restartApplication(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_restartApplication_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_regenerateWebhookToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_regenerateWebhookToken(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RegenerateWebhookToken(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_regenerateWebhookToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_regenerateWebhookToken_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -8501,6 +8645,8 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_application(ctx
 				return ec.fieldContext_Application_ingressRules(ctx, field)
 			case "isDeleted":
 				return ec.fieldContext_Application_isDeleted(ctx, field)
+			case "webhookToken":
+				return ec.fieldContext_Application_webhookToken(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -8613,6 +8759,8 @@ func (ec *executionContext) fieldContext_Query_application(ctx context.Context, 
 				return ec.fieldContext_Application_ingressRules(ctx, field)
 			case "isDeleted":
 				return ec.fieldContext_Application_isDeleted(ctx, field)
+			case "webhookToken":
+				return ec.fieldContext_Application_webhookToken(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -8692,6 +8840,8 @@ func (ec *executionContext) fieldContext_Query_applications(ctx context.Context,
 				return ec.fieldContext_Application_ingressRules(ctx, field)
 			case "isDeleted":
 				return ec.fieldContext_Application_isDeleted(ctx, field)
+			case "webhookToken":
+				return ec.fieldContext_Application_webhookToken(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -13827,6 +13977,11 @@ func (ec *executionContext) _Application(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "webhookToken":
+			out.Values[i] = ec._Application_webhookToken(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -14925,6 +15080,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "restartApplication":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_restartApplication(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "regenerateWebhookToken":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_regenerateWebhookToken(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

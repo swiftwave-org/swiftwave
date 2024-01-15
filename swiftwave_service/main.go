@@ -96,6 +96,7 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 			if strings.Compare(c.Request().URL.Path, "/") == 0 ||
 				strings.HasPrefix(c.Request().URL.Path, "/.well-known") ||
 				strings.HasPrefix(c.Request().URL.Path, "/auth") ||
+				strings.HasPrefix(c.Request().URL.Path, "/webhook") ||
 				strings.HasPrefix(c.Request().URL.Path, "/dashboard") ||
 				strings.HasPrefix(c.Request().URL.Path, "/playground") {
 				return true
