@@ -75,10 +75,14 @@ func (server *Server) redeployApp(c echo.Context) error {
 		imageName := splits[0]
 		// remove the registry from the image name
 		splits = strings.Split(imageName, "/")
-		if len(splits) < 2 {
+		if len(splits) == 0 {
 			return c.String(500, "Error parsing docker image name")
 		}
-		imageName = splits[len(splits)-2] + "/" + splits[len(splits)-1]
+		if len(splits) == 1 {
+			imageName = splits[0]
+		} else {
+			imageName = splits[len(splits)-2] + "/" + splits[len(splits)-1]
+		}
 		if strings.Contains(bodyString, imageName) {
 			triggeredRebuild = true
 		} else {
