@@ -103,6 +103,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		Name:           application.Name,
 		DeploymentMode: application.DeploymentMode,
 		Replicas:       application.Replicas,
+		WebhookToken:   uuid.NewString(),
 	}
 	tx := db.Create(&createdApplication)
 	if tx.Error != nil {
@@ -461,4 +462,16 @@ func (application *Application) RebuildApplication(ctx context.Context, db gorm.
 		}
 	}
 	return latestDeployment.ID, nil
+}
+
+func (application *Application) RegenerateWebhookToken(ctx context.Context, db gorm.DB) error {
+	// fetch record
+	err := application.FindById(ctx, db, application.ID)
+	if err != nil {
+		return err
+	}
+	// update webhook token
+	application.WebhookToken = uuid.NewString()
+	tx := db.Model(&application).Update("webhook_token", application.WebhookToken)
+	return tx.Error
 }

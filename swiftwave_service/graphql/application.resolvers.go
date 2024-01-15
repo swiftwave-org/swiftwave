@@ -250,6 +250,20 @@ func (r *mutationResolver) RestartApplication(ctx context.Context, id string) (b
 	return true, nil
 }
 
+// RegenerateWebhookToken is the resolver for the regenerateWebhookToken field.
+func (r *mutationResolver) RegenerateWebhookToken(ctx context.Context, id string) (string, error) {
+	// fetch record
+	var record = &core.Application{
+		ID: id,
+	}
+	// regenerate token
+	err := record.RegenerateWebhookToken(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return "", err
+	}
+	return record.WebhookToken, nil
+}
+
 // Application is the resolver for the application field.
 func (r *queryResolver) Application(ctx context.Context, id string) (*model.Application, error) {
 	var record = &core.Application{}

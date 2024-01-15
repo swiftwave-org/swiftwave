@@ -119,6 +119,8 @@ type Application struct {
 	IngressRules []IngressRule `json:"ingressRules" gorm:"foreignKey:ApplicationID"`
 	// Is deleted - soft delete - will be deleted from database in background
 	IsDeleted bool `json:"isDeleted" gorm:"default:false"`
+	// Webhook token
+	WebhookToken string `json:"webhookToken"`
 }
 
 // Deployment : hold information about deployment of application
