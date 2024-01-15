@@ -444,12 +444,9 @@ func (application *Application) RebuildApplication(ctx context.Context, db gorm.
 	if err != nil {
 		return "", err
 	}
-	// create transaction
-	tx := db.Begin()
 	// add new deployment
-	err = latestDeployment.Create(ctx, *tx)
+	err = latestDeployment.Create(ctx, db)
 	if err != nil {
-		tx.Rollback()
 		return "", err
 	}
 	// update build args
@@ -458,7 +455,7 @@ func (application *Application) RebuildApplication(ctx context.Context, db gorm.
 		buildArg.DeploymentID = latestDeployment.ID
 	}
 	if len(buildArgs) > 0 {
-		err = tx.Create(&buildArgs).Error
+		err = db.Create(&buildArgs).Error
 		if err != nil {
 			return "", err
 		}
