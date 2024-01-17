@@ -8,7 +8,7 @@ build_dashboard:
 	npm run build:dashboard
 	
 build_service: | build_dashboard
-	go build .
+	CGO_ENABLED=0 go build .
 	
 install: build_service
 	cp swiftwave /usr/bin/swiftwave
