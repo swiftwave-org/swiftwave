@@ -147,9 +147,9 @@ function generateMjs(branchName) {
         const target = string[0]
         const trimSize = /^\s+/.exec(string)[0].length
         return target
-          .split('\n')
+          .split('\\n')
           .map((line) => line.substr(trimSize - 1))
-          .join('\n')
+          .join('\\n')
       }      
     
     export default {
