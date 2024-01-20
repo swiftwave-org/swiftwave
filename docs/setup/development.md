@@ -52,6 +52,9 @@ Generate SwiftWave default configuration
    ```bash
    go run . postgres start
    ```
+11. Migrate database
+   ```bash
+   go run . db-migrate
 11. Start HAProxy Service
    ```bash
    go run . haproxy start
@@ -67,13 +70,13 @@ Generate SwiftWave default configuration
 2. Login using your credentials
    > If you have not created any user, you can create one using CLI
    ```bash
-    go run . create-user
+    go run . create-user -u admin -p admin
     ```
 
 #### Access GrqphQL Playground
 1. Create a new user using CLI
    ```bash
-   go run . create-user
+   go run . create-user -u admin -p admin
    ```
 2. Use Login Endpoint for generating a JWT Token. **Ref** - [REST Api Documentation](https://github.com/swiftwave-org/swiftwave/blob/develop/docs/rest_api.md)
    You can also generate the token using curl command
