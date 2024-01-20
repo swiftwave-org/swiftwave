@@ -142,7 +142,17 @@ async function buildGraphQlDocs() {
 
 // Function to generate mjs for specific branch
 function generateMjs(branchName) {
-    const mjsContent = `export default {
+    const mjsContent = `
+    function markdown(string) {
+        const target = string[0]
+        const trimSize = /^\s+/.exec(string)[0].length
+        return target
+          .split('\n')
+          .map((line) => line.substr(trimSize - 1))
+          .join('\n')
+      }      
+    
+    export default {
         introspection: {
           type: 'sdl',
           paths: ['swiftwave_service/graphql/schema/**/*.graphqls'],
