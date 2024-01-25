@@ -6,7 +6,7 @@ toolchain go1.21.3
 
 require (
 	github.com/99designs/gqlgen v0.17.43
-	github.com/docker/docker v25.0.0+incompatible
+	github.com/docker/docker v25.0.1+incompatible
 	github.com/fatih/color v1.16.0
 	github.com/go-git/go-git/v5 v5.11.0
 	github.com/go-redis/redis/v8 v8.11.5
