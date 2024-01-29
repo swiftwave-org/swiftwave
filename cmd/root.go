@@ -32,6 +32,7 @@ func init() {
 	rootCmd.AddCommand(serviceCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(updateCmd)
+	rootCmd.AddCommand(autoUpdateCmd)
 }
 
 var rootCmd = &cobra.Command{

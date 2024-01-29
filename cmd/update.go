@@ -28,6 +28,10 @@ var updateCmd = &cobra.Command{
 			printError("Failed to fetch latest tag")
 			return
 		}
+		if latestTag == swiftwaveVersion {
+			printSuccess("Swiftwave is already up-to-date")
+			return
+		}
 		// fetch package download url
 		downloadUrl, err := fetchPackageDownloadURL(latestTag)
 		if err != nil {
@@ -89,7 +93,7 @@ func getMajorVersion(version string) string {
 }
 
 func fetchLatestTag(currentVersion string) (string, error) {
-	tagPrefix := getMajorVersion(currentVersion)
+	tagPrefix := getMajorVersion(currentVersion) + "."
 	tagListUrl := "https://api.github.com/repos/swiftwave-org/swiftwave/git/refs/tags/" + tagPrefix
 	res, err := http.Get(tagListUrl)
 	if err != nil || res.StatusCode != 200 {
