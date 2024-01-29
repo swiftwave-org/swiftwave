@@ -1,0 +1,10 @@
+[Unit]
+Description=Swiftwave Updater Timer
+
+[Timer]
+OnCalendar=*:0,5,10,15,20,25,30,35,40,45,50,55
+Unit=swiftwave-updater.service
+Persistent=true
+
+[Install]
+WantedBy=timers.target
