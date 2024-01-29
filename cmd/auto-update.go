@@ -11,10 +11,12 @@ import (
 //go:embed swiftwave-updater.service
 var swiftwaveUpdaterService string
 
+//go:embed swiftwave-updater.timer
+var swiftwaveUpdaterTimer string
+
 func init() {
 	autoUpdateCmd.AddCommand(enableUpdaterServiceCmd)
 	autoUpdateCmd.AddCommand(disableUpdaterServiceCmd)
-	autoUpdateCmd.AddCommand(statusUpdaterServiceCmd)
 }
 
 var autoUpdateCmd = &cobra.Command{
@@ -39,6 +41,13 @@ var enableUpdaterServiceCmd = &cobra.Command{
 		err := os.WriteFile("/etc/systemd/system/swiftwave-updater.service", []byte(swiftwaveUpdaterService), 0644)
 		if err != nil {
 			printError("Failed to write swiftwave-updater.service file")
+			return
+		}
+		// Move swiftwave-updater.timer to /etc/systemd/system/
+		err = os.WriteFile("/etc/systemd/system/swiftwave-updater.timer", []byte(swiftwaveUpdaterTimer), 0644)
+		if err != nil {
+			printError("Failed to write swiftwave-updater.timer file")
+			return
 		}
 		// Reload systemd daemon
 		runCommand := exec.Command("systemctl", "daemon-reload")
@@ -48,8 +57,8 @@ var enableUpdaterServiceCmd = &cobra.Command{
 		} else {
 			printSuccess("Reloaded systemd daemon")
 		}
-		// Enable swiftwave service
-		runCommand = exec.Command("systemctl", "enable", "swiftwave-updater.service")
+		// Enable swiftwave updater timer
+		runCommand = exec.Command("systemctl", "enable", "swiftwave-updater.timer")
 		err = runCommand.Run()
 		if err != nil {
 			printError("Failed to enable swiftwave updater service")
@@ -57,7 +66,7 @@ var enableUpdaterServiceCmd = &cobra.Command{
 			printSuccess("Enabled swiftwave updater service")
 		}
 		// Start swiftwave service
-		runCommand = exec.Command("systemctl", "start", "swiftwave-updater.service")
+		runCommand = exec.Command("systemctl", "start", "swiftwave-updater.timer")
 		err = runCommand.Run()
 		if err != nil {
 			printError("Failed to start swiftwave updater service")
@@ -73,7 +82,7 @@ var disableUpdaterServiceCmd = &cobra.Command{
 	Long:  `Disable auto update service`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Stop swiftwave service
-		runCommand := exec.Command("systemctl", "stop", "swiftwave-updater.service")
+		runCommand := exec.Command("systemctl", "stop", "swiftwave-updater.timer")
 		err := runCommand.Run()
 		if err != nil {
 			printError("Failed to stop swiftwave auto updater service")
@@ -81,7 +90,7 @@ var disableUpdaterServiceCmd = &cobra.Command{
 			printSuccess("Stopped swiftwave auto updater service")
 		}
 		// Disable swiftwave service
-		runCommand = exec.Command("systemctl", "disable", "swiftwave-updater.service")
+		runCommand = exec.Command("systemctl", "disable", "swiftwave-updater.timer")
 		err = runCommand.Run()
 		if err != nil {
 			printError("Failed to disable swiftwave auto updater service")
@@ -93,6 +102,11 @@ var disableUpdaterServiceCmd = &cobra.Command{
 		if err != nil {
 			printError("Failed to remove swiftwave-updater.service file")
 		}
+		// Remove swiftwave-updater.timer from /etc/systemd/system/
+		err = os.Remove("/etc/systemd/system/swiftwave-updater.timer")
+		if err != nil {
+			printError("Failed to remove swiftwave-updater.timer file")
+		}
 		// Reload systemd daemon
 		runCommand = exec.Command("systemctl", "daemon-reload")
 		err = runCommand.Run()
@@ -100,24 +114,6 @@ var disableUpdaterServiceCmd = &cobra.Command{
 			printError("Failed to reload systemd daemon")
 		} else {
 			printSuccess("Reloaded systemd daemon")
-		}
-	},
-}
-
-var statusUpdaterServiceCmd = &cobra.Command{
-	Use:   "status",
-	Short: "Get status of swiftwave auto updater service",
-	Long:  `Get status of swiftwave auto updater service`,
-	Run: func(cmd *cobra.Command, args []string) {
-		// Get status of swiftwave service
-		runCommand := exec.Command("systemctl", "status", "swiftwave-updater.service")
-		runCommand.Stdout = os.Stdout
-		runCommand.Stderr = os.Stderr
-		err := runCommand.Run()
-		if err != nil {
-			printError("Failed to get status of swiftwave auto updater service")
-		} else {
-			printSuccess("Got status of swiftwave auto updater service")
 		}
 	},
 }

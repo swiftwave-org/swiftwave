@@ -1,0 +1,9 @@
+[Unit]
+Description=Swiftwave Updater Timer
+
+[Timer]
+OnUnitActiveSec=5m
+Unit=swiftwave-updater.service
+
+[Install]
+WantedBy=timers.target

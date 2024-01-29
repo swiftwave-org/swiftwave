@@ -3,9 +3,8 @@ Description=Swiftwave Updater Service
 After=multi-user.target
 
 [Service]
-ExecStart=/bin/sh -c "(/usr/bin/swiftwave update || true) && sleep 300"
+ExecStart=/bin/sh -c "/usr/bin/swiftwave update || true"
 Type=simple
-Restart=always
 
 [Install]
 WantedBy=multi-user.target
