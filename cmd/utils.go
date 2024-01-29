@@ -5,9 +5,11 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"log"
 	"net"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -15,15 +17,32 @@ import (
 
 func getDBClient() (*gorm.DB, error) {
 	dbDialect := postgres.Open(systemConfig.PostgresqlConfig.DSN())
-	if systemConfig.IsDevelopmentMode {
-		return gorm.Open(dbDialect, &gorm.Config{
-			SkipDefaultTransaction: true,
-		})
+	maxAttempts := 5
+	var dbClient *gorm.DB
+	var err error
+	for i := 0; i < maxAttempts; i++ {
+		if systemConfig.IsDevelopmentMode {
+			dbClient, err = gorm.Open(dbDialect, &gorm.Config{
+				SkipDefaultTransaction: true,
+			})
+		} else {
+			dbClient, err = gorm.Open(dbDialect, &gorm.Config{
+				SkipDefaultTransaction: true,
+				Logger:                 logger.Default.LogMode(logger.Silent),
+			})
+		}
+		if err != nil {
+			if i == maxAttempts-1 {
+				return nil, err
+			}
+			log.Println("Failed to connect to database. Retrying in 10 seconds...")
+			time.Sleep(10 * time.Second)
+			continue
+		}
+		return dbClient, nil
 	}
-	return gorm.Open(dbDialect, &gorm.Config{
-		SkipDefaultTransaction: true,
-		Logger: logger.Default.LogMode(logger.Silent),
-	})
+	log.Println("Failed to connect to database. Retried 5 times. Exiting...")
+	return nil, errors.New("failed to connect to database")
 }
 
 func checkIfCommandExists(command string) bool {
