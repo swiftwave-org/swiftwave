@@ -4,6 +4,7 @@ Description=Swiftwave Updater Timer
 [Timer]
 OnUnitActiveSec=5m
 Unit=swiftwave-updater.service
+Persistent=true
 
 [Install]
 WantedBy=timers.target
