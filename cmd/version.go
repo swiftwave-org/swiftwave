@@ -18,6 +18,6 @@ var versionCmd = &cobra.Command{
 			cmd.Println(swiftwaveVersion)
 			return
 		}
-		cmd.Println("Swiftwave swiftwaveVersion " + swiftwaveVersion)
+		cmd.Println("Swiftwave is running in version " + swiftwaveVersion)
 	},
 }
