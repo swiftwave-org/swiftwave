@@ -6,7 +6,6 @@ import (
 	"github.com/docker/docker/client"
 )
 
-
 func NewDockerManager(unixSocketPath string) (*Manager, error) {
 	manager := &Manager{}
 	client, err := client.NewClientWithOpts(client.WithHost("unix://"+unixSocketPath), client.WithAPIVersionNegotiation())

@@ -5,6 +5,7 @@ After=multi-user.target
 [Service]
 ExecStart=/bin/sh -c "/usr/bin/swiftwave postgres auto-run-local && /usr/bin/swiftwave start"
 Type=simple
+Restart=always
 
 [Install]
 WantedBy=multi-user.target

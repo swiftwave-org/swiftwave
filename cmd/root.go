@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
 
@@ -11,6 +12,9 @@ import (
 var systemConfig *system_config.Config
 
 var configFilePath = "/etc/swiftwave/config.yml"
+
+//go:embed .version
+var swiftwaveVersion string
 
 func init() {
 	rootCmd.PersistentFlags().Bool("dev", false, "Run in development mode")
@@ -26,6 +30,8 @@ func init() {
 	rootCmd.AddCommand(generateTLSCommand)
 	rootCmd.AddCommand(dbMigrateCmd)
 	rootCmd.AddCommand(serviceCmd)
+	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(updateCmd)
 }
 
 var rootCmd = &cobra.Command{
