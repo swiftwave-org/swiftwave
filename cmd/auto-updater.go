@@ -15,11 +15,11 @@ var swiftwaveUpdaterService string
 var swiftwaveUpdaterTimer string
 
 func init() {
-	autoUpdateCmd.AddCommand(enableUpdaterServiceCmd)
-	autoUpdateCmd.AddCommand(disableUpdaterServiceCmd)
+	autoUpdaterCmd.AddCommand(enableUpdaterServiceCmd)
+	autoUpdaterCmd.AddCommand(disableUpdaterServiceCmd)
 }
 
-var autoUpdateCmd = &cobra.Command{
+var autoUpdaterCmd = &cobra.Command{
 	Use:   "auto-updater",
 	Short: "Auto update swiftwave for minor patcha and hotfix releases",
 	Long:  `Auto update swiftwave for minor patcha and hotfix releases`,
