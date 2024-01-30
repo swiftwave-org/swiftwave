@@ -6,13 +6,13 @@ import (
 )
 
 func init() {
-	versionCmd.Flags().BoolP("short", "s", false, "Show only the swiftwaveVersion number")
+	versionCmd.Flags().BoolP("short", "s", false, "Show only the version number")
 }
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print the swiftwaveVersion number of Swiftwave",
-	Long:  "Print the swiftwaveVersion number of Swiftwave",
+	Short: "Print the version number of Swiftwave",
+	Long:  "Print the version number of Swiftwave",
 	Run: func(cmd *cobra.Command, args []string) {
 		if short, _ := cmd.Flags().GetBool("short"); short {
 			cmd.Println(swiftwaveVersion)
