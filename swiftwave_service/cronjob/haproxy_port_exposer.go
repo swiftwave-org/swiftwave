@@ -1,10 +1,13 @@
 package cronjob
 
 import (
+	"fmt"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"log"
+	"os/exec"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -53,8 +56,60 @@ func (m Manager) HaProxyPortExposer() {
 			} else {
 				log.Println("Exposed ports of haproxy service updated")
 			}
+			// Update firewall
+			if m.SystemConfig.ServiceConfig.FirewallEnabled {
+				// Find out the ports that are unexposed
+				var unexposedPorts = make([]int, 0)
+				for port := range exposedPortsMap {
+					if _, ok := portsMap[port]; !ok {
+						unexposedPorts = append(unexposedPorts, port)
+					}
+				}
+				// Deny unexposed ports
+				for _, port := range unexposedPorts {
+					err := firewallDenyPort(m.SystemConfig.ServiceConfig.FirewallDenyPortCommand, port)
+					if err != nil {
+						log.Println(fmt.Sprintf("Failed to deny port %d in firewall", port))
+					} else {
+						log.Println(fmt.Sprintf("Port %d denied", port))
+					}
+				}
+				// Allow exposed ports
+				for port := range portsMap {
+					err := firewallAllowPort(m.SystemConfig.ServiceConfig.FirewallAllowPortCommand, port)
+					if err != nil {
+						log.Println(fmt.Sprintf("Failed to allow port %d in firewall", port))
+					} else {
+						log.Println(fmt.Sprintf("Port %d allowed", port))
+					}
+				}
+			}
 		}
 		time.Sleep(20 * time.Second)
 	}
 	m.wg.Done()
+}
+
+func firewallDenyPort(commandTemplate string, port int) error {
+	command := strings.ReplaceAll(commandTemplate, "{{PORT}}", fmt.Sprintf("%d", port))
+	// Run using os package
+	cmd := exec.Command("sh", "-c", command)
+	err := cmd.Run()
+	if err != nil {
+		return err
+	} else {
+		return nil
+	}
+}
+
+func firewallAllowPort(commandTemplate string, port int) error {
+	command := strings.ReplaceAll(commandTemplate, "{{PORT}}", fmt.Sprintf("%d", port))
+	// Run using os package
+	cmd := exec.Command("sh", "-c", command)
+	err := cmd.Run()
+	if err != nil {
+		return err
+	} else {
+		return nil
+	}
 }

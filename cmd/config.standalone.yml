@@ -16,6 +16,9 @@ service:
     - 3333 # swiftwave port
   auto_migrate_database: true # true or false
   jwt_secret_key: not_a_secured_key # should be a random string
+  firewall_enabled: false # true or false
+  firewall_allow_port_command: "ufw allow {{PORT}}"
+  firewall_deny_port_command: "ufw deny {{PORT}}"
 lets_encrypt:
   staging_environment: false # true or false
   email_id: will_be_overridden
