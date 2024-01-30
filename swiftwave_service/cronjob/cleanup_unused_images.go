@@ -10,9 +10,9 @@ func (m Manager) CleanupUnusedImages() {
 	for {
 		log.Println("Running cleanup unused images cron job")
 		db := m.ServiceManager.DbClient
-		// fetch deployments which are failed/stalled
+		// fetch deployments which are stalled
 		var deployments []*core.Deployment
-		tx := db.Where("status = ? OR status = ?", core.DeploymentStatusFailed, core.DeploymentStalled).Find(&deployments)
+		tx := db.Where("status = ?", core.DeploymentStalled).Find(&deployments)
 		if tx.Error != nil {
 			log.Println("Error while fetching staller/failed deployments", tx.Error)
 			return
