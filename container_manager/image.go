@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"context"
 	"errors"
+	"github.com/docker/docker/api/types/filters"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/docker/docker/api/types"
@@ -93,6 +95,18 @@ func (m Manager) RemoveImage(image string) error {
 	_, err := m.client.ImageRemove(m.ctx, image, types.ImageRemoveOptions{})
 	if err != nil {
 		return errors.New("failed to remove the image")
+	}
+	return nil
+}
+
+// PruneImages removes all unused Docker images from the local registry.
+func (m Manager) PruneImages() error {
+	// Prune the images including dangling images
+	pruneFilters := filters.NewArgs()
+	pruneFilters.Add("dangling", strconv.FormatBool(false))
+	_, err := m.client.ImagesPrune(m.ctx, pruneFilters)
+	if err != nil {
+		return errors.New("failed to prune the images")
 	}
 	return nil
 }
