@@ -86,3 +86,13 @@ func (m Manager) ExistsImage(image string) bool {
 	}
 	return true
 }
+
+// RemoveImage removes a Docker image from the local registry.
+func (m Manager) RemoveImage(image string) error {
+	// Remove the image
+	_, err := m.client.ImageRemove(m.ctx, image, types.ImageRemoveOptions{})
+	if err != nil {
+		return errors.New("failed to remove the image")
+	}
+	return nil
+}
