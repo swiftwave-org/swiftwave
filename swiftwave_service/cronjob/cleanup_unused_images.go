@@ -8,6 +8,7 @@ import (
 
 func (m Manager) CleanupUnusedImages() {
 	for {
+		log.Println("Running cleanup unused images cron job")
 		db := m.ServiceManager.DbClient
 		// fetch deployments which are failed/stalled
 		var deployments []*core.Deployment
@@ -31,6 +32,7 @@ func (m Manager) CleanupUnusedImages() {
 				log.Println("Error while deleting image", image, err)
 			}
 		}
+		log.Println("Cleanup unused images cron job completed")
 		// sleep for 1 hour
 		time.Sleep(1 * time.Hour)
 	}
