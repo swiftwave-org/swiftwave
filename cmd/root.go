@@ -21,7 +21,6 @@ func init() {
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(setupCmd)
 	rootCmd.AddCommand(configCmd)
-	rootCmd.AddCommand(infoCmd)
 	rootCmd.AddCommand(createUserCmd)
 	rootCmd.AddCommand(deleteUserCmd)
 	rootCmd.AddCommand(startCmd)
@@ -30,9 +29,10 @@ func init() {
 	rootCmd.AddCommand(generateTLSCommand)
 	rootCmd.AddCommand(dbMigrateCmd)
 	rootCmd.AddCommand(serviceCmd)
-	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(autoUpdaterCmd)
+	rootCmd.AddCommand(infoCmd)
+	rootCmd.AddCommand(versionCmd)
 }
 
 var rootCmd = &cobra.Command{

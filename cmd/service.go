@@ -14,6 +14,7 @@ var swiftwaveService string
 func init() {
 	serviceCmd.AddCommand(enableServiceCmd)
 	serviceCmd.AddCommand(disableServiceCmd)
+	serviceCmd.AddCommand(restartServiceCmd)
 	serviceCmd.AddCommand(statusServiceCmd)
 }
 
@@ -100,6 +101,22 @@ var disableServiceCmd = &cobra.Command{
 			printError("Failed to reload systemd daemon")
 		} else {
 			printSuccess("Reloaded systemd daemon")
+		}
+	},
+}
+
+var restartServiceCmd = &cobra.Command{
+	Use:   "restart",
+	Short: "Restart a service",
+	Long:  `Restart a service`,
+	Run: func(cmd *cobra.Command, args []string) {
+		// Restart swiftwave service
+		runCommand := exec.Command("systemctl", "restart", "swiftwave.service")
+		err := runCommand.Run()
+		if err != nil {
+			printError("Failed to restart swiftwave service")
+		} else {
+			printSuccess("Restarted swiftwave service")
 		}
 	},
 }
