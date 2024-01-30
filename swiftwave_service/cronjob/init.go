@@ -24,6 +24,8 @@ func (m Manager) Start(nowait bool) {
 	// Start cron jobs
 	m.wg.Add(1)
 	go m.HaProxyPortExposer()
+	m.wg.Add(1)
+	go m.CleanupUnusedImages()
 	if !nowait {
 		m.wg.Wait()
 	}
