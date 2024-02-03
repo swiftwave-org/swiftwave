@@ -8,3 +8,9 @@ updates:
     directory: "/"
     schedule:
       interval: daily
+    target-branch: develop
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: daily
+    target-branch: v1
