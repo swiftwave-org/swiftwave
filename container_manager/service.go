@@ -338,6 +338,15 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 				Command: service.Command,
 				Env:     env,
 				Mounts:  volumeMounts,
+				Privileges: &swarm.Privileges{
+					NoNewPrivileges: true,
+					AppArmor: &swarm.AppArmorOpts{
+						Mode: swarm.AppArmorModeDefault,
+					},
+					Seccomp: &swarm.SeccompOpts{
+						Mode: swarm.SeccompModeDefault,
+					},
+				},
 			},
 			// Set network name
 			Networks: networkAttachmentConfigs,
