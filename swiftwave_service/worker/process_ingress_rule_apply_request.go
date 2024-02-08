@@ -23,12 +23,19 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 	if ingressRule.Status == core.IngressRuleStatusDeleting {
 		return nil
 	}
-	// fetch domain
 	domain := &core.Domain{}
-	err = domain.FindById(ctx, dbWithoutTx, ingressRule.DomainID)
-	if err != nil {
-		return err
+	if ingressRule.Protocol == core.HTTPSProtocol || ingressRule.Protocol == core.HTTPProtocol {
+		// fetch domain
+		domain := &core.Domain{}
+		if ingressRule.DomainID == nil {
+			return errors.New("domain id is nil")
+		}
+		err = domain.FindById(ctx, dbWithoutTx, *ingressRule.DomainID)
+		if err != nil {
+			return err
+		}
 	}
+
 	// fetch application
 	application := &core.Application{}
 	err = application.FindById(ctx, dbWithoutTx, ingressRule.ApplicationID)
@@ -84,7 +91,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 			}
 		}
 	} else if ingressRule.Protocol == core.TCPProtocol {
-		err = m.ServiceManager.HaproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, haproxymanager.TCPMode, m.SystemConfig.ServiceConfig.RestrictedPorts)
+		err = m.ServiceManager.HaproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), "", haproxymanager.TCPMode, m.SystemConfig.ServiceConfig.RestrictedPorts)
 		if err != nil {
 			// set status as failed and exit
 			_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
@@ -92,6 +99,8 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 			// no requeue
 			return nil
 		}
+	} else if ingressRule.Protocol == core.UDPProtocol {
+		// TODO: implement UDP
 	} else {
 		// set status as failed and exit
 		_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)

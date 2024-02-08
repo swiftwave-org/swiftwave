@@ -185,8 +185,8 @@ type ImageRegistryCredentialInput struct {
 
 type IngressRule struct {
 	ID            uint              `json:"id"`
-	DomainID      uint              `json:"domainId"`
-	Domain        *Domain           `json:"domain"`
+	DomainID      *uint             `json:"domainId,omitempty"`
+	Domain        *Domain           `json:"domain,omitempty"`
 	Protocol      ProtocolType      `json:"protocol"`
 	Port          uint              `json:"port"`
 	ApplicationID string            `json:"applicationId"`
@@ -198,7 +198,7 @@ type IngressRule struct {
 }
 
 type IngressRuleInput struct {
-	DomainID      uint         `json:"domainId"`
+	DomainID      *uint        `json:"domainId,omitempty"`
 	ApplicationID string       `json:"applicationId"`
 	Protocol      ProtocolType `json:"protocol"`
 	Port          uint         `json:"port"`
@@ -558,17 +558,19 @@ const (
 	ProtocolTypeHTTP  ProtocolType = "http"
 	ProtocolTypeHTTPS ProtocolType = "https"
 	ProtocolTypeTCP   ProtocolType = "tcp"
+	ProtocolTypeUDP   ProtocolType = "udp"
 )
 
 var AllProtocolType = []ProtocolType{
 	ProtocolTypeHTTP,
 	ProtocolTypeHTTPS,
 	ProtocolTypeTCP,
+	ProtocolTypeUDP,
 }
 
 func (e ProtocolType) IsValid() bool {
 	switch e {
-	case ProtocolTypeHTTP, ProtocolTypeHTTPS, ProtocolTypeTCP:
+	case ProtocolTypeHTTP, ProtocolTypeHTTPS, ProtocolTypeTCP, ProtocolTypeUDP:
 		return true
 	}
 	return false

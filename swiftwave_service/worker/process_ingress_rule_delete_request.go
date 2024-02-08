@@ -24,14 +24,20 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 		return nil
 	}
 	// fetch the domain
-	var domain core.Domain
-	err = domain.FindById(ctx, dbWithoutTx, ingressRule.DomainID)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil
+	domain := core.Domain{}
+	if ingressRule.Protocol == core.HTTPProtocol || ingressRule.Protocol == core.HTTPSProtocol {
+		if ingressRule.DomainID == nil {
+			return errors.New("domain id is nil")
 		}
-		return err
+		err = domain.FindById(ctx, dbWithoutTx, *ingressRule.DomainID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil
+			}
+			return err
+		}
 	}
+
 	// fetch application
 	var application core.Application
 	err = application.FindById(ctx, dbWithoutTx, ingressRule.ApplicationID)
@@ -80,7 +86,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			}
 		}
 	} else if ingressRule.Protocol == core.TCPProtocol {
-		err = m.ServiceManager.HaproxyManager.DeleteTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, m.SystemConfig.ServiceConfig.RestrictedPorts)
+		err = m.ServiceManager.HaproxyManager.DeleteTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), "", m.SystemConfig.ServiceConfig.RestrictedPorts)
 		if err != nil {
 			// set status as failed and exit
 			// because `DeleteTCPLink` can fail only if haproxy not working
@@ -88,6 +94,8 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			// requeue required as it fault of haproxy and may be resolved in next try
 			return err
 		}
+	} else if ingressRule.Protocol == core.UDPProtocol {
+		//  TODO: implement
 	} else {
 		// unknown protocol
 		deleteHaProxyTransaction(m, haproxyTransactionId)

@@ -32,13 +32,15 @@ func FindIngressRulesByApplicationID(ctx context.Context, db gorm.DB, applicatio
 func (ingressRule *IngressRule) Create(ctx context.Context, db gorm.DB) error {
 	// verify if domain exist
 	domain := &Domain{}
-	err := domain.FindById(ctx, db, ingressRule.DomainID)
-	if err != nil {
-		return err
+	if ingressRule.DomainID != nil {
+		err := domain.FindById(ctx, db, *ingressRule.DomainID)
+		if err != nil {
+			return err
+		}
 	}
 	// verify if application exist
 	application := &Application{}
-	err = application.FindById(ctx, db, ingressRule.ApplicationID)
+	err := application.FindById(ctx, db, ingressRule.ApplicationID)
 	if err != nil {
 		return err
 	}

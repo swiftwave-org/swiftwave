@@ -190,6 +190,7 @@ func (s Manager) AddTCPLink(transaction_id string, backend_name string, port int
 		"name":    frontend_name,
 	}
 	if strings.TrimSpace(domain_name) == "" {
+		// TODO: use template to keep it scalable
 		add_tcp_frontend_request_body["default_backend"] = backend_name
 	}
 	// Create request bytes

@@ -6139,14 +6139,11 @@ func (ec *executionContext) _IngressRule_domainId(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(uint)
+	res := resTmp.(*uint)
 	fc.Result = res
-	return ec.marshalNUint2uint(ctx, field.Selections, res)
+	return ec.marshalOUint2ᚖuint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_IngressRule_domainId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6183,14 +6180,11 @@ func (ec *executionContext) _IngressRule_domain(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.Domain)
 	fc.Result = res
-	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
+	return ec.marshalODomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_IngressRule_domain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -13501,7 +13495,7 @@ func (ec *executionContext) unmarshalInputIngressRuleInput(ctx context.Context, 
 		switch k {
 		case "domainId":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("domainId"))
-			data, err := ec.unmarshalNUint2uint(ctx, v)
+			data, err := ec.unmarshalOUint2ᚖuint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -14897,9 +14891,6 @@ func (ec *executionContext) _IngressRule(ctx context.Context, sel ast.SelectionS
 			}
 		case "domainId":
 			out.Values[i] = ec._IngressRule_domainId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "domain":
 			field := field
 
@@ -14910,9 +14901,6 @@ func (ec *executionContext) _IngressRule(ctx context.Context, sel ast.SelectionS
 					}
 				}()
 				res = ec._IngressRule_domain(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
 				return res
 			}
 
@@ -17901,6 +17889,13 @@ func (ec *executionContext) marshalODockerConfigGeneratorOutput2ᚖgithubᚗcom�
 		return graphql.Null
 	}
 	return ec._DockerConfigGeneratorOutput(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalODomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx context.Context, sel ast.SelectionSet, v *model.Domain) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Domain(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, v interface{}) (*model.GitProvider, error) {

@@ -46,7 +46,7 @@ type Domain struct {
 // IngressRule : hold information about Ingress rule for service
 type IngressRule struct {
 	ID            uint              `json:"id" gorm:"primaryKey"`
-	DomainID      uint              `json:"domainID"`
+	DomainID      *uint             `json:"domainID,omitempty" gorm:"default:null"`
 	ApplicationID string            `json:"applicationID"`
 	Protocol      ProtocolType      `json:"protocol"`
 	Port          uint              `json:"port"`       // external port
