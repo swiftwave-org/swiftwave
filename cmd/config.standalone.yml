@@ -30,6 +30,11 @@ haproxy:
   user: will_be_overridden
   password: will_be_overridden
   data_dir: /var/lib/swiftwave/haproxy
+udp_proxy:
+  service_name: swiftwave_udp_proxy
+  image: ghcr.io/swiftwave-org/udpproxy:latest
+  unix_socket_path: /etc/swiftwave/udpproxy/api.sock
+  data_dir: /var/lib/swiftwave/udpproxy
 postgresql:
   auto_start_local_postgres: true # true or false
   host: 127.0.0.1

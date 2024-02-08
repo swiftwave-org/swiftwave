@@ -25,6 +25,7 @@ func init() {
 	rootCmd.AddCommand(deleteUserCmd)
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(haproxyCmd)
+	rootCmd.AddCommand(udpProxyCmd)
 	rootCmd.AddCommand(postgresCmd)
 	rootCmd.AddCommand(generateTLSCommand)
 	rootCmd.AddCommand(dbMigrateCmd)
