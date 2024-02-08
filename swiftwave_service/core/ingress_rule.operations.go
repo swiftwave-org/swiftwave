@@ -30,6 +30,12 @@ func FindIngressRulesByApplicationID(ctx context.Context, db gorm.DB, applicatio
 }
 
 func (ingressRule *IngressRule) Create(ctx context.Context, db gorm.DB) error {
+	// if TCP/UDP mode, ensure port 80, 443 not requested
+	if ingressRule.Protocol == TCPProtocol || ingressRule.Protocol == UDPProtocol {
+		if ingressRule.Port == 80 || ingressRule.Port == 443 {
+			return errors.New("port 80, 443 not allowed for TCP/UDP mode")
+		}
+	}
 	// verify if domain exist
 	domain := &Domain{}
 	if ingressRule.DomainID != nil {
