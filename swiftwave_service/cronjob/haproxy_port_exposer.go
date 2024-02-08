@@ -15,7 +15,7 @@ func (m Manager) HaProxyPortExposer() {
 	for {
 		// Fetch all ingress rules with only port field
 		var ingressRules []core.IngressRule
-		tx := m.ServiceManager.DbClient.Select("port").Where("port IS NOT NULL").Find(&ingressRules)
+		tx := m.ServiceManager.DbClient.Select("port").Where("port IS NOT NULL").Where("protocol != udp").Find(&ingressRules)
 		if tx.Error != nil {
 			log.Println(tx.Error)
 			continue
@@ -44,7 +44,7 @@ func (m Manager) HaProxyPortExposer() {
 			for port := range portsMap {
 				portsUpdateRequired = append(portsUpdateRequired, swarm.PortConfig{
 					Protocol:      swarm.PortConfigProtocolTCP,
-					PublishMode:   swarm.PortConfigPublishModeHost,
+					PublishMode:   swarm.PortConfigPublishModeIngress,
 					TargetPort:    uint32(port),
 					PublishedPort: uint32(port),
 				})

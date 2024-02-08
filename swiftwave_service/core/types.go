@@ -73,6 +73,7 @@ const (
 	HTTPProtocol  ProtocolType = "http"
 	HTTPSProtocol ProtocolType = "https"
 	TCPProtocol   ProtocolType = "tcp"
+	UDPProtocol   ProtocolType = "udp"
 )
 
 // IngressRuleStatus : status of the ingress rule

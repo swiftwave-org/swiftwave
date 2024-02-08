@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/system_config"
 	"io"
 	"net/http"
@@ -81,19 +82,49 @@ var haproxyStartCmd = &cobra.Command{
 			printError("Error : " + err.Error())
 			return
 		}
+		// Fetch hostname
+		hostname, err := os.Hostname()
+		if err != nil {
+			printError("failed to fetch hostname")
+			return
+		}
+		// Find out required ports
+		ports := []uint{80, 443}
+		dbClient, err := getDBClient()
+		if err == nil {
+			var ingressRules []core.IngressRule
+			tx := dbClient.Select("port").Where("port IS NOT NULL").Where("protocol != udp").Find(&ingressRules)
+			if tx.Error == nil {
+				if ingressRules != nil {
+					for _, ingressRule := range ingressRules {
+						ports = append(ports, ingressRule.Port)
+					}
+				}
+			}
+		}
 		// Start HAProxy service
-		dockerCmd := exec.Command("docker", "service", "create",
+		args1 := []string{
+			"service", "create",
 			"--name", systemConfig.HAProxyConfig.ServiceName,
-			"--mode", "global",
+			"--mode", "replicated",
+			"--replicas", "1",
 			"--network", systemConfig.ServiceConfig.NetworkName,
-			"--mount", "type=bind,source="+systemConfig.HAProxyConfig.DataDir+",destination=/etc/haproxy",
-			"--mount", "type=bind,source="+unixSocketMountDir+",destination=/home/",
-			"--publish", "mode=host,target=80,published=80",
-			"--publish", "mode=host,target=443,published=443",
-			"--env", "ADMIN_USER="+systemConfig.HAProxyConfig.User,
-			"--env", "ADMIN_PASSWORD="+systemConfig.HAProxyConfig.Password,
-			"--env", "SWIFTWAVE_SERVICE_ENDPOINT="+systemConfig.ServiceConfig.AddressOfCurrentNode+":"+strconv.Itoa(systemConfig.ServiceConfig.BindPort),
-			dockerImage)
+			"--constraint", "node.hostname==" + hostname,
+			"--mount", "type=bind,source=" + systemConfig.HAProxyConfig.DataDir + ",destination=/etc/haproxy",
+			"--mount", "type=bind,source=" + unixSocketMountDir + ",destination=/home/",
+		}
+		args2 := make([]string, 0, len(ports))
+		for _, port := range ports {
+			args2 = append(args2, "--publish", "mode=ingress,target="+strconv.Itoa(int(port))+",published="+strconv.Itoa(int(port)))
+		}
+		args3 := []string{
+			"--env", "ADMIN_USER=" + systemConfig.HAProxyConfig.User,
+			"--env", "ADMIN_PASSWORD=" + systemConfig.HAProxyConfig.Password,
+			"--env", "SWIFTWAVE_SERVICE_ENDPOINT=" + systemConfig.ServiceConfig.AddressOfCurrentNode + ":" + strconv.Itoa(systemConfig.ServiceConfig.BindPort),
+			dockerImage,
+		}
+		finalArgs := append(append(args1, args2...), args3...)
+		dockerCmd := exec.Command("docker", finalArgs...)
 		dockerCmd.Stdout = os.Stdout
 		dockerCmd.Stderr = os.Stderr
 		dockerCmd.Stdin = os.Stdin
