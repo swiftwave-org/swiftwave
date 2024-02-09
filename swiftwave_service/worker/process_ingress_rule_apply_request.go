@@ -27,7 +27,6 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 	domain := &core.Domain{}
 	if ingressRule.Protocol == core.HTTPSProtocol || ingressRule.Protocol == core.HTTPProtocol {
 		// fetch domain
-		domain := &core.Domain{}
 		if ingressRule.DomainID == nil {
 			return errors.New("domain id is nil")
 		}
