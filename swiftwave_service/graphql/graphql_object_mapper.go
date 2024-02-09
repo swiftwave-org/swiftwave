@@ -162,6 +162,8 @@ func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Appl
 		LatestDeployment:         *applicationInputToDeploymentDatabaseObject(record),
 		Deployments:              make([]core.Deployment, 0),
 		IngressRules:             make([]core.IngressRule, 0),
+		Capabilities:             record.Capabilities,
+		Sysctls:                  record.Sysctls,
 	}
 }
 
@@ -174,6 +176,8 @@ func applicationToGraphqlObject(record *core.Application) *model.Application {
 		Replicas:       record.Replicas,
 		IsDeleted:      record.IsDeleted,
 		WebhookToken:   record.WebhookToken,
+		Capabilities:   record.Capabilities,
+		Sysctls:        record.Sysctls,
 	}
 }
 

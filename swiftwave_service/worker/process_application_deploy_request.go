@@ -148,6 +148,16 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 		}
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image pulled successfully\n", false)
 	}
+
+	sysctls := make(map[string]string, 0)
+	if application.Sysctls != nil {
+		for _, sysctl := range application.Sysctls {
+			sysctlPart := strings.SplitN(sysctl, "=", 2)
+			if len(sysctlPart) == 2 {
+				sysctls[sysctlPart[0]] = sysctlPart[1]
+			}
+		}
+	}
 	// create service
 	service := containermanger.Service{
 		Name:           application.Name,
@@ -158,6 +168,8 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 		DeploymentMode: containermanger.DeploymentMode(application.DeploymentMode),
 		Replicas:       uint64(application.Replicas),
 		VolumeMounts:   volumeMounts,
+		Capabilities:   application.Capabilities,
+		Sysctls:        sysctls,
 	}
 	// find current deployment and mark it as stalled
 	currentDeployment, err := core.FindCurrentLiveDeploymentByApplicationId(ctx, *db, request.AppId)

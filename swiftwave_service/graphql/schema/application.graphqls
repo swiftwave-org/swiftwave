@@ -15,6 +15,8 @@ type Application {
     name: String!
     environmentVariables: [EnvironmentVariable!]!
     persistentVolumeBindings: [PersistentVolumeBinding!]!
+    capabilities: [String!]!
+    sysctls: [String!]!
     realtimeInfo: RealtimeInfo!
     latestDeployment: Deployment!
     deployments: [Deployment!]!
@@ -29,6 +31,8 @@ input ApplicationInput {
     name: String!
     environmentVariables: [EnvironmentVariableInput!]! # dont change with each deployment
     persistentVolumeBindings: [PersistentVolumeBindingInput!]! # dont change with each deployment
+    capabilities: [String!]! # dont change with each deployment
+    sysctls: [String!]! # dont change with each deployment
     dockerfile: String # required for upstreamType = "git" or "SourceCode"
     buildArgs: [BuildArgInput!]!
     deploymentMode: DeploymentMode! # dont change with each deployment

@@ -14,6 +14,8 @@ type Application struct {
 	Name                     string                     `json:"name"`
 	EnvironmentVariables     []*EnvironmentVariable     `json:"environmentVariables"`
 	PersistentVolumeBindings []*PersistentVolumeBinding `json:"persistentVolumeBindings"`
+	Capabilities             []string                   `json:"capabilities"`
+	Sysctls                  []string                   `json:"sysctls"`
 	RealtimeInfo             *RealtimeInfo              `json:"realtimeInfo"`
 	LatestDeployment         *Deployment                `json:"latestDeployment"`
 	Deployments              []*Deployment              `json:"deployments"`
@@ -28,6 +30,8 @@ type ApplicationInput struct {
 	Name                         string                          `json:"name"`
 	EnvironmentVariables         []*EnvironmentVariableInput     `json:"environmentVariables"`
 	PersistentVolumeBindings     []*PersistentVolumeBindingInput `json:"persistentVolumeBindings"`
+	Capabilities                 []string                        `json:"capabilities"`
+	Sysctls                      []string                        `json:"sysctls"`
 	Dockerfile                   *string                         `json:"dockerfile,omitempty"`
 	BuildArgs                    []*BuildArgInput                `json:"buildArgs"`
 	DeploymentMode               DeploymentMode                  `json:"deploymentMode"`
