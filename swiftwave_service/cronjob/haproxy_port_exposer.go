@@ -15,7 +15,7 @@ func (m Manager) HaProxyPortExposer() {
 	for {
 		// Fetch all ingress rules with only port field
 		var ingressRules []core.IngressRule
-		tx := m.ServiceManager.DbClient.Select("port").Where("port IS NOT NULL").Where("protocol != udp").Find(&ingressRules)
+		tx := m.ServiceManager.DbClient.Select("port").Where("port IS NOT NULL").Not("protocol = ?", "udp").Find(&ingressRules)
 		if tx.Error != nil {
 			log.Println(tx.Error)
 			continue

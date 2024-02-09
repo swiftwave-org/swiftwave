@@ -51,7 +51,7 @@ var udpProxyStartCmd = &cobra.Command{
 		dbClient, err := getDBClient()
 		if err == nil {
 			var ingressRules []core.IngressRule
-			tx := dbClient.Select("port").Where("port IS NOT NULL").Where("protocol == udp").Find(&ingressRules)
+			tx := dbClient.Select("port").Where("port IS NOT NULL").Where("protocol = ?", "udp").Find(&ingressRules)
 			if tx.Error == nil {
 				if ingressRules != nil {
 					for _, ingressRule := range ingressRules {
