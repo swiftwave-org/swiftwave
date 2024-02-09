@@ -53,3 +53,20 @@ func (m Manager) postRequest(route string, body io.Reader) (*http.Response, erro
 	}
 	return client.Do(req)
 }
+
+/*
+This function is used to check if a port is restricted or not for application.
+
+There are some ports that are restricted.
+because those port are pre-occupied by Swarm services or other required services.
+So, binding to those ports will cause errors.
+That's why we need to restrict those ports before apply the config.
+*/
+func IsPortRestrictedForManualConfig(port int, restrictedPorts []int) bool {
+	for _, p := range restrictedPorts {
+		if port == p {
+			return true
+		}
+	}
+	return false
+}

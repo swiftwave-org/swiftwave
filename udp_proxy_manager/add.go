@@ -8,7 +8,10 @@ import (
 	"log"
 )
 
-func (m Manager) Add(proxy Proxy) error {
+func (m Manager) Add(proxy Proxy, restrictedPorts []int) error {
+	if IsPortRestrictedForManualConfig(proxy.Port, restrictedPorts) {
+		return errors.New("port is restricted")
+	}
 	jsonMarshal, err := json.Marshal(proxy)
 	if err != nil {
 		return errors.New("invalid payload")

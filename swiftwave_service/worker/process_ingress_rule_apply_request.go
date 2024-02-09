@@ -105,7 +105,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 			Port:       int(ingressRule.Port),
 			TargetPort: int(ingressRule.TargetPort),
 			Service:    backendName,
-		})
+		}, m.SystemConfig.ServiceConfig.RestrictedPorts)
 		if err != nil {
 			// set status as failed and exit
 			_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
