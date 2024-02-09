@@ -150,12 +150,10 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 	}
 
 	sysctls := make(map[string]string, 0)
-	if application.Sysctls != nil {
-		for _, sysctl := range application.Sysctls {
-			sysctlPart := strings.SplitN(sysctl, "=", 2)
-			if len(sysctlPart) == 2 {
-				sysctls[sysctlPart[0]] = sysctlPart[1]
-			}
+	for _, sysctl := range application.Sysctls {
+		sysctlPart := strings.SplitN(sysctl, "=", 2)
+		if len(sysctlPart) == 2 {
+			sysctls[sysctlPart[0]] = sysctlPart[1]
 		}
 	}
 	// create service
