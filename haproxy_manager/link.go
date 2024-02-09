@@ -10,12 +10,12 @@ import (
 	"strings"
 )
 
-// Add HTTP Link [Backend Switch] to HAProxy configuration
+// AddHTTPLink Add HTTP Link [Backend Switch] to HAProxy configuration
 // -- Manage ACLs with frontend [only domain_name]
 // -- Manage rules with frontend and backend switch
 func (s Manager) AddHTTPLink(transaction_id string, backend_name string, domain_name string) error {
 	frontend_name := "fe_http"
-	// Build query parameterss
+	// Build query parameters
 	add_backend_switch_request_query_params := QueryParameters{}
 	add_backend_switch_request_query_params.add("transaction_id", transaction_id)
 	add_backend_switch_request_query_params.add("frontend", frontend_name)
@@ -39,7 +39,7 @@ func (s Manager) AddHTTPLink(transaction_id string, backend_name string, domain_
 	return nil
 }
 
-// Delete HTTP Link from HAProxy configuration
+// DeleteHTTPLink Delete HTTP Link from HAProxy configuration
 func (s Manager) DeleteHTTPLink(transaction_id string, backend_name string, domain_name string) error {
 	frontend_name := "fe_http"
 	// Build query parameterss
@@ -89,7 +89,7 @@ func (s Manager) DeleteHTTPLink(transaction_id string, backend_name string, doma
 	return nil
 }
 
-// Add HTTPS Link [Backend Switch] to HAProxy configuration
+// AddHTTPSLink Add HTTPS Link [Backend Switch] to HAProxy configuration
 // -- Manage ACLs with frontend [only domain_name]
 // -- Manage rules with frontend and backend switch
 func (s Manager) AddHTTPSLink(transaction_id string, backend_name string, domain_name string) error {
@@ -102,7 +102,7 @@ func (s Manager) AddHTTPSLink(transaction_id string, backend_name string, domain
 	add_backend_switch_request_body := map[string]interface{}{
 		"cond":      "if",
 		"cond_test": `{ hdr(host) -i ` + domain_name + ` }`,
-		"index":     0,
+		"index":     1,
 		"name":      backend_name,
 	}
 	add_backend_switch_request_body_bytes, err := json.Marshal(add_backend_switch_request_body)
@@ -118,7 +118,7 @@ func (s Manager) AddHTTPSLink(transaction_id string, backend_name string, domain
 	return nil
 }
 
-// Delete HTTPS Link from HAProxy configuration
+// DeleteHTTPSLink Delete HTTPS Link from HAProxy configuration
 func (s Manager) DeleteHTTPSLink(transaction_id string, backend_name string, domain_name string) error {
 	frontend_name := "fe_https"
 	// Build query parameterss
@@ -168,7 +168,7 @@ func (s Manager) DeleteHTTPSLink(transaction_id string, backend_name string, dom
 	return nil
 }
 
-// Add TCP Frontend to HAProxy configuration
+// AddTCPLink Add TCP Frontend to HAProxy configuration
 // -- Manage ACLs with frontend [port{required} and domain_name{optional}]
 // -- Manage rules with frontend and backend switch
 func (s Manager) AddTCPLink(transaction_id string, backend_name string, port int, domain_name string, listenerMode ListenerMode, restrictedPorts []int) error {
@@ -190,7 +190,6 @@ func (s Manager) AddTCPLink(transaction_id string, backend_name string, port int
 		"name":    frontend_name,
 	}
 	if strings.TrimSpace(domain_name) == "" {
-		// TODO: use template to keep it scalable
 		add_tcp_frontend_request_body["default_backend"] = backend_name
 	}
 	// Create request bytes
@@ -298,7 +297,7 @@ func (s Manager) AddHTTPRedirectRule(transaction_id string, match_domain string,
 		"redir_code":  302,
 		"redir_type":  "location",
 		"redir_value": redirect_url,
-		"index":       0,
+		"index":       1,
 		"cond":        "if",
 		"cond_test":   `{ hdr(host) -i ` + strings.TrimSpace(match_domain) + ` }`,
 	}
@@ -313,6 +312,42 @@ func (s Manager) AddHTTPRedirectRule(transaction_id string, match_domain string,
 		return errors.New("failed to add http redirect rule")
 	}
 	defer add_http_redirect_rule_res.Body.Close()
+	return nil
+}
+
+// Add HTTPS Redirect Rule
+func (s Manager) AddHTTPSRedirectRule(transaction_id string, match_domain string, redirect_url string) error {
+	if strings.TrimSpace(match_domain) == "" {
+		return errors.New("match domain is required")
+	}
+	if strings.TrimSpace(redirect_url) == "" {
+		return errors.New("redirect url is required")
+	}
+	// Add HTTPS Redirect Rule
+	add_https_redirect_rule_request_query_params := QueryParameters{}
+	add_https_redirect_rule_request_query_params.add("transaction_id", transaction_id)
+	add_https_redirect_rule_request_query_params.add("parent_name", "fe_https")
+	add_https_redirect_rule_request_query_params.add("parent_type", "frontend")
+	add_https_redirect_rule_request_body := map[string]interface{}{
+		"type":        "redirect",
+		"redir_code":  302,
+		"redir_type":  "location",
+		"redir_value": redirect_url,
+		"index":       1,
+		"cond":        "if",
+		"cond_test":   `{ hdr(host) -i ` + strings.TrimSpace(match_domain) + ` }`,
+	}
+	// Create request bytes
+	add_https_redirect_rule_request_body_bytes, err := json.Marshal(add_https_redirect_rule_request_body)
+	if err != nil {
+		return errors.New("failed to marshal add_https_redirect_rule_request_body")
+	}
+	// Send request
+	add_https_redirect_rule_res, add_https_redirect_rule_err := s.postRequest("/services/haproxy/configuration/http_request_rules", add_https_redirect_rule_request_query_params, bytes.NewReader(add_https_redirect_rule_request_body_bytes))
+	if add_https_redirect_rule_err != nil || !isValidStatusCode(add_https_redirect_rule_res.StatusCode) {
+		return errors.New("failed to add https redirect rule")
+	}
+	defer add_https_redirect_rule_res.Body.Close()
 	return nil
 }
 
