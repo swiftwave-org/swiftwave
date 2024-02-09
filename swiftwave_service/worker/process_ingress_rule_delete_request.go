@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	UDP_PROXY "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
 	"gorm.io/gorm"
 )
 
@@ -95,7 +96,14 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			return err
 		}
 	} else if ingressRule.Protocol == core.UDPProtocol {
-		//  TODO: implement
+		err = m.ServiceManager.UDPProxyManager.Remove(UDP_PROXY.Proxy{
+			Port:       int(ingressRule.Port),
+			TargetPort: int(ingressRule.TargetPort),
+			Service:    backendName,
+		})
+		if err != nil {
+			return err
+		}
 	} else {
 		// unknown protocol
 		deleteHaProxyTransaction(m, haproxyTransactionId)

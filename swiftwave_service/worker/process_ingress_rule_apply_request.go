@@ -5,6 +5,7 @@ import (
 	"errors"
 	haproxymanager "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	UDP_PROXY "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
 	"gorm.io/gorm"
 	"log"
 )
@@ -100,7 +101,17 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 			return nil
 		}
 	} else if ingressRule.Protocol == core.UDPProtocol {
-		// TODO: implement UDP
+		err = m.ServiceManager.UDPProxyManager.Add(UDP_PROXY.Proxy{
+			Port:       int(ingressRule.Port),
+			TargetPort: int(ingressRule.TargetPort),
+			Service:    backendName,
+		})
+		if err != nil {
+			// set status as failed and exit
+			_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
+			// no requeue
+			return nil
+		}
 	} else {
 		// set status as failed and exit
 		_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
