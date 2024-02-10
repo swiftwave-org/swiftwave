@@ -236,6 +236,10 @@ func domainToGraphqlObject(record *core.Domain) *model.Domain {
 
 // ingressRuleInputToDatabaseObject : converts IngressRuleInput to IngressRuleDatabaseObject
 func ingressRuleInputToDatabaseObject(record *model.IngressRuleInput) *core.IngressRule {
+	// unset domain id if protocol is tcp or udp
+	if record.Protocol == model.ProtocolTypeTCP || record.Protocol == model.ProtocolTypeUDP {
+		record.DomainID = nil
+	}
 	return &core.IngressRule{
 		ApplicationID: record.ApplicationID,
 		DomainID:      record.DomainID,
