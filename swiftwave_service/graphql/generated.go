@@ -60,6 +60,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Application struct {
+		Capabilities             func(childComplexity int) int
 		DeploymentMode           func(childComplexity int) int
 		Deployments              func(childComplexity int) int
 		EnvironmentVariables     func(childComplexity int) int
@@ -71,6 +72,7 @@ type ComplexityRoot struct {
 		PersistentVolumeBindings func(childComplexity int) int
 		RealtimeInfo             func(childComplexity int) int
 		Replicas                 func(childComplexity int) int
+		Sysctls                  func(childComplexity int) int
 		WebhookToken             func(childComplexity int) int
 	}
 
@@ -285,6 +287,7 @@ type ComplexityRoot struct {
 type ApplicationResolver interface {
 	EnvironmentVariables(ctx context.Context, obj *model.Application) ([]*model.EnvironmentVariable, error)
 	PersistentVolumeBindings(ctx context.Context, obj *model.Application) ([]*model.PersistentVolumeBinding, error)
+
 	RealtimeInfo(ctx context.Context, obj *model.Application) (*model.RealtimeInfo, error)
 	LatestDeployment(ctx context.Context, obj *model.Application) (*model.Deployment, error)
 	Deployments(ctx context.Context, obj *model.Application) ([]*model.Deployment, error)
@@ -402,6 +405,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "Application.capabilities":
+		if e.complexity.Application.Capabilities == nil {
+			break
+		}
+
+		return e.complexity.Application.Capabilities(childComplexity), true
+
 	case "Application.deploymentMode":
 		if e.complexity.Application.DeploymentMode == nil {
 			break
@@ -478,6 +488,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Application.Replicas(childComplexity), true
+
+	case "Application.sysctls":
+		if e.complexity.Application.Sysctls == nil {
+			break
+		}
+
+		return e.complexity.Application.Sysctls(childComplexity), true
 
 	case "Application.webhookToken":
 		if e.complexity.Application.WebhookToken == nil {
@@ -2811,6 +2828,94 @@ func (ec *executionContext) fieldContext_Application_persistentVolumeBindings(ct
 	return fc, nil
 }
 
+func (ec *executionContext) _Application_capabilities(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_capabilities(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Capabilities, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_capabilities(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Application_sysctls(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_sysctls(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Sysctls, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_sysctls(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Application_realtimeInfo(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Application_realtimeInfo(ctx, field)
 	if err != nil {
@@ -3504,6 +3609,10 @@ func (ec *executionContext) fieldContext_Deployment_application(ctx context.Cont
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "capabilities":
+				return ec.fieldContext_Application_capabilities(ctx, field)
+			case "sysctls":
+				return ec.fieldContext_Application_sysctls(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -6139,14 +6248,11 @@ func (ec *executionContext) _IngressRule_domainId(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(uint)
+	res := resTmp.(*uint)
 	fc.Result = res
-	return ec.marshalNUint2uint(ctx, field.Selections, res)
+	return ec.marshalOUint2ᚖuint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_IngressRule_domainId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6183,14 +6289,11 @@ func (ec *executionContext) _IngressRule_domain(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.Domain)
 	fc.Result = res
-	return ec.marshalNDomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
+	return ec.marshalODomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_IngressRule_domain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6407,6 +6510,10 @@ func (ec *executionContext) fieldContext_IngressRule_application(ctx context.Con
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "capabilities":
+				return ec.fieldContext_Application_capabilities(ctx, field)
+			case "sysctls":
+				return ec.fieldContext_Application_sysctls(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -6653,6 +6760,10 @@ func (ec *executionContext) fieldContext_Mutation_createApplication(ctx context.
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "capabilities":
+				return ec.fieldContext_Application_capabilities(ctx, field)
+			case "sysctls":
+				return ec.fieldContext_Application_sysctls(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -6734,6 +6845,10 @@ func (ec *executionContext) fieldContext_Mutation_updateApplication(ctx context.
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "capabilities":
+				return ec.fieldContext_Application_capabilities(ctx, field)
+			case "sysctls":
+				return ec.fieldContext_Application_sysctls(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -8631,6 +8746,10 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_application(ctx
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "capabilities":
+				return ec.fieldContext_Application_capabilities(ctx, field)
+			case "sysctls":
+				return ec.fieldContext_Application_sysctls(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -8745,6 +8864,10 @@ func (ec *executionContext) fieldContext_Query_application(ctx context.Context, 
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "capabilities":
+				return ec.fieldContext_Application_capabilities(ctx, field)
+			case "sysctls":
+				return ec.fieldContext_Application_sysctls(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -8826,6 +8949,10 @@ func (ec *executionContext) fieldContext_Query_applications(ctx context.Context,
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "capabilities":
+				return ec.fieldContext_Application_capabilities(ctx, field)
+			case "sysctls":
+				return ec.fieldContext_Application_sysctls(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -13011,7 +13138,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "dockerfile", "buildArgs", "deploymentMode", "replicas", "upstreamType", "gitCredentialID", "gitProvider", "repositoryOwner", "repositoryName", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID"}
+	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "capabilities", "sysctls", "dockerfile", "buildArgs", "deploymentMode", "replicas", "upstreamType", "gitCredentialID", "gitProvider", "repositoryOwner", "repositoryName", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -13039,6 +13166,20 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 				return it, err
 			}
 			it.PersistentVolumeBindings = data
+		case "capabilities":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("capabilities"))
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Capabilities = data
+		case "sysctls":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sysctls"))
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Sysctls = data
 		case "dockerfile":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dockerfile"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -13501,7 +13642,7 @@ func (ec *executionContext) unmarshalInputIngressRuleInput(ctx context.Context, 
 		switch k {
 		case "domainId":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("domainId"))
-			data, err := ec.unmarshalNUint2uint(ctx, v)
+			data, err := ec.unmarshalOUint2ᚖuint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -13818,6 +13959,16 @@ func (ec *executionContext) _Application(ctx context.Context, sel ast.SelectionS
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "capabilities":
+			out.Values[i] = ec._Application_capabilities(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "sysctls":
+			out.Values[i] = ec._Application_sysctls(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "realtimeInfo":
 			field := field
 
@@ -14897,9 +15048,6 @@ func (ec *executionContext) _IngressRule(ctx context.Context, sel ast.SelectionS
 			}
 		case "domainId":
 			out.Values[i] = ec._IngressRule_domainId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "domain":
 			field := field
 
@@ -14910,9 +15058,6 @@ func (ec *executionContext) _IngressRule(ctx context.Context, sel ast.SelectionS
 					}
 				}()
 				res = ec._IngressRule_domain(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
 				return res
 			}
 
@@ -17477,6 +17622,38 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
 	res, err := graphql.UnmarshalTime(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -17901,6 +18078,13 @@ func (ec *executionContext) marshalODockerConfigGeneratorOutput2ᚖgithubᚗcom�
 		return graphql.Null
 	}
 	return ec._DockerConfigGeneratorOutput(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalODomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx context.Context, sel ast.SelectionSet, v *model.Domain) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Domain(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, v interface{}) (*model.GitProvider, error) {

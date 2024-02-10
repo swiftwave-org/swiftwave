@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/lib/pq"
 	"time"
 )
 
@@ -46,7 +47,7 @@ type Domain struct {
 // IngressRule : hold information about Ingress rule for service
 type IngressRule struct {
 	ID            uint              `json:"id" gorm:"primaryKey"`
-	DomainID      uint              `json:"domainID"`
+	DomainID      *uint             `json:"domainID,omitempty" gorm:"default:null"`
 	ApplicationID string            `json:"applicationID"`
 	Protocol      ProtocolType      `json:"protocol"`
 	Port          uint              `json:"port"`       // external port
@@ -117,6 +118,10 @@ type Application struct {
 	LatestDeployment Deployment `json:"-"`
 	// Ingress Rules
 	IngressRules []IngressRule `json:"ingressRules" gorm:"foreignKey:ApplicationID"`
+	// Capabilities
+	Capabilities pq.StringArray `json:"capabilities" gorm:"type:text[]"`
+	// Sysctls
+	Sysctls pq.StringArray `json:"sysctls" gorm:"type:text[]"`
 	// Is deleted - soft delete - will be deleted from database in background
 	IsDeleted bool `json:"isDeleted" gorm:"default:false"`
 	// Webhook token

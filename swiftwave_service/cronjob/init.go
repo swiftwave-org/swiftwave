@@ -25,6 +25,8 @@ func (m Manager) Start(nowait bool) {
 	m.wg.Add(1)
 	go m.HaProxyPortExposer()
 	m.wg.Add(1)
+	go m.UDPProxyPortExposer()
+	m.wg.Add(1)
 	go m.CleanupUnusedImages()
 	if !nowait {
 		m.wg.Wait()

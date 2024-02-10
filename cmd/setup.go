@@ -51,6 +51,19 @@ var setupCmd = &cobra.Command{
 				printSuccess("Created HAProxy unix socket directory [" + dir + "]")
 			}
 		}
+		// Create udp_proxy.unix_socket_path base directory if it doesn't exist
+		dir = systemConfig.UDPProxyConfig.UnixSocketPath
+		dir = filepath.Dir(dir)
+		if checkIfFolderExists(dir) {
+			printSuccess("UDP Proxy unix socket directory [" + dir + "] already exists")
+		} else {
+			err := createFolder(dir)
+			if err != nil {
+				printError("Failed to create UDP Proxy unix socket directory [" + dir + "]")
+			} else {
+				printSuccess("Created UDP Proxy unix socket directory [" + dir + "]")
+			}
+		}
 		// Create service.data_dir if it doesn't exist
 		dir = systemConfig.ServiceConfig.DataDir
 		if checkIfFolderExists(dir) {
@@ -85,6 +98,18 @@ var setupCmd = &cobra.Command{
 				printError("Failed to create HAProxy SSL directory [" + dir + "]")
 			} else {
 				printSuccess("Created HAProxy SSL directory [" + dir + "]")
+			}
+		}
+		// Create udp_proxy.data_dir if it doesn't exist
+		dir = systemConfig.UDPProxyConfig.DataDir
+		if checkIfFolderExists(dir) {
+			printSuccess("UDP Proxy data directory [" + dir + "] already exists")
+		} else {
+			err := createFolder(dir)
+			if err != nil {
+				printError("Failed to create UDP Proxy data directory [" + dir + "]")
+			} else {
+				printSuccess("Created UDP Proxy data directory [" + dir + "]")
 			}
 		}
 		// Create the swarm network if it doesn't exist

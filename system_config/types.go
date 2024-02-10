@@ -6,6 +6,7 @@ type Config struct {
 	Mode              Mode              `yaml:"mode"`
 	ServiceConfig     ServiceConfig     `yaml:"service"`
 	HAProxyConfig     HAProxyConfig     `yaml:"haproxy"`
+	UDPProxyConfig    UDPProxyConfig    `yaml:"udp_proxy"`
 	PostgresqlConfig  PostgresqlConfig  `yaml:"postgresql"`
 	LetsEncryptConfig LetsEncryptConfig `yaml:"lets_encrypt"`
 	PubSubConfig      PubSubConfig      `yaml:"pubsub"`
@@ -46,6 +47,13 @@ type HAProxyConfig struct {
 	UnixSocketPath string `yaml:"unix_socket_path"`
 	User           string `yaml:"user"`
 	Password       string `yaml:"password"`
+	DataDir        string `yaml:"data_dir"`
+}
+
+type UDPProxyConfig struct {
+	ServiceName    string `yaml:"service_name"`
+	DockerImage    string `yaml:"image"`
+	UnixSocketPath string `yaml:"unix_socket_path"`
 	DataDir        string `yaml:"data_dir"`
 }
 

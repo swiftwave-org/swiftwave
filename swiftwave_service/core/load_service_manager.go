@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+	UDP_PROXY "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
 
 	"github.com/go-redis/redis/v8"
 	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
@@ -40,6 +41,10 @@ func (manager *ServiceManager) Load(config system_config.Config) {
 	haproxyManager.InitUnixSocket(config.HAProxyConfig.UnixSocketPath)
 	haproxyManager.Auth(config.HAProxyConfig.User, config.HAProxyConfig.Password)
 	manager.HaproxyManager = haproxyManager
+
+	// Initiating UDP Proxy Manager
+	udpProxyManager := UDP_PROXY.NewManager(config.UDPProxyConfig.UnixSocketPath)
+	manager.UDPProxyManager = udpProxyManager
 
 	// Initiating Docker Manager
 	dockerManager, err := containermanger.NewDockerManager(config.ServiceConfig.DockerUnixSocketPath)

@@ -24,12 +24,17 @@ lets_encrypt:
   email_id: will_be_overridden
   account_private_key_path: /etc/swiftwave/letsencrypt/account.key
 haproxy:
-  service_name: haproxy
+  service_name: swiftwave_haproxy
   image: ghcr.io/swiftwave-org/haproxy:2.9
   unix_socket_path: /etc/swiftwave/haproxy/dataplaneapi.sock
   user: will_be_overridden
   password: will_be_overridden
   data_dir: /var/lib/swiftwave/haproxy
+udp_proxy:
+  service_name: swiftwave_udp_proxy
+  image: ghcr.io/swiftwave-org/udpproxy:latest
+  unix_socket_path: /etc/swiftwave/udpproxy/api.sock
+  data_dir: /var/lib/swiftwave/udpproxy
 postgresql:
   auto_start_local_postgres: true # true or false
   host: 127.0.0.1
