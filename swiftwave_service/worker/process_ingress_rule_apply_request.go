@@ -5,6 +5,7 @@ import (
 	"errors"
 	haproxymanager "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	UDP_PROXY "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
 	"gorm.io/gorm"
 	"log"
 )
@@ -23,12 +24,18 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 	if ingressRule.Status == core.IngressRuleStatusDeleting {
 		return nil
 	}
-	// fetch domain
 	domain := &core.Domain{}
-	err = domain.FindById(ctx, dbWithoutTx, ingressRule.DomainID)
-	if err != nil {
-		return err
+	if ingressRule.Protocol == core.HTTPSProtocol || ingressRule.Protocol == core.HTTPProtocol {
+		// fetch domain
+		if ingressRule.DomainID == nil {
+			return errors.New("domain id is nil")
+		}
+		err = domain.FindById(ctx, dbWithoutTx, *ingressRule.DomainID)
+		if err != nil {
+			return err
+		}
 	}
+
 	// fetch application
 	application := &core.Application{}
 	err = application.FindById(ctx, dbWithoutTx, ingressRule.ApplicationID)
@@ -84,11 +91,23 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 			}
 		}
 	} else if ingressRule.Protocol == core.TCPProtocol {
-		err = m.ServiceManager.HaproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, haproxymanager.TCPMode, m.SystemConfig.ServiceConfig.RestrictedPorts)
+		err = m.ServiceManager.HaproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), "", haproxymanager.TCPMode, m.SystemConfig.ServiceConfig.RestrictedPorts)
 		if err != nil {
 			// set status as failed and exit
 			_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
 			deleteHaProxyTransaction(m, haproxyTransactionId)
+			// no requeue
+			return nil
+		}
+	} else if ingressRule.Protocol == core.UDPProtocol {
+		err = m.ServiceManager.UDPProxyManager.Add(UDP_PROXY.Proxy{
+			Port:       int(ingressRule.Port),
+			TargetPort: int(ingressRule.TargetPort),
+			Service:    application.Name,
+		}, m.SystemConfig.ServiceConfig.RestrictedPorts)
+		if err != nil {
+			// set status as failed and exit
+			_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
 			// no requeue
 			return nil
 		}

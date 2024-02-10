@@ -6,7 +6,7 @@ enum IngressRuleStatus {
 }
 
 input IngressRuleInput {
-    domainId: Uint!
+    domainId: Uint
     applicationId: String!
     protocol: ProtocolType!
     port: Uint!
@@ -15,8 +15,8 @@ input IngressRuleInput {
 
 type IngressRule {
     id: Uint!
-    domainId: Uint!
-    domain: Domain!
+    domainId: Uint
+    domain: Domain
     protocol: ProtocolType!
     port: Uint!
     applicationId: String!

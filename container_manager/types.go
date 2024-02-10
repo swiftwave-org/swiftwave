@@ -23,6 +23,8 @@ type Service struct {
 	Image          string            `json:"image"`
 	Command        []string          `json:"command,omitempty"`
 	Env            map[string]string `json:"env,omitempty"`
+	Capabilities   []string          `json:"capabilities,omitempty"`
+	Sysctls        map[string]string `json:"sysctl,omitempty"`
 	VolumeMounts   []VolumeMount     `json:"volumemounts,omitempty"`
 	Networks       []string          `json:"networks,omitempty"`
 	DeploymentMode DeploymentMode    `json:"deploymentmode"`

@@ -162,6 +162,8 @@ func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Appl
 		LatestDeployment:         *applicationInputToDeploymentDatabaseObject(record),
 		Deployments:              make([]core.Deployment, 0),
 		IngressRules:             make([]core.IngressRule, 0),
+		Capabilities:             record.Capabilities,
+		Sysctls:                  record.Sysctls,
 	}
 }
 
@@ -174,6 +176,8 @@ func applicationToGraphqlObject(record *core.Application) *model.Application {
 		Replicas:       record.Replicas,
 		IsDeleted:      record.IsDeleted,
 		WebhookToken:   record.WebhookToken,
+		Capabilities:   record.Capabilities,
+		Sysctls:        record.Sysctls,
 	}
 }
 
@@ -232,6 +236,10 @@ func domainToGraphqlObject(record *core.Domain) *model.Domain {
 
 // ingressRuleInputToDatabaseObject : converts IngressRuleInput to IngressRuleDatabaseObject
 func ingressRuleInputToDatabaseObject(record *model.IngressRuleInput) *core.IngressRule {
+	// unset domain id if protocol is tcp or udp
+	if record.Protocol == model.ProtocolTypeTCP || record.Protocol == model.ProtocolTypeUDP {
+		record.DomainID = nil
+	}
 	return &core.IngressRule{
 		ApplicationID: record.ApplicationID,
 		DomainID:      record.DomainID,

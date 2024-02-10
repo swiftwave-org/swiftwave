@@ -9,6 +9,7 @@ import (
 	"github.com/swiftwave-org/swiftwave/pubsub"
 	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
 	"github.com/swiftwave-org/swiftwave/task_queue"
+	UDP_PROXY "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
 	"gorm.io/gorm"
 )
 
@@ -16,6 +17,7 @@ import (
 type ServiceManager struct {
 	SslManager            SSL.Manager
 	HaproxyManager        HAPROXY.Manager
+	UDPProxyManager       UDP_PROXY.Manager
 	DockerManager         DOCKER.Manager
 	DockerConfigGenerator DOCKER_CONFIG_GENERATOR.Manager
 	DockerClient          DOCKER_CLIENT.Client
@@ -73,6 +75,7 @@ const (
 	HTTPProtocol  ProtocolType = "http"
 	HTTPSProtocol ProtocolType = "https"
 	TCPProtocol   ProtocolType = "tcp"
+	UDPProtocol   ProtocolType = "udp"
 )
 
 // IngressRuleStatus : status of the ingress rule

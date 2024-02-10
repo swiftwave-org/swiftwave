@@ -5,17 +5,15 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"log"
-	"os/exec"
 	"reflect"
-	"strings"
 	"time"
 )
 
-func (m Manager) HaProxyPortExposer() {
+func (m Manager) UDPProxyPortExposer() {
 	for {
 		// Fetch all ingress rules with only port field
 		var ingressRules []core.IngressRule
-		tx := m.ServiceManager.DbClient.Select("port").Where("port IS NOT NULL").Not("protocol = ?", "udp").Find(&ingressRules)
+		tx := m.ServiceManager.DbClient.Select("port").Where("port IS NOT NULL").Where("protocol = ?", "udp").Find(&ingressRules)
 		if tx.Error != nil {
 			log.Println(tx.Error)
 			continue
@@ -25,11 +23,8 @@ func (m Manager) HaProxyPortExposer() {
 		for _, ingressRule := range ingressRules {
 			portsMap[int(ingressRule.Port)] = true
 		}
-		// add 80 and 443 to ports
-		portsMap[80] = true
-		portsMap[443] = true
 		// Check if ports are changed
-		exposedPorts, err := m.ServiceManager.DockerManager.FetchPublishedHostPorts(m.SystemConfig.HAProxyConfig.ServiceName)
+		exposedPorts, err := m.ServiceManager.DockerManager.FetchPublishedHostPorts(m.SystemConfig.UDPProxyConfig.ServiceName)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -43,18 +38,18 @@ func (m Manager) HaProxyPortExposer() {
 			var portsUpdateRequired = make([]swarm.PortConfig, 0)
 			for port := range portsMap {
 				portsUpdateRequired = append(portsUpdateRequired, swarm.PortConfig{
-					Protocol:      swarm.PortConfigProtocolTCP,
+					Protocol:      swarm.PortConfigProtocolUDP,
 					PublishMode:   swarm.PortConfigPublishModeHost,
 					TargetPort:    uint32(port),
 					PublishedPort: uint32(port),
 				})
 			}
 			// Update exposed ports
-			err := m.ServiceManager.DockerManager.UpdatePublishedHostPorts(m.SystemConfig.HAProxyConfig.ServiceName, portsUpdateRequired)
+			err := m.ServiceManager.DockerManager.UpdatePublishedHostPorts(m.SystemConfig.UDPProxyConfig.ServiceName, portsUpdateRequired)
 			if err != nil {
 				log.Println(err)
 			} else {
-				log.Println("Exposed ports of haproxy service updated")
+				log.Println("Exposed ports of udp proxy service updated")
 			}
 			// Update firewall
 			if m.SystemConfig.ServiceConfig.FirewallEnabled {
@@ -88,28 +83,4 @@ func (m Manager) HaProxyPortExposer() {
 		time.Sleep(20 * time.Second)
 	}
 	m.wg.Done()
-}
-
-func firewallDenyPort(commandTemplate string, port int) error {
-	command := strings.ReplaceAll(commandTemplate, "{{PORT}}", fmt.Sprintf("%d", port))
-	// Run using os package
-	cmd := exec.Command("sh", "-c", command)
-	err := cmd.Run()
-	if err != nil {
-		return err
-	} else {
-		return nil
-	}
-}
-
-func firewallAllowPort(commandTemplate string, port int) error {
-	command := strings.ReplaceAll(commandTemplate, "{{PORT}}", fmt.Sprintf("%d", port))
-	// Run using os package
-	cmd := exec.Command("sh", "-c", command)
-	err := cmd.Run()
-	if err != nil {
-		return err
-	} else {
-		return nil
-	}
 }

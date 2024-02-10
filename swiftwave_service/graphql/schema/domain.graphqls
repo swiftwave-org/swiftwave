@@ -2,6 +2,7 @@ enum ProtocolType {
     http
     https
     tcp
+    udp
 }
 
 enum DomainSSLStatus {
