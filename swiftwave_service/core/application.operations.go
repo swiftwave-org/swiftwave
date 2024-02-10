@@ -104,6 +104,8 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		DeploymentMode: application.DeploymentMode,
 		Replicas:       application.Replicas,
 		WebhookToken:   uuid.NewString(),
+		Capabilities:   application.Capabilities,
+		Sysctls:        application.Sysctls,
 	}
 	tx := db.Create(&createdApplication)
 	if tx.Error != nil {

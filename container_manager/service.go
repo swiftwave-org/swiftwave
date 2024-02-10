@@ -347,6 +347,8 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 						Mode: swarm.SeccompModeDefault,
 					},
 				},
+				CapabilityAdd: service.Capabilities,
+				Sysctls:       service.Sysctls,
 			},
 			// Set network name
 			Networks: networkAttachmentConfigs,

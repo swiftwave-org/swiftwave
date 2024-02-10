@@ -14,6 +14,7 @@ require (
 	github.com/hashicorp/go-set v0.1.14
 	github.com/labstack/echo-jwt/v4 v4.2.0
 	github.com/labstack/echo/v4 v4.11.4
+	github.com/lib/pq v1.10.9
 	github.com/mholt/acmez v1.2.0
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/spf13/cobra v1.8.0
