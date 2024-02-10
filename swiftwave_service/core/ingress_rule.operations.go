@@ -29,11 +29,17 @@ func FindIngressRulesByApplicationID(ctx context.Context, db gorm.DB, applicatio
 	return ingressRules, tx.Error
 }
 
-func (ingressRule *IngressRule) Create(ctx context.Context, db gorm.DB) error {
+func (ingressRule *IngressRule) Create(ctx context.Context, db gorm.DB, restrictedPorts []int) error {
 	// if TCP/UDP mode, ensure port 80, 443 not requested
 	if ingressRule.Protocol == TCPProtocol || ingressRule.Protocol == UDPProtocol {
 		if ingressRule.Port == 80 || ingressRule.Port == 443 {
 			return errors.New("port 80, 443 not allowed for TCP/UDP mode")
+		}
+	}
+	// check if port is restricted
+	for _, p := range restrictedPorts {
+		if int(ingressRule.Port) == p {
+			return errors.New("port is restricted, choose another port")
 		}
 	}
 	// verify if domain exist
@@ -50,15 +56,30 @@ func (ingressRule *IngressRule) Create(ctx context.Context, db gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	// verify there is no ingress rule with same domain and port
-	isIngressRuleExist := db.Where("domain_id = ? AND port = ?", ingressRule.DomainID, ingressRule.Port).First(&IngressRule{}).RowsAffected > 0
-	if isIngressRuleExist {
-		return errors.New("there is ingress rule with same domain and port")
-	}
-	// verify there is no redirect rule with same domain and port
-	isRedirectRuleExist := db.Where("domain_id = ? AND port = ?", ingressRule.DomainID, ingressRule.Port).First(&RedirectRule{}).RowsAffected > 0
-	if isRedirectRuleExist {
-		return errors.New("there is redirect rule with same domain and port")
+	// validation
+	if ingressRule.Protocol == HTTPProtocol || ingressRule.Protocol == HTTPSProtocol {
+		// verify there is no ingress rule with same domain and port
+		isIngressRuleExist := db.Where("domain_id = ? AND port = ?", ingressRule.DomainID, ingressRule.Port).First(&IngressRule{}).RowsAffected > 0
+		if isIngressRuleExist {
+			return errors.New("there is ingress rule with same domain and port")
+		}
+		// verify there is no redirect rule with same domain and port
+		isRedirectRuleExist := db.Where("domain_id = ? AND port = ?", ingressRule.DomainID, ingressRule.Port).First(&RedirectRule{}).RowsAffected > 0
+		if isRedirectRuleExist {
+			return errors.New("there is redirect rule with same domain and port")
+		}
+	} else if ingressRule.Protocol == TCPProtocol {
+		isTCPIngressRuleExist := db.Where("protocol = ? AND port = ?", TCPProtocol, ingressRule.Port).First(&IngressRule{}).RowsAffected > 0
+		isHTTPIngressRuleExist := db.Where("protocol = ? AND port = ?", HTTPProtocol, ingressRule.Port).First(&IngressRule{}).RowsAffected > 0
+		isHTTPSIngressRuleExist := db.Where("protocol = ? AND port = ?", HTTPSProtocol, ingressRule.Port).First(&IngressRule{}).RowsAffected > 0
+		if isTCPIngressRuleExist || isHTTPIngressRuleExist || isHTTPSIngressRuleExist {
+			return errors.New("there is ingress rule with same port")
+		}
+	} else if ingressRule.Protocol == UDPProtocol {
+		isUDPIngressRuleExist := db.Where("protocol = ? AND port = ?", UDPProtocol, ingressRule.Port).First(&IngressRule{}).RowsAffected > 0
+		if isUDPIngressRuleExist {
+			return errors.New("there is ingress rule with same port")
+		}
 	}
 
 	// create record
