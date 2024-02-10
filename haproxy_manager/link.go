@@ -272,7 +272,12 @@ func (s Manager) DeleteTCPLink(transaction_id string, backend_name string, port 
 	delete_tcp_frontend_request_query_params.add("frontend", frontend_name)
 	// Send request
 	delete_tcp_frontend_res, delete_tcp_frontend_err := s.deleteRequest("/services/haproxy/configuration/frontends/"+frontend_name, delete_tcp_frontend_request_query_params)
-	if delete_tcp_frontend_err != nil || !isValidStatusCode(delete_tcp_frontend_res.StatusCode) {
+	if delete_tcp_frontend_err != nil {
+		return errors.New("failed to delete tcp frontend")
+	}
+	if delete_tcp_frontend_res.StatusCode == 404 {
+		return nil
+	} else if !isValidStatusCode(delete_tcp_frontend_res.StatusCode) {
 		return errors.New("failed to delete tcp frontend")
 	}
 	return nil

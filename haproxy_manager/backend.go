@@ -147,7 +147,6 @@ func (s Manager) UpdateBackendReplicas(transaction_id string, service_name strin
 	if server_template_err != nil || !isValidStatusCode(server_template_res.StatusCode) {
 		return errors.New("failed to add server template")
 	}
-	defer server_template_res.Body.Close()
 	return nil
 }
 
@@ -158,9 +157,13 @@ func (s Manager) DeleteBackend(transaction_id string, backend_name string) error
 	add_backend_request_query_params.add("transaction_id", transaction_id)
 	// Send request to delete backend from HAProxy
 	backend_res, backend_err := s.deleteRequest("/services/haproxy/configuration/backends/"+backend_name, add_backend_request_query_params)
-	if backend_err != nil || !isValidStatusCode(backend_res.StatusCode) {
+	if backend_err != nil {
 		return errors.New("failed to delete backend")
 	}
-	defer backend_res.Body.Close()
+	if backend_res.StatusCode == 404 {
+		return nil
+	} else if !isValidStatusCode(backend_res.StatusCode) {
+		return errors.New("failed to delete backend")
+	}
 	return nil
 }
