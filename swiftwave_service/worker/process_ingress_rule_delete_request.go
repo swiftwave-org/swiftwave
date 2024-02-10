@@ -99,7 +99,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 		err = m.ServiceManager.UDPProxyManager.Remove(UDP_PROXY.Proxy{
 			Port:       int(ingressRule.Port),
 			TargetPort: int(ingressRule.TargetPort),
-			Service:    backendName,
+			Service:    application.Name,
 		})
 		if err != nil {
 			return err

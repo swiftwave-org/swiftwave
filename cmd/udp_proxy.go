@@ -73,7 +73,7 @@ var udpProxyStartCmd = &cobra.Command{
 		}
 		args2 := make([]string, 0, len(ports))
 		for _, port := range ports {
-			args2 = append(args2, "--publish", "mode=ingress,target="+strconv.Itoa(int(port))+",published="+strconv.Itoa(int(port)))
+			args2 = append(args2, "--publish", "mode=host,protocol=udp,target="+strconv.Itoa(int(port))+",published="+strconv.Itoa(int(port)))
 		}
 		args3 := []string{
 			"--env", "SWIFTWAVE_SERVICE_ENDPOINT=" + systemConfig.ServiceConfig.AddressOfCurrentNode + ":" + strconv.Itoa(systemConfig.ServiceConfig.BindPort),

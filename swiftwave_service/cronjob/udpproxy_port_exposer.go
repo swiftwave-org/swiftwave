@@ -39,7 +39,7 @@ func (m Manager) UDPProxyPortExposer() {
 			for port := range portsMap {
 				portsUpdateRequired = append(portsUpdateRequired, swarm.PortConfig{
 					Protocol:      swarm.PortConfigProtocolUDP,
-					PublishMode:   swarm.PortConfigPublishModeIngress,
+					PublishMode:   swarm.PortConfigPublishModeHost,
 					TargetPort:    uint32(port),
 					PublishedPort: uint32(port),
 				})

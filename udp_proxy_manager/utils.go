@@ -18,7 +18,7 @@ func (m Manager) getRequest(route string) (*http.Response, error) {
 	if !strings.HasPrefix(route, "/") {
 		route = "/" + route
 	}
-	var url = m.URI()
+	var url = m.URI() + route
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func (m Manager) postRequest(route string, body io.Reader) (*http.Response, erro
 	if !strings.HasPrefix(route, "/") {
 		route = "/" + route
 	}
-	var url = m.URI()
+	var url = m.URI() + route
 	req, err := http.NewRequest("POST", url, body)
 	if err != nil {
 		return nil, err

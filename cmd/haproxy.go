@@ -115,7 +115,7 @@ var haproxyStartCmd = &cobra.Command{
 		}
 		args2 := make([]string, 0, len(ports))
 		for _, port := range ports {
-			args2 = append(args2, "--publish", "mode=ingress,target="+strconv.Itoa(int(port))+",published="+strconv.Itoa(int(port)))
+			args2 = append(args2, "--publish", "mode=host,protocol=tcp,target="+strconv.Itoa(int(port))+",published="+strconv.Itoa(int(port)))
 		}
 		args3 := []string{
 			"--env", "ADMIN_USER=" + systemConfig.HAProxyConfig.User,

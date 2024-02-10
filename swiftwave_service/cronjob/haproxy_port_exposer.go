@@ -44,7 +44,7 @@ func (m Manager) HaProxyPortExposer() {
 			for port := range portsMap {
 				portsUpdateRequired = append(portsUpdateRequired, swarm.PortConfig{
 					Protocol:      swarm.PortConfigProtocolTCP,
-					PublishMode:   swarm.PortConfigPublishModeIngress,
+					PublishMode:   swarm.PortConfigPublishModeHost,
 					TargetPort:    uint32(port),
 					PublishedPort: uint32(port),
 				})

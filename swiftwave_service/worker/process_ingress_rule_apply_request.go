@@ -103,7 +103,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 		err = m.ServiceManager.UDPProxyManager.Add(UDP_PROXY.Proxy{
 			Port:       int(ingressRule.Port),
 			TargetPort: int(ingressRule.TargetPort),
-			Service:    backendName,
+			Service:    application.Name,
 		}, m.SystemConfig.ServiceConfig.RestrictedPorts)
 		if err != nil {
 			// set status as failed and exit
