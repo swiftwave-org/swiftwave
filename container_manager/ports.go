@@ -10,7 +10,7 @@ import (
 func (m Manager) FetchPublishedHostPorts(service_name string) ([]int, error) {
 	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, service_name, types.ServiceInspectOptions{})
 	if err != nil {
-		return nil, errors.New("error getting swarm server version")
+		return nil, errors.New("error getting service details > " + service_name)
 	}
 	ports := []int{}
 	for _, port := range serviceData.Endpoint.Ports {
