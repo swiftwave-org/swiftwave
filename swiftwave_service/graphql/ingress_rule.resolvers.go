@@ -38,7 +38,7 @@ func (r *ingressRuleResolver) Application(ctx context.Context, obj *model.Ingres
 // CreateIngressRule is the resolver for the createIngressRule field.
 func (r *mutationResolver) CreateIngressRule(ctx context.Context, input model.IngressRuleInput) (*model.IngressRule, error) {
 	record := ingressRuleInputToDatabaseObject(&input)
-	err := record.Create(ctx, r.ServiceManager.DbClient)
+	err := record.Create(ctx, r.ServiceManager.DbClient, r.ServiceConfig.ServiceConfig.RestrictedPorts)
 	if err != nil {
 		return nil, err
 	}
