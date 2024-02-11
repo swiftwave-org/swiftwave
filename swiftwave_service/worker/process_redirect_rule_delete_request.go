@@ -39,7 +39,14 @@ func (m Manager) RedirectRuleDelete(request RedirectRuleDeleteRequest, ctx conte
 		return err
 	}
 	// delete redirect rule
-	err = m.ServiceManager.HaproxyManager.DeleteHTTPRedirectRule(haproxyTransactionId, domain.Name)
+	if redirectRule.Protocol == core.HTTPProtocol {
+		err = m.ServiceManager.HaproxyManager.DeleteHTTPRedirectRule(haproxyTransactionId, domain.Name)
+	} else if redirectRule.Protocol == core.HTTPSProtocol {
+		err = m.ServiceManager.HaproxyManager.DeleteHTTPSRedirectRule(haproxyTransactionId, domain.Name)
+	} else {
+		// invalid protocol
+		return nil
+	}
 	if err != nil {
 		// set status as failed and exit
 		// because `DeleteHTTPRedirectRule` can fail only if haproxy not working
