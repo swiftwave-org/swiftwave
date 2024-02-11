@@ -271,7 +271,7 @@ func ingressRuleToGraphqlObject(record *core.IngressRule) *model.IngressRule {
 func redirectRuleInputToDatabaseObject(record *model.RedirectRuleInput) *core.RedirectRule {
 	return &core.RedirectRule{
 		DomainID:    record.DomainID,
-		Port:        record.Port,
+		Protocol:    core.ProtocolType(record.Protocol),
 		RedirectURL: record.RedirectURL,
 		Status:      core.RedirectRuleStatusPending,
 		CreatedAt:   time.Now(),
@@ -284,7 +284,7 @@ func redirectRuleToGraphqlObject(record *core.RedirectRule) *model.RedirectRule 
 	return &model.RedirectRule{
 		ID:          record.ID,
 		DomainID:    record.DomainID,
-		Port:        record.Port,
+		Protocol:    model.ProtocolType(record.Protocol),
 		RedirectURL: record.RedirectURL,
 		Status:      model.RedirectRuleStatus(record.Status),
 		CreatedAt:   record.CreatedAt,

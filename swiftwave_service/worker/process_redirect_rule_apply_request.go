@@ -36,9 +36,12 @@ func (m Manager) RedirectRuleApply(request RedirectRuleApplyRequest, ctx context
 	if err != nil {
 		return err
 	}
-	// TODO add support for https and custom tcp port
 	// add redirect
-	err = m.ServiceManager.HaproxyManager.AddHTTPRedirectRule(haproxyTransactionId, domain.Name, redirectRule.RedirectURL)
+	if redirectRule.Protocol == core.HTTPProtocol {
+		err = m.ServiceManager.HaproxyManager.AddHTTPRedirectRule(haproxyTransactionId, domain.Name, redirectRule.RedirectURL)
+	} else {
+		err = m.ServiceManager.HaproxyManager.AddHTTPSRedirectRule(haproxyTransactionId, domain.Name, redirectRule.RedirectURL)
+	}
 	if err != nil {
 		// set status as failed and exit
 		_ = redirectRule.UpdateStatus(ctx, dbWithoutTx, core.RedirectRuleStatusFailed)
