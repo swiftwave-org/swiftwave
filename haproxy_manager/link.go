@@ -303,7 +303,7 @@ func (s Manager) AddHTTPRedirectRule(transaction_id string, match_domain string,
 		"redir_value": redirect_url,
 		"index":       0,
 		"cond":        "if",
-		"cond_test":   `{ hdr(host) -i ` + strings.TrimSpace(match_domain) + ` }`,
+		"cond_test":   `{ hdr(host) -i ` + strings.TrimSpace(match_domain) + ` } !letsencrypt-acl`,
 	}
 	// Create request bytes
 	add_http_redirect_rule_request_body_bytes, err := json.Marshal(add_http_redirect_rule_request_body)
@@ -339,7 +339,7 @@ func (s Manager) AddHTTPSRedirectRule(transaction_id string, match_domain string
 		"redir_value": redirect_url,
 		"index":       0,
 		"cond":        "if",
-		"cond_test":   `{ hdr(host) -i ` + strings.TrimSpace(match_domain) + ` }`,
+		"cond_test":   `{ hdr(host) -i ` + strings.TrimSpace(match_domain) + ` } !letsencrypt-acl`,
 	}
 	// Create request bytes
 	add_https_redirect_rule_request_body_bytes, err := json.Marshal(add_https_redirect_rule_request_body)
@@ -385,7 +385,7 @@ func (s Manager) DeleteHTTPRedirectRule(transaction_id string, match_domain stri
 	get_http_redirect_rules := get_http_redirect_rules_res_body_json["data"].([]interface{})
 	for _, http_redirect_rule := range get_http_redirect_rules {
 		http_redirect_rule_item := http_redirect_rule.(map[string]interface{})
-		if http_redirect_rule_item["cond_test"] == `{ hdr(host) -i `+strings.TrimSpace(match_domain)+` }` {
+		if http_redirect_rule_item["cond_test"] == `{ hdr(host) -i `+strings.TrimSpace(match_domain)+` } !letsencrypt-acl` {
 			index = int(http_redirect_rule_item["index"].(float64))
 			break
 		}
@@ -400,6 +400,57 @@ func (s Manager) DeleteHTTPRedirectRule(transaction_id string, match_domain stri
 		delete_http_redirect_rule_res, delete_http_redirect_rule_err := s.deleteRequest("/services/haproxy/configuration/http_request_rules/"+strconv.Itoa(index), delete_http_redirect_rule_request_query_params)
 		if delete_http_redirect_rule_err != nil || !isValidStatusCode(delete_http_redirect_rule_res.StatusCode) {
 			return errors.New("failed to delete http redirect rule")
+		}
+		return nil
+	}
+	return nil
+}
+
+// Delete HTTPS Redirect Rule
+func (s Manager) DeleteHTTPSRedirectRule(transaction_id string, match_domain string) error {
+	if strings.TrimSpace(match_domain) == "" {
+		return errors.New("match domain is required")
+	}
+	// Fetch all HTTPS Redirect Rules
+	get_https_redirect_rules_request_query_params := QueryParameters{}
+	get_https_redirect_rules_request_query_params.add("transaction_id", transaction_id)
+	get_https_redirect_rules_request_query_params.add("parent_name", "fe_https")
+	get_https_redirect_rules_request_query_params.add("parent_type", "frontend")
+	get_https_redirect_rules_res, get_https_redirect_rules_err := s.getRequest("/services/haproxy/configuration/http_request_rules", get_https_redirect_rules_request_query_params)
+	if get_https_redirect_rules_err != nil || !isValidStatusCode(get_https_redirect_rules_res.StatusCode) {
+		return errors.New("failed to fetch https redirect rules")
+	}
+	defer get_https_redirect_rules_res.Body.Close()
+	get_https_redirect_rules_res_body, get_https_redirect_rules_res_body_err := io.ReadAll(get_https_redirect_rules_res.Body)
+	if get_https_redirect_rules_res_body_err != nil {
+		return errors.New("failed to read https redirect rules response body")
+	}
+	get_https_redirect_rules_res_body_json := map[string]interface{}{}
+	get_https_redirect_rules_res_body_json_err := json.Unmarshal(get_https_redirect_rules_res_body, &get_https_redirect_rules_res_body_json)
+	if get_https_redirect_rules_res_body_json_err != nil {
+		log.Println(get_https_redirect_rules_res_body_json_err)
+		return errors.New("failed to unmarshal https redirect rules response body")
+	}
+	// Find index of HTTPS Redirect Rule
+	index := -1
+	get_https_redirect_rules := get_https_redirect_rules_res_body_json["data"].([]interface{})
+	for _, https_redirect_rule := range get_https_redirect_rules {
+		https_redirect_rule_item := https_redirect_rule.(map[string]interface{})
+		if https_redirect_rule_item["cond_test"] == `{ hdr(host) -i `+strings.TrimSpace(match_domain)+` } !letsencrypt-acl` {
+			index = int(https_redirect_rule_item["index"].(float64))
+			break
+		}
+	}
+	// Delete HTTPS Redirect Rule
+	if index != -1 {
+		delete_https_redirect_rule_request_query_params := QueryParameters{}
+		delete_https_redirect_rule_request_query_params.add("transaction_id", transaction_id)
+		delete_https_redirect_rule_request_query_params.add("parent_name", "fe_https")
+		delete_https_redirect_rule_request_query_params.add("parent_type", "frontend")
+		// Send request
+		delete_https_redirect_rule_res, delete_https_redirect_rule := s.deleteRequest("/services/haproxy/configuration/http_request_rules/"+strconv.Itoa(index), delete_https_redirect_rule_request_query_params)
+		if delete_https_redirect_rule != nil || !isValidStatusCode(delete_https_redirect_rule_res.StatusCode) {
+			return errors.New("failed to delete https redirect rule")
 		}
 		return nil
 	}
