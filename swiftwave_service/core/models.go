@@ -61,7 +61,7 @@ type IngressRule struct {
 type RedirectRule struct {
 	ID          uint               `json:"id" gorm:"primaryKey"`
 	DomainID    uint               `json:"domainID"`
-	Port        uint               `json:"port"`
+	Protocol    ProtocolType       `json:"protocol"`
 	RedirectURL string             `json:"redirectURL"`
 	Status      RedirectRuleStatus `json:"status"`
 	CreatedAt   time.Time          `json:"createdAt"`

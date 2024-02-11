@@ -256,7 +256,6 @@ type RedirectRule struct {
 	DomainID    uint               `json:"domainId"`
 	Domain      *Domain            `json:"domain"`
 	Protocol    ProtocolType       `json:"protocol"`
-	Port        uint               `json:"port"`
 	RedirectURL string             `json:"redirectURL"`
 	Status      RedirectRuleStatus `json:"status"`
 	CreatedAt   time.Time          `json:"createdAt"`
@@ -266,7 +265,6 @@ type RedirectRule struct {
 type RedirectRuleInput struct {
 	DomainID    uint         `json:"domainId"`
 	Protocol    ProtocolType `json:"protocol"`
-	Port        uint         `json:"port"`
 	RedirectURL string       `json:"redirectURL"`
 }
 

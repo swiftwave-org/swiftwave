@@ -81,6 +81,13 @@ func (ingressRule *IngressRule) Create(ctx context.Context, db gorm.DB, restrict
 			return errors.New("there is ingress rule with same port")
 		}
 	}
+	// check if there is no redirect rule with same domain and port
+	if (ingressRule.Protocol == HTTPProtocol && ingressRule.Port == 80) || ingressRule.Protocol == HTTPSProtocol {
+		isRedirectRuleExist := db.Where("domain_id = ? AND protocol = ?", ingressRule.DomainID, ingressRule.Protocol).First(&RedirectRule{}).RowsAffected > 0
+		if isRedirectRuleExist {
+			return errors.New("there is redirect rule with same domain and port")
+		}
+	}
 
 	// create record
 	tx := db.Create(&ingressRule)
