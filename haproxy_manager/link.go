@@ -283,7 +283,6 @@ func (s Manager) DeleteTCPLink(transaction_id string, backend_name string, port 
 	return nil
 }
 
-// TODO: Support other http ports except 80 for Redirect Rules
 // Add HTTP Redirect Rule
 func (s Manager) AddHTTPRedirectRule(transaction_id string, match_domain string, redirect_url string) error {
 	if strings.TrimSpace(match_domain) == "" {
@@ -302,7 +301,7 @@ func (s Manager) AddHTTPRedirectRule(transaction_id string, match_domain string,
 		"redir_code":  302,
 		"redir_type":  "location",
 		"redir_value": redirect_url,
-		"index":       1,
+		"index":       0,
 		"cond":        "if",
 		"cond_test":   `{ hdr(host) -i ` + strings.TrimSpace(match_domain) + ` }`,
 	}
@@ -338,7 +337,7 @@ func (s Manager) AddHTTPSRedirectRule(transaction_id string, match_domain string
 		"redir_code":  302,
 		"redir_type":  "location",
 		"redir_value": redirect_url,
-		"index":       1,
+		"index":       0,
 		"cond":        "if",
 		"cond_test":   `{ hdr(host) -i ` + strings.TrimSpace(match_domain) + ` }`,
 	}
