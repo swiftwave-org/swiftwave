@@ -8,7 +8,6 @@ enum RedirectRuleStatus {
 input RedirectRuleInput {
     domainId: Uint!
     protocol: ProtocolType!
-    port: Uint!
     redirectURL: String!
 }
 
@@ -17,7 +16,6 @@ type RedirectRule {
     domainId: Uint!
     domain: Domain!
     protocol: ProtocolType!
-    port: Uint!
     redirectURL: String!
     status: RedirectRuleStatus!
     createdAt: Time!

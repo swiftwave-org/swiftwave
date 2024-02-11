@@ -37,12 +37,25 @@ func (redirectRule *RedirectRule) Create(ctx context.Context, db gorm.DB) error 
 		return err
 	}
 	// verify if there is no ingress rule with same domain and port
-	isIngressRuleExist := db.Where("domain_id = ? AND port = ?", redirectRule.DomainID, redirectRule.Port).First(&IngressRule{}).RowsAffected > 0
+	if redirectRule.Protocol != HTTPProtocol && redirectRule.Protocol != HTTPSProtocol {
+		return errors.New("invalid protocol")
+	}
+	var isIngressRuleExist bool
+	/*
+	 * For redirect rule with HTTP protocol, port will be anyhow 80
+	 * For redirect rule with HTTPS protocol, port will be anyhow 443
+	 * So, we can check if there is any ingress rule with same domain and port
+	 */
+	if redirectRule.Protocol == HTTPProtocol {
+		isIngressRuleExist = db.Where("domain_id = ? AND protocol = ? AND port = ?", redirectRule.DomainID, redirectRule.Protocol, 80).First(&IngressRule{}).RowsAffected > 0
+	} else if redirectRule.Protocol == HTTPSProtocol {
+		isIngressRuleExist = db.Where("domain_id = ? AND protocol = ? AND port = ?", redirectRule.DomainID, redirectRule.Protocol, 443).First(&IngressRule{}).RowsAffected > 0
+	}
 	if isIngressRuleExist {
 		return errors.New("there is ingress rule with same domain and port")
 	}
-	// verify if there is no redirect rule with same domain and port
-	isRedirectRuleExist := db.Where("domain_id = ? AND port = ?", redirectRule.DomainID, redirectRule.Port).First(&RedirectRule{}).RowsAffected > 0
+	// verify if there is no redirect rule with same domain and protocl
+	isRedirectRuleExist := db.Where("domain_id = ? AND protocol = ?", redirectRule.DomainID, redirectRule.Protocol).First(&RedirectRule{}).RowsAffected > 0
 	if isRedirectRuleExist {
 		return errors.New("there is redirect rule with same domain and port")
 	}

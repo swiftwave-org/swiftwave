@@ -261,7 +261,6 @@ type ComplexityRoot struct {
 		Domain      func(childComplexity int) int
 		DomainID    func(childComplexity int) int
 		ID          func(childComplexity int) int
-		Port        func(childComplexity int) int
 		Protocol    func(childComplexity int) int
 		RedirectURL func(childComplexity int) int
 		Status      func(childComplexity int) int
@@ -1654,13 +1653,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RedirectRule.ID(childComplexity), true
-
-	case "RedirectRule.port":
-		if e.complexity.RedirectRule.Port == nil {
-			break
-		}
-
-		return e.complexity.RedirectRule.Port(childComplexity), true
 
 	case "RedirectRule.protocol":
 		if e.complexity.RedirectRule.Protocol == nil {
@@ -5278,8 +5270,6 @@ func (ec *executionContext) fieldContext_Domain_redirectRules(ctx context.Contex
 				return ec.fieldContext_RedirectRule_domain(ctx, field)
 			case "protocol":
 				return ec.fieldContext_RedirectRule_protocol(ctx, field)
-			case "port":
-				return ec.fieldContext_RedirectRule_port(ctx, field)
 			case "redirectURL":
 				return ec.fieldContext_RedirectRule_redirectURL(ctx, field)
 			case "status":
@@ -8118,8 +8108,6 @@ func (ec *executionContext) fieldContext_Mutation_createRedirectRule(ctx context
 				return ec.fieldContext_RedirectRule_domain(ctx, field)
 			case "protocol":
 				return ec.fieldContext_RedirectRule_protocol(ctx, field)
-			case "port":
-				return ec.fieldContext_RedirectRule_port(ctx, field)
 			case "redirectURL":
 				return ec.fieldContext_RedirectRule_redirectURL(ctx, field)
 			case "status":
@@ -10059,8 +10047,6 @@ func (ec *executionContext) fieldContext_Query_redirectRule(ctx context.Context,
 				return ec.fieldContext_RedirectRule_domain(ctx, field)
 			case "protocol":
 				return ec.fieldContext_RedirectRule_protocol(ctx, field)
-			case "port":
-				return ec.fieldContext_RedirectRule_port(ctx, field)
 			case "redirectURL":
 				return ec.fieldContext_RedirectRule_redirectURL(ctx, field)
 			case "status":
@@ -10134,8 +10120,6 @@ func (ec *executionContext) fieldContext_Query_redirectRules(ctx context.Context
 				return ec.fieldContext_RedirectRule_domain(ctx, field)
 			case "protocol":
 				return ec.fieldContext_RedirectRule_protocol(ctx, field)
-			case "port":
-				return ec.fieldContext_RedirectRule_port(ctx, field)
 			case "redirectURL":
 				return ec.fieldContext_RedirectRule_redirectURL(ctx, field)
 			case "status":
@@ -10807,50 +10791,6 @@ func (ec *executionContext) fieldContext_RedirectRule_protocol(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ProtocolType does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _RedirectRule_port(ctx context.Context, field graphql.CollectedField, obj *model.RedirectRule) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_RedirectRule_port(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Port, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(uint)
-	fc.Result = res
-	return ec.marshalNUint2uint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_RedirectRule_port(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "RedirectRule",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Uint does not have child fields")
 		},
 	}
 	return fc, nil
@@ -13783,7 +13723,7 @@ func (ec *executionContext) unmarshalInputRedirectRuleInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"domainId", "protocol", "port", "redirectURL"}
+	fieldsInOrder := [...]string{"domainId", "protocol", "redirectURL"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -13804,13 +13744,6 @@ func (ec *executionContext) unmarshalInputRedirectRuleInput(ctx context.Context,
 				return it, err
 			}
 			it.Protocol = data
-		case "port":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("port"))
-			data, err := ec.unmarshalNUint2uint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Port = data
 		case "redirectURL":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("redirectURL"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -16256,11 +16189,6 @@ func (ec *executionContext) _RedirectRule(ctx context.Context, sel ast.Selection
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "protocol":
 			out.Values[i] = ec._RedirectRule_protocol(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "port":
-			out.Values[i] = ec._RedirectRule_port(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
