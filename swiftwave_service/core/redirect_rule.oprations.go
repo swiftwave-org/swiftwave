@@ -85,10 +85,7 @@ func (redirectRule *RedirectRule) Delete(ctx context.Context, db gorm.DB, force 
 }
 
 func (redirectRule *RedirectRule) isDeleting() bool {
-	if redirectRule.Status == RedirectRuleStatusDeleting {
-		return true
-	}
-	return false
+	return redirectRule.Status == RedirectRuleStatusDeleting
 }
 
 func (redirectRule *RedirectRule) UpdateStatus(ctx context.Context, db gorm.DB, status RedirectRuleStatus) error {
