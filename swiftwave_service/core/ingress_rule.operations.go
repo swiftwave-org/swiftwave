@@ -116,10 +116,7 @@ func (ingressRule *IngressRule) Delete(ctx context.Context, db gorm.DB, force bo
 }
 
 func (ingressRule *IngressRule) isDeleting() bool {
-	if ingressRule.Status == IngressRuleStatusDeleting {
-		return true
-	}
-	return false
+	return ingressRule.Status == IngressRuleStatusDeleting
 }
 
 func (ingressRule *IngressRule) UpdateStatus(ctx context.Context, db gorm.DB, status IngressRuleStatus) error {

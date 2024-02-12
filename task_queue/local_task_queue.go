@@ -78,7 +78,7 @@ func (l *localTaskQueue) StartConsumers(nowait bool) error {
 	l.mutexQueueToChannelMapping.RLock()
 
 	// copy the queue names
-	for queueName, _ := range l.queueToChannelMapping {
+	for queueName := range l.queueToChannelMapping {
 		queueNames = append(queueNames, queueName)
 	}
 

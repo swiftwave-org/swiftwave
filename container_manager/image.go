@@ -83,10 +83,7 @@ func (m Manager) PullImage(image string, username string, password string) (*buf
 func (m Manager) ExistsImage(image string) bool {
 	// Check if the image exists locally
 	_, _, err := m.client.ImageInspectWithRaw(m.ctx, image)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 // RemoveImage removes a Docker image from the local registry.

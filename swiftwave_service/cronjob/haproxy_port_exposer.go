@@ -69,18 +69,18 @@ func (m Manager) HaProxyPortExposer() {
 				for _, port := range unexposedPorts {
 					err := firewallDenyPort(m.SystemConfig.ServiceConfig.FirewallDenyPortCommand, port)
 					if err != nil {
-						log.Println(fmt.Sprintf("Failed to deny port %d in firewall", port))
+						log.Printf("Failed to deny port %d in firewall", port)
 					} else {
-						log.Println(fmt.Sprintf("Port %d denied", port))
+						log.Printf("Port %d denied", port)
 					}
 				}
 				// Allow exposed ports
 				for port := range portsMap {
 					err := firewallAllowPort(m.SystemConfig.ServiceConfig.FirewallAllowPortCommand, port)
 					if err != nil {
-						log.Println(fmt.Sprintf("Failed to allow port %d in firewall", port))
+						log.Printf("Failed to allow port %d in firewall", port)
 					} else {
-						log.Println(fmt.Sprintf("Port %d allowed", port))
+						log.Printf("Port %d allowed", port)
 					}
 				}
 			}

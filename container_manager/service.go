@@ -3,6 +3,7 @@ package containermanger
 import (
 	"errors"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/swarm"
@@ -268,7 +269,7 @@ func (m Manager) RealtimeInfoService(serviceName string, ignoreNodeDetails bool)
 
 // Get service logs
 func (m Manager) LogsService(serviceName string) (io.ReadCloser, error) {
-	logs, err := m.client.ServiceLogs(m.ctx, serviceName, types.ContainerLogsOptions{
+	logs, err := m.client.ServiceLogs(m.ctx, serviceName, container.LogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Follow:     true,

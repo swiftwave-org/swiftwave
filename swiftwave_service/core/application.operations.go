@@ -392,7 +392,7 @@ func (application *Application) SoftDelete(ctx context.Context, db gorm.DB, dock
 	if err != nil {
 		return err
 	}
-	if ingressRules != nil && len(ingressRules) > 0 {
+	if len(ingressRules) > 0 {
 		return errors.New("application has ingress rules associated with it")
 	}
 	// do soft delete
@@ -406,7 +406,7 @@ func (application *Application) HardDelete(ctx context.Context, db gorm.DB, dock
 	if err != nil {
 		return err
 	}
-	if ingressRules != nil && len(ingressRules) > 0 {
+	if len(ingressRules) > 0 {
 		return errors.New("application has ingress rules associated with it")
 	}
 	// delete application

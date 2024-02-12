@@ -76,6 +76,10 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 	}
 	// fetch persistent volumes
 	persistentVolumeBindings, err := core.FindPersistentVolumeBindingsByApplicationId(ctx, *db, request.AppId)
+	if err != nil {
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch persistent volumes\n", false)
+		return err
+	}
 	var volumeMounts = make([]containermanger.VolumeMount, 0)
 	for _, persistentVolumeBinding := range persistentVolumeBindings {
 		// fetch the volume
