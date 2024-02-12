@@ -21,8 +21,8 @@ func init() {
 
 var autoServiceTLSRenewCmd = &cobra.Command{
 	Use:   "auto-renew",
-	Short: "Auto renew swiftwave service TLS certificates",
-	Long:  `Auto update swiftwave service TLS certificates`,
+	Short: "Auto renew swiftwave service TLS certificates going to expire in 30 days",
+	Long:  `Auto update swiftwave service TLS certificates going to expire in 30 days`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// print help
 		err := cmd.Help()
