@@ -1,0 +1,10 @@
+[Unit]
+Description=Swiftwave Service TLS Ceritificate Updater Service
+After=multi-user.target
+
+[Service]
+ExecStart=/bin/sh -c "/usr/bin/swiftwave tls renew-certificates || true"
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
