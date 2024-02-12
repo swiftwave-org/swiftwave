@@ -71,9 +71,6 @@ var haproxyStartCmd = &cobra.Command{
 			}
 		}
 		dockerImage := systemConfig.HAProxyConfig.DockerImage
-		if !systemConfig.ServiceConfig.UseTLS {
-			dockerImage = dockerImage + "-http"
-		}
 		// base directory for socket file
 		unixSocketMountDir := filepath.Dir(systemConfig.HAProxyConfig.UnixSocketPath)
 		err := generateDefaultHAProxyConfiguration(systemConfig)
