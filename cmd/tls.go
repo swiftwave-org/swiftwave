@@ -241,6 +241,9 @@ var renewCertificatesCommand = &cobra.Command{
 				} else {
 					printError("> " + domain + ": failed to renew certificate")
 				}
+				// wait 5 seconds
+				printInfo("Waiting for 5 seconds before renewing the next certificate")
+				time.Sleep(5 * time.Second)
 			}
 		}
 		printInfo("Renewal process has been completed")
