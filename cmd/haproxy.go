@@ -92,10 +92,8 @@ var haproxyStartCmd = &cobra.Command{
 			var ingressRules []core.IngressRule
 			tx := dbClient.Select("port").Where("port IS NOT NULL").Where("protocol != udp").Find(&ingressRules)
 			if tx.Error == nil {
-				if ingressRules != nil {
-					for _, ingressRule := range ingressRules {
-						ports = append(ports, ingressRule.Port)
-					}
+				for _, ingressRule := range ingressRules {
+					ports = append(ports, ingressRule.Port)
 				}
 			}
 		}
@@ -202,7 +200,7 @@ func removeHashFromDockerImageName(image string) string {
 func generateDefaultHAProxyConfiguration(config *system_config.Config) error {
 	// Check if the directory exists
 	if _, err := os.Stat(config.HAProxyConfig.DataDir); os.IsNotExist(err) {
-		return errors.New(fmt.Sprintf("Directory does not exist > %s", config.HAProxyConfig.DataDir))
+		return fmt.Errorf("directory does not exist > %s", config.HAProxyConfig.DataDir)
 	}
 	baseUrl, err := generateHAProxyConfigDownloadBaseUrl(config)
 	if err != nil {

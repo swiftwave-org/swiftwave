@@ -219,6 +219,10 @@ func (r *mutationResolver) RebuildApplication(ctx context.Context, id string) (b
 		ID: id,
 	}
 	deploymentId, err := record.RebuildApplication(ctx, *tx)
+	if err != nil {
+		tx.Rollback()
+		return false, err
+	}
 	// commit transaction
 	err = tx.Commit().Error
 	if err != nil {

@@ -51,7 +51,7 @@ func Start(config *system_config.Config) {
 	// Create pubsub default topics
 	err = manager.PubSubClient.CreateTopic(manager.CancelImageBuildTopic)
 	if err != nil {
-		log.Println(fmt.Sprintf("Error creating topic %s: %s", manager.CancelImageBuildTopic, err.Error()))
+		log.Printf("Error creating topic %s: %s", manager.CancelImageBuildTopic, err.Error())
 	}
 
 	// Create the worker manager
