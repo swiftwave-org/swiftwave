@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/spf13/cobra"
@@ -14,14 +15,17 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func init() {
 	tlsCmd.AddCommand(tlsEnableCmd)
 	tlsCmd.AddCommand(tlsDisableCmd)
 	tlsCmd.AddCommand(generateCertificateCommand)
+	tlsCmd.AddCommand(renewCertificatesCommand)
 	generateCertificateCommand.Flags().String("domain", "", "Domain name for which to generate the certificate")
 }
 
@@ -119,6 +123,7 @@ var generateCertificateCommand = &cobra.Command{
 			return
 		}
 		// Check if there is already someone listening on port 80
+		isServerStarted := false
 		isPort80Blocked := checkIfPortIsInUse("80")
 		isServicePortBlocked := checkIfPortIsInUse(strconv.Itoa(systemConfig.ServiceConfig.BindPort))
 		if isPort80Blocked {
@@ -129,6 +134,7 @@ var generateCertificateCommand = &cobra.Command{
 				return
 			}
 		} else {
+			isServerStarted = true
 			// Start the server
 			go func(sslManager *SSL.Manager) {
 				sslManager.InitHttpHandlers(echoServer)
@@ -147,6 +153,7 @@ var generateCertificateCommand = &cobra.Command{
 		privateKey, err := generatePrivateKey()
 		if err != nil {
 			printError("Failed to generate private key")
+			os.Exit(1)
 			return
 		}
 		// Generate the certificate
@@ -154,12 +161,15 @@ var generateCertificateCommand = &cobra.Command{
 		if err != nil {
 			println(err.Error())
 			printError("Failed to generate certificate")
+			os.Exit(1)
 			return
 		}
-		// Stop the http-01 challenge server
-		err = echoServer.Server.Shutdown(context.Background())
-		if err != nil {
-			return
+		if isServerStarted {
+			// Stop the http-01 challenge server
+			err = echoServer.Server.Shutdown(context.Background())
+			if err != nil {
+				return
+			}
 		}
 		// Store private key and certificate in the service.ssl_certificate_dir/<domain> folder
 		dir := systemConfig.ServiceConfig.SSLCertificateDir + "/" + domain
@@ -167,6 +177,7 @@ var generateCertificateCommand = &cobra.Command{
 			err = createFolder(dir)
 			if err != nil {
 				printError("Failed to create folder " + dir)
+				os.Exit(1)
 				return
 			}
 		}
@@ -174,18 +185,65 @@ var generateCertificateCommand = &cobra.Command{
 		err = os.WriteFile(dir+"/private.key", []byte(privateKey), 0644)
 		if err != nil {
 			printError("Failed to store private key")
+			os.Exit(1)
 			return
 		}
 		// Store certificate
 		err = os.WriteFile(dir+"/certificate.crt", []byte(certificate), 0644)
 		if err != nil {
 			printError("Failed to store certificate")
+			os.Exit(1)
 			return
 		}
 		// Print success message
 		printSuccess("Successfully generated TLS certificate for " + domain)
 		// Restart swiftwave service
 		restartSysctlService("swiftwave")
+	},
+}
+
+var renewCertificatesCommand = &cobra.Command{
+	Use:   "renew-certificates",
+	Short: "Renew TLS certificates for swiftwave endpoints",
+	Long: `This command renews TLS certificates for swiftwave endpoints.
+	It's not for renewing certificates for domain of hosted applications`,
+	Run: func(cmd *cobra.Command, args []string) {
+		// Find-out domain names for which certificates are to be renewed
+		files, err := os.ReadDir(systemConfig.ServiceConfig.SSLCertificateDir)
+		if err != nil {
+			printError("Failed to read SSL certificate directory")
+			return
+		}
+		// find out current executable
+		executablePath, err := os.Executable()
+		if err != nil {
+			printError("Failed to find out current executable path")
+			return
+		}
+
+		for _, file := range files {
+			domain := file.Name()
+			certPath := filepath.Join(systemConfig.ServiceConfig.SSLCertificateDir, domain, "certificate.crt")
+			isRenewalRequired, err := isRenewalImminent(certPath)
+			if err != nil {
+				printError("> " + domain + ": " + err.Error())
+				continue
+			}
+			if isRenewalRequired {
+				cmd := exec.Command(executablePath, "tls", "generate-certificate", "--domain", domain)
+				// fetch exit code
+				err := cmd.Run()
+				if err != nil {
+					printError("> " + domain + ": " + err.Error())
+				}
+				if cmd.ProcessState.Success() {
+					printSuccess("> " + domain + ": certificate has been renewed")
+				} else {
+					printError("> " + domain + ": failed to renew certificate")
+				}
+			}
+		}
+		printInfo("Renewal process has been completed")
 	},
 }
 
@@ -230,4 +288,33 @@ func restartSysctlService(serviceName string) {
 		}
 		printSuccess(serviceName + " has been restarted")
 	}
+}
+
+func daysUntilExpiration(certPath string) (int, error) {
+	certBytes, err := os.ReadFile(certPath)
+	if err != nil {
+		return 0, err
+	}
+
+	block, _ := pem.Decode(certBytes)
+	if block == nil {
+		return 0, fmt.Errorf("failed to decode PEM block")
+	}
+
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return 0, err
+	}
+
+	daysRemaining := int(cert.NotAfter.Sub(time.Now()).Hours() / 24)
+	return daysRemaining, nil
+}
+
+func isRenewalImminent(certPath string) (bool, error) {
+	daysRemaining, err := daysUntilExpiration(certPath)
+	if err != nil {
+		return false, err
+	}
+
+	return daysRemaining <= 30, nil
 }
