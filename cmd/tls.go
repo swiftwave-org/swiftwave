@@ -123,7 +123,7 @@ var generateCertificateCommand = &cobra.Command{
 		isServicePortBlocked := checkIfPortIsInUse(strconv.Itoa(systemConfig.ServiceConfig.BindPort))
 		if isPort80Blocked {
 			if isServicePortBlocked {
-				printInfo("Running swiftwave service will be used to solve http-01 challenge")
+				printInfo("Already running swiftwave service will be used to solve http-01 challenge")
 			} else {
 				printError("Please stop the service running on port 80 temporarily")
 				return
