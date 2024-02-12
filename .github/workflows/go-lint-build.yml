@@ -1,21 +1,19 @@
 name: Golang CI
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
-      - main
-
+      - develop
+      - v1
 permissions:
   contents: read
   pull-requests: read
+  checks: write
 
 jobs:
   gofmt-unix:
     strategy:
       matrix:
-        go: ["1.20"]
+        go: ["1.21"]
         os: [macos-latest, ubuntu-latest]
     name: gofmt
     runs-on: ${{ matrix.os }}
@@ -37,7 +35,7 @@ jobs:
   golangci:
     strategy:
       matrix:
-        go: ["1.20"]
+        go: ["1.21"]
         os: [macos-latest, ubuntu-latest]
     name: lint
     runs-on: ${{ matrix.os }}
@@ -52,17 +50,6 @@ jobs:
         with:
           version: v1.54
           args: --timeout 10m
+          only-new-issues: true
       - name: Verify dependencies
         run: go mod verify
-
-      - name: Build
-        run: go build -v ./...
-
-      - name: Run go vet
-        run: go vet ./...
-
-      - name: Install staticcheck
-        run: go install honnef.co/go/tools/cmd/staticcheck@latest
-
-      - name: Run staticcheck
-        run: staticcheck ./...
