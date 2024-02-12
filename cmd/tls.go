@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -95,11 +96,6 @@ var generateCertificateCommand = &cobra.Command{
 		if strings.TrimSpace(domain) == "" {
 			domain = systemConfig.ServiceConfig.AddressOfCurrentNode
 		}
-		// Check if there is already someone listening on port 80
-		if checkIfPortIsInUse("80") {
-			printError("Port 80 is already in use, please stop the process and try again")
-			return
-		}
 		//// Start http-01 challenge server
 		echoServer := echo.New()
 		echoServer.HideBanner = true
@@ -122,19 +118,31 @@ var generateCertificateCommand = &cobra.Command{
 			printError("Failed to initiate SSL Manager")
 			return
 		}
-		// Start the server
-		go func(sslManager *SSL.Manager) {
-			sslManager.InitHttpHandlers(echoServer)
-			err := echoServer.Start(":80")
-			if err != nil {
-				if errors.Is(err, http.ErrServerClosed) {
-					printSuccess("http-01 challenge server has been stopped")
-				} else {
-					printError("Failed to start http-01 challenge server")
-					os.Exit(1)
-				}
+		// Check if there is already someone listening on port 80
+		isPort80Blocked := checkIfPortIsInUse("80")
+		isServicePortBlocked := checkIfPortIsInUse(strconv.Itoa(systemConfig.ServiceConfig.BindPort))
+		if isPort80Blocked {
+			if isServicePortBlocked {
+				printInfo("Running swiftwave service will be used to solve http-01 challenge")
+			} else {
+				printError("Please stop the service running on port 80 temporarily")
+				return
 			}
-		}(&sslManager)
+		} else {
+			// Start the server
+			go func(sslManager *SSL.Manager) {
+				sslManager.InitHttpHandlers(echoServer)
+				err := echoServer.Start(":80")
+				if err != nil {
+					if errors.Is(err, http.ErrServerClosed) {
+						printSuccess("http-01 challenge server has been stopped")
+					} else {
+						printError("Failed to start http-01 challenge server")
+						os.Exit(1)
+					}
+				}
+			}(&sslManager)
+		}
 		// Generate private key
 		privateKey, err := generatePrivateKey()
 		if err != nil {
