@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
@@ -179,11 +180,17 @@ var initCmd = &cobra.Command{
 			return
 		}
 
+		configTemplate.ServiceConfig.JwtSecretKey = generateRandomString(64)
 		configTemplate.ServiceConfig.AddressOfCurrentNode = domainName
 		configTemplate.LetsEncryptConfig.EmailID = letsEncryptEmail
 		configTemplate.HAProxyConfig.User = haproxyUser
 		configTemplate.HAProxyConfig.Password = haproxyPassword
-
+		hostname, err := os.Hostname()
+		if err != nil {
+			printError("Failed to fetch system hostname")
+			os.Exit(1)
+		}
+		configTemplate.TaskQueueConfig.AMQPConfig.ClientName = hostname
 		isCreated = createConfig(configTemplate, configFilePath)
 
 		if isCreated {
@@ -269,4 +276,13 @@ func getIPAddress() (string, error) {
 		return "", err
 	}
 	return string(body), nil
+}
+
+func generateRandomString(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(result)
 }
