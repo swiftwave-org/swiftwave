@@ -7,24 +7,87 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"net/http"
-	"os"
-	"strings"
-
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/spf13/cobra"
 	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
+	"net/http"
+	"os"
+	"os/exec"
+	"strings"
 )
 
 func init() {
-	generateTLSCommand.Flags().String("domain", "", "Domain name for which to generate the certificate")
+	tlsCmd.AddCommand(tlsEnableCmd)
+	tlsCmd.AddCommand(tlsDisableCmd)
+	tlsCmd.AddCommand(generateCertificateCommand)
+	generateCertificateCommand.Flags().String("domain", "", "Domain name for which to generate the certificate")
 }
 
-var generateTLSCommand = &cobra.Command{
-	Use:   "generate-tls",
-	Short: "Generate TLS certificates for swiftwave endpoints",
-	Long: `This command generates TLS certificates for swiftwave endpoints.
+var tlsCmd = &cobra.Command{
+	Use:   "tls",
+	Short: "Manage TLS for swiftwave service",
+	Long:  `Manage TLS for swiftwave service`,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := cmd.Help()
+		if err != nil {
+			return
+		}
+	},
+}
+
+var tlsEnableCmd = &cobra.Command{
+	Use:   "enable",
+	Short: "Enable TLS for swiftwave service",
+	Long:  `Enable TLS for swiftwave service`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if systemConfig.ServiceConfig.UseTLS {
+			printSuccess("TLS is already enabled")
+			return
+		}
+		// Check if some certificate is already present
+		if isFolderEmpty(systemConfig.ServiceConfig.SSLCertificateDir) {
+			printError("No TLS certificate found")
+			printInfo("Use `swiftwave tls generate-certificate` to generate a new certificate")
+			return
+		}
+		systemConfig.ServiceConfig.UseTLS = true
+		err := systemConfig.WriteToFile(configFilePath)
+		if err != nil {
+			printError("Failed to update config")
+			printError(err.Error())
+			return
+		}
+		printSuccess("TLS has been enabled")
+		restartSysctlService("swiftwave")
+	},
+}
+
+var tlsDisableCmd = &cobra.Command{
+	Use:   "disable",
+	Short: "Disable TLS for swiftwave service",
+	Long:  `Disable TLS for swiftwave service`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if !systemConfig.ServiceConfig.UseTLS {
+			printSuccess("TLS is already disabled")
+			return
+		}
+		systemConfig.ServiceConfig.UseTLS = false
+		err := systemConfig.WriteToFile(configFilePath)
+		if err != nil {
+			printError("Failed to update config")
+			printError(err.Error())
+			return
+		}
+		printSuccess("TLS has been disabled")
+		restartSysctlService("swiftwave")
+	},
+}
+
+var generateCertificateCommand = &cobra.Command{
+	Use:   "generate-certificate",
+	Short: "Generate TLS certificate for swiftwave endpoints",
+	Long: `This command generates TLS certificate for swiftwave endpoints.
 	It's not for generating certificates for domain of hosted applications`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// If domain is not provided, use the domain from config
@@ -86,7 +149,10 @@ var generateTLSCommand = &cobra.Command{
 			return
 		}
 		// Stop the http-01 challenge server
-		echoServer.Server.Shutdown(context.Background())
+		err = echoServer.Server.Shutdown(context.Background())
+		if err != nil {
+			return
+		}
 		// Store private key and certificate in the service.ssl_certificate_dir/<domain> folder
 		dir := systemConfig.ServiceConfig.SSLCertificateDir + "/" + domain
 		if !checkIfFolderExists(dir) {
@@ -110,8 +176,12 @@ var generateTLSCommand = &cobra.Command{
 		}
 		// Print success message
 		printSuccess("Successfully generated TLS certificate for " + domain)
+		// Restart swiftwave service
+		restartSysctlService("swiftwave")
 	},
 }
+
+// private functions
 
 func generatePrivateKey() (string, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -125,4 +195,31 @@ func generatePrivateKey() (string, error) {
 	}
 	privateKeyBytes = pem.EncodeToMemory(&pemKey)
 	return string(privateKeyBytes), nil
+}
+
+func isFolderEmpty(path string) bool {
+	files, err := os.ReadDir(path)
+	if err != nil {
+		return true
+	}
+	return len(files) == 0
+}
+
+func restartSysctlService(serviceName string) {
+	// check if service is running
+	// read the output of systemctl is-active <service_name>
+	cmd := exec.Command("systemctl", "is-active", serviceName)
+	output, err := cmd.Output()
+	if err != nil {
+		return
+	}
+	if strings.TrimSpace(string(output)) == "active" {
+		// restart the service
+		cmd = exec.Command("systemctl", "restart", serviceName)
+		err = cmd.Run()
+		if err != nil {
+			return
+		}
+		printSuccess(serviceName + " has been restarted")
+	}
 }
