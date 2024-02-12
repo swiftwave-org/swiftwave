@@ -22,11 +22,12 @@ import (
 )
 
 func init() {
+	generateCertificateCommand.Flags().String("domain", "", "Domain name for which to generate the certificate")
 	tlsCmd.AddCommand(tlsEnableCmd)
 	tlsCmd.AddCommand(tlsDisableCmd)
 	tlsCmd.AddCommand(generateCertificateCommand)
 	tlsCmd.AddCommand(renewCertificatesCommand)
-	generateCertificateCommand.Flags().String("domain", "", "Domain name for which to generate the certificate")
+	tlsCmd.AddCommand(autoServiceTLSRenewCmd)
 }
 
 var tlsCmd = &cobra.Command{
