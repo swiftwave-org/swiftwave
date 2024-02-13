@@ -160,6 +160,9 @@ func (m Manager) volumeToolkitRunner(volumeName string, command string, predefin
 		}
 		// read the response but ignore it
 		_, err = io.Copy(io.Discard, resReader)
+		if err != nil {
+			return "", errors.New("failed to pull image > response " + err.Error())
+		}
 	}
 	// create temp directory
 	if predefinedOutputPath == nil {
