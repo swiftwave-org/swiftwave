@@ -28,7 +28,7 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 	}
 	dockerManager := m.ServiceManager.DockerManager
 	// generate a random filename
-	backupFileName := "backup_" + persistentVolume.Name + "_" + uuid.NewString()
+	backupFileName := "backup_" + persistentVolume.Name + "_" + uuid.NewString() + ".tar.gz"
 	backupFilePath := filepath.Join(m.SystemConfig.ServiceConfig.DataDir, backupFileName)
 	// create backup
 	err = dockerManager.BackupVolume(persistentVolume.Name, backupFilePath)
@@ -37,7 +37,7 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 	}
 	// update status
 	persistentVolumeBackup.Status = core.BackupSuccess
-	persistentVolumeBackup.File = backupFilePath
+	persistentVolumeBackup.File = backupFileName
 	size, err := sizeOfFileInMB(backupFilePath)
 	if err != nil {
 		return err
