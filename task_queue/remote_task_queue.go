@@ -124,8 +124,10 @@ func (r *remoteTaskQueue) StartConsumers(nowait bool) error {
 
 	// start consumers
 	for _, queueName := range queueNames {
-		wg.Add(1)
-		go r.listenForTasks(queueName, wg)
+		for i := 1; i <= r.NoOfWorkersPerQueue; i++ {
+			wg.Add(1)
+			go r.listenForTasks(queueName, wg)
+		}
 	}
 
 	if !nowait {

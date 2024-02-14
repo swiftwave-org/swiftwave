@@ -27,6 +27,7 @@ type localTaskQueue struct {
 	queueToChannelMapping       map[string]chan ArgumentType
 	operationMode               Mode
 	maxMessagesPerQueue         int
+	NoOfWorkersPerQueue         int
 	consumersWaitGroup          *sync.WaitGroup
 }
 
@@ -38,6 +39,7 @@ type remoteTaskQueue struct {
 	amqpClientName              string
 	operationMode               Mode
 	consumersWaitGroup          *sync.WaitGroup
+	NoOfWorkersPerQueue         int
 	// internal use
 	amqpConnection *amqp.Connection
 	amqpChannel    *amqp.Channel
@@ -69,6 +71,7 @@ type Options struct {
 	Type                ServiceType
 	Mode                Mode
 	MaxMessagesPerQueue int // only applicable for local task queue
+	NoOfWorkersPerQueue int
 	// Extra options for remote task queue
 	AMQPUri        string
 	AMQPVhost      string

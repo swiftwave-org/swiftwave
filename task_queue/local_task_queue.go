@@ -90,8 +90,10 @@ func (l *localTaskQueue) StartConsumers(nowait bool) error {
 
 	// start consumers
 	for _, queueName := range queueNames {
-		wg.Add(1)
-		go l.listenForTasks(queueName, wg)
+		for i := 1; i <= l.NoOfWorkersPerQueue; i++ {
+			wg.Add(1)
+			go l.listenForTasks(queueName, wg)
+		}
 	}
 
 	if !nowait {
