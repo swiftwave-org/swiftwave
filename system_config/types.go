@@ -72,6 +72,7 @@ type PubSubConfig struct {
 type TaskQueueConfig struct {
 	Mode                           TaskQueueMode `yaml:"mode"`
 	MaxOutstandingMessagesPerQueue int           `yaml:"max_outstanding_messages_per_queue"`
+	NoOfWorkersPerQueue            int           `yaml:"no_of_workers_per_queue"`
 	AMQPConfig                     AMQPConfig    `yaml:"amqp"`
 }
 

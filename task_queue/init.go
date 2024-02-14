@@ -37,6 +37,7 @@ func createLocalTaskQueueClient(options Options) (Client, error) {
 		queueToChannelMapping:       channelsMapping,
 		operationMode:               options.Mode,
 		maxMessagesPerQueue:         options.MaxMessagesPerQueue,
+		NoOfWorkersPerQueue:         options.NoOfWorkersPerQueue,
 		consumersWaitGroup:          &sync.WaitGroup{},
 	}, nil
 }
@@ -56,6 +57,7 @@ func createRemoteTaskQueueClient(options Options) (Client, error) {
 
 	return &remoteTaskQueue{
 		mutexQueueToFunctionMapping: mutex,
+		NoOfWorkersPerQueue:         options.NoOfWorkersPerQueue,
 		queueToFunctionMapping:      functionsMapping,
 		operationMode:               options.Mode,
 		amqpURI:                     options.AMQPUri,
