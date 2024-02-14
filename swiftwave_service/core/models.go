@@ -73,6 +73,8 @@ type PersistentVolume struct {
 	ID                       uint                      `json:"id" gorm:"primaryKey"`
 	Name                     string                    `json:"name" gorm:"unique"`
 	PersistentVolumeBindings []PersistentVolumeBinding `json:"persistentVolumeBindings" gorm:"foreignKey:PersistentVolumeID"`
+	PersistentVolumeBackups  []PersistentVolumeBackup  `json:"persistentVolumeBackups" gorm:"foreignKey:PersistentVolumeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	PersistentVolumeRestores []PersistentVolumeRestore `json:"persistentVolumeRestores" gorm:"foreignKey:PersistentVolumeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 // PersistentVolumeBinding : hold information about persistent volume binding
@@ -81,6 +83,29 @@ type PersistentVolumeBinding struct {
 	ApplicationID      string `json:"applicationID"`
 	PersistentVolumeID uint   `json:"persistentVolumeID"`
 	MountingPath       string `json:"mountingPath"`
+}
+
+// PersistentVolumeBackup : hold information about persistent volume backup
+type PersistentVolumeBackup struct {
+	ID                 uint         `json:"id" gorm:"primaryKey"`
+	Type               BackupType   `json:"type"`
+	Status             BackupStatus `json:"status"`
+	File               string       `json:"file"`
+	FileSizeMB         float64      `json:"fileSizeMB"`
+	PersistentVolumeID uint         `json:"persistentVolumeID"`
+	CreatedAt          time.Time    `json:"createdAt"`
+	CompletedAt        time.Time    `json:"completedAt"`
+}
+
+// PersistentVolumeRestore : hold information about persistent volume restore
+type PersistentVolumeRestore struct {
+	ID                 uint          `json:"id" gorm:"primaryKey"`
+	Type               RestoreType   `json:"type"`
+	File               string        `json:"file"`
+	Status             RestoreStatus `json:"status"`
+	PersistentVolumeID uint          `json:"persistentVolumeID"`
+	CreatedAt          time.Time     `json:"uploadedAt"`
+	CompletedAt        time.Time     `json:"completedAt"`
 }
 
 // EnvironmentVariable : hold information about environment variable

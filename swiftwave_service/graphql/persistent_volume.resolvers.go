@@ -6,7 +6,6 @@ package graphql
 
 import (
 	"context"
-
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
@@ -52,6 +51,36 @@ func (r *persistentVolumeResolver) PersistentVolumeBindings(ctx context.Context,
 	return result, nil
 }
 
+// Backups is the resolver for the backups field.
+func (r *persistentVolumeResolver) Backups(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeBackup, error) {
+	// fetch record
+	records, err := core.FindPersistentVolumeBackupsByPersistentVolumeId(ctx, r.ServiceManager.DbClient, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	// convert to graphql object
+	var result = make([]*model.PersistentVolumeBackup, 0)
+	for _, record := range records {
+		result = append(result, persistentVolumeBackupToGraphqlObject(record))
+	}
+	return result, nil
+}
+
+// Restores is the resolver for the restores field.
+func (r *persistentVolumeResolver) Restores(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeRestore, error) {
+	// fetch record
+	records, err := core.FindPersistentVolumeRestoresByPersistentVolumeId(ctx, r.ServiceManager.DbClient, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	// convert to graphql object
+	var result = make([]*model.PersistentVolumeRestore, 0)
+	for _, record := range records {
+		result = append(result, persistentVolumeRestoreToGraphqlObject(record))
+	}
+	return result, nil
+}
+
 // PersistentVolumes is the resolver for the persistentVolumes field.
 func (r *queryResolver) PersistentVolumes(ctx context.Context) ([]*model.PersistentVolume, error) {
 	records, err := core.FindAllPersistentVolumes(ctx, r.ServiceManager.DbClient)
@@ -73,6 +102,23 @@ func (r *queryResolver) PersistentVolume(ctx context.Context, id uint) (*model.P
 		return nil, err
 	}
 	return persistentVolumeToGraphqlObject(&record), nil
+}
+
+// PersistentVolumeSizeMb is the resolver for the persistentVolumeSizeMb field.
+func (r *queryResolver) PersistentVolumeSizeMb(ctx context.Context, id uint) (float64, error) {
+	// fetch record
+	var record core.PersistentVolume
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return 0, err
+	}
+	// fetch size
+	dockerManager := r.ServiceManager.DockerManager
+	size, err := dockerManager.SizeVolume(record.Name)
+	if err != nil {
+		return 0, err
+	}
+	return size, nil
 }
 
 // IsExistPersistentVolume is the resolver for the isExistPersistentVolume field.
