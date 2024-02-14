@@ -27,7 +27,7 @@ func (user *User) CheckPassword(password string) bool {
 func (user *User) GenerateJWT(jwtSecret string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"nbf":      time.Now().Unix(),
-		"exp":      time.Now().Add(time.Hour * 1).Unix(),
+		"exp":      time.Now().Add(time.Hour * 6).Unix(),
 		"iat":      time.Now().Unix(),
 		"username": user.Username,
 	})

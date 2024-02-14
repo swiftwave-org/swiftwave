@@ -49,3 +49,15 @@ func (m Manager) EnqueueRedirectRuleDeleteRequest(redirectRuleId uint) error {
 		Id: redirectRuleId,
 	})
 }
+
+func (m Manager) EnqueuePersistentVolumeBackupRequest(persistentVolumeBackupId uint) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(persistentVolumeBackupQueueName, PersistentVolumeBackupRequest{
+		Id: persistentVolumeBackupId,
+	})
+}
+
+func (m Manager) EnqueuePersistentVolumeRestoreRequest(persistentVolumeRestoreId uint) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(persistentVolumeRestoreQueueName, PersistentVolumeRestoreRequest{
+		Id: persistentVolumeRestoreId,
+	})
+}

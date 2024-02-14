@@ -1,0 +1,29 @@
+enum PersistentVolumeBackupType {
+    local
+}
+
+enum PersistentVolumeBackupStatus {
+    pending
+    failed
+    success
+}
+
+input PersistentVolumeBackupInput {
+    persistentVolumeId: Uint!
+    type: PersistentVolumeBackupType!
+}
+
+type PersistentVolumeBackup {
+    id: Uint!
+    type: PersistentVolumeBackupType!
+    status: PersistentVolumeBackupStatus!
+    sizeMb: Float!
+    createdAt: Time!
+    completedAt: Time!
+}
+
+extend type Mutation {
+    backupPersistentVolume(input: PersistentVolumeBackupInput!): PersistentVolumeBackup
+    deletePersistentVolumeBackup(id: Uint!): Boolean!
+    deletePersistentVolumeBackupsByPersistentVolumeId(persistentVolumeId: Uint!): Boolean!
+}

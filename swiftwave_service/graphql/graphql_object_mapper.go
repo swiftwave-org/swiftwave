@@ -85,6 +85,54 @@ func persistentVolumeBindingToGraphqlObject(record *core.PersistentVolumeBinding
 	}
 }
 
+// persistentVolumeBackupToGraphqlObject : converts PersistentVolumeBackup to PersistentVolumeBackupGraphqlObject
+func persistentVolumeBackupToGraphqlObject(record *core.PersistentVolumeBackup) *model.PersistentVolumeBackup {
+	return &model.PersistentVolumeBackup{
+		ID:          record.ID,
+		Type:        model.PersistentVolumeBackupType(record.Type),
+		Status:      model.PersistentVolumeBackupStatus(record.Status),
+		SizeMb:      record.FileSizeMB,
+		CreatedAt:   record.CreatedAt,
+		CompletedAt: record.CompletedAt,
+	}
+}
+
+// persistentVolumeBackupInputToDatabaseObject : converts PersistentVolumeBackupInput to PersistentVolumeBackupDatabaseObject
+func persistentVolumeBackupInputToDatabaseObject(record *model.PersistentVolumeBackupInput) *core.PersistentVolumeBackup {
+	return &core.PersistentVolumeBackup{
+		Type:               core.BackupType(record.Type),
+		Status:             core.BackupPending,
+		File:               "",
+		FileSizeMB:         0,
+		PersistentVolumeID: record.PersistentVolumeID,
+		CreatedAt:          time.Now(),
+		CompletedAt:        time.Now(),
+	}
+}
+
+// persistentVolumeRestoreToGraphqlObject : converts PersistentVolumeRestore to PersistentVolumeRestoreGraphqlObject
+func persistentVolumeRestoreToGraphqlObject(record *core.PersistentVolumeRestore) *model.PersistentVolumeRestore {
+	return &model.PersistentVolumeRestore{
+		ID:          record.ID,
+		Type:        model.PersistentVolumeRestoreType(record.Type),
+		Status:      model.PersistentVolumeRestoreStatus(record.Status),
+		CreatedAt:   record.CreatedAt,
+		CompletedAt: record.CompletedAt,
+	}
+}
+
+// persistentVolumeRestoreInputToDatabaseObject : converts PersistentVolumeRestoreInput to PersistentVolumeRestoreDatabaseObject
+func persistentVolumeRestoreInputToDatabaseObject(record *model.PersistentVolumeRestoreInput) *core.PersistentVolumeRestore {
+	return &core.PersistentVolumeRestore{
+		Type:               core.RestoreType(record.Type),
+		File:               "",
+		Status:             core.RestorePending,
+		PersistentVolumeID: record.PersistentVolumeID,
+		CreatedAt:          time.Now(),
+		CompletedAt:        time.Now(),
+	}
+}
+
 // environmentVariableInputToDatabaseObject : converts EnvironmentVariableInput to EnvironmentVariableDatabaseObject
 func environmentVariableInputToDatabaseObject(record *model.EnvironmentVariableInput) *core.EnvironmentVariable {
 	return &core.EnvironmentVariable{

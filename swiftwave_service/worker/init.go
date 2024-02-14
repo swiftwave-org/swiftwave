@@ -40,6 +40,8 @@ func (m Manager) registerWorkerFunctions() {
 	panicOnError(taskQueueClient.RegisterFunction(redirectRuleApplyQueueName, m.RedirectRuleApply))
 	panicOnError(taskQueueClient.RegisterFunction(redirectRuleDeleteQueueName, m.RedirectRuleDelete))
 	panicOnError(taskQueueClient.RegisterFunction(sslGenerateQueueName, m.SSLGenerate))
+	panicOnError(taskQueueClient.RegisterFunction(persistentVolumeBackupQueueName, m.PersistentVolumeBackup))
+	panicOnError(taskQueueClient.RegisterFunction(persistentVolumeRestoreQueueName, m.PersistentVolumeRestore))
 }
 
 func panicOnError(err error) {
