@@ -18,6 +18,8 @@ func (server *Server) initiateProjectRoutes(e *echo.Echo) {
 	e.GET("/verify-auth", server.verifyAuth)
 	// Initiating Routes for Project
 	e.POST("/upload/code", server.uploadTarFile)
+	// Initiating Routes for PersistentVolume
+	e.GET("/persistent-volume/backup/:id/download", server.downloadPersistentVolumeBackup)
 	// Initiating Routes for Webhook
 	e.Any("/webhook/redeploy-app/:app-id/:webhook-token", server.redeployApp)
 }
