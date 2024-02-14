@@ -3,7 +3,7 @@ type PersistentVolume {
     name: String!
     persistentVolumeBindings: [PersistentVolumeBinding!]!
     backups: [PersistentVolumeBackup!]!
-    restoreHistories: [PersistentVolumeRestore!]!
+    restores: [PersistentVolumeRestore!]!
 }
 
 input PersistentVolumeInput {

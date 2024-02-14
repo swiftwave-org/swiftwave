@@ -220,7 +220,7 @@ type ComplexityRoot struct {
 		ID                       func(childComplexity int) int
 		Name                     func(childComplexity int) int
 		PersistentVolumeBindings func(childComplexity int) int
-		RestoreHistories         func(childComplexity int) int
+		Restores                 func(childComplexity int) int
 	}
 
 	PersistentVolumeBackup struct {
@@ -381,7 +381,7 @@ type MutationResolver interface {
 type PersistentVolumeResolver interface {
 	PersistentVolumeBindings(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeBinding, error)
 	Backups(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeBackup, error)
-	RestoreHistories(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeRestore, error)
+	Restores(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeRestore, error)
 }
 type PersistentVolumeBindingResolver interface {
 	PersistentVolume(ctx context.Context, obj *model.PersistentVolumeBinding) (*model.PersistentVolume, error)
@@ -1453,12 +1453,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PersistentVolume.PersistentVolumeBindings(childComplexity), true
 
-	case "PersistentVolume.restoreHistories":
-		if e.complexity.PersistentVolume.RestoreHistories == nil {
+	case "PersistentVolume.restores":
+		if e.complexity.PersistentVolume.Restores == nil {
 			break
 		}
 
-		return e.complexity.PersistentVolume.RestoreHistories(childComplexity), true
+		return e.complexity.PersistentVolume.Restores(childComplexity), true
 
 	case "PersistentVolumeBackup.completedAt":
 		if e.complexity.PersistentVolumeBackup.CompletedAt == nil {
@@ -8338,8 +8338,8 @@ func (ec *executionContext) fieldContext_Mutation_createPersistentVolume(ctx con
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
 				return ec.fieldContext_PersistentVolume_backups(ctx, field)
-			case "restoreHistories":
-				return ec.fieldContext_PersistentVolume_restoreHistories(ctx, field)
+			case "restores":
+				return ec.fieldContext_PersistentVolume_restores(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
 		},
@@ -9318,8 +9318,8 @@ func (ec *executionContext) fieldContext_PersistentVolume_backups(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _PersistentVolume_restoreHistories(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolume) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_PersistentVolume_restoreHistories(ctx, field)
+func (ec *executionContext) _PersistentVolume_restores(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolume) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolume_restores(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -9332,7 +9332,7 @@ func (ec *executionContext) _PersistentVolume_restoreHistories(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.PersistentVolume().RestoreHistories(rctx, obj)
+		return ec.resolvers.PersistentVolume().Restores(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9349,7 +9349,7 @@ func (ec *executionContext) _PersistentVolume_restoreHistories(ctx context.Conte
 	return ec.marshalNPersistentVolumeRestore2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestoreᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_PersistentVolume_restoreHistories(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_PersistentVolume_restores(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "PersistentVolume",
 		Field:      field,
@@ -9773,8 +9773,8 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_persistentVolum
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
 				return ec.fieldContext_PersistentVolume_backups(ctx, field)
-			case "restoreHistories":
-				return ec.fieldContext_PersistentVolume_restoreHistories(ctx, field)
+			case "restores":
+				return ec.fieldContext_PersistentVolume_restores(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
 		},
@@ -11239,8 +11239,8 @@ func (ec *executionContext) fieldContext_Query_persistentVolumes(ctx context.Con
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
 				return ec.fieldContext_PersistentVolume_backups(ctx, field)
-			case "restoreHistories":
-				return ec.fieldContext_PersistentVolume_restoreHistories(ctx, field)
+			case "restores":
+				return ec.fieldContext_PersistentVolume_restores(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
 		},
@@ -11292,8 +11292,8 @@ func (ec *executionContext) fieldContext_Query_persistentVolume(ctx context.Cont
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
 				return ec.fieldContext_PersistentVolume_backups(ctx, field)
-			case "restoreHistories":
-				return ec.fieldContext_PersistentVolume_restoreHistories(ctx, field)
+			case "restores":
+				return ec.fieldContext_PersistentVolume_restores(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
 		},
@@ -16952,7 +16952,7 @@ func (ec *executionContext) _PersistentVolume(ctx context.Context, sel ast.Selec
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "restoreHistories":
+		case "restores":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -16961,7 +16961,7 @@ func (ec *executionContext) _PersistentVolume(ctx context.Context, sel ast.Selec
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._PersistentVolume_restoreHistories(ctx, field, obj)
+				res = ec._PersistentVolume_restores(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

@@ -222,7 +222,7 @@ type PersistentVolume struct {
 	Name                     string                     `json:"name"`
 	PersistentVolumeBindings []*PersistentVolumeBinding `json:"persistentVolumeBindings"`
 	Backups                  []*PersistentVolumeBackup  `json:"backups"`
-	RestoreHistories         []*PersistentVolumeRestore `json:"restoreHistories"`
+	Restores                 []*PersistentVolumeRestore `json:"restores"`
 }
 
 type PersistentVolumeBackup struct {

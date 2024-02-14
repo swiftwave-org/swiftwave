@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 // GET /persistent-volume/backup/:id/download
@@ -34,7 +35,7 @@ func (server *Server) downloadPersistentVolumeBackup(c echo.Context) error {
 	// send file
 	filePath := filepath.Join(server.SystemConfig.ServiceConfig.DataDir, persistentVolumeBackup.File)
 	// file name
-	fileName := fmt.Sprintf("backup-%s-%d.tar.gz", persistentVolumeBackup.File, persistentVolumeBackup.ID)
+	fileName := persistentVolumeBackup.File
 	return c.Attachment(filePath, fileName)
 }
 
@@ -80,7 +81,7 @@ func (server *Server) uploadPersistentVolumeRestoreFile(c echo.Context) error {
 		}
 	}(src)
 	// Check if filename ends with .tar.gz
-	if filepath.Ext(file.Filename) != ".tar.gz" {
+	if !strings.HasSuffix(file.Filename, ".tar.gz") {
 		return c.JSON(400, map[string]string{
 			"message": "file is not a tar.gz file",
 		})

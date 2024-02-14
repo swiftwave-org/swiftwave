@@ -6,7 +6,6 @@ package graphql
 
 import (
 	"context"
-
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
@@ -67,8 +66,8 @@ func (r *persistentVolumeResolver) Backups(ctx context.Context, obj *model.Persi
 	return result, nil
 }
 
-// RestoreHistories is the resolver for the restoreHistories field.
-func (r *persistentVolumeResolver) RestoreHistories(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeRestore, error) {
+// Restores is the resolver for the restores field.
+func (r *persistentVolumeResolver) Restores(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeRestore, error) {
 	// fetch record
 	records, err := core.FindPersistentVolumeRestoresByPersistentVolumeId(ctx, r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
