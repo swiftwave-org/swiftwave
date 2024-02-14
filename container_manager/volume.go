@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -63,7 +64,7 @@ func (m Manager) SizeVolume(volumeName string) (sizeMB float64, err error) {
 	defer func(path string) {
 		err := os.RemoveAll(path)
 		if err != nil {
-			fmt.Println("failed to remove temp directory " + err.Error())
+			log.Println("failed to remove temp directory " + err.Error())
 		}
 	}(path)
 	resultPath := filepath.Join(path, "size.txt")
@@ -92,7 +93,7 @@ func (m Manager) BackupVolume(volumeName string, backupFilePath string) error {
 	defer func(path string) {
 		err := os.RemoveAll(path)
 		if err != nil {
-			fmt.Println("failed to remove temp directory " + err.Error())
+			log.Println("failed to remove temp directory " + err.Error())
 		}
 	}(path)
 	dumpFilePath := filepath.Join(path, "dump.tar.gz")
@@ -137,7 +138,7 @@ func (m Manager) RestoreVolume(volumeName string, backupFilePath string) error {
 	defer func(path string) {
 		err := os.RemoveAll(path)
 		if err != nil {
-			fmt.Println("failed to remove temp directory " + err.Error())
+			log.Println("failed to remove temp directory " + err.Error())
 		}
 	}(path)
 	return nil

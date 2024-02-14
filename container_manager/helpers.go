@@ -1,9 +1,9 @@
 package containermanger
 
 import (
-	"fmt"
 	"github.com/docker/docker/api/types/registry"
 	"io"
+	"log"
 	"os"
 )
 
@@ -27,7 +27,7 @@ func copyFile(source, destination string) error {
 	defer func(sourceFile *os.File) {
 		err := sourceFile.Close()
 		if err != nil {
-			fmt.Println("failed to close source file " + err.Error())
+			log.Println("failed to close source file " + err.Error())
 		}
 	}(sourceFile)
 
@@ -38,7 +38,7 @@ func copyFile(source, destination string) error {
 	defer func(destinationFile *os.File) {
 		err := destinationFile.Close()
 		if err != nil {
-			fmt.Println("failed to close destination file " + err.Error())
+			log.Println("failed to close destination file " + err.Error())
 		}
 	}(destinationFile)
 
