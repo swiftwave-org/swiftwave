@@ -55,3 +55,9 @@ func (m Manager) EnqueuePersistentVolumeBackupRequest(persistentVolumeBackupId u
 		Id: persistentVolumeBackupId,
 	})
 }
+
+func (m Manager) EnqueuePersistentVolumeRestoreRequest(persistentVolumeRestoreId uint) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(persistentVolumeRestoreQueueName, PersistentVolumeRestoreRequest{
+		Id: persistentVolumeRestoreId,
+	})
+}

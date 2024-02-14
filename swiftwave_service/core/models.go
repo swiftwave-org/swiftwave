@@ -100,6 +100,7 @@ type PersistentVolumeBackup struct {
 // PersistentVolumeRestore : hold information about persistent volume restore
 type PersistentVolumeRestore struct {
 	ID                 uint          `json:"id" gorm:"primaryKey"`
+	Type               RestoreType   `json:"type"`
 	File               string        `json:"file"`
 	Status             RestoreStatus `json:"status"`
 	PersistentVolumeID uint          `json:"persistentVolumeID"`

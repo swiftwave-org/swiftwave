@@ -33,7 +33,7 @@ func (r *mutationResolver) DeletePersistentVolumeBackup(ctx context.Context, id 
 	if err != nil {
 		return false, err
 	}
-	err = record.Delete(ctx, r.ServiceManager.DbClient)
+	err = record.Delete(ctx, r.ServiceManager.DbClient, r.ServiceConfig.ServiceConfig.DataDir)
 	if err != nil {
 		return false, err
 	}
@@ -42,7 +42,7 @@ func (r *mutationResolver) DeletePersistentVolumeBackup(ctx context.Context, id 
 
 // DeletePersistentVolumeBackupsByPersistentVolumeID is the resolver for the deletePersistentVolumeBackupsByPersistentVolumeId field.
 func (r *mutationResolver) DeletePersistentVolumeBackupsByPersistentVolumeID(ctx context.Context, persistentVolumeID uint) (bool, error) {
-	err := core.DeletePersistentVolumeBackupsByPersistentVolumeId(ctx, r.ServiceManager.DbClient, persistentVolumeID)
+	err := core.DeletePersistentVolumeBackupsByPersistentVolumeId(ctx, r.ServiceManager.DbClient, persistentVolumeID, r.ServiceConfig.ServiceConfig.DataDir)
 	if err != nil {
 		return false, err
 	}

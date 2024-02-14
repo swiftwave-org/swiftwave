@@ -110,6 +110,29 @@ func persistentVolumeBackupInputToDatabaseObject(record *model.PersistentVolumeB
 	}
 }
 
+// persistentVolumeRestoreToGraphqlObject : converts PersistentVolumeRestore to PersistentVolumeRestoreGraphqlObject
+func persistentVolumeRestoreToGraphqlObject(record *core.PersistentVolumeRestore) *model.PersistentVolumeRestore {
+	return &model.PersistentVolumeRestore{
+		ID:          record.ID,
+		Type:        model.PersistentVolumeRestoreType(record.Type),
+		Status:      model.PersistentVolumeRestoreStatus(record.Status),
+		CreatedAt:   record.CreatedAt,
+		CompletedAt: record.CompletedAt,
+	}
+}
+
+// persistentVolumeRestoreInputToDatabaseObject : converts PersistentVolumeRestoreInput to PersistentVolumeRestoreDatabaseObject
+func persistentVolumeRestoreInputToDatabaseObject(record *model.PersistentVolumeRestoreInput) *core.PersistentVolumeRestore {
+	return &core.PersistentVolumeRestore{
+		Type:               core.RestoreType(record.Type),
+		File:               "",
+		Status:             core.RestorePending,
+		PersistentVolumeID: record.PersistentVolumeID,
+		CreatedAt:          time.Now(),
+		CompletedAt:        time.Now(),
+	}
+}
+
 // environmentVariableInputToDatabaseObject : converts EnvironmentVariableInput to EnvironmentVariableDatabaseObject
 func environmentVariableInputToDatabaseObject(record *model.EnvironmentVariableInput) *core.EnvironmentVariable {
 	return &core.EnvironmentVariable{

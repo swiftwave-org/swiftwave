@@ -15,14 +15,12 @@ import (
 func (server *Server) uploadTarFile(c echo.Context) error {
 	file, err := c.FormFile("file")
 	if err != nil {
-		log.Println(err)
 		return c.JSON(400, map[string]string{
 			"message": "file not found",
 		})
 	}
 	src, err := file.Open()
 	if err != nil {
-		log.Println(err)
 		return c.JSON(400, map[string]string{
 			"message": "file not found",
 		})
@@ -46,12 +44,16 @@ func (server *Server) uploadTarFile(c echo.Context) error {
 	destFile := filepath.Join(server.SystemConfig.ServiceConfig.DataDir, destFilename)
 	dst, err := os.Create(destFile)
 	if err != nil {
-		log.Println(err)
 		return c.JSON(500, map[string]string{
 			"message": "failed to create file",
 		})
 	}
-	defer dst.Close()
+	defer func(dst *os.File) {
+		err := dst.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(dst)
 
 	// Copy
 	if _, err = io.Copy(dst, src); err != nil {

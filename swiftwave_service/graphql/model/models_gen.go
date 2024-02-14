@@ -222,6 +222,7 @@ type PersistentVolume struct {
 	Name                     string                     `json:"name"`
 	PersistentVolumeBindings []*PersistentVolumeBinding `json:"persistentVolumeBindings"`
 	Backups                  []*PersistentVolumeBackup  `json:"backups"`
+	RestoreHistories         []*PersistentVolumeRestore `json:"restoreHistories"`
 }
 
 type PersistentVolumeBackup struct {
@@ -254,6 +255,19 @@ type PersistentVolumeBindingInput struct {
 
 type PersistentVolumeInput struct {
 	Name string `json:"name"`
+}
+
+type PersistentVolumeRestore struct {
+	ID          uint                          `json:"id"`
+	Type        PersistentVolumeRestoreType   `json:"type"`
+	Status      PersistentVolumeRestoreStatus `json:"status"`
+	CreatedAt   time.Time                     `json:"createdAt"`
+	CompletedAt time.Time                     `json:"completedAt"`
+}
+
+type PersistentVolumeRestoreInput struct {
+	PersistentVolumeID uint                        `json:"persistentVolumeId"`
+	Type               PersistentVolumeRestoreType `json:"type"`
 }
 
 type Query struct {
@@ -648,6 +662,90 @@ func (e *PersistentVolumeBackupType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PersistentVolumeBackupType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type PersistentVolumeRestoreStatus string
+
+const (
+	PersistentVolumeRestoreStatusPending  PersistentVolumeRestoreStatus = "pending"
+	PersistentVolumeRestoreStatusUploaded PersistentVolumeRestoreStatus = "uploaded"
+	PersistentVolumeRestoreStatusFailed   PersistentVolumeRestoreStatus = "failed"
+	PersistentVolumeRestoreStatusSuccess  PersistentVolumeRestoreStatus = "success"
+)
+
+var AllPersistentVolumeRestoreStatus = []PersistentVolumeRestoreStatus{
+	PersistentVolumeRestoreStatusPending,
+	PersistentVolumeRestoreStatusUploaded,
+	PersistentVolumeRestoreStatusFailed,
+	PersistentVolumeRestoreStatusSuccess,
+}
+
+func (e PersistentVolumeRestoreStatus) IsValid() bool {
+	switch e {
+	case PersistentVolumeRestoreStatusPending, PersistentVolumeRestoreStatusUploaded, PersistentVolumeRestoreStatusFailed, PersistentVolumeRestoreStatusSuccess:
+		return true
+	}
+	return false
+}
+
+func (e PersistentVolumeRestoreStatus) String() string {
+	return string(e)
+}
+
+func (e *PersistentVolumeRestoreStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PersistentVolumeRestoreStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PersistentVolumeRestoreStatus", str)
+	}
+	return nil
+}
+
+func (e PersistentVolumeRestoreStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type PersistentVolumeRestoreType string
+
+const (
+	PersistentVolumeRestoreTypeLocal PersistentVolumeRestoreType = "local"
+)
+
+var AllPersistentVolumeRestoreType = []PersistentVolumeRestoreType{
+	PersistentVolumeRestoreTypeLocal,
+}
+
+func (e PersistentVolumeRestoreType) IsValid() bool {
+	switch e {
+	case PersistentVolumeRestoreTypeLocal:
+		return true
+	}
+	return false
+}
+
+func (e PersistentVolumeRestoreType) String() string {
+	return string(e)
+}
+
+func (e *PersistentVolumeRestoreType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PersistentVolumeRestoreType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PersistentVolumeRestoreType", str)
+	}
+	return nil
+}
+
+func (e PersistentVolumeRestoreType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

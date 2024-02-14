@@ -59,6 +59,8 @@ models:
         resolver: true
       backups:
         resolver: true
+      restoreHistories:
+        resolver: true
   PersistentVolumeBinding:
     fields:
       persistentVolume:

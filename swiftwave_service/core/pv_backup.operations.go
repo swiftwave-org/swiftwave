@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -34,9 +35,9 @@ func (persistentVolumeBackup *PersistentVolumeBackup) Update(ctx context.Context
 	return tx.Error
 }
 
-func (persistentVolumeBackup *PersistentVolumeBackup) Delete(ctx context.Context, db gorm.DB) error {
+func (persistentVolumeBackup *PersistentVolumeBackup) Delete(ctx context.Context, db gorm.DB, dataDir string) error {
 	if persistentVolumeBackup.File != "" && persistentVolumeBackup.Type == LocalBackup {
-		err := os.Remove(persistentVolumeBackup.File)
+		err := os.Remove(filepath.Join(dataDir, persistentVolumeBackup.File))
 		if err != nil {
 			log.Println("error deleting file: ", err)
 		}
@@ -51,7 +52,7 @@ func FindPersistentVolumeBackupsByPersistentVolumeId(ctx context.Context, db gor
 	return persistentVolumeBackups, tx.Error
 }
 
-func DeletePersistentVolumeBackupsByPersistentVolumeId(ctx context.Context, db gorm.DB, persistentVolumeId uint) error {
+func DeletePersistentVolumeBackupsByPersistentVolumeId(ctx context.Context, db gorm.DB, persistentVolumeId uint, dataDir string) error {
 	transaction := db.Begin()
 	var persistentVolumeBackups []*PersistentVolumeBackup
 	tx := transaction.Where("persistent_volume_id = ?", persistentVolumeId).Find(&persistentVolumeBackups)
@@ -60,7 +61,7 @@ func DeletePersistentVolumeBackupsByPersistentVolumeId(ctx context.Context, db g
 		return tx.Error
 	}
 	for _, p := range persistentVolumeBackups {
-		err := p.Delete(ctx, *transaction)
+		err := p.Delete(ctx, *transaction, dataDir)
 		if err != nil {
 			log.Println("error deleting persistentVolumeBackup: ", err)
 		}

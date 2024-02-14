@@ -135,13 +135,19 @@ const (
 	BackupSuccess BackupStatus = "success"
 )
 
+// RestoreType : type of restore
+type RestoreType string
+
+const (
+	LocalRestore RestoreType = "local"
+)
+
 // RestoreStatus : status of restore
 type RestoreStatus string
 
 const (
-	RestorePending   RestoreStatus = "pending"
-	RestoreUploaded  RestoreStatus = "uploaded"
-	RestoreFailed    RestoreStatus = "failed"
-	RestoreSuccess   RestoreStatus = "success"
-	RestoreCancelled RestoreStatus = "cancelled"
+	RestorePending  RestoreStatus = "pending"
+	RestoreUploaded RestoreStatus = "uploaded"
+	RestoreFailed   RestoreStatus = "failed"
+	RestoreSuccess  RestoreStatus = "success"
 )

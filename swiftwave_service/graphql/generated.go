@@ -180,35 +180,39 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddCustomSsl                                      func(childComplexity int, id uint, input model.CustomSSLInput) int
-		AddDomain                                         func(childComplexity int, input model.DomainInput) int
-		BackupPersistentVolume                            func(childComplexity int, input model.PersistentVolumeBackupInput) int
-		CancelDeployment                                  func(childComplexity int, id string) int
-		ChangePassword                                    func(childComplexity int, input *model.PasswordUpdateInput) int
-		CreateApplication                                 func(childComplexity int, input model.ApplicationInput) int
-		CreateGitCredential                               func(childComplexity int, input model.GitCredentialInput) int
-		CreateImageRegistryCredential                     func(childComplexity int, input model.ImageRegistryCredentialInput) int
-		CreateIngressRule                                 func(childComplexity int, input model.IngressRuleInput) int
-		CreatePersistentVolume                            func(childComplexity int, input model.PersistentVolumeInput) int
-		CreateRedirectRule                                func(childComplexity int, input model.RedirectRuleInput) int
-		CreateUser                                        func(childComplexity int, input *model.UserInput) int
-		DeleteApplication                                 func(childComplexity int, id string) int
-		DeleteGitCredential                               func(childComplexity int, id uint) int
-		DeleteImageRegistryCredential                     func(childComplexity int, id uint) int
-		DeleteIngressRule                                 func(childComplexity int, id uint) int
-		DeletePersistentVolume                            func(childComplexity int, id uint) int
-		DeletePersistentVolumeBackup                      func(childComplexity int, id uint) int
-		DeletePersistentVolumeBackupsByPersistentVolumeID func(childComplexity int, persistentVolumeID uint) int
-		DeleteRedirectRule                                func(childComplexity int, id uint) int
-		DeleteUser                                        func(childComplexity int, id uint) int
-		IssueSsl                                          func(childComplexity int, id uint) int
-		RebuildApplication                                func(childComplexity int, id string) int
-		RegenerateWebhookToken                            func(childComplexity int, id string) int
-		RemoveDomain                                      func(childComplexity int, id uint) int
-		RestartApplication                                func(childComplexity int, id string) int
-		UpdateApplication                                 func(childComplexity int, id string, input model.ApplicationInput) int
-		UpdateGitCredential                               func(childComplexity int, id uint, input model.GitCredentialInput) int
-		UpdateImageRegistryCredential                     func(childComplexity int, id uint, input model.ImageRegistryCredentialInput) int
+		AddCustomSsl                                       func(childComplexity int, id uint, input model.CustomSSLInput) int
+		AddDomain                                          func(childComplexity int, input model.DomainInput) int
+		BackupPersistentVolume                             func(childComplexity int, input model.PersistentVolumeBackupInput) int
+		CancelDeployment                                   func(childComplexity int, id string) int
+		ChangePassword                                     func(childComplexity int, input *model.PasswordUpdateInput) int
+		CreateApplication                                  func(childComplexity int, input model.ApplicationInput) int
+		CreateGitCredential                                func(childComplexity int, input model.GitCredentialInput) int
+		CreateImageRegistryCredential                      func(childComplexity int, input model.ImageRegistryCredentialInput) int
+		CreateIngressRule                                  func(childComplexity int, input model.IngressRuleInput) int
+		CreatePersistentVolume                             func(childComplexity int, input model.PersistentVolumeInput) int
+		CreateRedirectRule                                 func(childComplexity int, input model.RedirectRuleInput) int
+		CreateUser                                         func(childComplexity int, input *model.UserInput) int
+		DeleteApplication                                  func(childComplexity int, id string) int
+		DeleteGitCredential                                func(childComplexity int, id uint) int
+		DeleteImageRegistryCredential                      func(childComplexity int, id uint) int
+		DeleteIngressRule                                  func(childComplexity int, id uint) int
+		DeletePersistentVolume                             func(childComplexity int, id uint) int
+		DeletePersistentVolumeBackup                       func(childComplexity int, id uint) int
+		DeletePersistentVolumeBackupsByPersistentVolumeID  func(childComplexity int, persistentVolumeID uint) int
+		DeletePersistentVolumeRestore                      func(childComplexity int, id uint) int
+		DeletePersistentVolumeRestoresByPersistentVolumeID func(childComplexity int, persistentVolumeID uint) int
+		DeleteRedirectRule                                 func(childComplexity int, id uint) int
+		DeleteUser                                         func(childComplexity int, id uint) int
+		InitiatePersistentVolumeRestore                    func(childComplexity int, input model.PersistentVolumeRestoreInput) int
+		IssueSsl                                           func(childComplexity int, id uint) int
+		RebuildApplication                                 func(childComplexity int, id string) int
+		RegenerateWebhookToken                             func(childComplexity int, id string) int
+		RemoveDomain                                       func(childComplexity int, id uint) int
+		RestartApplication                                 func(childComplexity int, id string) int
+		StartPersistentVolumeRestore                       func(childComplexity int, id uint) int
+		UpdateApplication                                  func(childComplexity int, id string, input model.ApplicationInput) int
+		UpdateGitCredential                                func(childComplexity int, id uint, input model.GitCredentialInput) int
+		UpdateImageRegistryCredential                      func(childComplexity int, id uint, input model.ImageRegistryCredentialInput) int
 	}
 
 	PersistentVolume struct {
@@ -216,6 +220,7 @@ type ComplexityRoot struct {
 		ID                       func(childComplexity int) int
 		Name                     func(childComplexity int) int
 		PersistentVolumeBindings func(childComplexity int) int
+		RestoreHistories         func(childComplexity int) int
 	}
 
 	PersistentVolumeBackup struct {
@@ -234,6 +239,14 @@ type ComplexityRoot struct {
 		MountingPath       func(childComplexity int) int
 		PersistentVolume   func(childComplexity int) int
 		PersistentVolumeID func(childComplexity int) int
+	}
+
+	PersistentVolumeRestore struct {
+		CompletedAt func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Status      func(childComplexity int) int
+		Type        func(childComplexity int) int
 	}
 
 	Query struct {
@@ -355,6 +368,10 @@ type MutationResolver interface {
 	BackupPersistentVolume(ctx context.Context, input model.PersistentVolumeBackupInput) (*model.PersistentVolumeBackup, error)
 	DeletePersistentVolumeBackup(ctx context.Context, id uint) (bool, error)
 	DeletePersistentVolumeBackupsByPersistentVolumeID(ctx context.Context, persistentVolumeID uint) (bool, error)
+	InitiatePersistentVolumeRestore(ctx context.Context, input model.PersistentVolumeRestoreInput) (*model.PersistentVolumeRestore, error)
+	StartPersistentVolumeRestore(ctx context.Context, id uint) (bool, error)
+	DeletePersistentVolumeRestore(ctx context.Context, id uint) (bool, error)
+	DeletePersistentVolumeRestoresByPersistentVolumeID(ctx context.Context, persistentVolumeID uint) (bool, error)
 	CreateRedirectRule(ctx context.Context, input model.RedirectRuleInput) (*model.RedirectRule, error)
 	DeleteRedirectRule(ctx context.Context, id uint) (bool, error)
 	CreateUser(ctx context.Context, input *model.UserInput) (*model.User, error)
@@ -364,6 +381,7 @@ type MutationResolver interface {
 type PersistentVolumeResolver interface {
 	PersistentVolumeBindings(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeBinding, error)
 	Backups(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeBackup, error)
+	RestoreHistories(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeRestore, error)
 }
 type PersistentVolumeBindingResolver interface {
 	PersistentVolume(ctx context.Context, obj *model.PersistentVolumeBinding) (*model.PersistentVolume, error)
@@ -1239,6 +1257,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeletePersistentVolumeBackupsByPersistentVolumeID(childComplexity, args["persistentVolumeId"].(uint)), true
 
+	case "Mutation.deletePersistentVolumeRestore":
+		if e.complexity.Mutation.DeletePersistentVolumeRestore == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deletePersistentVolumeRestore_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeletePersistentVolumeRestore(childComplexity, args["id"].(uint)), true
+
+	case "Mutation.deletePersistentVolumeRestoresByPersistentVolumeId":
+		if e.complexity.Mutation.DeletePersistentVolumeRestoresByPersistentVolumeID == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deletePersistentVolumeRestoresByPersistentVolumeId_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeletePersistentVolumeRestoresByPersistentVolumeID(childComplexity, args["persistentVolumeId"].(uint)), true
+
 	case "Mutation.deleteRedirectRule":
 		if e.complexity.Mutation.DeleteRedirectRule == nil {
 			break
@@ -1262,6 +1304,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteUser(childComplexity, args["id"].(uint)), true
+
+	case "Mutation.initiatePersistentVolumeRestore":
+		if e.complexity.Mutation.InitiatePersistentVolumeRestore == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_initiatePersistentVolumeRestore_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.InitiatePersistentVolumeRestore(childComplexity, args["input"].(model.PersistentVolumeRestoreInput)), true
 
 	case "Mutation.issueSSL":
 		if e.complexity.Mutation.IssueSsl == nil {
@@ -1322,6 +1376,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RestartApplication(childComplexity, args["id"].(string)), true
+
+	case "Mutation.startPersistentVolumeRestore":
+		if e.complexity.Mutation.StartPersistentVolumeRestore == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_startPersistentVolumeRestore_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.StartPersistentVolumeRestore(childComplexity, args["id"].(uint)), true
 
 	case "Mutation.updateApplication":
 		if e.complexity.Mutation.UpdateApplication == nil {
@@ -1386,6 +1452,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PersistentVolume.PersistentVolumeBindings(childComplexity), true
+
+	case "PersistentVolume.restoreHistories":
+		if e.complexity.PersistentVolume.RestoreHistories == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolume.RestoreHistories(childComplexity), true
 
 	case "PersistentVolumeBackup.completedAt":
 		if e.complexity.PersistentVolumeBackup.CompletedAt == nil {
@@ -1470,6 +1543,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PersistentVolumeBinding.PersistentVolumeID(childComplexity), true
+
+	case "PersistentVolumeRestore.completedAt":
+		if e.complexity.PersistentVolumeRestore.CompletedAt == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolumeRestore.CompletedAt(childComplexity), true
+
+	case "PersistentVolumeRestore.createdAt":
+		if e.complexity.PersistentVolumeRestore.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolumeRestore.CreatedAt(childComplexity), true
+
+	case "PersistentVolumeRestore.id":
+		if e.complexity.PersistentVolumeRestore.ID == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolumeRestore.ID(childComplexity), true
+
+	case "PersistentVolumeRestore.status":
+		if e.complexity.PersistentVolumeRestore.Status == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolumeRestore.Status(childComplexity), true
+
+	case "PersistentVolumeRestore.type":
+		if e.complexity.PersistentVolumeRestore.Type == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolumeRestore.Type(childComplexity), true
 
 	case "Query.application":
 		if e.complexity.Query.Application == nil {
@@ -1872,6 +1980,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputPersistentVolumeBackupInput,
 		ec.unmarshalInputPersistentVolumeBindingInput,
 		ec.unmarshalInputPersistentVolumeInput,
+		ec.unmarshalInputPersistentVolumeRestoreInput,
 		ec.unmarshalInputRedirectRuleInput,
 		ec.unmarshalInputUserInput,
 	)
@@ -1987,7 +2096,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/user.graphqls.graphqls"
+//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/user.graphqls.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -2013,6 +2122,7 @@ var sources = []*ast.Source{
 	{Name: "schema/persistent_volume.graphqls", Input: sourceData("schema/persistent_volume.graphqls"), BuiltIn: false},
 	{Name: "schema/persistent_volume_backup.graphqls", Input: sourceData("schema/persistent_volume_backup.graphqls"), BuiltIn: false},
 	{Name: "schema/persistent_volume_binding.graphqls", Input: sourceData("schema/persistent_volume_binding.graphqls"), BuiltIn: false},
+	{Name: "schema/persistent_volume_restore.graphqls", Input: sourceData("schema/persistent_volume_restore.graphqls"), BuiltIn: false},
 	{Name: "schema/redirect_rule.graphqls", Input: sourceData("schema/redirect_rule.graphqls"), BuiltIn: false},
 	{Name: "schema/runtime_log.graphqls", Input: sourceData("schema/runtime_log.graphqls"), BuiltIn: false},
 	{Name: "schema/user.graphqls.graphqls", Input: sourceData("schema/user.graphqls.graphqls"), BuiltIn: false},
@@ -2302,6 +2412,36 @@ func (ec *executionContext) field_Mutation_deletePersistentVolumeBackupsByPersis
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deletePersistentVolumeRestore_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deletePersistentVolumeRestoresByPersistentVolumeId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["persistentVolumeId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("persistentVolumeId"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["persistentVolumeId"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deletePersistentVolume_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2344,6 +2484,21 @@ func (ec *executionContext) field_Mutation_deleteUser_args(ctx context.Context, 
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_initiatePersistentVolumeRestore_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.PersistentVolumeRestoreInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNPersistentVolumeRestoreInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestoreInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -2414,6 +2569,21 @@ func (ec *executionContext) field_Mutation_restartApplication_args(ctx context.C
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_startPersistentVolumeRestore_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8168,6 +8338,8 @@ func (ec *executionContext) fieldContext_Mutation_createPersistentVolume(ctx con
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
 				return ec.fieldContext_PersistentVolume_backups(ctx, field)
+			case "restoreHistories":
+				return ec.fieldContext_PersistentVolume_restoreHistories(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
 		},
@@ -8411,6 +8583,235 @@ func (ec *executionContext) fieldContext_Mutation_deletePersistentVolumeBackupsB
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deletePersistentVolumeBackupsByPersistentVolumeId_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_initiatePersistentVolumeRestore(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_initiatePersistentVolumeRestore(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().InitiatePersistentVolumeRestore(rctx, fc.Args["input"].(model.PersistentVolumeRestoreInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.PersistentVolumeRestore)
+	fc.Result = res
+	return ec.marshalOPersistentVolumeRestore2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestore(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_initiatePersistentVolumeRestore(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PersistentVolumeRestore_id(ctx, field)
+			case "type":
+				return ec.fieldContext_PersistentVolumeRestore_type(ctx, field)
+			case "status":
+				return ec.fieldContext_PersistentVolumeRestore_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_PersistentVolumeRestore_createdAt(ctx, field)
+			case "completedAt":
+				return ec.fieldContext_PersistentVolumeRestore_completedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersistentVolumeRestore", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_initiatePersistentVolumeRestore_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_startPersistentVolumeRestore(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_startPersistentVolumeRestore(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().StartPersistentVolumeRestore(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_startPersistentVolumeRestore(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_startPersistentVolumeRestore_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deletePersistentVolumeRestore(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deletePersistentVolumeRestore(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeletePersistentVolumeRestore(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deletePersistentVolumeRestore(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deletePersistentVolumeRestore_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deletePersistentVolumeRestoresByPersistentVolumeId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deletePersistentVolumeRestoresByPersistentVolumeId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeletePersistentVolumeRestoresByPersistentVolumeID(rctx, fc.Args["persistentVolumeId"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deletePersistentVolumeRestoresByPersistentVolumeId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deletePersistentVolumeRestoresByPersistentVolumeId_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -8917,6 +9318,62 @@ func (ec *executionContext) fieldContext_PersistentVolume_backups(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _PersistentVolume_restoreHistories(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolume) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolume_restoreHistories(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PersistentVolume().RestoreHistories(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.PersistentVolumeRestore)
+	fc.Result = res
+	return ec.marshalNPersistentVolumeRestore2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestoreᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolume_restoreHistories(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolume",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PersistentVolumeRestore_id(ctx, field)
+			case "type":
+				return ec.fieldContext_PersistentVolumeRestore_type(ctx, field)
+			case "status":
+				return ec.fieldContext_PersistentVolumeRestore_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_PersistentVolumeRestore_createdAt(ctx, field)
+			case "completedAt":
+				return ec.fieldContext_PersistentVolumeRestore_completedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersistentVolumeRestore", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PersistentVolumeBackup_id(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolumeBackup) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PersistentVolumeBackup_id(ctx, field)
 	if err != nil {
@@ -9316,6 +9773,8 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_persistentVolum
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
 				return ec.fieldContext_PersistentVolume_backups(ctx, field)
+			case "restoreHistories":
+				return ec.fieldContext_PersistentVolume_restoreHistories(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
 		},
@@ -9480,6 +9939,226 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_mountingPath(ct
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolumeRestore_id(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolumeRestore) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolumeRestore_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolumeRestore_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolumeRestore",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolumeRestore_type(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolumeRestore) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolumeRestore_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.PersistentVolumeRestoreType)
+	fc.Result = res
+	return ec.marshalNPersistentVolumeRestoreType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestoreType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolumeRestore_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolumeRestore",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type PersistentVolumeRestoreType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolumeRestore_status(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolumeRestore) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolumeRestore_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.PersistentVolumeRestoreStatus)
+	fc.Result = res
+	return ec.marshalNPersistentVolumeRestoreStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestoreStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolumeRestore_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolumeRestore",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type PersistentVolumeRestoreStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolumeRestore_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolumeRestore) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolumeRestore_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolumeRestore_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolumeRestore",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolumeRestore_completedAt(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolumeRestore) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolumeRestore_completedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CompletedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolumeRestore_completedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolumeRestore",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -10560,6 +11239,8 @@ func (ec *executionContext) fieldContext_Query_persistentVolumes(ctx context.Con
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
 				return ec.fieldContext_PersistentVolume_backups(ctx, field)
+			case "restoreHistories":
+				return ec.fieldContext_PersistentVolume_restoreHistories(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
 		},
@@ -10611,6 +11292,8 @@ func (ec *executionContext) fieldContext_Query_persistentVolume(ctx context.Cont
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
 				return ec.fieldContext_PersistentVolume_backups(ctx, field)
+			case "restoreHistories":
+				return ec.fieldContext_PersistentVolume_restoreHistories(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PersistentVolume", field.Name)
 		},
@@ -14489,6 +15172,40 @@ func (ec *executionContext) unmarshalInputPersistentVolumeInput(ctx context.Cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputPersistentVolumeRestoreInput(ctx context.Context, obj interface{}) (model.PersistentVolumeRestoreInput, error) {
+	var it model.PersistentVolumeRestoreInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"persistentVolumeId", "type"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "persistentVolumeId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("persistentVolumeId"))
+			data, err := ec.unmarshalNUint2uint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PersistentVolumeID = data
+		case "type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			data, err := ec.unmarshalNPersistentVolumeRestoreType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestoreType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Type = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputRedirectRuleInput(ctx context.Context, obj interface{}) (model.RedirectRuleInput, error) {
 	var it model.RedirectRuleInput
 	asMap := map[string]interface{}{}
@@ -16062,6 +16779,31 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "initiatePersistentVolumeRestore":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_initiatePersistentVolumeRestore(ctx, field)
+			})
+		case "startPersistentVolumeRestore":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_startPersistentVolumeRestore(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deletePersistentVolumeRestore":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deletePersistentVolumeRestore(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deletePersistentVolumeRestoresByPersistentVolumeId":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deletePersistentVolumeRestoresByPersistentVolumeId(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createRedirectRule":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createRedirectRule(ctx, field)
@@ -16184,6 +16926,42 @@ func (ec *executionContext) _PersistentVolume(ctx context.Context, sel ast.Selec
 					}
 				}()
 				res = ec._PersistentVolume_backups(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "restoreHistories":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PersistentVolume_restoreHistories(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -16399,6 +17177,65 @@ func (ec *executionContext) _PersistentVolumeBinding(ctx context.Context, sel as
 			out.Values[i] = ec._PersistentVolumeBinding_mountingPath(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var persistentVolumeRestoreImplementors = []string{"PersistentVolumeRestore"}
+
+func (ec *executionContext) _PersistentVolumeRestore(ctx context.Context, sel ast.SelectionSet, obj *model.PersistentVolumeRestore) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, persistentVolumeRestoreImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PersistentVolumeRestore")
+		case "id":
+			out.Values[i] = ec._PersistentVolumeRestore_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._PersistentVolumeRestore_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._PersistentVolumeRestore_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._PersistentVolumeRestore_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "completedAt":
+			out.Values[i] = ec._PersistentVolumeRestore_completedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -18431,6 +19268,85 @@ func (ec *executionContext) unmarshalNPersistentVolumeInput2githubᚗcomᚋswift
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNPersistentVolumeRestore2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestoreᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PersistentVolumeRestore) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPersistentVolumeRestore2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestore(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPersistentVolumeRestore2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestore(ctx context.Context, sel ast.SelectionSet, v *model.PersistentVolumeRestore) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PersistentVolumeRestore(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPersistentVolumeRestoreInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestoreInput(ctx context.Context, v interface{}) (model.PersistentVolumeRestoreInput, error) {
+	res, err := ec.unmarshalInputPersistentVolumeRestoreInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNPersistentVolumeRestoreStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestoreStatus(ctx context.Context, v interface{}) (model.PersistentVolumeRestoreStatus, error) {
+	var res model.PersistentVolumeRestoreStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNPersistentVolumeRestoreStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestoreStatus(ctx context.Context, sel ast.SelectionSet, v model.PersistentVolumeRestoreStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNPersistentVolumeRestoreType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestoreType(ctx context.Context, v interface{}) (model.PersistentVolumeRestoreType, error) {
+	var res model.PersistentVolumeRestoreType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNPersistentVolumeRestoreType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestoreType(ctx context.Context, sel ast.SelectionSet, v model.PersistentVolumeRestoreType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐProtocolType(ctx context.Context, v interface{}) (model.ProtocolType, error) {
 	var res model.ProtocolType
 	err := res.UnmarshalGQL(v)
@@ -19099,6 +20015,13 @@ func (ec *executionContext) marshalOPersistentVolumeBackup2ᚖgithubᚗcomᚋswi
 		return graphql.Null
 	}
 	return ec._PersistentVolumeBackup(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPersistentVolumeRestore2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestore(ctx context.Context, sel ast.SelectionSet, v *model.PersistentVolumeRestore) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PersistentVolumeRestore(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
