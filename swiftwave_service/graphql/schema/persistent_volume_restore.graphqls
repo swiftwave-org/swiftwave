@@ -1,0 +1,30 @@
+enum PersistentVolumeRestoreType {
+    local
+}
+
+enum PersistentVolumeRestoreStatus {
+    pending
+    uploaded
+    failed
+    success
+}
+
+input PersistentVolumeRestoreInput {
+    persistentVolumeId: Uint!
+    type: PersistentVolumeRestoreType!
+}
+
+type PersistentVolumeRestore {
+    id: Uint!
+    type: PersistentVolumeRestoreType!
+    status: PersistentVolumeRestoreStatus!
+    createdAt: Time!
+    completedAt: Time!
+}
+
+extend type Mutation {
+    initiatePersistentVolumeRestore(input: PersistentVolumeRestoreInput!): PersistentVolumeRestore
+    startPersistentVolumeRestore(id: Uint!): Boolean!
+    deletePersistentVolumeRestore(id: Uint!): Boolean!
+    deletePersistentVolumeRestoresByPersistentVolumeId(persistentVolumeId: Uint!): Boolean!
+}
