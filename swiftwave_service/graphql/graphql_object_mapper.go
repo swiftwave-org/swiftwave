@@ -100,12 +100,13 @@ func persistentVolumeBackupToGraphqlObject(record *core.PersistentVolumeBackup) 
 // persistentVolumeBackupInputToDatabaseObject : converts PersistentVolumeBackupInput to PersistentVolumeBackupDatabaseObject
 func persistentVolumeBackupInputToDatabaseObject(record *model.PersistentVolumeBackupInput) *core.PersistentVolumeBackup {
 	return &core.PersistentVolumeBackup{
-		Type:        core.BackupType(record.Type),
-		Status:      core.BackupPending,
-		File:        "",
-		FileSizeMB:  0,
-		CreatedAt:   time.Now(),
-		CompletedAt: time.Now(),
+		Type:               core.BackupType(record.Type),
+		Status:             core.BackupPending,
+		File:               "",
+		FileSizeMB:         0,
+		PersistentVolumeID: record.PersistentVolumeID,
+		CreatedAt:          time.Now(),
+		CompletedAt:        time.Now(),
 	}
 }
 

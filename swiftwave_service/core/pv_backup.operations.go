@@ -47,14 +47,14 @@ func (persistentVolumeBackup *PersistentVolumeBackup) Delete(ctx context.Context
 
 func FindPersistentVolumeBackupsByPersistentVolumeId(ctx context.Context, db gorm.DB, persistentVolumeId uint) ([]*PersistentVolumeBackup, error) {
 	var persistentVolumeBackups []*PersistentVolumeBackup
-	tx := db.Where("persistentVolumeID = ?", persistentVolumeId).Order("id desc").Find(&persistentVolumeBackups)
+	tx := db.Where("persistent_volume_id = ?", persistentVolumeId).Order("id desc").Find(&persistentVolumeBackups)
 	return persistentVolumeBackups, tx.Error
 }
 
 func DeletePersistentVolumeBackupsByPersistentVolumeId(ctx context.Context, db gorm.DB, persistentVolumeId uint) error {
 	transaction := db.Begin()
 	var persistentVolumeBackups []*PersistentVolumeBackup
-	tx := transaction.Where("persistentVolumeID = ?", persistentVolumeId).Find(&persistentVolumeBackups)
+	tx := transaction.Where("persistent_volume_id = ?", persistentVolumeId).Find(&persistentVolumeBackups)
 	if tx.Error != nil {
 		transaction.Rollback()
 		return tx.Error
@@ -65,7 +65,7 @@ func DeletePersistentVolumeBackupsByPersistentVolumeId(ctx context.Context, db g
 			log.Println("error deleting persistentVolumeBackup: ", err)
 		}
 	}
-	tx = db.Delete(&PersistentVolumeBackup{}, "persistentVolumeID = ?", persistentVolumeId)
+	tx = db.Delete(&PersistentVolumeBackup{}, "persistent_volume_id = ?", persistentVolumeId)
 	if tx.Error != nil {
 		transaction.Rollback()
 		return tx.Error

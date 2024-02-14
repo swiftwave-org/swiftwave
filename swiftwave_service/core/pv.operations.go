@@ -84,7 +84,7 @@ func (persistentVolume *PersistentVolume) Update(ctx context.Context, db gorm.DB
 func (persistentVolume *PersistentVolume) Delete(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
 	// Verify there is no existing PersistentVolumeBinding with this PersistentVolume
 	var count int64
-	db.Model(&PersistentVolumeBinding{}).Where("persistentVolumeID = ?", persistentVolume.ID).Count(&count)
+	db.Model(&PersistentVolumeBinding{}).Where("persistent_volume_id = ?", persistentVolume.ID).Count(&count)
 	if count > 0 {
 		return errors.New("there are some applications using this volume, delete them to delete this volume")
 	}
@@ -93,7 +93,7 @@ func (persistentVolume *PersistentVolume) Delete(ctx context.Context, db gorm.DB
 	transaction := db.Begin()
 	// check if there is any backup of this persistentVolume
 	var backupCount int64
-	transaction.Model(&PersistentVolumeBackup{}).Where("persistentVolumeID = ?", persistentVolume.ID).Count(&backupCount)
+	transaction.Model(&PersistentVolumeBackup{}).Where("persistent_volume_id = ?", persistentVolume.ID).Count(&backupCount)
 	if backupCount > 0 {
 		transaction.Rollback()
 		return errors.New("there are some backups of this volume, delete them first to delete this volume")

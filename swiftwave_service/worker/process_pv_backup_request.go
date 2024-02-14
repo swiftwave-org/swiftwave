@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"gorm.io/gorm"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -33,14 +35,16 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 	// create backup
 	err = dockerManager.BackupVolume(persistentVolume.Name, backupFilePath)
 	if err != nil {
-		return err
+		markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
+		return nil
 	}
 	// update status
 	persistentVolumeBackup.Status = core.BackupSuccess
 	persistentVolumeBackup.File = backupFileName
 	size, err := sizeOfFileInMB(backupFilePath)
 	if err != nil {
-		return err
+		markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
+		return nil
 	}
 	persistentVolumeBackup.FileSizeMB = size
 	err = persistentVolumeBackup.Update(ctx, dbWithoutTx)
@@ -48,6 +52,14 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 		return err
 	}
 	return nil
+}
+
+func markPVBackupRequestAsFailed(db gorm.DB, persistentVolumeBackup core.PersistentVolumeBackup) {
+	persistentVolumeBackup.Status = core.BackupFailed
+	err := persistentVolumeBackup.Update(context.Background(), db)
+	if err != nil {
+		log.Println("error while updating persistent volume backup status to failed")
+	}
 }
 
 func sizeOfFileInMB(path string) (float64, error) {

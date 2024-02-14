@@ -12,6 +12,7 @@ input PersistentVolumeInput {
 extend type Query {
     persistentVolumes: [PersistentVolume]
     persistentVolume(id: Uint!): PersistentVolume
+    persistentVolumeSizeMb(id: Uint!): Float!
     isExistPersistentVolume(name: String!): Boolean!
 }
 

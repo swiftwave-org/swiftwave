@@ -6,7 +6,6 @@ package graphql
 
 import (
 	"context"
-
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
@@ -88,6 +87,23 @@ func (r *queryResolver) PersistentVolume(ctx context.Context, id uint) (*model.P
 		return nil, err
 	}
 	return persistentVolumeToGraphqlObject(&record), nil
+}
+
+// PersistentVolumeSizeMb is the resolver for the persistentVolumeSizeMb field.
+func (r *queryResolver) PersistentVolumeSizeMb(ctx context.Context, id uint) (float64, error) {
+	// fetch record
+	var record core.PersistentVolume
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return 0, err
+	}
+	// fetch size
+	dockerManager := r.ServiceManager.DockerManager
+	size, err := dockerManager.SizeVolume(record.Name)
+	if err != nil {
+		return 0, err
+	}
+	return size, nil
 }
 
 // IsExistPersistentVolume is the resolver for the isExistPersistentVolume field.
