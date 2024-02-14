@@ -98,6 +98,12 @@ func (persistentVolume *PersistentVolume) Delete(ctx context.Context, db gorm.DB
 		transaction.Rollback()
 		return errors.New("there are some backups of this volume, delete them first to delete this volume")
 	}
+	var restoreCount int64
+	transaction.Model(&PersistentVolumeRestore{}).Where("persistent_volume_id = ?", persistentVolume.ID).Count(&restoreCount)
+	if restoreCount > 0 {
+		transaction.Rollback()
+		return errors.New("there are some restore histories of this volume, delete them first to delete this volume")
+	}
 	// Delete persistentVolume from database
 	tx := transaction.Delete(&persistentVolume)
 	if tx.Error != nil {
