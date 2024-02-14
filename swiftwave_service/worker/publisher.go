@@ -49,3 +49,7 @@ func (m Manager) EnqueueRedirectRuleDeleteRequest(redirectRuleId uint) error {
 		Id: redirectRuleId,
 	})
 }
+
+func (m Manager) EnqueuePersistentVolumeBackupRequest(persistentVolumeBackupId uint) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(persistentVolumeBackupQueueName, persistentVolumeBackupId)
+}

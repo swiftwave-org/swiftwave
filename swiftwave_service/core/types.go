@@ -118,3 +118,30 @@ type DeploymentUpdateResult struct {
 	RebuildRequired bool
 	DeploymentId    string
 }
+
+// BackupType : type of backup
+type BackupType string
+
+const (
+	LocalBackup BackupType = "local"
+)
+
+// BackupStatus : status of backup
+type BackupStatus string
+
+const (
+	BackupPending BackupStatus = "pending"
+	BackupFailed  BackupStatus = "failed"
+	BackupSuccess BackupStatus = "success"
+)
+
+// RestoreStatus : status of restore
+type RestoreStatus string
+
+const (
+	RestorePending   RestoreStatus = "pending"
+	RestoreUploaded  RestoreStatus = "uploaded"
+	RestoreFailed    RestoreStatus = "failed"
+	RestoreSuccess   RestoreStatus = "success"
+	RestoreCancelled RestoreStatus = "cancelled"
+)

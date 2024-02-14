@@ -5,6 +5,7 @@ import (
 	"errors"
 	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	"gorm.io/gorm"
+	"regexp"
 )
 
 // This file contains the operations for the PersistentVolume model.
@@ -43,6 +44,10 @@ func (persistentVolume *PersistentVolume) FindById(ctx context.Context, db gorm.
 }
 
 func (persistentVolume *PersistentVolume) Create(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
+	// verify name is valid
+	if !isValidVolumeName(persistentVolume.Name) {
+		return errors.New("name can only contain alphabets, numbers and underscore")
+	}
 	// verify there is no existing persistentVolume with same name
 	// verify from database
 	var count int64
@@ -86,6 +91,13 @@ func (persistentVolume *PersistentVolume) Delete(ctx context.Context, db gorm.DB
 	// TODO: verify there is no container in runtime outside scope of swiftwave using this volume
 	// Start a database transaction
 	transaction := db.Begin()
+	// check if there is any backup of this persistentVolume
+	var backupCount int64
+	transaction.Model(&PersistentVolumeBackup{}).Where("persistentVolumeID = ?", persistentVolume.ID).Count(&backupCount)
+	if backupCount > 0 {
+		transaction.Rollback()
+		return errors.New("there are some backups of this volume, delete them first to delete this volume")
+	}
 	// Delete persistentVolume from database
 	tx := transaction.Delete(&persistentVolume)
 	if tx.Error != nil {
@@ -99,4 +111,9 @@ func (persistentVolume *PersistentVolume) Delete(ctx context.Context, db gorm.DB
 		return err
 	}
 	return transaction.Commit().Error
+}
+
+func isValidVolumeName(volumeName string) bool {
+	regex := regexp.MustCompile(`^[a-zA-Z0-9_]+$`)
+	return regex.MatchString(volumeName)
 }

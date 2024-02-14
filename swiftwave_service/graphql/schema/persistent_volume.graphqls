@@ -2,6 +2,7 @@ type PersistentVolume {
     id: Uint!
     name: String!
     persistentVolumeBindings: [PersistentVolumeBinding!]!
+    backups: [PersistentVolumeBackup!]!
 }
 
 input PersistentVolumeInput {

@@ -52,6 +52,21 @@ func (r *persistentVolumeResolver) PersistentVolumeBindings(ctx context.Context,
 	return result, nil
 }
 
+// Backups is the resolver for the backups field.
+func (r *persistentVolumeResolver) Backups(ctx context.Context, obj *model.PersistentVolume) ([]*model.PersistentVolumeBackup, error) {
+	// fetch record
+	records, err := core.FindPersistentVolumeBackupsByPersistentVolumeId(ctx, r.ServiceManager.DbClient, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	// convert to graphql object
+	var result = make([]*model.PersistentVolumeBackup, 0)
+	for _, record := range records {
+		result = append(result, persistentVolumeBackupToGraphqlObject(record))
+	}
+	return result, nil
+}
+
 // PersistentVolumes is the resolver for the persistentVolumes field.
 func (r *queryResolver) PersistentVolumes(ctx context.Context) ([]*model.PersistentVolume, error) {
 	records, err := core.FindAllPersistentVolumes(ctx, r.ServiceManager.DbClient)
