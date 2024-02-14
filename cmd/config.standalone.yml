@@ -55,6 +55,7 @@ pubsub:
 task_queue:
   mode: local # local or remote
   max_outstanding_messages_per_queue: 1000
+  no_of_workers_per_queue: 1 # this is lightweight goroutine based worker, so you can increase it as per your requirement
   amqp: # all the info should be filled if mode is remote
     protocol: amqp # amqp or amqps
     host: localhost
