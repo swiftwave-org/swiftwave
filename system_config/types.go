@@ -1,16 +1,17 @@
 package system_config
 
 type Config struct {
-	Version           string            `yaml:"version"`
-	IsDevelopmentMode bool              `yaml:"-"`
-	Mode              Mode              `yaml:"mode"`
-	ServiceConfig     ServiceConfig     `yaml:"service"`
-	HAProxyConfig     HAProxyConfig     `yaml:"haproxy"`
-	UDPProxyConfig    UDPProxyConfig    `yaml:"udp_proxy"`
-	PostgresqlConfig  PostgresqlConfig  `yaml:"postgresql"`
-	LetsEncryptConfig LetsEncryptConfig `yaml:"lets_encrypt"`
-	PubSubConfig      PubSubConfig      `yaml:"pubsub"`
-	TaskQueueConfig   TaskQueueConfig   `yaml:"task_queue"`
+	Version                      string                       `yaml:"version"`
+	IsDevelopmentMode            bool                         `yaml:"-"`
+	Mode                         Mode                         `yaml:"mode"`
+	ServiceConfig                ServiceConfig                `yaml:"service"`
+	HAProxyConfig                HAProxyConfig                `yaml:"haproxy"`
+	UDPProxyConfig               UDPProxyConfig               `yaml:"udp_proxy"`
+	PostgresqlConfig             PostgresqlConfig             `yaml:"postgresql"`
+	LetsEncryptConfig            LetsEncryptConfig            `yaml:"lets_encrypt"`
+	PubSubConfig                 PubSubConfig                 `yaml:"pubsub"`
+	TaskQueueConfig              TaskQueueConfig              `yaml:"task_queue"`
+	PersistentVolumeBackupConfig PersistentVolumeBackupConfig `yaml:"persistent_volume_backup"`
 }
 
 type ServiceConfig struct {
@@ -90,4 +91,18 @@ type AMQPConfig struct {
 	Password   string       `yaml:"password"`
 	VHost      string       `yaml:"vhost"`
 	ClientName string       `yaml:"client_name"`
+}
+
+type PersistentVolumeBackupConfig struct {
+	S3Config S3Config `yaml:"s3_config"`
+}
+
+type S3Config struct {
+	Enabled         bool   `yaml:"enabled"`
+	Endpoint        string `yaml:"endpoint"`
+	Region          string `yaml:"region"`
+	Bucket          string `yaml:"bucket"`
+	AccessKeyID     string `yaml:"access_key_id"`
+	SecretAccessKey string `yaml:"secret_access_key"`
+	ForcePathStyle  bool   `yaml:"force_path_style"`
 }
