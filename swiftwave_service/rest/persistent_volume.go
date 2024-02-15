@@ -2,9 +2,12 @@ package rest
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/uploader"
 	"io"
 	"log"
 	"mime/multipart"
@@ -32,11 +35,49 @@ func (server *Server) downloadPersistentVolumeBackup(c echo.Context) error {
 	if persistentVolumeBackup.Status != core.BackupSuccess {
 		return c.String(400, "Sorry, backup is not available for download")
 	}
-	// send file
-	filePath := filepath.Join(server.SystemConfig.ServiceConfig.DataDir, persistentVolumeBackup.File)
-	// file name
-	fileName := persistentVolumeBackup.File
-	return c.Attachment(filePath, fileName)
+	if persistentVolumeBackup.Type == core.LocalBackup {
+		// send file
+		filePath := filepath.Join(server.SystemConfig.ServiceConfig.DataDir, persistentVolumeBackup.File)
+		// file name
+		fileName := persistentVolumeBackup.File
+		return c.Attachment(filePath, fileName)
+	} else if persistentVolumeBackup.Type == core.S3Backup {
+		s3config := server.SystemConfig.PersistentVolumeBackupConfig.S3Config
+		if !s3config.Enabled {
+			return c.String(400, "S3 backup is not enabled")
+		}
+		// download file from s3
+		s3Client, err := uploader.GenerateS3Client(s3config)
+		if err != nil {
+			return c.String(500, "Internal server error")
+		}
+		// download file
+		resp, err := s3Client.GetObject(&s3.GetObjectInput{
+			Bucket: aws.String(s3config.Bucket),
+			Key:    aws.String(persistentVolumeBackup.File),
+		})
+		if err != nil {
+			return c.String(500, "Internal server error")
+		}
+		defer func(resp *s3.GetObjectOutput) {
+			err := resp.Body.Close()
+			if err != nil {
+				log.Println(err)
+			}
+		}(resp)
+		// send file
+		if resp.ContentLength != nil {
+			contentLength, err := strconv.ParseInt(strconv.FormatInt(*resp.ContentLength, 10), 10, 64)
+			if err != nil {
+				return c.String(500, "Internal server error")
+			}
+			c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", contentLength))
+		}
+		c.Response().Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", persistentVolumeBackup.File))
+		return c.Stream(200, "application/octet-stream", resp.Body)
+	} else {
+		return c.String(500, "Internal server error")
+	}
 }
 
 // POST /persistent-volume/restore/:id/upload

@@ -630,15 +630,17 @@ type PersistentVolumeBackupType string
 
 const (
 	PersistentVolumeBackupTypeLocal PersistentVolumeBackupType = "local"
+	PersistentVolumeBackupTypeS3    PersistentVolumeBackupType = "s3"
 )
 
 var AllPersistentVolumeBackupType = []PersistentVolumeBackupType{
 	PersistentVolumeBackupTypeLocal,
+	PersistentVolumeBackupTypeS3,
 }
 
 func (e PersistentVolumeBackupType) IsValid() bool {
 	switch e {
-	case PersistentVolumeBackupTypeLocal:
+	case PersistentVolumeBackupTypeLocal, PersistentVolumeBackupTypeS3:
 		return true
 	}
 	return false

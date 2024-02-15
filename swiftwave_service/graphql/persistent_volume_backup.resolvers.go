@@ -6,6 +6,7 @@ package graphql
 
 import (
 	"context"
+	"errors"
 
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
@@ -14,6 +15,12 @@ import (
 // BackupPersistentVolume is the resolver for the backupPersistentVolume field.
 func (r *mutationResolver) BackupPersistentVolume(ctx context.Context, input model.PersistentVolumeBackupInput) (*model.PersistentVolumeBackup, error) {
 	record := persistentVolumeBackupInputToDatabaseObject(&input)
+	if record.Type == core.S3Backup {
+		// check if s3 enabled
+		if !r.ServiceConfig.PersistentVolumeBackupConfig.S3Config.Enabled {
+			return nil, errors.New("s3 backup is not enabled")
+		}
+	}
 	err := record.Create(ctx, r.ServiceManager.DbClient)
 	if err != nil {
 		return nil, err
@@ -33,7 +40,7 @@ func (r *mutationResolver) DeletePersistentVolumeBackup(ctx context.Context, id 
 	if err != nil {
 		return false, err
 	}
-	err = record.Delete(ctx, r.ServiceManager.DbClient, r.ServiceConfig.ServiceConfig.DataDir)
+	err = record.Delete(ctx, r.ServiceManager.DbClient, r.ServiceConfig.ServiceConfig.DataDir, r.ServiceConfig.PersistentVolumeBackupConfig.S3Config)
 	if err != nil {
 		return false, err
 	}
@@ -42,7 +49,7 @@ func (r *mutationResolver) DeletePersistentVolumeBackup(ctx context.Context, id 
 
 // DeletePersistentVolumeBackupsByPersistentVolumeID is the resolver for the deletePersistentVolumeBackupsByPersistentVolumeId field.
 func (r *mutationResolver) DeletePersistentVolumeBackupsByPersistentVolumeID(ctx context.Context, persistentVolumeID uint) (bool, error) {
-	err := core.DeletePersistentVolumeBackupsByPersistentVolumeId(ctx, r.ServiceManager.DbClient, persistentVolumeID, r.ServiceConfig.ServiceConfig.DataDir)
+	err := core.DeletePersistentVolumeBackupsByPersistentVolumeId(ctx, r.ServiceManager.DbClient, persistentVolumeID, r.ServiceConfig.ServiceConfig.DataDir, r.ServiceConfig.PersistentVolumeBackupConfig.S3Config)
 	if err != nil {
 		return false, err
 	}

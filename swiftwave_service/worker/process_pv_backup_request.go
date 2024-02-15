@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/uploader"
 	"gorm.io/gorm"
 	"log"
 	"os"
@@ -31,12 +32,48 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 	dockerManager := m.ServiceManager.DockerManager
 	// generate a random filename
 	backupFileName := "backup_" + persistentVolume.Name + "_" + uuid.NewString() + ".tar.gz"
-	backupFilePath := filepath.Join(m.SystemConfig.ServiceConfig.DataDir, backupFileName)
+	var backupFilePath string
+	if persistentVolumeBackup.Type == core.LocalBackup {
+		backupFilePath = filepath.Join(m.SystemConfig.ServiceConfig.DataDir, backupFileName)
+	} else if persistentVolumeBackup.Type == core.S3Backup {
+		// fetch tmp dir
+		tmpDir := os.TempDir()
+		backupFilePath = filepath.Join(tmpDir, backupFileName)
+		defer func() {
+			err := os.Remove(backupFilePath)
+			if err != nil {
+				log.Println("failed to remove backup file " + err.Error())
+			}
+		}()
+	} else {
+		return nil
+	}
 	// create backup
 	err = dockerManager.BackupVolume(persistentVolume.Name, backupFilePath)
 	if err != nil {
 		markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
 		return nil
+	}
+	// upload to s3
+	if persistentVolumeBackup.Type == core.S3Backup {
+		backupFileReader, err := os.Open(backupFilePath)
+		if err != nil {
+			markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
+			return nil
+		}
+		defer func() {
+			err := backupFileReader.Close()
+			if err != nil {
+				log.Println("failed to close backup file reader " + err.Error())
+			}
+		}()
+		s3Config := m.SystemConfig.PersistentVolumeBackupConfig.S3Config
+		err = uploader.UploadFileToS3(backupFileReader, backupFileName, s3Config.Bucket, s3Config)
+		if err != nil {
+			log.Println("error while uploading backup to s3 > " + err.Error())
+			markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
+			return nil
+		}
 	}
 	// update status
 	persistentVolumeBackup.Status = core.BackupSuccess

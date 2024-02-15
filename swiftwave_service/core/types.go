@@ -124,6 +124,7 @@ type BackupType string
 
 const (
 	LocalBackup BackupType = "local"
+	S3Backup    BackupType = "s3"
 )
 
 // BackupStatus : status of backup
