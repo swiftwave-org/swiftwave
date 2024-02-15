@@ -44,6 +44,15 @@ postgresql:
   database: swiftwave
   time_zone: Asia/Kolkata
   ssl_mode: disable # disable or require
+persistent_volume_backup:
+  s3_config:
+    enabled: false # true or false
+    endpoint: ""
+    region: ""
+    bucket: ""
+    access_key_id: ""
+    secret_access_key: ""
+    force_path_style: false
 pubsub:
   mode: local # local or remote
   buffer_length: 1000

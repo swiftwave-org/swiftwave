@@ -2,6 +2,8 @@ package core
 
 import (
 	"context"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/uploader"
+	"github.com/swiftwave-org/swiftwave/system_config"
 	"gorm.io/gorm"
 	"log"
 	"os"
@@ -35,11 +37,19 @@ func (persistentVolumeBackup *PersistentVolumeBackup) Update(ctx context.Context
 	return tx.Error
 }
 
-func (persistentVolumeBackup *PersistentVolumeBackup) Delete(ctx context.Context, db gorm.DB, dataDir string) error {
-	if persistentVolumeBackup.File != "" && persistentVolumeBackup.Type == LocalBackup {
-		err := os.Remove(filepath.Join(dataDir, persistentVolumeBackup.File))
-		if err != nil {
-			log.Println("error deleting file: ", err)
+func (persistentVolumeBackup *PersistentVolumeBackup) Delete(ctx context.Context, db gorm.DB, dataDir string, config system_config.S3Config) error {
+	if persistentVolumeBackup.File != "" {
+		if persistentVolumeBackup.Type == LocalBackup {
+			err := os.Remove(filepath.Join(dataDir, persistentVolumeBackup.File))
+			if err != nil {
+				log.Println("error deleting file: ", err)
+			}
+		}
+		if persistentVolumeBackup.Type == S3Backup {
+			err := uploader.DeleteFileFromS3(persistentVolumeBackup.File, config.Bucket, config)
+			if err != nil {
+				log.Println("error deleting file from s3: ", err)
+			}
 		}
 	}
 	tx := db.Delete(persistentVolumeBackup)
@@ -52,7 +62,7 @@ func FindPersistentVolumeBackupsByPersistentVolumeId(ctx context.Context, db gor
 	return persistentVolumeBackups, tx.Error
 }
 
-func DeletePersistentVolumeBackupsByPersistentVolumeId(ctx context.Context, db gorm.DB, persistentVolumeId uint, dataDir string) error {
+func DeletePersistentVolumeBackupsByPersistentVolumeId(ctx context.Context, db gorm.DB, persistentVolumeId uint, dataDir string, config system_config.S3Config) error {
 	transaction := db.Begin()
 	var persistentVolumeBackups []*PersistentVolumeBackup
 	tx := transaction.Where("persistent_volume_id = ?", persistentVolumeId).Find(&persistentVolumeBackups)
@@ -61,7 +71,7 @@ func DeletePersistentVolumeBackupsByPersistentVolumeId(ctx context.Context, db g
 		return tx.Error
 	}
 	for _, p := range persistentVolumeBackups {
-		err := p.Delete(ctx, *transaction, dataDir)
+		err := p.Delete(ctx, *transaction, dataDir, config)
 		if err != nil {
 			log.Println("error deleting persistentVolumeBackup: ", err)
 		}
