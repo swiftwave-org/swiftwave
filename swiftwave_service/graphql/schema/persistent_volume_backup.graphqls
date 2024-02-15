@@ -1,5 +1,6 @@
 enum PersistentVolumeBackupType {
     local
+    s3
 }
 
 enum PersistentVolumeBackupStatus {
