@@ -72,3 +72,40 @@ For other part, we are using the GraphQL API. Check the [GraphQL API Documentati
     "message": "file is not a tar file"
   }
   ```
+
+---
+
+### Download Backup API
+
+**GET** /persistent-volume/backup/<backup_id>/download
+
+**Example Response**
+
+**200 OK**
+- The file will be downloaded
+
+**Any other status code**
+- The file will not be downloaded
+
+---
+
+### Upload File for Restore API
+**POST** /persistent-volume/restore/<restore_id>/upload
+
+**Form Data**
+
+| Key | Value Type            | Example Value |
+| --- |-----------------------|---------------|
+| file | file (only tar files) | file.tar.gz   |
+
+**Example Response**
+
+**200 OK**
+```json
+{
+  "message": "file uploaded successfully, you can now start the restore process",
+}
+```
+
+**Any other status code**
+- The file upload failed
