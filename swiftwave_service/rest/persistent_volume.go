@@ -40,6 +40,7 @@ func (server *Server) downloadPersistentVolumeBackup(c echo.Context) error {
 		filePath := filepath.Join(server.SystemConfig.ServiceConfig.DataDir, persistentVolumeBackup.File)
 		// file name
 		fileName := persistentVolumeBackup.File
+		c.Request().Header.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
 		return c.Attachment(filePath, fileName)
 	} else if persistentVolumeBackup.Type == core.S3Backup {
 		s3config := server.SystemConfig.PersistentVolumeBackupConfig.S3Config
