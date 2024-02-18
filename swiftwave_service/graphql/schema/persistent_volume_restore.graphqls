@@ -4,7 +4,6 @@ enum PersistentVolumeRestoreType {
 
 enum PersistentVolumeRestoreStatus {
     pending
-    uploaded
     failed
     success
 }
@@ -23,8 +22,6 @@ type PersistentVolumeRestore {
 }
 
 extend type Mutation {
-    initiatePersistentVolumeRestore(input: PersistentVolumeRestoreInput!): PersistentVolumeRestore
-    startPersistentVolumeRestore(id: Uint!): Boolean!
     deletePersistentVolumeRestore(id: Uint!): Boolean!
     deletePersistentVolumeRestoresByPersistentVolumeId(persistentVolumeId: Uint!): Boolean!
 }

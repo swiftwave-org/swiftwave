@@ -22,6 +22,8 @@ func CancelPendingTasksLocalQueue(config system_config.Config, manager core.Serv
 	tx.Model(&core.RedirectRule{}).Where("status = ? OR status = ?", core.RedirectRuleStatusPending, core.RedirectRuleStatusDeleting).Update("status", core.RedirectRuleStatusFailed)
 	// Mark all PersistentVolumeBackup > pending tasks as failed
 	tx.Model(&core.PersistentVolumeBackup{}).Where("status = ?", core.BackupPending).Update("status", core.BackupFailed)
+	// Mark all PersistentVolumeRestore > uploaded tasks as failed
+	tx.Model(&core.PersistentVolumeRestore{}).Where("status = ?", core.RestorePending).Update("status", core.RestoreFailed)
 	// commit
 	err := tx.Commit().Error
 	if err != nil {
