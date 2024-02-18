@@ -147,8 +147,7 @@ const (
 type RestoreStatus string
 
 const (
-	RestorePending  RestoreStatus = "pending"
-	RestoreUploaded RestoreStatus = "uploaded"
-	RestoreFailed   RestoreStatus = "failed"
-	RestoreSuccess  RestoreStatus = "success"
+	RestorePending RestoreStatus = "pending"
+	RestoreFailed  RestoreStatus = "failed"
+	RestoreSuccess RestoreStatus = "success"
 )
