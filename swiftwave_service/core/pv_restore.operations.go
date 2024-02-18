@@ -37,7 +37,7 @@ func (persistentVolumeRestore *PersistentVolumeRestore) Update(ctx context.Conte
 		return err
 	}
 	// delete the file
-	if persistentVolumeRestore.File != "" && persistentVolumeRestore.Status != RestoreUploaded {
+	if persistentVolumeRestore.File != "" && persistentVolumeRestore.Status != RestorePending {
 		err = os.Remove(filepath.Join(dataDir, persistentVolumeRestore.File))
 		if err != nil {
 			log.Println("error deleting restore file: ", err)

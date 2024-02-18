@@ -103,8 +103,8 @@ For other part, we are using the GraphQL API. Check the [GraphQL API Documentati
 
 ---
 
-### Upload File for Restore API
-**POST** /persistent-volume/restore/<restore_id>/upload
+### Upload File and Start Restore Job API
+**POST** /persistent-volume/:id/restore
 
 **Form Data**
 
@@ -117,7 +117,7 @@ For other part, we are using the GraphQL API. Check the [GraphQL API Documentati
 **200 OK**
 ```json
 {
-  "message": "file uploaded successfully, you can now start the restore process",
+  "message": "Restore job has been enqueued. You can check the status of the restore job in restore panel"
 }
 ```
 

@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // GET /persistent-volume/backup/:id/download
@@ -98,35 +99,52 @@ func (server *Server) getPersistentVolumeBackupFileName(c echo.Context) error {
 	return c.String(200, persistentVolumeBackup.File)
 }
 
-// POST /persistent-volume/restore/:id/upload
+// POST /persistent-volume/:id/restore
 func (server *Server) uploadPersistentVolumeRestoreFile(c echo.Context) error {
+	dbTx := server.ServiceManager.DbClient.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			dbTx.Rollback()
+		}
+	}()
 	file, err := c.FormFile("file")
 	if err != nil {
 		return c.JSON(400, map[string]string{
 			"message": "file not found",
 		})
 	}
-	// fetch persistent volume restore
-	idStr := c.Param("id")
+	persistentVolumeIdStr := c.Param("id")
 	// convert id to uint
-	id, err := strconv.Atoi(idStr)
+	persistentVolumeId, err := strconv.Atoi(persistentVolumeIdStr)
 	if err != nil {
 		return c.JSON(400, map[string]string{
 			"message": "Invalid id",
 		})
 	}
-	var persistentVolumeRestore core.PersistentVolumeRestore
-	err = persistentVolumeRestore.FindById(c.Request().Context(), server.ServiceManager.DbClient, uint(id))
+	// fetch persistent volume
+	var persistentVolume core.PersistentVolume
+	err = persistentVolume.FindById(c.Request().Context(), *dbTx, uint(persistentVolumeId))
 	if err != nil {
 		return c.JSON(500, map[string]string{
 			"message": "Internal server error",
 		})
 	}
-	if persistentVolumeRestore.Status != core.RestorePending {
-		return c.JSON(400, map[string]string{
-			"message": "Sorry, you can't upload file for this restore anymore",
+	// create a new persistent volume restore
+	persistentVolumeRestore := core.PersistentVolumeRestore{
+		Type:               core.LocalRestore,
+		Status:             core.RestorePending,
+		PersistentVolumeID: persistentVolume.ID,
+		File:               "",
+		CreatedAt:          time.Now(),
+		CompletedAt:        time.Now(),
+	}
+	err = persistentVolumeRestore.Create(c.Request().Context(), *dbTx)
+	if err != nil {
+		return c.JSON(500, map[string]string{
+			"message": "Internal server error",
 		})
 	}
+	// open file
 	src, err := file.Open()
 	if err != nil {
 		return c.JSON(400, map[string]string{
@@ -170,14 +188,32 @@ func (server *Server) uploadPersistentVolumeRestoreFile(c echo.Context) error {
 	}
 	// update persistent volume restore
 	persistentVolumeRestore.File = fileName
-	persistentVolumeRestore.Status = core.RestoreUploaded
-	err = persistentVolumeRestore.Update(c.Request().Context(), server.ServiceManager.DbClient, server.SystemConfig.ServiceConfig.DataDir)
+	err = persistentVolumeRestore.Update(c.Request().Context(), *dbTx, server.SystemConfig.ServiceConfig.DataDir)
 	if err != nil {
 		return c.JSON(500, map[string]string{
 			"message": "failed to update restore",
 		})
 	}
+	// commit
+	err = dbTx.Commit().Error
+	if err != nil {
+		return c.JSON(500, map[string]string{
+			"message": "failed to create restore",
+		})
+	}
+	err = server.WorkerManager.EnqueuePersistentVolumeRestoreRequest(persistentVolumeRestore.ID)
+	if err != nil {
+		// mark restore as failed
+		persistentVolumeRestore.Status = core.RestoreFailed
+		err = persistentVolumeRestore.Update(c.Request().Context(), server.ServiceManager.DbClient, server.SystemConfig.ServiceConfig.DataDir)
+		if err != nil {
+			log.Println(err)
+		}
+		return c.JSON(500, map[string]string{
+			"message": "failed to enqueue restore job",
+		})
+	}
 	return c.JSON(200, map[string]string{
-		"message": "file uploaded successfully, you can now start the restore process",
+		"message": "Restore job has been enqueued. You can check the status of the restore job in restore panel",
 	})
 }
