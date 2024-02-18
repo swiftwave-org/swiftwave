@@ -81,6 +81,23 @@ func (server *Server) downloadPersistentVolumeBackup(c echo.Context) error {
 	}
 }
 
+// GET /persistent-volume/backup/:id/filename
+func (server *Server) getPersistentVolumeBackupFileName(c echo.Context) error {
+	idStr := c.Param("id")
+	// convert id to uint
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.String(400, "Invalid id")
+	}
+	// fetch persistent volume backup
+	var persistentVolumeBackup core.PersistentVolumeBackup
+	err = persistentVolumeBackup.FindById(c.Request().Context(), server.ServiceManager.DbClient, uint(id))
+	if err != nil {
+		return c.String(500, "Internal server error")
+	}
+	return c.String(200, persistentVolumeBackup.File)
+}
+
 // POST /persistent-volume/restore/:id/upload
 func (server *Server) uploadPersistentVolumeRestoreFile(c echo.Context) error {
 	file, err := c.FormFile("file")
