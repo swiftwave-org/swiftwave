@@ -89,6 +89,20 @@ For other part, we are using the GraphQL API. Check the [GraphQL API Documentati
 
 ---
 
+### Backup Filename API
+
+**GET** /persistent-volume/backup/:id/filename
+
+**Example Response**
+
+**200 OK**
+- Filename will be sent as response text
+
+**Any other status code**
+- The filename will be failed to send
+
+---
+
 ### Upload File for Restore API
 **POST** /persistent-volume/restore/<restore_id>/upload
 
