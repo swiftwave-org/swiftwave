@@ -670,22 +670,20 @@ func (e PersistentVolumeBackupType) MarshalGQL(w io.Writer) {
 type PersistentVolumeRestoreStatus string
 
 const (
-	PersistentVolumeRestoreStatusPending  PersistentVolumeRestoreStatus = "pending"
-	PersistentVolumeRestoreStatusUploaded PersistentVolumeRestoreStatus = "uploaded"
-	PersistentVolumeRestoreStatusFailed   PersistentVolumeRestoreStatus = "failed"
-	PersistentVolumeRestoreStatusSuccess  PersistentVolumeRestoreStatus = "success"
+	PersistentVolumeRestoreStatusPending PersistentVolumeRestoreStatus = "pending"
+	PersistentVolumeRestoreStatusFailed  PersistentVolumeRestoreStatus = "failed"
+	PersistentVolumeRestoreStatusSuccess PersistentVolumeRestoreStatus = "success"
 )
 
 var AllPersistentVolumeRestoreStatus = []PersistentVolumeRestoreStatus{
 	PersistentVolumeRestoreStatusPending,
-	PersistentVolumeRestoreStatusUploaded,
 	PersistentVolumeRestoreStatusFailed,
 	PersistentVolumeRestoreStatusSuccess,
 }
 
 func (e PersistentVolumeRestoreStatus) IsValid() bool {
 	switch e {
-	case PersistentVolumeRestoreStatusPending, PersistentVolumeRestoreStatusUploaded, PersistentVolumeRestoreStatusFailed, PersistentVolumeRestoreStatusSuccess:
+	case PersistentVolumeRestoreStatusPending, PersistentVolumeRestoreStatusFailed, PersistentVolumeRestoreStatusSuccess:
 		return true
 	}
 	return false

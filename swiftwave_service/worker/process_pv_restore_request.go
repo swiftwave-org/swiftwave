@@ -16,7 +16,7 @@ func (m Manager) PersistentVolumeRestore(request PersistentVolumeRestoreRequest,
 		return nil
 	}
 	// check status should be uploaded
-	if persistentVolumeRestore.Status != core.RestoreUploaded {
+	if persistentVolumeRestore.Status != core.RestorePending {
 		return nil
 	}
 	// fetch persistent volume
