@@ -214,6 +214,6 @@ func (server *Server) uploadPersistentVolumeRestoreFile(c echo.Context) error {
 		})
 	}
 	return c.JSON(200, map[string]string{
-		"message": "file uploaded successfully, you can now start the restore process",
+		"message": "Restore job has been enqueued. You can check the status of the restore job in restore panel",
 	})
 }
