@@ -13,18 +13,18 @@ func MigrateDatabase(dbClient *gorm.DB) error {
 		&Domain{},
 		&RedirectRule{},
 		&PersistentVolume{},
-		&PersistentVolumeBinding{},
-		&PersistentVolumeBackup{},
-		&PersistentVolumeRestore{},
 		&Application{},
 		&GitCredential{},
 		&ImageRegistryCredential{},
 		&IngressRule{},
 		&EnvironmentVariable{},
+		&PersistentVolumeBinding{},
 		&Deployment{},
 		&BuildArg{},
 		&DeploymentLog{},
 		&SSL.KeyAuthorizationToken{},
+		&PersistentVolumeBackup{},
+		&PersistentVolumeRestore{},
 	)
 	if err != nil {
 		return errors.New("failed to migrate database \n" + err.Error())
