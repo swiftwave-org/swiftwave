@@ -9,6 +9,7 @@ on:
 jobs:
   qodana:
     runs-on: ubuntu-latest
+    environment: ci
     permissions:
       contents: write
       pull-requests: write
