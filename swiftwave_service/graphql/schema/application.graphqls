@@ -25,6 +25,7 @@ type Application {
     ingressRules: [IngressRule!]!
     isDeleted: Boolean!
     webhookToken: String!
+    isSleeping: Boolean!
 }
 
 input ApplicationInput {
