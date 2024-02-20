@@ -64,11 +64,49 @@ var updateCmd = &cobra.Command{
 			printError("Failed to make new binary executable")
 			return
 		}
+		// copy old binary to /usr/bin/swiftwave.old, don't move it
+		var oldBinaryFile *os.File
+		oldBinaryFile, err = os.Open("/usr/bin/swiftwave")
+		if err != nil {
+			printError("Failed to open old binary")
+			return
+		}
+		var currentBinaryFile *os.File
+		currentBinaryFile, err = os.Create("/usr/bin/swiftwave.old")
+		if err != nil {
+			printError("Failed to create old binary")
+			return
+		}
+		_, err = io.Copy(currentBinaryFile, oldBinaryFile)
+		if err != nil {
+			printError("Failed to copy old binary")
+			return
+		}
+		err = oldBinaryFile.Close()
+		if err != nil {
+			printError("Failed to close old binary")
+			return
+		}
+		err = currentBinaryFile.Close()
+		if err != nil {
+			printError("Failed to close current binary")
+			return
+		}
 		// replace it at /usr/bin/swiftwave
 		err = os.Rename(newBinaryPath, "/usr/bin/swiftwave")
 		if err != nil {
+			revertToOldBinary()
 			printError("Failed to replace binary")
 			return
+		}
+		// apply patches
+		err = ApplyPatches()
+		if err != nil {
+			revertToOldBinary()
+			printError("Failed to apply patches")
+			return
+		} else {
+			printSuccess("Patches applied successfully")
 		}
 		// daemon-reload
 		runCommand := exec.Command("systemctl", "daemon-reload")
@@ -81,6 +119,7 @@ var updateCmd = &cobra.Command{
 		runCommand = exec.Command("systemctl", "restart", "swiftwave.service")
 		err = runCommand.Run()
 		if err != nil {
+			revertToOldBinary()
 			printError("Failed to restart swiftwave service")
 			return
 		}
@@ -229,17 +268,28 @@ func extractTarGz(downloadedPackagePath, destFolder string) error {
 		if err != nil {
 			return err
 		}
-		defer func(file *os.File) {
-			err := file.Close()
-			if err != nil {
-				return
-			}
-		}(file)
 		// copy file data
 		_, err = io.Copy(file, tarReader)
 		if err != nil {
+			_ = file.Close()
 			return err
 		}
+		_ = file.Close()
 	}
 	return nil
+}
+
+func revertToOldBinary() {
+	// check if old binary exists
+	if _, err := os.Stat("/usr/bin/swiftwave.old"); os.IsNotExist(err) {
+		printError("Revert Failed ! Failed to find old binary /usr/bin/swiftwave.old")
+		return
+	}
+	// replace it at /usr/bin/swiftwave
+	err := os.Rename("/usr/bin/swiftwave.old", "/usr/bin/swiftwave")
+	if err != nil {
+		printError("Revert Failed ! Failed to replace binary")
+		return
+	}
+	printSuccess("Reverted to old binary")
 }

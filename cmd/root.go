@@ -18,6 +18,7 @@ var swiftwaveVersion string
 
 func init() {
 	rootCmd.PersistentFlags().Bool("dev", false, "Run in development mode")
+	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(setupCmd)
 	rootCmd.AddCommand(configCmd)
@@ -25,15 +26,15 @@ func init() {
 	rootCmd.AddCommand(deleteUserCmd)
 	rootCmd.AddCommand(tlsCmd)
 	rootCmd.AddCommand(startCmd)
+	rootCmd.AddCommand(serviceCmd)
 	rootCmd.AddCommand(haproxyCmd)
 	rootCmd.AddCommand(udpProxyCmd)
 	rootCmd.AddCommand(postgresCmd)
 	rootCmd.AddCommand(dbMigrateCmd)
-	rootCmd.AddCommand(serviceCmd)
+	rootCmd.AddCommand(applyPatchesCmd)
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(autoUpdaterCmd)
 	rootCmd.AddCommand(infoCmd)
-	rootCmd.AddCommand(versionCmd)
 }
 
 var rootCmd = &cobra.Command{
