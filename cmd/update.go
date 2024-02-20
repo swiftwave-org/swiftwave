@@ -89,7 +89,7 @@ var updateCmd = &cobra.Command{
 		}
 		err = currentBinaryFile.Close()
 		if err != nil {
-			printError("Failed to close old binary")
+			printError("Failed to close current binary")
 			return
 		}
 		// replace it at /usr/bin/swiftwave
