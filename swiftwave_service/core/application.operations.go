@@ -484,7 +484,7 @@ func (application *Application) MarkAsSleeping(ctx context.Context, db gorm.DB) 
 	return tx.Error
 }
 
-func (application *Application) MarkAsAwake(ctx context.Context, db gorm.DB) error {
+func (application *Application) MarkAsWake(ctx context.Context, db gorm.DB) error {
 	// update is sleeping
 	tx := db.Model(&application).Update("is_sleeping", false)
 	return tx.Error
