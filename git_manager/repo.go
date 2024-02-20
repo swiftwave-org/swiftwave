@@ -31,7 +31,8 @@ func FetchLatestCommitHash(git_url string, branch string, username string, passw
 		ReferenceName:     plumbing.NewBranchReferenceName(branch),
 		Auth:              httpAuth,
 		Depth:             1,
-		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
+		RecurseSubmodules: git.NoRecurseSubmodules, // No submodules for fetch commit hash
+		ShallowSubmodules: true,
 	})
 	if err != nil {
 		return "", errors.New("failed to clone repository")
@@ -69,6 +70,7 @@ func CloneRepository(git_url string, branch string, username string, password st
 		Auth:              httpAuth,
 		Depth:             1,
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
+		ShallowSubmodules: true,
 	})
 	if err != nil {
 		log.Println(err)
