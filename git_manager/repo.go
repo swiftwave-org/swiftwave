@@ -25,11 +25,13 @@ func FetchLatestCommitHash(git_url string, branch string, username string, passw
 	}
 	// clone the repo
 	r, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
-		URL:           git_url,
-		SingleBranch:  true,
-		Progress:      nil,
-		ReferenceName: plumbing.NewBranchReferenceName(branch),
-		Auth:          httpAuth,
+		URL:               git_url,
+		SingleBranch:      true,
+		Progress:          nil,
+		ReferenceName:     plumbing.NewBranchReferenceName(branch),
+		Auth:              httpAuth,
+		Depth:             1,
+		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 	})
 	if err != nil {
 		return "", errors.New("failed to clone repository")
@@ -61,10 +63,12 @@ func CloneRepository(git_url string, branch string, username string, password st
 	}
 	// clone the repo
 	_, err := git.PlainClone(dest_folder, false, &git.CloneOptions{
-		URL:           git_url,
-		Progress:      nil,
-		ReferenceName: plumbing.NewBranchReferenceName(branch),
-		Auth:          httpAuth,
+		URL:               git_url,
+		Progress:          nil,
+		ReferenceName:     plumbing.NewBranchReferenceName(branch),
+		Auth:              httpAuth,
+		Depth:             1,
+		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 	})
 	if err != nil {
 		log.Println(err)
