@@ -7,6 +7,7 @@ package graphql
 import (
 	"context"
 	"errors"
+	"github.com/swiftwave-org/swiftwave/system_config"
 
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
@@ -15,11 +16,12 @@ import (
 // BackupPersistentVolume is the resolver for the backupPersistentVolume field.
 func (r *mutationResolver) BackupPersistentVolume(ctx context.Context, input model.PersistentVolumeBackupInput) (*model.PersistentVolumeBackup, error) {
 	record := persistentVolumeBackupInputToDatabaseObject(&input)
-	if record.Type == core.S3Backup {
-		// check if s3 enabled
-		if !r.ServiceConfig.PersistentVolumeBackupConfig.S3Config.Enabled {
-			return nil, errors.New("s3 backup is not enabled")
-		}
+	// check if s3 enabled
+	if record.Type == core.S3Backup && !r.ServiceConfig.PersistentVolumeBackupConfig.S3Config.Enabled {
+		return nil, errors.New("s3 backup is not enabled. Please enable it in the swiftwave configuration file")
+	}
+	if r.ServiceConfig.Mode == system_config.Cluster && record.Type == core.LocalBackup {
+		return nil, errors.New("local backup is not supported in cluster mode, use s3 backup instead")
 	}
 	err := record.Create(ctx, r.ServiceManager.DbClient)
 	if err != nil {
