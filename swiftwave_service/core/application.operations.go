@@ -479,12 +479,28 @@ func (application *Application) RegenerateWebhookToken(ctx context.Context, db g
 }
 
 func (application *Application) MarkAsSleeping(ctx context.Context, db gorm.DB) error {
+	// fetch record
+	err := application.FindById(ctx, db, application.ID)
+	if err != nil {
+		return err
+	}
+	if application.DeploymentMode == DeploymentModeGlobal {
+		return errors.New("global deployment cannot be marked as sleeping")
+	}
 	// update is sleeping
 	tx := db.Model(&application).Update("is_sleeping", true)
 	return tx.Error
 }
 
 func (application *Application) MarkAsWake(ctx context.Context, db gorm.DB) error {
+	// fetch record
+	err := application.FindById(ctx, db, application.ID)
+	if err != nil {
+		return err
+	}
+	if application.DeploymentMode == DeploymentModeGlobal {
+		return errors.New("global deployment cannot be marked as wake")
+	}
 	// update is sleeping
 	tx := db.Model(&application).Update("is_sleeping", false)
 	return tx.Error

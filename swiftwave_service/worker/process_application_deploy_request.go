@@ -168,7 +168,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 		Env:            environmentVariablesMap,
 		Networks:       []string{m.SystemConfig.ServiceConfig.NetworkName},
 		DeploymentMode: containermanger.DeploymentMode(application.DeploymentMode),
-		Replicas:       uint64(application.Replicas),
+		Replicas:       uint64(application.ReplicaCount()),
 		VolumeMounts:   volumeMounts,
 		Capabilities:   application.Capabilities,
 		Sysctls:        sysctls,

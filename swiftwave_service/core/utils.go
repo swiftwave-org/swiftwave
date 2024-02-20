@@ -35,3 +35,11 @@ func (user *User) GenerateJWT(jwtSecret string) (string, error) {
 	// Sign and get the complete encoded token as a string using the secret
 	return token.SignedString([]byte(jwtSecret))
 }
+
+// ReplicaCount : get replica count
+func (application *Application) ReplicaCount() uint {
+	if application.IsSleeping {
+		return 0
+	}
+	return application.Replicas
+}

@@ -7,8 +7,6 @@ package graphql
 import (
 	"context"
 	"errors"
-	"fmt"
-
 	gitmanager "github.com/swiftwave-org/swiftwave/git_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
@@ -272,12 +270,60 @@ func (r *mutationResolver) RegenerateWebhookToken(ctx context.Context, id string
 
 // SleepApplication is the resolver for the sleepApplication field.
 func (r *mutationResolver) SleepApplication(ctx context.Context, id string) (bool, error) {
-	panic(fmt.Errorf("not implemented: SleepApplication - sleepApplication"))
+	tx := r.ServiceManager.DbClient.Begin()
+	// fetch record
+	var record = &core.Application{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	// sleep
+	err = record.MarkAsSleeping(ctx, *tx)
+	if err != nil {
+		tx.Rollback()
+		return false, err
+	}
+	// commit transaction
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+		return false, errors.New("failed to mark application as sleeping due to database error")
+	}
+	// scale down service
+	err = r.ServiceManager.DockerManager.SetServiceReplicaCount(record.Name, 0)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // WakeApplication is the resolver for the wakeApplication field.
 func (r *mutationResolver) WakeApplication(ctx context.Context, id string) (bool, error) {
-	panic(fmt.Errorf("not implemented: WakeApplication - wakeApplication"))
+	tx := r.ServiceManager.DbClient.Begin()
+	// fetch record
+	var record = &core.Application{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	// sleep
+	err = record.MarkAsWake(ctx, *tx)
+	if err != nil {
+		tx.Rollback()
+		return false, err
+	}
+	// commit transaction
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+		return false, errors.New("failed to mark application as sleeping due to database error")
+	}
+	// scale up service
+	err = r.ServiceManager.DockerManager.SetServiceReplicaCount(record.Name, int(record.Replicas))
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // Application is the resolver for the application field.
