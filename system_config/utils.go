@@ -36,3 +36,15 @@ func (config *Config) WriteToFile(path string) error {
 	}
 	return nil
 }
+
+func (config *Config) DeepCopy() *Config {
+	// marshal to yaml
+	out, _ := config.String()
+	// unmarshal to new object
+	newConfig := &Config{}
+	err := yaml.Unmarshal([]byte(out), newConfig)
+	if err != nil {
+		return nil
+	}
+	return newConfig
+}
