@@ -268,17 +268,13 @@ func extractTarGz(downloadedPackagePath, destFolder string) error {
 		if err != nil {
 			return err
 		}
-		defer func(file *os.File) {
-			err := file.Close()
-			if err != nil {
-				return
-			}
-		}(file)
 		// copy file data
 		_, err = io.Copy(file, tarReader)
 		if err != nil {
+			_ = file.Close()
 			return err
 		}
+		_ = file.Close()
 	}
 	return nil
 }

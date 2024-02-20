@@ -10,28 +10,6 @@ permissions:
   checks: write
 
 jobs:
-  gofmt-unix:
-    strategy:
-      matrix:
-        go: ["1.21"]
-        os: [macos-latest, ubuntu-latest]
-    name: gofmt
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-        with:
-          go-version: ${{ matrix.go }}
-          cache: true
-      - name: Run format checks
-        run: |
-          if [ $(gofmt -d -l -e . | wc -l) -eq 0 ]; then
-              printf 'Format Checks Have Passed!!!'
-          else
-              printf 'Format Checks Have Failed!\nPlease use gofmt in your system to format your code.'
-              gofmt -l -e -d . 
-              exit 1 
-          fi
   golangci:
     strategy:
       matrix:
