@@ -7,6 +7,7 @@ package graphql
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	gitmanager "github.com/swiftwave-org/swiftwave/git_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
@@ -267,6 +268,16 @@ func (r *mutationResolver) RegenerateWebhookToken(ctx context.Context, id string
 		return "", err
 	}
 	return record.WebhookToken, nil
+}
+
+// SleepApplication is the resolver for the sleepApplication field.
+func (r *mutationResolver) SleepApplication(ctx context.Context, id string) (bool, error) {
+	panic(fmt.Errorf("not implemented: SleepApplication - sleepApplication"))
+}
+
+// WakeApplication is the resolver for the wakeApplication field.
+func (r *mutationResolver) WakeApplication(ctx context.Context, id string) (bool, error) {
+	panic(fmt.Errorf("not implemented: WakeApplication - wakeApplication"))
 }
 
 // Application is the resolver for the application field.
