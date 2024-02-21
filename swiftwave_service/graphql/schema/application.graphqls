@@ -25,6 +25,7 @@ type Application {
     ingressRules: [IngressRule!]!
     isDeleted: Boolean!
     webhookToken: String!
+    isSleeping: Boolean!
 }
 
 input ApplicationInput {
@@ -65,4 +66,6 @@ extend type Mutation {
     rebuildApplication(id: String!): Boolean!
     restartApplication(id: String!): Boolean!
     regenerateWebhookToken(id: String!): String!
+    sleepApplication(id: String!): Boolean!
+    wakeApplication(id: String!): Boolean!
 }

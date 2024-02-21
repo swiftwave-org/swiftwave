@@ -24,6 +24,7 @@ type Application struct {
 	IngressRules             []*IngressRule             `json:"ingressRules"`
 	IsDeleted                bool                       `json:"isDeleted"`
 	WebhookToken             string                     `json:"webhookToken"`
+	IsSleeping               bool                       `json:"isSleeping"`
 }
 
 type ApplicationInput struct {

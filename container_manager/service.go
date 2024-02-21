@@ -131,6 +131,31 @@ func (m Manager) RemoveService(servicename string) error {
 	return nil
 }
 
+// Set Replicas of a service
+func (m Manager) SetServiceReplicaCount(serviceName string, replicas int) error {
+	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
+	if err != nil {
+		return errors.New("error getting swarm server version")
+	}
+	version := swarm.Version{
+		Index: serviceData.Version.Index,
+	}
+	if err != nil {
+		return errors.New("error getting swarm server version")
+	}
+	spec := serviceData.Spec
+	if spec.Mode.Replicated == nil {
+		return errors.New("service is not a replicated service")
+	}
+	replicaCount := uint64(replicas)
+	spec.Mode.Replicated.Replicas = &replicaCount
+	_, err = m.client.ServiceUpdate(m.ctx, serviceName, version, spec, types.ServiceUpdateOptions{})
+	if err != nil {
+		return errors.New("error updating service")
+	}
+	return nil
+}
+
 // Fetch Realtime Info of a services in bulk
 func (m Manager) RealtimeInfoRunningServices() (map[string]ServiceRealtimeInfo, error) {
 	// fetch all nodes and store in map > nodeID:nodeDetails
