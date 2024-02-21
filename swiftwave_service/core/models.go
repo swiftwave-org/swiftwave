@@ -151,6 +151,8 @@ type Application struct {
 	IsDeleted bool `json:"isDeleted" gorm:"default:false"`
 	// Webhook token
 	WebhookToken string `json:"webhookToken"`
+	// Sleeping
+	IsSleeping bool `json:"isSleeping" gorm:"default:false"`
 }
 
 // Deployment : hold information about deployment of application

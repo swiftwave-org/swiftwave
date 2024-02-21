@@ -212,6 +212,7 @@ func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Appl
 		IngressRules:             make([]core.IngressRule, 0),
 		Capabilities:             record.Capabilities,
 		Sysctls:                  record.Sysctls,
+		IsSleeping:               false,
 	}
 }
 
@@ -226,6 +227,7 @@ func applicationToGraphqlObject(record *core.Application) *model.Application {
 		WebhookToken:   record.WebhookToken,
 		Capabilities:   record.Capabilities,
 		Sysctls:        record.Sysctls,
+		IsSleeping:     record.IsSleeping,
 	}
 }
 
