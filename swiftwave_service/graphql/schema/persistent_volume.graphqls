@@ -1,6 +1,13 @@
+enum PersistentVolumeType {
+    local
+    nfs
+}
+
 type PersistentVolume {
     id: Uint!
     name: String!
+    type: PersistentVolumeType!
+    nfsConfig: NFSConfig!
     persistentVolumeBindings: [PersistentVolumeBinding!]!
     backups: [PersistentVolumeBackup!]!
     restores: [PersistentVolumeRestore!]!
@@ -8,6 +15,8 @@ type PersistentVolume {
 
 input PersistentVolumeInput {
     name: String!
+    type: PersistentVolumeType!
+    nfsConfig: NFSConfigInput!
 }
 
 extend type Query {

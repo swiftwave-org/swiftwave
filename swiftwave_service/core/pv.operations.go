@@ -68,8 +68,16 @@ func (persistentVolume *PersistentVolume) Create(ctx context.Context, db gorm.DB
 		transaction.Rollback()
 		return tx.Error
 	}
+	var err error
 	// Create persistentVolume in docker
-	err := dockerManager.CreateVolume(persistentVolume.Name)
+	if persistentVolume.Type == PersistentVolumeTypeLocal {
+		err = dockerManager.CreateLocalVolume(persistentVolume.Name)
+	} else if persistentVolume.Type == PersistentVolumeTypeNFS {
+		err = dockerManager.CreateNFSVolume(persistentVolume.Name, persistentVolume.NFSConfig.Host, persistentVolume.NFSConfig.Path, persistentVolume.NFSConfig.Version)
+	} else {
+		transaction.Rollback()
+		return errors.New("invalid persistentVolume type")
+	}
 	if err != nil {
 		transaction.Rollback()
 		return err
@@ -77,7 +85,7 @@ func (persistentVolume *PersistentVolume) Create(ctx context.Context, db gorm.DB
 	return transaction.Commit().Error
 }
 
-func (persistentVolume *PersistentVolume) Update(ctx context.Context, db gorm.DB) error {
+func (persistentVolume *PersistentVolume) Update(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
 	return errors.New("persistentVolume update is not allowed")
 }
 

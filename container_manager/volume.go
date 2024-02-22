@@ -16,10 +16,27 @@ import (
 
 var volumeToolkitImage = "ghcr.io/swiftwave-org/volume-toolkit:latest"
 
-// CreateVolume : Create a new volume, return id of the volume
-func (m Manager) CreateVolume(name string) error {
+// CreateLocalVolume : Create a new volume, return id of the volume
+func (m Manager) CreateLocalVolume(name string) error {
 	_, err := m.client.VolumeCreate(m.ctx, volume.CreateOptions{
 		Name: name,
+	})
+	if err != nil {
+		return errors.New("error creating volume " + err.Error())
+	}
+	return nil
+}
+
+// CreateNFSVolume : Create a new NFS volume, return id of the volume
+func (m Manager) CreateNFSVolume(name string, nfsServer string, nfsPath string, version int) error {
+	_, err := m.client.VolumeCreate(m.ctx, volume.CreateOptions{
+		Name:   name,
+		Driver: "local",
+		DriverOpts: map[string]string{
+			"type":   "nfs",
+			"o":      "addr=" + nfsServer + ",rw,nfsvers=" + fmt.Sprint(version),
+			"device": ":" + nfsPath,
+		},
 	})
 	if err != nil {
 		return errors.New("error creating volume " + err.Error())

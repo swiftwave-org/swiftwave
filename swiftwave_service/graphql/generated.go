@@ -216,12 +216,20 @@ type ComplexityRoot struct {
 		WakeApplication                                    func(childComplexity int, id string) int
 	}
 
+	NFSConfig struct {
+		Host    func(childComplexity int) int
+		Path    func(childComplexity int) int
+		Version func(childComplexity int) int
+	}
+
 	PersistentVolume struct {
 		Backups                  func(childComplexity int) int
 		ID                       func(childComplexity int) int
 		Name                     func(childComplexity int) int
+		NfsConfig                func(childComplexity int) int
 		PersistentVolumeBindings func(childComplexity int) int
 		Restores                 func(childComplexity int) int
+		Type                     func(childComplexity int) int
 	}
 
 	PersistentVolumeBackup struct {
@@ -1433,6 +1441,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.WakeApplication(childComplexity, args["id"].(string)), true
 
+	case "NFSConfig.host":
+		if e.complexity.NFSConfig.Host == nil {
+			break
+		}
+
+		return e.complexity.NFSConfig.Host(childComplexity), true
+
+	case "NFSConfig.path":
+		if e.complexity.NFSConfig.Path == nil {
+			break
+		}
+
+		return e.complexity.NFSConfig.Path(childComplexity), true
+
+	case "NFSConfig.version":
+		if e.complexity.NFSConfig.Version == nil {
+			break
+		}
+
+		return e.complexity.NFSConfig.Version(childComplexity), true
+
 	case "PersistentVolume.backups":
 		if e.complexity.PersistentVolume.Backups == nil {
 			break
@@ -1454,6 +1483,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PersistentVolume.Name(childComplexity), true
 
+	case "PersistentVolume.nfsConfig":
+		if e.complexity.PersistentVolume.NfsConfig == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolume.NfsConfig(childComplexity), true
+
 	case "PersistentVolume.persistentVolumeBindings":
 		if e.complexity.PersistentVolume.PersistentVolumeBindings == nil {
 			break
@@ -1467,6 +1503,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PersistentVolume.Restores(childComplexity), true
+
+	case "PersistentVolume.type":
+		if e.complexity.PersistentVolume.Type == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolume.Type(childComplexity), true
 
 	case "PersistentVolumeBackup.completedAt":
 		if e.complexity.PersistentVolumeBackup.CompletedAt == nil {
@@ -1984,6 +2027,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputGitCredentialRepositoryAccessInput,
 		ec.unmarshalInputImageRegistryCredentialInput,
 		ec.unmarshalInputIngressRuleInput,
+		ec.unmarshalInputNFSConfigInput,
 		ec.unmarshalInputPasswordUpdateInput,
 		ec.unmarshalInputPersistentVolumeBackupInput,
 		ec.unmarshalInputPersistentVolumeBindingInput,
@@ -2104,7 +2148,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/user.graphqls.graphqls"
+//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/user.graphqls.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -2127,6 +2171,7 @@ var sources = []*ast.Source{
 	{Name: "schema/git_credential.graphqls", Input: sourceData("schema/git_credential.graphqls"), BuiltIn: false},
 	{Name: "schema/image_registry_credential.graphqls", Input: sourceData("schema/image_registry_credential.graphqls"), BuiltIn: false},
 	{Name: "schema/ingress_rule.graphqls", Input: sourceData("schema/ingress_rule.graphqls"), BuiltIn: false},
+	{Name: "schema/nfs_config.graphqls", Input: sourceData("schema/nfs_config.graphqls"), BuiltIn: false},
 	{Name: "schema/persistent_volume.graphqls", Input: sourceData("schema/persistent_volume.graphqls"), BuiltIn: false},
 	{Name: "schema/persistent_volume_backup.graphqls", Input: sourceData("schema/persistent_volume_backup.graphqls"), BuiltIn: false},
 	{Name: "schema/persistent_volume_binding.graphqls", Input: sourceData("schema/persistent_volume_binding.graphqls"), BuiltIn: false},
@@ -8504,6 +8549,10 @@ func (ec *executionContext) fieldContext_Mutation_createPersistentVolume(ctx con
 				return ec.fieldContext_PersistentVolume_id(ctx, field)
 			case "name":
 				return ec.fieldContext_PersistentVolume_name(ctx, field)
+			case "type":
+				return ec.fieldContext_PersistentVolume_type(ctx, field)
+			case "nfsConfig":
+				return ec.fieldContext_PersistentVolume_nfsConfig(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
@@ -9165,6 +9214,138 @@ func (ec *executionContext) fieldContext_Mutation_changePassword(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _NFSConfig_host(ctx context.Context, field graphql.CollectedField, obj *model.NFSConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_NFSConfig_host(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Host, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_NFSConfig_host(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "NFSConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _NFSConfig_path(ctx context.Context, field graphql.CollectedField, obj *model.NFSConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_NFSConfig_path(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Path, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_NFSConfig_path(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "NFSConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _NFSConfig_version(ctx context.Context, field graphql.CollectedField, obj *model.NFSConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_NFSConfig_version(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Version, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_NFSConfig_version(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "NFSConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PersistentVolume_id(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolume) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PersistentVolume_id(ctx, field)
 	if err != nil {
@@ -9248,6 +9429,102 @@ func (ec *executionContext) fieldContext_PersistentVolume_name(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolume_type(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolume) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolume_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.PersistentVolumeType)
+	fc.Result = res
+	return ec.marshalNPersistentVolumeType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolume_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolume",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type PersistentVolumeType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersistentVolume_nfsConfig(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolume) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolume_nfsConfig(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NfsConfig, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.NFSConfig)
+	fc.Result = res
+	return ec.marshalNNFSConfig2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐNFSConfig(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolume_nfsConfig(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolume",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "host":
+				return ec.fieldContext_NFSConfig_host(ctx, field)
+			case "path":
+				return ec.fieldContext_NFSConfig_path(ctx, field)
+			case "version":
+				return ec.fieldContext_NFSConfig_version(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type NFSConfig", field.Name)
 		},
 	}
 	return fc, nil
@@ -9820,6 +10097,10 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_persistentVolum
 				return ec.fieldContext_PersistentVolume_id(ctx, field)
 			case "name":
 				return ec.fieldContext_PersistentVolume_name(ctx, field)
+			case "type":
+				return ec.fieldContext_PersistentVolume_type(ctx, field)
+			case "nfsConfig":
+				return ec.fieldContext_PersistentVolume_nfsConfig(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
@@ -11292,6 +11573,10 @@ func (ec *executionContext) fieldContext_Query_persistentVolumes(ctx context.Con
 				return ec.fieldContext_PersistentVolume_id(ctx, field)
 			case "name":
 				return ec.fieldContext_PersistentVolume_name(ctx, field)
+			case "type":
+				return ec.fieldContext_PersistentVolume_type(ctx, field)
+			case "nfsConfig":
+				return ec.fieldContext_PersistentVolume_nfsConfig(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
@@ -11345,6 +11630,10 @@ func (ec *executionContext) fieldContext_Query_persistentVolume(ctx context.Cont
 				return ec.fieldContext_PersistentVolume_id(ctx, field)
 			case "name":
 				return ec.fieldContext_PersistentVolume_name(ctx, field)
+			case "type":
+				return ec.fieldContext_PersistentVolume_type(ctx, field)
+			case "nfsConfig":
+				return ec.fieldContext_PersistentVolume_nfsConfig(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
@@ -15100,6 +15389,47 @@ func (ec *executionContext) unmarshalInputIngressRuleInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputNFSConfigInput(ctx context.Context, obj interface{}) (model.NFSConfigInput, error) {
+	var it model.NFSConfigInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"host", "path", "version"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "host":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("host"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Host = data
+		case "path":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("path"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Path = data
+		case "version":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("version"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Version = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPasswordUpdateInput(ctx context.Context, obj interface{}) (model.PasswordUpdateInput, error) {
 	var it model.PasswordUpdateInput
 	asMap := map[string]interface{}{}
@@ -15209,7 +15539,7 @@ func (ec *executionContext) unmarshalInputPersistentVolumeInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name"}
+	fieldsInOrder := [...]string{"name", "type", "nfsConfig"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -15223,6 +15553,20 @@ func (ec *executionContext) unmarshalInputPersistentVolumeInput(ctx context.Cont
 				return it, err
 			}
 			it.Name = data
+		case "type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			data, err := ec.unmarshalNPersistentVolumeType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Type = data
+		case "nfsConfig":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nfsConfig"))
+			data, err := ec.unmarshalNNFSConfigInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐNFSConfigInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NfsConfig = data
 		}
 	}
 
@@ -16924,6 +17268,55 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
+var nFSConfigImplementors = []string{"NFSConfig"}
+
+func (ec *executionContext) _NFSConfig(ctx context.Context, sel ast.SelectionSet, obj *model.NFSConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, nFSConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("NFSConfig")
+		case "host":
+			out.Values[i] = ec._NFSConfig_host(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "path":
+			out.Values[i] = ec._NFSConfig_path(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "version":
+			out.Values[i] = ec._NFSConfig_version(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var persistentVolumeImplementors = []string{"PersistentVolume"}
 
 func (ec *executionContext) _PersistentVolume(ctx context.Context, sel ast.SelectionSet, obj *model.PersistentVolume) graphql.Marshaler {
@@ -16942,6 +17335,16 @@ func (ec *executionContext) _PersistentVolume(ctx context.Context, sel ast.Selec
 			}
 		case "name":
 			out.Values[i] = ec._PersistentVolume_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "type":
+			out.Values[i] = ec._PersistentVolume_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "nfsConfig":
+			out.Values[i] = ec._PersistentVolume_nfsConfig(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
@@ -19159,6 +19562,21 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
+func (ec *executionContext) marshalNNFSConfig2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐNFSConfig(ctx context.Context, sel ast.SelectionSet, v *model.NFSConfig) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._NFSConfig(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNNFSConfigInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐNFSConfigInput(ctx context.Context, v interface{}) (*model.NFSConfigInput, error) {
+	res, err := ec.unmarshalInputNFSConfigInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNPersistentVolume2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolume(ctx context.Context, sel ast.SelectionSet, v model.PersistentVolume) graphql.Marshaler {
 	return ec._PersistentVolume(ctx, sel, &v)
 }
@@ -19404,6 +19822,16 @@ func (ec *executionContext) unmarshalNPersistentVolumeRestoreType2githubᚗcom�
 }
 
 func (ec *executionContext) marshalNPersistentVolumeRestoreType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeRestoreType(ctx context.Context, sel ast.SelectionSet, v model.PersistentVolumeRestoreType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNPersistentVolumeType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeType(ctx context.Context, v interface{}) (model.PersistentVolumeType, error) {
+	var res model.PersistentVolumeType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNPersistentVolumeType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPersistentVolumeType(ctx context.Context, sel ast.SelectionSet, v model.PersistentVolumeType) graphql.Marshaler {
 	return v
 }
 

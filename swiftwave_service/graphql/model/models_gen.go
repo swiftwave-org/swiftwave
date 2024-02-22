@@ -213,6 +213,18 @@ type IngressRuleInput struct {
 type Mutation struct {
 }
 
+type NFSConfig struct {
+	Host    string `json:"host"`
+	Path    string `json:"path"`
+	Version int    `json:"version"`
+}
+
+type NFSConfigInput struct {
+	Host    string `json:"host"`
+	Path    string `json:"path"`
+	Version int    `json:"version"`
+}
+
 type PasswordUpdateInput struct {
 	OldPassword string `json:"oldPassword"`
 	NewPassword string `json:"newPassword"`
@@ -221,6 +233,8 @@ type PasswordUpdateInput struct {
 type PersistentVolume struct {
 	ID                       uint                       `json:"id"`
 	Name                     string                     `json:"name"`
+	Type                     PersistentVolumeType       `json:"type"`
+	NfsConfig                *NFSConfig                 `json:"nfsConfig"`
 	PersistentVolumeBindings []*PersistentVolumeBinding `json:"persistentVolumeBindings"`
 	Backups                  []*PersistentVolumeBackup  `json:"backups"`
 	Restores                 []*PersistentVolumeRestore `json:"restores"`
@@ -255,7 +269,9 @@ type PersistentVolumeBindingInput struct {
 }
 
 type PersistentVolumeInput struct {
-	Name string `json:"name"`
+	Name      string               `json:"name"`
+	Type      PersistentVolumeType `json:"type"`
+	NfsConfig *NFSConfigInput      `json:"nfsConfig"`
 }
 
 type PersistentVolumeRestore struct {
@@ -747,6 +763,47 @@ func (e *PersistentVolumeRestoreType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PersistentVolumeRestoreType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type PersistentVolumeType string
+
+const (
+	PersistentVolumeTypeLocal PersistentVolumeType = "local"
+	PersistentVolumeTypeNfs   PersistentVolumeType = "nfs"
+)
+
+var AllPersistentVolumeType = []PersistentVolumeType{
+	PersistentVolumeTypeLocal,
+	PersistentVolumeTypeNfs,
+}
+
+func (e PersistentVolumeType) IsValid() bool {
+	switch e {
+	case PersistentVolumeTypeLocal, PersistentVolumeTypeNfs:
+		return true
+	}
+	return false
+}
+
+func (e PersistentVolumeType) String() string {
+	return string(e)
+}
+
+func (e *PersistentVolumeType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PersistentVolumeType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PersistentVolumeType", str)
+	}
+	return nil
+}
+
+func (e PersistentVolumeType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

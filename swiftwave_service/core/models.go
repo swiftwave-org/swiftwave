@@ -72,6 +72,8 @@ type RedirectRule struct {
 type PersistentVolume struct {
 	ID                       uint                      `json:"id" gorm:"primaryKey"`
 	Name                     string                    `json:"name" gorm:"unique"`
+	Type                     PersistentVolumeType      `json:"type" gorm:"default:'local'"`
+	NFSConfig                NFSConfig                 `json:"nfsConfig" gorm:"embedded;embeddedPrefix:nfs_config_"`
 	PersistentVolumeBindings []PersistentVolumeBinding `json:"persistentVolumeBindings" gorm:"foreignKey:PersistentVolumeID"`
 	PersistentVolumeBackups  []PersistentVolumeBackup  `json:"persistentVolumeBackups" gorm:"foreignKey:PersistentVolumeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	PersistentVolumeRestores []PersistentVolumeRestore `json:"persistentVolumeRestores" gorm:"foreignKey:PersistentVolumeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
