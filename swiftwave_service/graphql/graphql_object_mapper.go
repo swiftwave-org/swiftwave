@@ -57,6 +57,12 @@ func persistentVolumeToGraphqlObject(record *core.PersistentVolume) *model.Persi
 	return &model.PersistentVolume{
 		ID:   record.ID,
 		Name: record.Name,
+		Type: model.PersistentVolumeType(record.Type),
+		NfsConfig: &model.NFSConfig{
+			Host:    record.NFSConfig.Host,
+			Path:    record.NFSConfig.Path,
+			Version: record.NFSConfig.Version,
+		},
 	}
 }
 
@@ -64,6 +70,12 @@ func persistentVolumeToGraphqlObject(record *core.PersistentVolume) *model.Persi
 func persistentVolumeInputToDatabaseObject(record *model.PersistentVolumeInput) *core.PersistentVolume {
 	return &core.PersistentVolume{
 		Name: record.Name,
+		Type: core.PersistentVolumeType(record.Type),
+		NFSConfig: core.NFSConfig{
+			Host:    record.NfsConfig.Host,
+			Path:    record.NfsConfig.Path,
+			Version: record.NfsConfig.Version,
+		},
 	}
 }
 
