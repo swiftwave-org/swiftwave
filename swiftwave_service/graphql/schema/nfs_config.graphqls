@@ -1,0 +1,11 @@
+type NFSConfig {
+    host: String!
+    path: String!
+    version: Int!
+}
+
+input NFSConfigInput {
+    host: String!
+    path: String!
+    version: Int!
+}

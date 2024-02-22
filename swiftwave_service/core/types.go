@@ -151,3 +151,18 @@ const (
 	RestoreFailed  RestoreStatus = "failed"
 	RestoreSuccess RestoreStatus = "success"
 )
+
+// PersistentVolumeType : type of persistent volume
+type PersistentVolumeType string
+
+const (
+	PersistentVolumeTypeLocal PersistentVolumeType = "local"
+	PersistentVolumeTypeNFS   PersistentVolumeType = "nfs"
+)
+
+// NFSConfig : configuration for NFS Storage
+type NFSConfig struct {
+	Host    string `json:"host,omitempty"`
+	Path    string `json:"path,omitempty"`
+	Version int    `json:"version,omitempty"`
+}
