@@ -104,6 +104,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		DeploymentMode: application.DeploymentMode,
 		Replicas:       application.Replicas,
 		WebhookToken:   uuid.NewString(),
+		Command:        application.Command,
 		Capabilities:   application.Capabilities,
 		Sysctls:        application.Sysctls,
 	}
@@ -231,6 +232,16 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 	if applicationExistingFull.DeploymentMode != application.DeploymentMode {
 		// update deployment mode
 		err = db.Model(&applicationExistingFull).Update("deployment_mode", application.DeploymentMode).Error
+		if err != nil {
+			return nil, err
+		}
+		// reload application
+		isReloadRequired = true
+	}
+	// check if Command is changed
+	if applicationExistingFull.Command != application.Command {
+		// update command
+		err = db.Model(&applicationExistingFull).Update("command", application.Command).Error
 		if err != nil {
 			return nil, err
 		}
