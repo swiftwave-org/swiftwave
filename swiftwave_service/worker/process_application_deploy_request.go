@@ -160,11 +160,15 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 			sysctls[sysctlPart[0]] = sysctlPart[1]
 		}
 	}
+	command := make([]string, 0)
+	if application.Command != "" {
+		command = strings.Split(application.Command, " ")
+	}
 	// create service
 	service := containermanger.Service{
 		Name:           application.Name,
 		Image:          dockerImageUri,
-		Command:        []string{},
+		Command:        command,
 		Env:            environmentVariablesMap,
 		Networks:       []string{m.SystemConfig.ServiceConfig.NetworkName},
 		DeploymentMode: containermanger.DeploymentMode(application.DeploymentMode),
