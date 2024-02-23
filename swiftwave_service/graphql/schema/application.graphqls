@@ -26,6 +26,7 @@ type Application {
     isDeleted: Boolean!
     webhookToken: String!
     isSleeping: Boolean!
+    command: String!
 }
 
 input ApplicationInput {
@@ -39,6 +40,7 @@ input ApplicationInput {
     deploymentMode: DeploymentMode! # dont change with each deployment
     replicas: Uint # dont change with each deployment
     upstreamType: UpstreamType!
+    command: String! # docker run command (can be blank)
     # required for upstreamType = "git"
     gitCredentialID: Uint
     gitProvider: GitProvider

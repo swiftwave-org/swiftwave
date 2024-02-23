@@ -222,6 +222,7 @@ func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Appl
 		LatestDeployment:         *applicationInputToDeploymentDatabaseObject(record),
 		Deployments:              make([]core.Deployment, 0),
 		IngressRules:             make([]core.IngressRule, 0),
+		Command:                  record.Command,
 		Capabilities:             record.Capabilities,
 		Sysctls:                  record.Sysctls,
 		IsSleeping:               false,
@@ -240,6 +241,7 @@ func applicationToGraphqlObject(record *core.Application) *model.Application {
 		Capabilities:   record.Capabilities,
 		Sysctls:        record.Sysctls,
 		IsSleeping:     record.IsSleeping,
+		Command:        record.Command,
 	}
 }
 
