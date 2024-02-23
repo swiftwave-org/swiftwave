@@ -145,6 +145,8 @@ type Application struct {
 	LatestDeployment Deployment `json:"-"`
 	// Ingress Rules
 	IngressRules []IngressRule `json:"ingressRules" gorm:"foreignKey:ApplicationID"`
+	// Command
+	Command string `json:"command"`
 	// Capabilities
 	Capabilities pq.StringArray `json:"capabilities" gorm:"type:text[]"`
 	// Sysctls
