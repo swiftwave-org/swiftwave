@@ -25,6 +25,7 @@ type Application struct {
 	IsDeleted                bool                       `json:"isDeleted"`
 	WebhookToken             string                     `json:"webhookToken"`
 	IsSleeping               bool                       `json:"isSleeping"`
+	Command                  string                     `json:"command"`
 }
 
 type ApplicationInput struct {
@@ -38,6 +39,7 @@ type ApplicationInput struct {
 	DeploymentMode               DeploymentMode                  `json:"deploymentMode"`
 	Replicas                     *uint                           `json:"replicas,omitempty"`
 	UpstreamType                 UpstreamType                    `json:"upstreamType"`
+	Command                      string                          `json:"command"`
 	GitCredentialID              *uint                           `json:"gitCredentialID,omitempty"`
 	GitProvider                  *GitProvider                    `json:"gitProvider,omitempty"`
 	RepositoryOwner              *string                         `json:"repositoryOwner,omitempty"`
