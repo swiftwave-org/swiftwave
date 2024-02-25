@@ -24,6 +24,10 @@ func (m Manager) SSLGenerate(request SSLGenerateRequest, ctx context.Context, ca
 		}
 		return err
 	}
+	// If domain is IPv4, don't generate SSL
+	if domain.IsIPv4() {
+		return nil
+	}
 	// verify domain points to this server
 	isDomainPointingToThisServer := m.ServiceManager.SslManager.VerifyDomain(domain.Name)
 	if !isDomainPointingToThisServer {
