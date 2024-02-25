@@ -53,6 +53,8 @@ func (r *mutationResolver) AddDomain(ctx context.Context, input model.DomainInpu
 		}
 		return nil, err
 	}
+	// Just enqueue the domain for SSL generation
+	_ = r.WorkerManager.EnqueueSSLGenerateRequest(record.ID)
 	return domainToGraphqlObject(record), nil
 }
 

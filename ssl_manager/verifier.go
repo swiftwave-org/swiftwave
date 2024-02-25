@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // VerifyDomain Verify whether the domain is pointing to the server
@@ -11,7 +12,17 @@ import (
 func (s Manager) VerifyDomain(domain string) bool {
 	finalDomain := "http://" + domain + "/.well-known/pre-authorize/"
 	finalDomain = strings.ReplaceAll(finalDomain, "../", "")
-	resp, err := http.Get(finalDomain)
+	// Create a new HTTP client with a timeout
+	client := http.Client{
+		Timeout: 20 * time.Second,
+	}
+	// Create a GET request
+	req, err := http.NewRequest("GET", finalDomain, nil)
+	if err != nil {
+		return false
+	}
+	// Perform the request with the client
+	resp, err := client.Do(req)
 	if err != nil {
 		return false
 	}
