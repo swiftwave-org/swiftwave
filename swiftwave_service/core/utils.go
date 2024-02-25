@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"regexp"
 	"time"
 )
 
@@ -42,4 +43,13 @@ func (application *Application) ReplicaCount() uint {
 		return 0
 	}
 	return application.Replicas
+}
+
+// IPV4Regex : regex for IPv4
+const IPV4Regex = `^(?:\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b)$`
+
+// IsIPv4 : check if the domain is IPv4
+func (domain *Domain) IsIPv4() bool {
+	regex := regexp.MustCompile(IPV4Regex)
+	return regex.MatchString(domain.Name)
 }
