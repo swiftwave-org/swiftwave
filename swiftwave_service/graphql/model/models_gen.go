@@ -321,6 +321,26 @@ type RuntimeLog struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
+type StackInput struct {
+	Content   string               `json:"content"`
+	Variables []*StackVariableType `json:"variables"`
+}
+
+type StackVariableType struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+type StackVerifyResult struct {
+	Status          bool     `json:"status"`
+	Message         string   `json:"message"`
+	Error           string   `json:"error"`
+	ValidVolumes    []string `json:"validVolumes"`
+	InvalidVolumes  []string `json:"invalidVolumes"`
+	ValidServices   []string `json:"validServices"`
+	InvalidServices []string `json:"invalidServices"`
+}
+
 type Subscription struct {
 }
 

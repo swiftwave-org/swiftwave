@@ -187,6 +187,7 @@ type ComplexityRoot struct {
 		BackupPersistentVolume                             func(childComplexity int, input model.PersistentVolumeBackupInput) int
 		CancelDeployment                                   func(childComplexity int, id string) int
 		ChangePassword                                     func(childComplexity int, input *model.PasswordUpdateInput) int
+		CleanupStack                                       func(childComplexity int, input model.StackInput) int
 		CreateApplication                                  func(childComplexity int, input model.ApplicationInput) int
 		CreateGitCredential                                func(childComplexity int, input model.GitCredentialInput) int
 		CreateImageRegistryCredential                      func(childComplexity int, input model.ImageRegistryCredentialInput) int
@@ -205,6 +206,7 @@ type ComplexityRoot struct {
 		DeletePersistentVolumeRestoresByPersistentVolumeID func(childComplexity int, persistentVolumeID uint) int
 		DeleteRedirectRule                                 func(childComplexity int, id uint) int
 		DeleteUser                                         func(childComplexity int, id uint) int
+		DeployStack                                        func(childComplexity int, input model.StackInput) int
 		IssueSsl                                           func(childComplexity int, id uint) int
 		RebuildApplication                                 func(childComplexity int, id string) int
 		RegenerateWebhookToken                             func(childComplexity int, id string) int
@@ -214,6 +216,7 @@ type ComplexityRoot struct {
 		UpdateApplication                                  func(childComplexity int, id string, input model.ApplicationInput) int
 		UpdateGitCredential                                func(childComplexity int, id uint, input model.GitCredentialInput) int
 		UpdateImageRegistryCredential                      func(childComplexity int, id uint, input model.ImageRegistryCredentialInput) int
+		VerifyStack                                        func(childComplexity int, input model.StackInput) int
 		WakeApplication                                    func(childComplexity int, id string) int
 	}
 
@@ -309,6 +312,16 @@ type ComplexityRoot struct {
 		CreatedAt func(childComplexity int) int
 	}
 
+	StackVerifyResult struct {
+		Error           func(childComplexity int) int
+		InvalidServices func(childComplexity int) int
+		InvalidVolumes  func(childComplexity int) int
+		Message         func(childComplexity int) int
+		Status          func(childComplexity int) int
+		ValidServices   func(childComplexity int) int
+		ValidVolumes    func(childComplexity int) int
+	}
+
 	Subscription struct {
 		FetchDeploymentLog func(childComplexity int, id string) int
 		FetchRuntimeLog    func(childComplexity int, applicationID string) int
@@ -384,6 +397,9 @@ type MutationResolver interface {
 	DeletePersistentVolumeRestoresByPersistentVolumeID(ctx context.Context, persistentVolumeID uint) (bool, error)
 	CreateRedirectRule(ctx context.Context, input model.RedirectRuleInput) (*model.RedirectRule, error)
 	DeleteRedirectRule(ctx context.Context, id uint) (bool, error)
+	CleanupStack(ctx context.Context, input model.StackInput) (string, error)
+	VerifyStack(ctx context.Context, input model.StackInput) (*model.StackVerifyResult, error)
+	DeployStack(ctx context.Context, input model.StackInput) (string, error)
 	CreateUser(ctx context.Context, input *model.UserInput) (*model.User, error)
 	DeleteUser(ctx context.Context, id uint) (bool, error)
 	ChangePassword(ctx context.Context, input *model.PasswordUpdateInput) (bool, error)
@@ -1113,6 +1129,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ChangePassword(childComplexity, args["input"].(*model.PasswordUpdateInput)), true
 
+	case "Mutation.cleanupStack":
+		if e.complexity.Mutation.CleanupStack == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_cleanupStack_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CleanupStack(childComplexity, args["input"].(model.StackInput)), true
+
 	case "Mutation.createApplication":
 		if e.complexity.Mutation.CreateApplication == nil {
 			break
@@ -1329,6 +1357,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteUser(childComplexity, args["id"].(uint)), true
 
+	case "Mutation.deployStack":
+		if e.complexity.Mutation.DeployStack == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deployStack_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeployStack(childComplexity, args["input"].(model.StackInput)), true
+
 	case "Mutation.issueSSL":
 		if e.complexity.Mutation.IssueSsl == nil {
 			break
@@ -1436,6 +1476,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateImageRegistryCredential(childComplexity, args["id"].(uint), args["input"].(model.ImageRegistryCredentialInput)), true
+
+	case "Mutation.verifyStack":
+		if e.complexity.Mutation.VerifyStack == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_verifyStack_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.VerifyStack(childComplexity, args["input"].(model.StackInput)), true
 
 	case "Mutation.wakeApplication":
 		if e.complexity.Mutation.WakeApplication == nil {
@@ -1979,6 +2031,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RuntimeLog.CreatedAt(childComplexity), true
 
+	case "StackVerifyResult.error":
+		if e.complexity.StackVerifyResult.Error == nil {
+			break
+		}
+
+		return e.complexity.StackVerifyResult.Error(childComplexity), true
+
+	case "StackVerifyResult.invalidServices":
+		if e.complexity.StackVerifyResult.InvalidServices == nil {
+			break
+		}
+
+		return e.complexity.StackVerifyResult.InvalidServices(childComplexity), true
+
+	case "StackVerifyResult.invalidVolumes":
+		if e.complexity.StackVerifyResult.InvalidVolumes == nil {
+			break
+		}
+
+		return e.complexity.StackVerifyResult.InvalidVolumes(childComplexity), true
+
+	case "StackVerifyResult.message":
+		if e.complexity.StackVerifyResult.Message == nil {
+			break
+		}
+
+		return e.complexity.StackVerifyResult.Message(childComplexity), true
+
+	case "StackVerifyResult.status":
+		if e.complexity.StackVerifyResult.Status == nil {
+			break
+		}
+
+		return e.complexity.StackVerifyResult.Status(childComplexity), true
+
+	case "StackVerifyResult.validServices":
+		if e.complexity.StackVerifyResult.ValidServices == nil {
+			break
+		}
+
+		return e.complexity.StackVerifyResult.ValidServices(childComplexity), true
+
+	case "StackVerifyResult.validVolumes":
+		if e.complexity.StackVerifyResult.ValidVolumes == nil {
+			break
+		}
+
+		return e.complexity.StackVerifyResult.ValidVolumes(childComplexity), true
+
 	case "Subscription.fetchDeploymentLog":
 		if e.complexity.Subscription.FetchDeploymentLog == nil {
 			break
@@ -2042,6 +2143,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputPersistentVolumeInput,
 		ec.unmarshalInputPersistentVolumeRestoreInput,
 		ec.unmarshalInputRedirectRuleInput,
+		ec.unmarshalInputStackInput,
+		ec.unmarshalInputStackVariableType,
 		ec.unmarshalInputUserInput,
 	)
 	first := true
@@ -2156,7 +2259,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/user.graphqls.graphqls"
+//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/stack.graphqls" "schema/user.graphqls.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -2186,6 +2289,7 @@ var sources = []*ast.Source{
 	{Name: "schema/persistent_volume_restore.graphqls", Input: sourceData("schema/persistent_volume_restore.graphqls"), BuiltIn: false},
 	{Name: "schema/redirect_rule.graphqls", Input: sourceData("schema/redirect_rule.graphqls"), BuiltIn: false},
 	{Name: "schema/runtime_log.graphqls", Input: sourceData("schema/runtime_log.graphqls"), BuiltIn: false},
+	{Name: "schema/stack.graphqls", Input: sourceData("schema/stack.graphqls"), BuiltIn: false},
 	{Name: "schema/user.graphqls.graphqls", Input: sourceData("schema/user.graphqls.graphqls"), BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -2270,6 +2374,21 @@ func (ec *executionContext) field_Mutation_changePassword_args(ctx context.Conte
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalOPasswordUpdateInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPasswordUpdateInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_cleanupStack_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.StackInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNStackInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐStackInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2548,6 +2667,21 @@ func (ec *executionContext) field_Mutation_deleteUser_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deployStack_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.StackInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNStackInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐStackInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_issueSSL_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2707,6 +2841,21 @@ func (ec *executionContext) field_Mutation_updateImageRegistryCredential_args(ct
 		}
 	}
 	args["input"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_verifyStack_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.StackInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNStackInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐStackInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -9106,6 +9255,187 @@ func (ec *executionContext) fieldContext_Mutation_deleteRedirectRule(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_cleanupStack(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_cleanupStack(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CleanupStack(rctx, fc.Args["input"].(model.StackInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_cleanupStack(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_cleanupStack_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_verifyStack(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_verifyStack(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().VerifyStack(rctx, fc.Args["input"].(model.StackInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.StackVerifyResult)
+	fc.Result = res
+	return ec.marshalNStackVerifyResult2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐStackVerifyResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_verifyStack(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "status":
+				return ec.fieldContext_StackVerifyResult_status(ctx, field)
+			case "message":
+				return ec.fieldContext_StackVerifyResult_message(ctx, field)
+			case "error":
+				return ec.fieldContext_StackVerifyResult_error(ctx, field)
+			case "validVolumes":
+				return ec.fieldContext_StackVerifyResult_validVolumes(ctx, field)
+			case "invalidVolumes":
+				return ec.fieldContext_StackVerifyResult_invalidVolumes(ctx, field)
+			case "validServices":
+				return ec.fieldContext_StackVerifyResult_validServices(ctx, field)
+			case "invalidServices":
+				return ec.fieldContext_StackVerifyResult_invalidServices(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StackVerifyResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_verifyStack_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deployStack(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deployStack(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeployStack(rctx, fc.Args["input"].(model.StackInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deployStack(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deployStack_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createUser(ctx, field)
 	if err != nil {
@@ -12894,6 +13224,314 @@ func (ec *executionContext) fieldContext_RuntimeLog_createdAt(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _StackVerifyResult_status(ctx context.Context, field graphql.CollectedField, obj *model.StackVerifyResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StackVerifyResult_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StackVerifyResult_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StackVerifyResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StackVerifyResult_message(ctx context.Context, field graphql.CollectedField, obj *model.StackVerifyResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StackVerifyResult_message(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StackVerifyResult_message(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StackVerifyResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StackVerifyResult_error(ctx context.Context, field graphql.CollectedField, obj *model.StackVerifyResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StackVerifyResult_error(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Error, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StackVerifyResult_error(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StackVerifyResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StackVerifyResult_validVolumes(ctx context.Context, field graphql.CollectedField, obj *model.StackVerifyResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StackVerifyResult_validVolumes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ValidVolumes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StackVerifyResult_validVolumes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StackVerifyResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StackVerifyResult_invalidVolumes(ctx context.Context, field graphql.CollectedField, obj *model.StackVerifyResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StackVerifyResult_invalidVolumes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InvalidVolumes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StackVerifyResult_invalidVolumes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StackVerifyResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StackVerifyResult_validServices(ctx context.Context, field graphql.CollectedField, obj *model.StackVerifyResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StackVerifyResult_validServices(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ValidServices, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StackVerifyResult_validServices(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StackVerifyResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StackVerifyResult_invalidServices(ctx context.Context, field graphql.CollectedField, obj *model.StackVerifyResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StackVerifyResult_invalidServices(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InvalidServices, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StackVerifyResult_invalidServices(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StackVerifyResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Subscription_fetchDeploymentLog(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
 	fc, err := ec.fieldContext_Subscription_fetchDeploymentLog(ctx, field)
 	if err != nil {
@@ -15721,6 +16359,74 @@ func (ec *executionContext) unmarshalInputRedirectRuleInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputStackInput(ctx context.Context, obj interface{}) (model.StackInput, error) {
+	var it model.StackInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"content", "variables"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "content":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("content"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Content = data
+		case "variables":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("variables"))
+			data, err := ec.unmarshalNStackVariableType2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐStackVariableTypeᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Variables = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputStackVariableType(ctx context.Context, obj interface{}) (model.StackVariableType, error) {
+	var it model.StackVariableType
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "value":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj interface{}) (model.UserInput, error) {
 	var it model.UserInput
 	asMap := map[string]interface{}{}
@@ -17305,6 +18011,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "cleanupStack":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_cleanupStack(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "verifyStack":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_verifyStack(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deployStack":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deployStack(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createUser":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createUser(ctx, field)
@@ -18549,6 +19276,75 @@ func (ec *executionContext) _RuntimeLog(ctx context.Context, sel ast.SelectionSe
 			}
 		case "createdAt":
 			out.Values[i] = ec._RuntimeLog_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var stackVerifyResultImplementors = []string{"StackVerifyResult"}
+
+func (ec *executionContext) _StackVerifyResult(ctx context.Context, sel ast.SelectionSet, obj *model.StackVerifyResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, stackVerifyResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StackVerifyResult")
+		case "status":
+			out.Values[i] = ec._StackVerifyResult_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "message":
+			out.Values[i] = ec._StackVerifyResult_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "error":
+			out.Values[i] = ec._StackVerifyResult_error(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "validVolumes":
+			out.Values[i] = ec._StackVerifyResult_validVolumes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "invalidVolumes":
+			out.Values[i] = ec._StackVerifyResult_invalidVolumes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "validServices":
+			out.Values[i] = ec._StackVerifyResult_validServices(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "invalidServices":
+			out.Values[i] = ec._StackVerifyResult_invalidServices(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -20022,6 +20818,47 @@ func (ec *executionContext) marshalNRuntimeLog2ᚖgithubᚗcomᚋswiftwaveᚑorg
 		return graphql.Null
 	}
 	return ec._RuntimeLog(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNStackInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐStackInput(ctx context.Context, v interface{}) (model.StackInput, error) {
+	res, err := ec.unmarshalInputStackInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNStackVariableType2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐStackVariableTypeᚄ(ctx context.Context, v interface{}) ([]*model.StackVariableType, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.StackVariableType, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNStackVariableType2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐStackVariableType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNStackVariableType2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐStackVariableType(ctx context.Context, v interface{}) (*model.StackVariableType, error) {
+	res, err := ec.unmarshalInputStackVariableType(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNStackVerifyResult2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐStackVerifyResult(ctx context.Context, sel ast.SelectionSet, v model.StackVerifyResult) graphql.Marshaler {
+	return ec._StackVerifyResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStackVerifyResult2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐStackVerifyResult(ctx context.Context, sel ast.SelectionSet, v *model.StackVerifyResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._StackVerifyResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

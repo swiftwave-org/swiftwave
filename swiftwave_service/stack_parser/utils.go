@@ -17,12 +17,17 @@ func ParseStackYaml(yamlStr string) (Stack, error) {
 	}
 	// Pre-fill default values
 	for serviceName, service := range stack.Services {
-		if service.Deploy.Mode == "" {
-			service.Deploy.Mode = "replicated"
-		} else if service.Deploy.Mode == "replicated" && service.Deploy.Replicas == 0 {
-			service.Deploy.Replicas = 1
-		} else if service.Deploy.Mode == "global" && service.Deploy.Replicas != 0 {
-			service.Deploy.Replicas = 0
+		if service.Deploy.Mode == DeploymentModeNone {
+			service.Deploy.Mode = DeploymentModeReplicated
+		}
+		if service.Deploy.Mode == DeploymentModeReplicated {
+			if service.Deploy.Replicas == 0 {
+				service.Deploy.Replicas = 1
+			}
+		} else if service.Deploy.Mode == DeploymentModeGlobal {
+			if service.Deploy.Replicas != 0 {
+				service.Deploy.Replicas = 0
+			}
 		} else {
 			return Stack{}, errors.New("invalid deploy mode")
 		}
@@ -46,6 +51,10 @@ func (s *Stack) FillVariable(variableMapping *map[string]string) (*Stack, error)
 	// check if STACK_NAME is present in variableMapping
 	if _, ok := (*variableMapping)["STACK_NAME"]; !ok {
 		return nil, errors.New("STACK_NAME is not provided")
+	} else {
+		if len(strings.TrimSpace((*variableMapping)["STACK_NAME"])) == 0 {
+			return nil, errors.New("STACK_NAME is empty")
+		}
 	}
 
 	stackCopy, err := s.deepCopy()

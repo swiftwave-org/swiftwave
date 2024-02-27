@@ -181,7 +181,7 @@ func (s *Stack) deepCopy() (*Stack, error) {
 	return newStack, nil
 }
 
-func (s *Stack) volumeNames() []string {
+func (s *Stack) VolumeNames() []string {
 	volumeNames := make([]string, 0)
 	for _, service := range s.Services {
 		for _, volume := range service.Volumes {
@@ -191,7 +191,7 @@ func (s *Stack) volumeNames() []string {
 	return volumeNames
 }
 
-func (s *Stack) serviceNames() []string {
+func (s *Stack) ServiceNames() []string {
 	serviceNames := make([]string, 0)
 	for serviceName := range s.Services {
 		serviceNames = append(serviceNames, serviceName)

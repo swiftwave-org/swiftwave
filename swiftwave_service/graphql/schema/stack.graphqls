@@ -1,0 +1,25 @@
+input StackVariableType {
+    name: String!
+    value: String!
+}
+
+input StackInput {
+    content: String!
+    variables: [StackVariableType!]!
+}
+
+type StackVerifyResult {
+    status: Boolean!
+    message: String!
+    error: String!
+    validVolumes: [String!]!
+    invalidVolumes: [String!]!
+    validServices: [String!]!
+    invalidServices: [String!]!
+}
+
+extend type Mutation {
+    cleanupStack(input: StackInput!): String!
+    verifyStack(input: StackInput!): StackVerifyResult!
+    deployStack(input: StackInput!): String!
+}
