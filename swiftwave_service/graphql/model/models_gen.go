@@ -28,6 +28,12 @@ type Application struct {
 	Command                  string                     `json:"command"`
 }
 
+type ApplicationDeployResult struct {
+	Success     bool         `json:"success"`
+	Message     string       `json:"message"`
+	Application *Application `json:"application,omitempty"`
+}
+
 type ApplicationInput struct {
 	Name                         string                          `json:"name"`
 	EnvironmentVariables         []*EnvironmentVariableInput     `json:"environmentVariables"`
@@ -319,6 +325,26 @@ type RedirectRuleInput struct {
 type RuntimeLog struct {
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+type StackInput struct {
+	Content   string               `json:"content"`
+	Variables []*StackVariableType `json:"variables"`
+}
+
+type StackVariableType struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+type StackVerifyResult struct {
+	Success         bool     `json:"success"`
+	Message         string   `json:"message"`
+	Error           string   `json:"error"`
+	ValidVolumes    []string `json:"validVolumes"`
+	InvalidVolumes  []string `json:"invalidVolumes"`
+	ValidServices   []string `json:"validServices"`
+	InvalidServices []string `json:"invalidServices"`
 }
 
 type Subscription struct {

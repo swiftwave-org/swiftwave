@@ -43,6 +43,11 @@ func (persistentVolume *PersistentVolume) FindById(ctx context.Context, db gorm.
 	return tx.Error
 }
 
+func (persistentVolume *PersistentVolume) FindByName(ctx context.Context, db gorm.DB, name string) error {
+	tx := db.Where("name = ?", name).First(&persistentVolume)
+	return tx.Error
+}
+
 func (persistentVolume *PersistentVolume) Create(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
 	// verify name is valid
 	if !isValidVolumeName(persistentVolume.Name) {

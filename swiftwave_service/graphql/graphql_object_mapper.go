@@ -1,6 +1,10 @@
 package graphql
 
 import (
+	"context"
+	"fmt"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/stack_parser"
+	"gorm.io/gorm"
 	"time"
 
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
@@ -373,4 +377,61 @@ func userToGraphqlObject(record *core.User) *model.User {
 		ID:       record.ID,
 		Username: record.Username,
 	}
+}
+
+// stackToApplicationsInput : converts Stack to ApplicationInput
+func stackToApplicationsInput(record *stack_parser.Stack, db gorm.DB) ([]model.ApplicationInput, error) {
+	applications := make([]model.ApplicationInput, 0)
+	for serviceName, service := range record.Services {
+		environmentVariables := make([]*model.EnvironmentVariableInput, 0)
+		for key, value := range service.Environment {
+			environmentVariables = append(environmentVariables, &model.EnvironmentVariableInput{
+				Key:   key,
+				Value: value,
+			})
+		}
+		persistentVolumeBindings := make([]*model.PersistentVolumeBindingInput, 0)
+		for _, volume := range service.Volumes {
+			// fetch volume from database
+			pv := core.PersistentVolume{}
+			err := pv.FindByName(context.Background(), db, volume.Name)
+			if err != nil {
+				return nil, err
+			}
+			persistentVolumeBindings = append(persistentVolumeBindings, &model.PersistentVolumeBindingInput{
+				PersistentVolumeID: pv.ID,
+				MountingPath:       volume.MountingPoint,
+			})
+		}
+		sysctls := make([]string, 0)
+		for key, val := range service.Sysctls {
+			sysctls = append(sysctls, fmt.Sprintf("%s=%s", key, val))
+		}
+		image := service.Image
+		replicas := service.Deploy.Replicas
+		app := model.ApplicationInput{
+			Name:                         serviceName,
+			EnvironmentVariables:         environmentVariables,
+			PersistentVolumeBindings:     persistentVolumeBindings,
+			Capabilities:                 service.CapAdd,
+			Sysctls:                      sysctls,
+			Dockerfile:                   nil,
+			BuildArgs:                    []*model.BuildArgInput{},
+			DeploymentMode:               model.DeploymentMode(service.Deploy.Mode),
+			Replicas:                     &replicas,
+			UpstreamType:                 model.UpstreamTypeImage,
+			DockerImage:                  &image,
+			ImageRegistryCredentialID:    nil,
+			GitCredentialID:              nil,
+			GitProvider:                  nil,
+			RepositoryOwner:              nil,
+			RepositoryName:               nil,
+			RepositoryBranch:             nil,
+			CodePath:                     nil,
+			SourceCodeCompressedFileName: nil,
+		}
+		applications = append(applications, app)
+	}
+
+	return applications, nil
 }
