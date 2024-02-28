@@ -1,0 +1,31 @@
+input StackVariableType {
+    name: String!
+    value: String!
+}
+
+input StackInput {
+    content: String!
+    variables: [StackVariableType!]!
+}
+
+type StackVerifyResult {
+    success: Boolean!
+    message: String!
+    error: String!
+    validVolumes: [String!]!
+    invalidVolumes: [String!]!
+    validServices: [String!]!
+    invalidServices: [String!]!
+}
+
+type ApplicationDeployResult {
+    success: Boolean!
+    message: String!
+    application: Application
+}
+
+extend type Mutation {
+    cleanupStack(input: StackInput!): String!
+    verifyStack(input: StackInput!): StackVerifyResult!
+    deployStack(input: StackInput!): [ApplicationDeployResult!]!
+}
