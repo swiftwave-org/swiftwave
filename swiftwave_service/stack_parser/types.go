@@ -135,7 +135,7 @@ const (
 
 type Deploy struct {
 	Mode     DeploymentMode `yaml:"mode"`
-	Replicas int            `yaml:"replicas"`
+	Replicas uint           `yaml:"replicas"`
 }
 
 // Docs : Documentation for the stack

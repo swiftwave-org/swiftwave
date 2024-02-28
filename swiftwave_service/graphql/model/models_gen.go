@@ -28,6 +28,12 @@ type Application struct {
 	Command                  string                     `json:"command"`
 }
 
+type ApplicationDeployResult struct {
+	Success     bool         `json:"success"`
+	Message     string       `json:"message"`
+	Application *Application `json:"application,omitempty"`
+}
+
 type ApplicationInput struct {
 	Name                         string                          `json:"name"`
 	EnvironmentVariables         []*EnvironmentVariableInput     `json:"environmentVariables"`
@@ -332,7 +338,7 @@ type StackVariableType struct {
 }
 
 type StackVerifyResult struct {
-	Status          bool     `json:"status"`
+	Success         bool     `json:"success"`
 	Message         string   `json:"message"`
 	Error           string   `json:"error"`
 	ValidVolumes    []string `json:"validVolumes"`

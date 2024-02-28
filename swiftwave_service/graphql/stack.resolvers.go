@@ -6,6 +6,7 @@ package graphql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -43,7 +44,7 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 	}
 	// create result
 	result := &model.StackVerifyResult{
-		Status:          true,
+		Success:         true,
 		Message:         "",
 		Error:           "",
 		ValidVolumes:    make([]string, 0), // volumes that
@@ -80,10 +81,10 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 	}
 	// set message
 	if len(result.InvalidServices) == 0 {
-		result.Status = result.Status && true
+		result.Success = result.Success && true
 		result.Message = "All services are verified"
 	} else {
-		result.Status = result.Status && false
+		result.Success = result.Success && false
 		unverifiedServiceStr := ""
 		for _, service := range result.InvalidServices {
 			unverifiedServiceStr += service + ", "
@@ -95,10 +96,10 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 	}
 
 	if len(result.InvalidVolumes) == 0 {
-		result.Status = result.Status && true
+		result.Success = result.Success && true
 		result.Message = fmt.Sprintf("%s\nAll volumes are verified", result.Message)
 	} else {
-		result.Status = result.Status && false
+		result.Success = result.Success && false
 		unverifiedVolumeStr := ""
 		for _, volume := range result.InvalidVolumes {
 			unverifiedVolumeStr += volume + ", "
@@ -114,6 +115,54 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 }
 
 // DeployStack is the resolver for the deployStack field.
-func (r *mutationResolver) DeployStack(ctx context.Context, input model.StackInput) (string, error) {
-	panic(fmt.Errorf("not implemented: DeployStack - deployStack"))
+func (r *mutationResolver) DeployStack(ctx context.Context, input model.StackInput) ([]*model.ApplicationDeployResult, error) {
+	// parse stack
+	stack, err := stack_parser.ParseStackYaml(input.Content)
+	if err != nil {
+		return nil, errors.New("stack configuration is not valid")
+	}
+	// verify stack
+	verifyResult, err := r.VerifyStack(ctx, input)
+	if err != nil {
+		return nil, err
+	} else {
+		if !verifyResult.Success {
+			return nil, fmt.Errorf("stack configuration is not valid. %s", verifyResult.Error)
+		}
+	}
+	// Fill variable
+	variableMapping := make(map[string]string)
+	for _, variable := range input.Variables {
+		variableMapping[variable.Name] = variable.Value
+	}
+	stackFilled, err := stack.FillVariable(&variableMapping)
+	if err != nil {
+		return nil, err
+	}
+
+	// convert to application input
+	applicationsInput, err := stackToApplicationsInput(stackFilled, r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	// result
+	results := make([]*model.ApplicationDeployResult, 0)
+	// create application
+	for _, applicationInput := range applicationsInput {
+		application, err := r.CreateApplication(ctx, applicationInput)
+		if err != nil {
+			results = append(results, &model.ApplicationDeployResult{
+				Success:     false,
+				Message:     err.Error(),
+				Application: application,
+			})
+		} else {
+			results = append(results, &model.ApplicationDeployResult{
+				Success:     true,
+				Message:     "Application created successfully",
+				Application: application,
+			})
+		}
+	}
+	return results, nil
 }

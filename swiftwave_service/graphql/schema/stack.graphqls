@@ -9,7 +9,7 @@ input StackInput {
 }
 
 type StackVerifyResult {
-    status: Boolean!
+    success: Boolean!
     message: String!
     error: String!
     validVolumes: [String!]!
@@ -18,8 +18,14 @@ type StackVerifyResult {
     invalidServices: [String!]!
 }
 
+type ApplicationDeployResult {
+    success: Boolean!
+    message: String!
+    application: Application
+}
+
 extend type Mutation {
     cleanupStack(input: StackInput!): String!
     verifyStack(input: StackInput!): StackVerifyResult!
-    deployStack(input: StackInput!): String!
+    deployStack(input: StackInput!): [ApplicationDeployResult!]!
 }
