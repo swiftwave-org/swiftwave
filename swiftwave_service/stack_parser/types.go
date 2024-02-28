@@ -107,6 +107,32 @@ func (l *VolumeList) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// Command : Command definition
+type Command []string
+
+func (c *Command) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var raw interface{}
+	if err := unmarshal(&raw); err != nil {
+		return err
+	}
+	*c = make([]string, 0)
+
+	switch reflect.TypeOf(raw).Kind() {
+	case reflect.Slice:
+		for _, record := range raw.([]interface{}) {
+			if record != nil && reflect.TypeOf(record).Kind() == reflect.String {
+				recordString := record.(string)
+				*c = append(*c, recordString)
+			}
+		}
+	case reflect.String:
+		*c = append(*c, raw.(string))
+	default:
+		return errors.New("invalid command definition")
+	}
+	return nil
+}
+
 // Stack : Stack definition
 type Stack struct {
 	Services map[string]Service `yaml:"services"`
@@ -121,7 +147,7 @@ type Service struct {
 	Environment KeyValuePair `yaml:"environment"`
 	CapAdd      []string     `yaml:"cap_add"`
 	Sysctls     KeyValuePair `yaml:"sysctls"`
-	Command     []string     `yaml:"command"`
+	Command     Command      `yaml:"command"`
 }
 
 // DeploymentMode : mode of deployment of application (replicated or global)
