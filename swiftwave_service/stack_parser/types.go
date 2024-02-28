@@ -140,10 +140,12 @@ type Deploy struct {
 
 // Docs : Documentation for the stack
 type Docs struct {
-	Name        string                  `yaml:"name"`
-	Description string                  `yaml:"description"`
-	LogoURL     string                  `yaml:"logo_url"`
-	Variables   map[string]DocsVariable `yaml:"variables"`
+	LogoURL           string                  `yaml:"logo_url"`
+	Name              string                  `yaml:"name"`
+	Description       string                  `yaml:"description"`
+	ReadmeDescription string                  `yaml:"readme_description"`
+	IframeVideoEmbed  string                  `yaml:"iframe_video_embed"`
+	Variables         map[string]DocsVariable `yaml:"variables"`
 }
 
 type DocsVariable struct {
