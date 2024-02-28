@@ -1,6 +1,7 @@
 package graphql
 
 import (
+	"context"
 	"fmt"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/stack_parser"
 	"gorm.io/gorm"
@@ -393,7 +394,7 @@ func stackToApplicationsInput(record *stack_parser.Stack, db gorm.DB) ([]model.A
 		for _, volume := range service.Volumes {
 			// fetch volume from database
 			pv := core.PersistentVolume{}
-			err := pv.FindByName(nil, db, volume.Name)
+			err := pv.FindByName(context.Background(), db, volume.Name)
 			if err != nil {
 				return nil, err
 			}
