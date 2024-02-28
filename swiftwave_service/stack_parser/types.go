@@ -166,6 +166,7 @@ const (
 	DocsVariableTypeInteger DocsVariableType = "integer"
 	DocsVariableTypeFloat   DocsVariableType = "float"
 	DocsVariableTypeOptions DocsVariableType = "options"
+	DocsVariableTypeVolume  DocsVariableType = "volume"
 )
 
 func (s *Stack) deepCopy() (*Stack, error) {

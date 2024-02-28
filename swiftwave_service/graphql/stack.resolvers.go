@@ -38,7 +38,7 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 	for _, variable := range input.Variables {
 		variableMapping[variable.Name] = variable.Value
 	}
-	stackFilled, err := stack.FillVariable(&variableMapping)
+	stackFilled, err := stack.FillAndVerifyVariables(&variableMapping, r.ServiceManager)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (r *mutationResolver) DeployStack(ctx context.Context, input model.StackInp
 	for _, variable := range input.Variables {
 		variableMapping[variable.Name] = variable.Value
 	}
-	stackFilled, err := stack.FillVariable(&variableMapping)
+	stackFilled, err := stack.FillAndVerifyVariables(&variableMapping, r.ServiceManager)
 	if err != nil {
 		return nil, err
 	}

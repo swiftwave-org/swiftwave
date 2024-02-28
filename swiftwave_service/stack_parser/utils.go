@@ -1,9 +1,12 @@
 package stack_parser
 
 import (
+	"context"
 	"errors"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"math/rand"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -44,7 +47,7 @@ func ParseStackYaml(yamlStr string) (Stack, error) {
 	return stack, nil
 }
 
-func (s *Stack) FillVariable(variableMapping *map[string]string) (*Stack, error) {
+func (s *Stack) FillAndVerifyVariables(variableMapping *map[string]string, serviceManager core.ServiceManager) (*Stack, error) {
 	if variableMapping == nil {
 		return nil, errors.New("variableMapping is nil")
 	}
@@ -103,6 +106,50 @@ func (s *Stack) FillVariable(variableMapping *map[string]string) (*Stack, error)
 			service.Command[i] = newCommand
 		}
 		stackCopy.Services[serviceName] = service
+	}
+	// check if docs is present
+	if stackCopy.Docs != nil {
+		// verify the type of variables
+		for variableKey, variable := range stackCopy.Docs.Variables {
+			// check if variableKey is present in variableMapping
+			if _, ok := (*variableMapping)[variableKey]; ok {
+				if variable.Type == DocsVariableTypeInteger {
+					_, err := stringToInteger((*variableMapping)[variableKey])
+					if err != nil {
+						return nil, errors.New("variable " + variableKey + " should be integer")
+					}
+				} else if variable.Type == DocsVariableTypeFloat {
+					_, err := strconv.ParseFloat((*variableMapping)[variableKey], 64)
+					if err != nil {
+						return nil, errors.New("variable " + variableKey + " should be float")
+					}
+				} else if variable.Type == DocsVariableTypeOptions {
+					isValid := false
+					for _, option := range variable.Options {
+						if option.Value == (*variableMapping)[variableKey] {
+							isValid = true
+							break
+						}
+					}
+					if !isValid {
+						return nil, errors.New("variable " + variableKey + " should be one of the provided options")
+					}
+				} else if variable.Type == DocsVariableTypeVolume {
+					val := (*variableMapping)[variableKey]
+					isExist, err := core.IsExistPersistentVolume(context.Background(), serviceManager.DbClient, val, serviceManager.DockerManager)
+					if err != nil {
+						return nil, errors.New("error in checking volume " + val)
+					}
+					if !isExist {
+						return nil, errors.New("volume " + val + " doesn't exist. Create it or choose another volume")
+					}
+				} else if variable.Type == DocsVariableTypeText {
+					// do nothing, just for the sake of completeness
+				} else {
+					return nil, errors.New("invalid variable type")
+				}
+			}
+		}
 	}
 	return stackCopy, nil
 }
@@ -251,4 +298,8 @@ func generateRandomNumber(length int) string {
 		randomBytes[i] = charset[rand.Intn(len(charset))]
 	}
 	return string(randomBytes)
+}
+
+func stringToInteger(str string) (int, error) {
+	return strconv.Atoi(str)
 }
