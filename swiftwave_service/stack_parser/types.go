@@ -190,11 +190,12 @@ type DocsVariableOptionType struct {
 type DocsVariableType string
 
 const (
-	DocsVariableTypeText    DocsVariableType = "text"
-	DocsVariableTypeInteger DocsVariableType = "integer"
-	DocsVariableTypeFloat   DocsVariableType = "float"
-	DocsVariableTypeOptions DocsVariableType = "options"
-	DocsVariableTypeVolume  DocsVariableType = "volume"
+	DocsVariableTypeText        DocsVariableType = "text"
+	DocsVariableTypeInteger     DocsVariableType = "integer"
+	DocsVariableTypeFloat       DocsVariableType = "float"
+	DocsVariableTypeOptions     DocsVariableType = "options"
+	DocsVariableTypeVolume      DocsVariableType = "volume"
+	DocsVariableTypeApplication DocsVariableType = "application"
 )
 
 func (s *Stack) deepCopy() (*Stack, error) {
