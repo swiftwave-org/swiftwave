@@ -145,6 +145,15 @@ func (s *Stack) FillAndVerifyVariables(variableMapping *map[string]string, servi
 					}
 				} else if variable.Type == DocsVariableTypeText {
 					// do nothing, just for the sake of completeness
+				} else if variable.Type == DocsVariableTypeApplication {
+					val := (*variableMapping)[variableKey]
+					isExist, err := core.IsExistApplicationName(context.Background(), serviceManager.DbClient, serviceManager.DockerManager, val)
+					if err != nil {
+						return nil, errors.New("error in checking application " + val)
+					}
+					if !isExist {
+						return nil, errors.New("application " + val + " doesn't exist. Create it or choose another application")
+					}
 				} else {
 					return nil, errors.New("invalid variable type")
 				}
