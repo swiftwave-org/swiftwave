@@ -37,10 +37,7 @@ func (manager *ServiceManager) Load(config system_config.Config) {
 	manager.SslManager = sslManager
 
 	// Initiating HAPROXY Manager
-	var haproxyManager = HAPROXY.Manager{}
-	haproxyManager.InitUnixSocket(config.HAProxyConfig.UnixSocketPath)
-	haproxyManager.Auth(config.HAProxyConfig.User, config.HAProxyConfig.Password)
-	manager.HaproxyManager = haproxyManager
+	manager.HaproxyManager = HAPROXY.NewManager(config.HAProxyConfig.UnixSocketPath, config.HAProxyConfig.User, config.HAProxyConfig.Password)
 
 	// Initiating UDP Proxy Manager
 	udpProxyManager := UDP_PROXY.NewManager(config.UDPProxyConfig.UnixSocketPath)

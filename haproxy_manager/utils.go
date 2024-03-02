@@ -6,6 +6,7 @@ import (
 )
 
 /*
+IsPortRestrictedForManualConfig :
 This function is used to check if a port is restricted or not for application.
 
 There are some ports that are restricted.
