@@ -12,6 +12,19 @@ func FindAllIngressRules(ctx context.Context, db gorm.DB) ([]*IngressRule, error
 	return ingressRules, tx.Error
 }
 
+func FetchIngressTargetPorts(ctx context.Context, db gorm.DB, applicationId string) ([]int, error) {
+	var ingressRules []*IngressRule
+	tx := db.Select("target_port").Where("application_id = ?", applicationId).Find(&ingressRules)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	var ports []int
+	for _, ingressRule := range ingressRules {
+		ports = append(ports, int(ingressRule.TargetPort))
+	}
+	return ports, nil
+}
+
 func (ingressRule *IngressRule) FindById(ctx context.Context, db gorm.DB, id uint) error {
 	tx := db.Where("id = ?", id).First(&ingressRule)
 	return tx.Error
