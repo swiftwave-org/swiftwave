@@ -4,16 +4,22 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"strings"
 )
 
-// Fetch HAProxy current configuration version
+// fetchVersion : Fetch HAProxy current configuration version
 func (s Manager) fetchVersion() (string, error) {
 	res, err := s.getRequest("/services/haproxy/configuration/version", QueryParameters{})
 	if err != nil {
 		return "", errors.New("Error while fetching HAProxy version: " + err.Error())
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(res.Body)
 	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", errors.New("Error while fetching HAProxy version: " + err.Error())
@@ -22,7 +28,7 @@ func (s Manager) fetchVersion() (string, error) {
 	return version, nil
 }
 
-// Generate new transaction id
+// FetchNewTransactionId : Generate new transaction id
 func (s Manager) FetchNewTransactionId() (string, error) {
 	version, err := s.fetchVersion()
 	if err != nil {
@@ -34,7 +40,12 @@ func (s Manager) FetchNewTransactionId() (string, error) {
 	if err != nil || !isValidStatusCode(res.StatusCode) {
 		return "", errors.New("failed to fetch version")
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println("[haproxy_manager] FetchNewTransactionId: ", err)
+		}
+	}(res.Body)
 	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", errors.New("invalid response body")
@@ -48,7 +59,7 @@ func (s Manager) FetchNewTransactionId() (string, error) {
 	return transactionId, nil
 }
 
-// Commit new transaction with force reload to apply changes
+// CommitTransaction : Commit new transaction with force reload to apply changes
 func (s Manager) CommitTransaction(transactionId string) error {
 	queryParams := QueryParameters{}
 	queryParams.add("force_reload", "true")
@@ -56,16 +67,26 @@ func (s Manager) CommitTransaction(transactionId string) error {
 	if err != nil || !isValidStatusCode(res.StatusCode) {
 		return errors.New("error while committing transaction: " + transactionId)
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println("[haproxy_manager] CommitTransaction: ", err)
+		}
+	}(res.Body)
 	return nil
 }
 
-// Delete transaction
+// DeleteTransaction : Delete transaction
 func (s Manager) DeleteTransaction(transactionId string) error {
 	res, err := s.deleteRequest("/services/haproxy/transactions/"+transactionId, QueryParameters{})
 	if err != nil || !isValidStatusCode(res.StatusCode) {
 		return errors.New("error while deleting transaction: " + transactionId)
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println("[haproxy_manager] DeleteTransaction: ", err)
+		}
+	}(res.Body)
 	return nil
 }

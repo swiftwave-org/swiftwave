@@ -7,8 +7,9 @@ import (
 	"strings"
 )
 
-// Add SSL certificate to HAProxy
-func (s Manager) UpdateSSL(transaction_id string, domain string, privateKey []byte, fullChain []byte) error {
+// UpdateSSL : Add SSL certificate to HAProxy
+func (s Manager) UpdateSSL(transactionId string, domain string, privateKey []byte, fullChain []byte) error {
+	_ = transactionId
 	// Create a new buffer
 	var buffer bytes.Buffer
 	// Add the full chain

@@ -4,116 +4,133 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
 	"strconv"
 )
 
-// Generate Backend name for HAProxy
-func (s Manager) GenerateBackendName(service_name string, port int) string {
-	return "be_" + service_name + "_" + strconv.Itoa(port)
+// GenerateBackendName : Generate Backend name for HAProxy
+func (s Manager) GenerateBackendName(serviceName string, port int) string {
+	return "be_" + serviceName + "_" + strconv.Itoa(port)
 }
 
-// Check backend exist in HAProxy configuration
-func (s Manager) isBackendExist(backend_name string) (bool, error) {
-	// Build query parameterss
-	is_backend_exist_request_query_params := QueryParameters{}
+// isBackendExist : Check backend exist in HAProxy configuration
+func (s Manager) isBackendExist(backendName string) (bool, error) {
+	// Build query parameters
+	isBackendExistRequestQueryParams := QueryParameters{}
 	// Send request to check if backend exist
-	is_backend_exist_res, is_backend_exist_err := s.getRequest("/services/haproxy/configuration/backends/"+backend_name, is_backend_exist_request_query_params)
-	if is_backend_exist_err != nil {
+	isBackendExistRes, isBackendExistErr := s.getRequest("/services/haproxy/configuration/backends/"+backendName, isBackendExistRequestQueryParams)
+	if isBackendExistErr != nil {
 		return false, errors.New("failed to check if backend exist")
 	}
-	defer is_backend_exist_res.Body.Close()
-	if is_backend_exist_res.StatusCode == 404 {
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println("[haproxy_manager] isBackendExist:", err)
+		}
+	}(isBackendExistRes.Body)
+	if isBackendExistRes.StatusCode == 404 {
 		return false, nil
-	} else if is_backend_exist_res.StatusCode == 200 {
+	} else if isBackendExistRes.StatusCode == 200 {
 		return true, nil
 	}
 	return false, errors.New("failed to check if backend exist")
 }
 
 // TODO: add suppport for update, as replicas may change
-// Add Backend to HAProxy configuration
+
+// AddBackend : Add Backend to HAProxy configuration
 // -- Manage server template with backend
-func (s Manager) AddBackend(transaction_id string, service_name string, port int, replicas int) (string, error) {
-	backend_name := s.GenerateBackendName(service_name, port)
+func (s Manager) AddBackend(transactionId string, serviceName string, port int, replicas int) (string, error) {
+	backendName := s.GenerateBackendName(serviceName, port)
 	// Check if backend exist
-	is_backend_exist, err := s.isBackendExist(backend_name)
+	isBackendExist, err := s.isBackendExist(backendName)
 	if err != nil {
 		log.Println(err)
 		return "", err
 	}
 
-	if is_backend_exist {
-		return backend_name, nil
+	if isBackendExist {
+		return backendName, nil
 	}
 
-	// Build query parameterss
-	add_backend_request_query_params := QueryParameters{}
-	add_backend_request_query_params.add("transaction_id", transaction_id)
+	// Build query parameters
+	addBackendRequestQueryParams := QueryParameters{}
+	addBackendRequestQueryParams.add("transaction_id", transactionId)
 	// Add backend request body
-	add_backend_request_body := map[string]interface{}{
-		"name": backend_name,
+	addBackendRequestBody := map[string]interface{}{
+		"name": backendName,
 		"balance": map[string]interface{}{
 			"algorithm": "roundrobin",
 		},
 	}
-	add_backend_request_body_bytes, err := json.Marshal(add_backend_request_body)
+	addBackendRequestBodyBytes, err := json.Marshal(addBackendRequestBody)
 	if err != nil {
 		return "", errors.New("failed to marshal add_backend_request_body")
 	}
 	// Send add backend request
-	backend_res, backend_err := s.postRequest("/services/haproxy/configuration/backends", add_backend_request_query_params, bytes.NewReader(add_backend_request_body_bytes))
-	if backend_err != nil || !isValidStatusCode(backend_res.StatusCode) {
+	backendRes, backendErr := s.postRequest("/services/haproxy/configuration/backends", addBackendRequestQueryParams, bytes.NewReader(addBackendRequestBodyBytes))
+	if backendErr != nil || !isValidStatusCode(backendRes.StatusCode) {
 		return "", errors.New("failed to add backend")
 	}
-	defer backend_res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println("[haproxy_manager] AddBackend:", err)
+		}
+	}(backendRes.Body)
 
 	// Add server template request body
 	if replicas <= 0 {
 		replicas = 1
 	}
-	replicas_str := strconv.Itoa(replicas)
+	replicasStr := strconv.Itoa(replicas)
 	// Server template prefix
-	server_template_prefix := service_name + "_container-"
-	// Add seManagerrver template query parameters
-	add_server_template_request_query_params := QueryParameters{}
-	add_server_template_request_query_params.add("transaction_id", transaction_id)
-	add_server_template_request_query_params.add("backend", backend_name)
+	serverTemplatePrefix := serviceName + "_container-"
+	// Add server template query parameters
+	addServerTemplateRequestQueryParams := QueryParameters{}
+	addServerTemplateRequestQueryParams.add("transaction_id", transactionId)
+	addServerTemplateRequestQueryParams.add("backend", backendName)
 	// Add server template request body
-	add_server_template_request_body := map[string]interface{}{
-		"prefix":       server_template_prefix,
-		"fqdn":         service_name,
+	addServerTemplateRequestBody := map[string]interface{}{
+		"prefix":       serverTemplatePrefix,
+		"fqdn":         serviceName,
 		"port":         port,
 		"check":        "disabled",
 		"resolvers":    "docker",
 		"init-addr":    "none",
-		"num_or_range": replicas_str,
+		"num_or_range": replicasStr,
 	}
-	add_server_template_request_body_bytes, err := json.Marshal(add_server_template_request_body)
+	addServerTemplateRequestBodyBytes, err := json.Marshal(addServerTemplateRequestBody)
 	if err != nil {
 		return "", errors.New("failed to marshal add_server_template_request_body")
 	}
 	// Send POST request to haproxy to add server
-	server_template_res, server_template_err := s.postRequest("/services/haproxy/configuration/server_templates", add_server_template_request_query_params, bytes.NewReader(add_server_template_request_body_bytes))
-	if server_template_err != nil || !isValidStatusCode(server_template_res.StatusCode) {
+	serverTemplateRes, serverTemplateErr := s.postRequest("/services/haproxy/configuration/server_templates", addServerTemplateRequestQueryParams, bytes.NewReader(addServerTemplateRequestBodyBytes))
+	if serverTemplateErr != nil || !isValidStatusCode(serverTemplateRes.StatusCode) {
 		return "", errors.New("failed to add server template")
 	}
-	defer server_template_res.Body.Close()
-	return backend_name, nil
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println("[haproxy_manager] AddBackend:", err)
+		}
+	}(serverTemplateRes.Body)
+	return backendName, nil
 }
 
-// Update Backend Replicas
+// UpdateBackendReplicas : Update Backend Replicas
 // -- Manage server template with backend
-func (s Manager) UpdateBackendReplicas(transaction_id string, service_name string, port int, replicas int) error {
-	backend_name := s.GenerateBackendName(service_name, port)
+func (s Manager) UpdateBackendReplicas(transactionId string, serviceName string, port int, replicas int) error {
+	backendName := s.GenerateBackendName(serviceName, port)
 	// Check if backend exist
-	is_backend_exist, err := s.isBackendExist(backend_name)
+	isBackendExist, err := s.isBackendExist(backendName)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 
-	if !is_backend_exist {
+	if !isBackendExist {
 		return errors.New("backend does not exist")
 	}
 
@@ -121,48 +138,48 @@ func (s Manager) UpdateBackendReplicas(transaction_id string, service_name strin
 	if replicas <= 0 {
 		replicas = 1
 	}
-	replicas_str := strconv.Itoa(replicas)
+	replicasStr := strconv.Itoa(replicas)
 	// Server template prefix
-	server_template_prefix := service_name + "_container-"
+	serverTemplatePrefix := serviceName + "_container-"
 	// Add template query parameters
-	add_server_template_request_query_params := QueryParameters{}
-	add_server_template_request_query_params.add("transaction_id", transaction_id)
-	add_server_template_request_query_params.add("backend", backend_name)
+	addServerTemplateRequestQueryParams := QueryParameters{}
+	addServerTemplateRequestQueryParams.add("transaction_id", transactionId)
+	addServerTemplateRequestQueryParams.add("backend", backendName)
 	// Add server template request body
-	add_server_template_request_body := map[string]interface{}{
-		"prefix":       server_template_prefix,
-		"fqdn":         service_name,
+	addServerTemplateRequestBody := map[string]interface{}{
+		"prefix":       serverTemplatePrefix,
+		"fqdn":         serviceName,
 		"port":         port,
 		"check":        "disabled",
 		"resolvers":    "docker",
 		"init-addr":    "none",
-		"num_or_range": replicas_str,
+		"num_or_range": replicasStr,
 	}
-	add_server_template_request_body_bytes, err := json.Marshal(add_server_template_request_body)
+	addServerTemplateRequestBodyBytes, err := json.Marshal(addServerTemplateRequestBody)
 	if err != nil {
 		return errors.New("failed to marshal add_server_template_request_body")
 	}
 	// Send POST request to haproxy to add server
-	server_template_res, server_template_err := s.putRequest("/services/haproxy/configuration/server_templates/"+server_template_prefix, add_server_template_request_query_params, bytes.NewReader(add_server_template_request_body_bytes))
-	if server_template_err != nil || !isValidStatusCode(server_template_res.StatusCode) {
+	serverTemplateRes, serverTemplateErr := s.putRequest("/services/haproxy/configuration/server_templates/"+serverTemplatePrefix, addServerTemplateRequestQueryParams, bytes.NewReader(addServerTemplateRequestBodyBytes))
+	if serverTemplateErr != nil || !isValidStatusCode(serverTemplateRes.StatusCode) {
 		return errors.New("failed to add server template")
 	}
 	return nil
 }
 
-// Delete Backend from HAProxy configuration
-func (s Manager) DeleteBackend(transaction_id string, backend_name string) error {
-	// Build query parameterss
-	add_backend_request_query_params := QueryParameters{}
-	add_backend_request_query_params.add("transaction_id", transaction_id)
+// DeleteBackend Delete Backend from HAProxy configuration
+func (s Manager) DeleteBackend(transactionId string, backendName string) error {
+	// Build query parameters
+	addBackendRequestQueryParams := QueryParameters{}
+	addBackendRequestQueryParams.add("transaction_id", transactionId)
 	// Send request to delete backend from HAProxy
-	backend_res, backend_err := s.deleteRequest("/services/haproxy/configuration/backends/"+backend_name, add_backend_request_query_params)
-	if backend_err != nil {
+	backendRes, backendErr := s.deleteRequest("/services/haproxy/configuration/backends/"+backendName, addBackendRequestQueryParams)
+	if backendErr != nil {
 		return errors.New("failed to delete backend")
 	}
-	if backend_res.StatusCode == 404 {
+	if backendRes.StatusCode == 404 {
 		return nil
-	} else if !isValidStatusCode(backend_res.StatusCode) {
+	} else if !isValidStatusCode(backendRes.StatusCode) {
 		return errors.New("failed to delete backend")
 	}
 	return nil
