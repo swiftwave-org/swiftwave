@@ -290,10 +290,15 @@ func (r *mutationResolver) SleepApplication(ctx context.Context, id string) (boo
 		tx.Rollback()
 		return false, errors.New("failed to mark application as sleeping due to database error")
 	}
-	// scale down service
-	err = r.ServiceManager.DockerManager.SetServiceReplicaCount(record.Name, 0)
+	// fetch latest deployment
+	latestDeployment, err := core.FindLatestDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, record.ID)
 	if err != nil {
-		return false, err
+		return false, errors.New("failed to fetch latest deployment")
+	}
+	// fire deploy request
+	err = r.WorkerManager.EnqueueDeployApplicationRequest(record.ID, latestDeployment.ID)
+	if err != nil {
+		return false, errors.New("failed to sleep application due to internal error")
 	}
 	return true, nil
 }
@@ -319,10 +324,15 @@ func (r *mutationResolver) WakeApplication(ctx context.Context, id string) (bool
 		tx.Rollback()
 		return false, errors.New("failed to mark application as sleeping due to database error")
 	}
-	// scale up service
-	err = r.ServiceManager.DockerManager.SetServiceReplicaCount(record.Name, int(record.Replicas))
+	// fetch latest deployment
+	latestDeployment, err := core.FindLatestDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, record.ID)
 	if err != nil {
-		return false, err
+		return false, errors.New("failed to fetch latest deployment")
+	}
+	// fire deploy request
+	err = r.WorkerManager.EnqueueDeployApplicationRequest(record.ID, latestDeployment.ID)
+	if err != nil {
+		return false, errors.New("failed to wake application due to internal error")
 	}
 	return true, nil
 }
