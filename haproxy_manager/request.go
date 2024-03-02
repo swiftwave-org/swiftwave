@@ -12,12 +12,12 @@ import (
 	"strings"
 )
 
-// Generate Base URI for HAProxy Server
+// URI Generate Base URI for HAProxy Server
 func (s Manager) URI() string {
 	return "http://unix/v2"
 }
 
-// Wrapper to send request to HAProxy Server
+// getRequest : Wrapper to send request to HAProxy Server
 func (s Manager) getRequest(route string, queryParams QueryParameters) (*http.Response, error) {
 	if !strings.HasPrefix(route, "/") {
 		route = "/" + route
@@ -38,7 +38,7 @@ func (s Manager) getRequest(route string, queryParams QueryParameters) (*http.Re
 	return client.Do(req)
 }
 
-// Wrapper to send request to HAProxy Server
+// deleteRequest : Wrapper to send request to HAProxy Server
 func (s Manager) deleteRequest(route string, queryParams QueryParameters) (*http.Response, error) {
 	if !strings.HasPrefix(route, "/") {
 		route = "/" + route
@@ -59,7 +59,7 @@ func (s Manager) deleteRequest(route string, queryParams QueryParameters) (*http
 	return client.Do(req)
 }
 
-// Wrapper to send request to HAProxy Server
+// postRequest : Wrapper to send request to HAProxy Server
 func (s Manager) postRequest(route string, queryParams QueryParameters, body io.Reader) (*http.Response, error) {
 	if !strings.HasPrefix(route, "/") {
 		route = "/" + route
@@ -81,7 +81,7 @@ func (s Manager) postRequest(route string, queryParams QueryParameters, body io.
 	return client.Do(req)
 }
 
-// Wrapper to send request to HAProxy Server
+// putRequest : Wrapper to send request to HAProxy Server
 func (s Manager) putRequest(route string, queryParams QueryParameters, body io.Reader) (*http.Response, error) {
 	if !strings.HasPrefix(route, "/") {
 		route = "/" + route
@@ -103,7 +103,7 @@ func (s Manager) putRequest(route string, queryParams QueryParameters, body io.R
 	return client.Do(req)
 }
 
-// Upload SSL certificate to HAProxy Server
+// uploadSSL : Upload SSL certificate to HAProxy Server
 func (s Manager) uploadSSL(route string, domain string, file io.Reader) (*http.Response, error) {
 	if !strings.HasPrefix(route, "/") {
 		route = "/" + route
@@ -145,8 +145,9 @@ func (s Manager) uploadSSL(route string, domain string, file io.Reader) (*http.R
 	return client.Do(req)
 }
 
-// Replace SSL certificate to HAProxy Server
+// replaceSSL : Replace SSL certificate to HAProxy Server
 func (s Manager) replaceSSL(route string, domain string, file io.Reader) (*http.Response, error) {
+	_ = domain
 	if !strings.HasPrefix(route, "/") {
 		route = "/" + route
 	}
