@@ -2,11 +2,14 @@ package ssh_toolkit
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
-	"golang.org/x/crypto/ssh"
+	"io"
 	"log"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/ssh"
 )
 
 func ExecCommandOverSSH(cmd string,
@@ -28,7 +31,7 @@ func ExecCommandOverSSH(cmd string,
 	}
 	defer func(session *ssh.Session) {
 		err := session.Close()
-		if err != nil {
+		if err != nil && !errors.Is(err, io.EOF) {
 			log.Println("Error closing session:", err)
 		}
 	}(session)

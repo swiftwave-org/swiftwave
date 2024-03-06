@@ -2,10 +2,11 @@ package ssh_toolkit
 
 import (
 	"fmt"
-	"golang.org/x/crypto/ssh"
 	"log"
 	"sync"
 	"time"
+
+	"golang.org/x/crypto/ssh"
 )
 
 var sshClientPool *sshConnectionPool
@@ -35,19 +36,29 @@ func getSSHClient(host string, port int, user string, privateKey string, timeout
 func newSSHClient(host string, port int, user string, privateKey string, timeoutSeconds int) (*ssh.Client, error) {
 	// create entry first with a write lock
 	sshClientPool.mutex.Lock()
-	mutex := &sync.RWMutex{}
-	sshClientPool.clients[host] = &sshClient{
-		client: nil,
-		mutex:  mutex,
+	// check if another goroutine has created the client in the meantime
+	clientEntry, ok := sshClientPool.clients[host]
+	if ok {
+		sshClientPool.mutex.Unlock()
+		clientEntry.mutex.RLock()
+		c := clientEntry.client
+		clientEntry.mutex.RUnlock()
+		return c, nil
 	}
+	sshClientRecord := &sshClient{
+		client: nil,
+		mutex:  &sync.RWMutex{},
+	}
+	sshClientPool.clients[host] = sshClientRecord
 	// take the lock on the new entry,
 	// so that no other goroutine can create a client for the same host at the same time
-	mutex.Lock()
+	sshClientRecord.mutex.Lock()
 	// release the global lock
 	// so that operation for other hosts can continue, as ssh handshake can take time
 	sshClientPool.mutex.Unlock()
 	signer, err := ssh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
+		sshClientRecord.mutex.Unlock()
 		deleteSSHClient(host)
 		return nil, err
 	}
@@ -61,9 +72,12 @@ func newSSHClient(host string, port int, user string, privateKey string, timeout
 	}
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), config)
 	if err != nil {
+		sshClientRecord.mutex.Unlock()
 		deleteSSHClient(host)
 		return nil, err
 	}
+	sshClientRecord.client = client
+	sshClientRecord.mutex.Unlock()
 	return client, nil
 }
 

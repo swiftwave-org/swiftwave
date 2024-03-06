@@ -2,12 +2,13 @@ package ssh_toolkit
 
 import (
 	"fmt"
-	"github.com/oklog/ulid"
 	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
+
+	"github.com/oklog/ulid"
 )
 
 func CopyFileToRemoteServer(
@@ -26,7 +27,7 @@ func CopyFileToRemoteServer(
 		}
 	}()
 	cmdStr := fmt.Sprintf("rsync -az -e 'ssh -q -p %d -i %s' %s %s@%s:%s", port, tmpFile, localPath, user, host, remotePath)
-	cmd := exec.Command(cmdStr)
+	cmd := exec.Command("sh", "-c", cmdStr)
 	return cmd.Run()
 }
 
@@ -46,7 +47,7 @@ func CopyFileFromRemoteServer(
 		}
 	}()
 	cmdStr := fmt.Sprintf("rsync -az -e 'ssh -q -p %d -i %s' %s@%s:%s %s", port, tmpFile, user, host, remotePath, localPath)
-	cmd := exec.Command(cmdStr)
+	cmd := exec.Command("sh", "-c", cmdStr)
 	return cmd.Run()
 }
 
