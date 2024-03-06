@@ -3,6 +3,7 @@ package ssh_toolkit
 import (
 	"fmt"
 	"golang.org/x/crypto/ssh"
+	"log"
 	"sync"
 	"time"
 )
@@ -68,6 +69,17 @@ func newSSHClient(host string, port int, user string, privateKey string, timeout
 
 func deleteSSHClient(host string) {
 	sshClientPool.mutex.Lock()
+	clientEntry, ok := sshClientPool.clients[host]
+	if ok {
+		clientEntry.mutex.Lock()
+		if clientEntry.client != nil {
+			err := clientEntry.client.Close()
+			if err != nil {
+				log.Println("Error closing ssh client:", err)
+			}
+		}
+		clientEntry.mutex.Unlock()
+	}
 	delete(sshClientPool.clients, host)
 	sshClientPool.mutex.Unlock()
 }
