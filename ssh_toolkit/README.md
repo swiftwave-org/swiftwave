@@ -12,6 +12,6 @@ It will be wrapper around some required host level operations to be performed on
 
 > [!NOTE]  
 > **SSH Toolkit** has a implementation of `Pool of TCP connections` to remote servers. This will help in reducing handshake time for each request.
-> The server should be configured to accept `high number of sessions` for single tcp connection.
+> The remote servers should be configured to accept `high number of sessions` for single tcp connection.
 >
 > Go to `/etc/ssh/sshd_config` and set `MaxSessions` to `20` or more. We need to keep it little bit higher than the number of workers configured in swiftwave to keep system stable. Else new session will be timed out and create new TCP connections which is costly and time-consuming.
