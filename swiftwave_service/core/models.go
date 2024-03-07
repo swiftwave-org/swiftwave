@@ -5,12 +5,62 @@ import (
 	"time"
 )
 
+// ************************************************************************************* //
+//                                Swiftwave System Configuration 		   			     //
+// ************************************************************************************* //
+
+// SystemConfig : hold information about system configuration
+type SystemConfig struct {
+	ID                           uint                         `json:"id" gorm:"primaryKey"`
+	SWVersion                    string                       `json:"sw_version"`
+	SetupCompleted               bool                         `json:"setup_completed" gorm:"default:false"`
+	ConfigHash                   string                       `json:"config_hash"`
+	NetworkName                  string                       `json:"network_name"`
+	RestrictedPorts              pq.Int64Array                `json:"restricted_ports" gorm:"type:integer[]"`
+	JWTSecretKey                 string                       `json:"jwt_secret_key"`
+	UseTLS                       bool                         `json:"use_tls" gorm:"default:false"`
+	SshPrivateKey                string                       `json:"ssh_private_key"`
+	FirewallConfig               FirewallConfig               `json:"firewall_config" gorm:"embedded;embeddedPrefix:firewall_config_"`
+	LetsEncryptConfig            LetsEncryptConfig            `json:"lets_encrypt_config" gorm:"embedded;embeddedPrefix:lets_encrypt_config_"`
+	HAProxyConfig                HAProxyConfig                `json:"haproxy_config" gorm:"embedded;embeddedPrefix:haproxy_config_"`
+	UDPProxyConfig               UDPProxyConfig               `json:"udp_proxy_config" gorm:"embedded;embeddedPrefix:udp_proxy_config_"`
+	PersistentVolumeBackupConfig PersistentVolumeBackupConfig `json:"persistent_volume_backup_config" gorm:"embedded;embeddedPrefix:persistent_volume_backup_config_"`
+	PubSubConfig                 PubSubConfig                 `json:"pub_sub_config" gorm:"embedded;embeddedPrefix:pub_sub_config_"`
+	TaskQueueConfig              TaskQueueConfig              `json:"task_queue_config" gorm:"embedded;embeddedPrefix:task_queue_config_"`
+	ImageRegistryConfig          ImageRegistryConfig          `json:"image_registry_config" gorm:"embedded;embeddedPrefix:image_registry_config_"`
+}
+
+// Server : hold information about server
+type Server struct {
+	ID                   uint         `json:"id" gorm:"primaryKey"`
+	IP                   string       `json:"ip"`
+	HostName             string       `json:"hostName"`
+	User                 string       `json:"user"`
+	DeploymentEnabled    bool         `json:"deploymentEnabled" gorm:"default:false"`
+	DockerUnixSocketPath string       `json:"dockerUnixSocketPath"`
+	SwarmNode            bool         `json:"swarmNode" gorm:"default:false"`
+	ProxyEnabled         bool         `json:"proxyEnabled" gorm:"default:false"`
+	Status               ServerStatus `json:"status"`
+	LastOnline           time.Time    `json:"lastOnline"`
+}
+
+/**
+SwarmNode - master, worker
+Proxy config
+- enabled
+- node type (active, backup) // in active, changes will be applied immediately, in backup, changes will be applied on each 30minutes
+*/
+
 // User : hold information about user
 type User struct {
 	ID           uint   `json:"id" gorm:"primaryKey"`
 	Username     string `json:"username" gorm:"unique"`
 	PasswordHash string `json:"passwordHash"`
 }
+
+// ************************************************************************************* //
+//                                Application Level Table       		   			     //
+// ************************************************************************************* //
 
 // GitCredential : credential for git client
 type GitCredential struct {

@@ -25,6 +25,7 @@ func MigrateDatabase(dbClient *gorm.DB) error {
 		&SSL.KeyAuthorizationToken{},
 		&PersistentVolumeBackup{},
 		&PersistentVolumeRestore{},
+		&SystemConfig{},
 	)
 	if err != nil {
 		return errors.New("failed to migrate database \n" + err.Error())
