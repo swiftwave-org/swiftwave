@@ -5,7 +5,7 @@ go 1.21.7
 require (
 	github.com/99designs/gqlgen v0.17.44
 	github.com/aws/aws-sdk-go v1.50.33
-	github.com/docker/docker v25.0.3+incompatible
+	github.com/docker/docker v25.0.4+incompatible
 	github.com/fatih/color v1.16.0
 	github.com/go-git/go-git/v5 v5.11.0
 	github.com/go-redis/redis/v8 v8.11.5
