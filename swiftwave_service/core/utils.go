@@ -2,11 +2,16 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"regexp"
 	"time"
 )
+
+func (a *AMQPConfig) URI() string {
+	return fmt.Sprintf("%s://%s:%s@%s", a.Protocol, a.User, a.Password, a.Host)
+}
 
 // SetPassword : set password for user
 func (user *User) SetPassword(password string) error {

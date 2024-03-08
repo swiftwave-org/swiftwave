@@ -9,6 +9,10 @@ import (
 func MigrateDatabase(dbClient *gorm.DB) error {
 	// Migrate the schema
 	err := dbClient.AutoMigrate(
+		&SystemConfig{},
+		&SystemLog{},
+		&Server{},
+		&ServerLog{},
 		&User{},
 		&Domain{},
 		&RedirectRule{},
@@ -25,7 +29,6 @@ func MigrateDatabase(dbClient *gorm.DB) error {
 		&SSL.KeyAuthorizationToken{},
 		&PersistentVolumeBackup{},
 		&PersistentVolumeRestore{},
-		&SystemConfig{},
 	)
 	if err != nil {
 		return errors.New("failed to migrate database \n" + err.Error())

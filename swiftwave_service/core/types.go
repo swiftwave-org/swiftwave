@@ -17,6 +17,17 @@ import (
 //                                Swiftwave System Configuration 		   			     //
 // ************************************************************************************* //
 
+// UserRole : role of the registered user
+type UserRole string
+
+const (
+	// AdministratorRole : admin user can perform any operation on the system
+	AdministratorRole UserRole = "admin"
+	// ManagerRole : manager user can perform any operation on the system
+	// except user management, system configuration and server management
+	ManagerRole UserRole = "manager"
+)
+
 type AMQPProtocol string
 
 const (
@@ -38,6 +49,7 @@ const (
 	RemoteTaskQueue TaskQueueMode = "remote"
 )
 
+// ServerStatus : status of the server
 type ServerStatus string
 
 const (
@@ -47,6 +59,23 @@ const (
 	ServerOffline    ServerStatus = "offline"
 )
 
+// SwarmMode : mode of the swarm
+type SwarmMode string
+
+const (
+	SwarmManager SwarmMode = "manager"
+	SwarmWorker  SwarmMode = "worker"
+)
+
+// ProxyType : type of the proxy
+type ProxyType string
+
+const (
+	BackupProxy ProxyType = "backup"
+	ActiveProxy ProxyType = "active"
+)
+
+// ImageRegistryConfig : configuration for image registry
 type ImageRegistryConfig struct {
 	Endpoint  string `json:"endpoint"`
 	Username  string `json:"username"`
@@ -62,6 +91,12 @@ type LetsEncryptConfig struct {
 	PrivateKey string `json:"private_key"`
 }
 
+// ProxyConfig : hold information about proxy configuration
+type ProxyConfig struct {
+	Enabled bool      `json:"enabled" gorm:"default:false"`
+	Type    ProxyType `json:"type" gorm:"default:'active'"`
+}
+
 // FirewallConfig : hold information about firewall configuration
 type FirewallConfig struct {
 	Enabled          bool   `json:"enabled" gorm:"default:false"`
@@ -74,6 +109,7 @@ type PersistentVolumeBackupConfig struct {
 	S3BackupConfig S3BackupConfig `json:"s3_backup_config" gorm:"embedded;embeddedPrefix:s3_backup_"`
 }
 
+// S3BackupConfig : configuration for S3 backup
 type S3BackupConfig struct {
 	Enabled         bool   `json:"enabled"`
 	Endpoint        string `json:"endpoint"`
@@ -116,6 +152,7 @@ type AMQPConfig struct {
 	VHost    string       `json:"vhost"`
 }
 
+// HAProxyConfig : configuration for HAProxy
 type HAProxyConfig struct {
 	Image          string `json:"image"`
 	UnixSocketPath string `json:"unix_socket_path"`
@@ -123,6 +160,7 @@ type HAProxyConfig struct {
 	Password       string `json:"password"`
 }
 
+// UDPProxyConfig : configuration for UDP Proxy
 type UDPProxyConfig struct {
 	Image string `json:"image"`
 }

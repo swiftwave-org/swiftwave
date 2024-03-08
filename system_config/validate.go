@@ -38,23 +38,27 @@ func ReadFromFile(path string) (*Config, error) {
 		return nil, errors.New("failed to parse config file")
 	}
 	// validate config
-	err = config.Validate()
-	if err != nil {
-		return nil, err
-	}
+	err = fillDefaults(&config)
 	return &config, nil
 }
 
-func (config *Config) Validate() error {
-	// If mode is cluster, pubsub and task queue must be remote
-	if config.Mode == Cluster {
-		if config.PubSubConfig.Mode != RemotePubSub {
-			return errors.New("in cluster mode, pubsub must be remote, configure a redis server in config file")
-		}
-		if config.TaskQueueConfig.Mode != RemoteTaskQueue {
-			return errors.New("in cluster mode, task queue must be remote, configure a redis server in config file")
-		}
+func fillDefaults(config *Config) error {
+	if config.ServiceConfig.BindAddress == "" {
+		config.ServiceConfig.BindAddress = DefaultBindAddress
 	}
-
+	if config.ServiceConfig.BindPort == 0 {
+		config.ServiceConfig.BindPort = DefaultBindPort
+	}
+	if config.ServiceConfig.ManagementNodeAddress == "" {
+		return errors.New("management_node_address is required in config")
+	}
+	config.ServiceConfig.SocketPathDirectory = DefaultSocketPathDirectory
+	config.ServiceConfig.DataDirectory = DefaultDataDirectory
+	config.ServiceConfig.NetworkName = DefaultNetworkName
+	config.ServiceConfig.HAProxyServiceName = DefaultHAProxyServiceName
+	config.ServiceConfig.HAProxyUnixSocketPath = DefaultHAProxyUnixSocketPath
+	config.ServiceConfig.HAProxyDataDirectoryPath = DefaultHAProxyDataDirectoryPath
+	config.ServiceConfig.UDPProxyServiceName = DefaultUDPProxyServiceName
+	config.ServiceConfig.UDPProxyDataDirectoryPath = DefaultUDPProxyDataDirectoryPath
 	return nil
 }
