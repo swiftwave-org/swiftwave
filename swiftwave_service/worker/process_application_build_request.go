@@ -233,7 +233,8 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 }
 
 func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, cancelContext context.CancelFunc) error {
-	tarballPath := filepath.Join(m.Config.ServiceConfig.DataDir, deployment.SourceCodeCompressedFileName)
+	// TODO; update tar file path
+	tarballPath := filepath.Join(m.Config.LocalConfig.ServiceConfig.DataDirectory, deployment.SourceCodeCompressedFileName)
 	// Verify file exists
 	if _, err := os.Stat(tarballPath); os.IsNotExist(err) {
 		return errors.New("tarball file not found")

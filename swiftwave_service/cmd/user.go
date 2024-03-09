@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
 )
 
 func init() {
@@ -37,7 +38,7 @@ var createUserCmd = &cobra.Command{
 			return
 		}
 		// Initiating database client
-		dbClient, err := getDBClient()
+		dbClient, err := db.GetClient(config.LocalConfig, 1)
 		if err != nil {
 			printError("Failed to connect to database")
 			return
@@ -75,7 +76,7 @@ var deleteUserCmd = &cobra.Command{
 			return
 		}
 		// Initiating database client
-		dbClient, err := getDBClient()
+		dbClient, err := db.GetClient(config.LocalConfig, 1)
 
 		if err != nil {
 			printError("Failed to connect to database")

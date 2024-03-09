@@ -116,7 +116,8 @@ func (r *mutationResolver) CreateApplication(ctx context.Context, input model.Ap
 	record := applicationInputToDatabaseObject(&input)
 	// create transaction
 	transaction := r.ServiceManager.DbClient.Begin()
-	err := record.Create(ctx, *transaction, r.ServiceManager.DockerManager, r.Config.ServiceConfig.DataDir)
+	// TODO; tarbll directory setup
+	err := record.Create(ctx, *transaction, r.ServiceManager.DockerManager, r.Config.LocalConfig.ServiceConfig.DataDirectory)
 	if err != nil {
 		transaction.Rollback()
 		return nil, err

@@ -3,7 +3,7 @@ package service_manager
 import (
 	"context"
 	"fmt"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	udpproxy "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
@@ -76,7 +76,7 @@ func (manager *ServiceManager) Load(config config.Config) {
 	manager.DockerConfigGenerator = dockerConfigGeneratorInstance
 
 	// Create PubSub client
-	if config.SystemConfig.PubSubConfig.Mode == core.LocalPubSub {
+	if config.SystemConfig.PubSubConfig.Mode == system_config.LocalPubSub {
 		pubSubClient, err := pubsub.NewClient(pubsub.Options{
 			Type:         pubsub.Local,
 			BufferLength: int(config.SystemConfig.PubSubConfig.BufferLength),
@@ -88,7 +88,7 @@ func (manager *ServiceManager) Load(config config.Config) {
 			panic(err)
 		}
 		manager.PubSubClient = pubSubClient
-	} else if config.SystemConfig.PubSubConfig.Mode == core.RemotePubSub {
+	} else if config.SystemConfig.PubSubConfig.Mode == system_config.RemotePubSub {
 		pubSubClient, err := pubsub.NewClient(pubsub.Options{
 			Type:         pubsub.Remote,
 			BufferLength: int(config.SystemConfig.PubSubConfig.BufferLength),
@@ -111,7 +111,7 @@ func (manager *ServiceManager) Load(config config.Config) {
 	}
 
 	// Create TaskQueue client
-	if config.SystemConfig.TaskQueueConfig.Mode == core.LocalTaskQueue {
+	if config.SystemConfig.TaskQueueConfig.Mode == system_config.LocalTaskQueue {
 		taskQueueClient, err := task_queue.NewClient(task_queue.Options{
 			Type:                task_queue.Local,
 			Mode:                task_queue.Both, // TODO: option to configure this
@@ -124,7 +124,7 @@ func (manager *ServiceManager) Load(config config.Config) {
 			panic(err)
 		}
 		manager.TaskQueueClient = taskQueueClient
-	} else if config.SystemConfig.TaskQueueConfig.Mode == core.RemoteTaskQueue {
+	} else if config.SystemConfig.TaskQueueConfig.Mode == system_config.RemoteTaskQueue {
 		taskQueueClient, err := task_queue.NewClient(task_queue.Options{
 			Type:                task_queue.Remote,
 			Mode:                task_queue.Both, // TODO: option to configure this

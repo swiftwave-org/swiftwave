@@ -8,6 +8,7 @@ import (
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/dashboard"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
 	"log"
 	"net/http"
 	"os"
@@ -15,7 +16,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/cronjob"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/rest"
@@ -25,13 +25,13 @@ import (
 // Start will start the swiftwave service [including worker manager, pubsub, cronjob, server]
 func Start(config *config.Config) {
 	// Load the manager
-	manager := &core.ServiceManager{
+	manager := &service_manager.ServiceManager{
 		CancelImageBuildTopic: "cancel_image_build",
 	}
 	manager.Load(*config)
 
 	// Migrate Database
-	err := core.MigrateDatabase(&manager.DbClient)
+	err := MigrateDatabase(&manager.DbClient)
 	if err != nil {
 		panic(err)
 	} else {
@@ -77,7 +77,7 @@ func Start(config *config.Config) {
 }
 
 // StartServer starts the swiftwave graphql and rest server
-func StartServer(config *config.Config, manager *core.ServiceManager, workerManager *worker.Manager) {
+func StartServer(config *config.Config, manager *service_manager.ServiceManager, workerManager *worker.Manager) {
 	// Create Echo Server
 	echoServer := echo.New()
 	echoServer.HideBanner = true

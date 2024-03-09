@@ -24,8 +24,6 @@ func init() {
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(serviceCmd)
 	rootCmd.AddCommand(postgresCmd)
-	rootCmd.AddCommand(dbMigrateCmd)
-	rootCmd.AddCommand(applyPatchesCmd)
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(autoUpdaterCmd)
 }

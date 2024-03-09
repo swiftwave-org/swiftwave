@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
 	"math/rand"
 	"regexp"
 	"strconv"
@@ -47,7 +48,7 @@ func ParseStackYaml(yamlStr string) (Stack, error) {
 	return stack, nil
 }
 
-func (s *Stack) FillAndVerifyVariables(variableMapping *map[string]string, serviceManager core.ServiceManager) (*Stack, error) {
+func (s *Stack) FillAndVerifyVariables(variableMapping *map[string]string, serviceManager service_manager.ServiceManager) (*Stack, error) {
 	if variableMapping == nil {
 		return nil, errors.New("variableMapping is nil")
 	}

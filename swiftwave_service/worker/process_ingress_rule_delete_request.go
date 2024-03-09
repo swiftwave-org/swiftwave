@@ -10,6 +10,11 @@ import (
 
 func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context.Context, cancelContext context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
+	// restricted ports
+	restrictedPorts := make([]int, 0)
+	for _, port := range m.Config.SystemConfig.RestrictedPorts {
+		restrictedPorts = append(restrictedPorts, int(port))
+	}
 	// fetch ingress rule
 	var ingressRule core.IngressRule
 	err := ingressRule.FindById(ctx, dbWithoutTx, request.Id)
@@ -77,7 +82,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 				return err
 			}
 		} else {
-			err = m.ServiceManager.HaproxyManager.DeleteTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, m.Config.ServiceConfig.RestrictedPorts)
+			err = m.ServiceManager.HaproxyManager.DeleteTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, restrictedPorts)
 			if err != nil {
 				// set status as failed and exit
 				// because `DeleteTCPLink` can fail only if haproxy not working
@@ -87,7 +92,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			}
 		}
 	} else if ingressRule.Protocol == core.TCPProtocol {
-		err = m.ServiceManager.HaproxyManager.DeleteTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), "", m.Config.ServiceConfig.RestrictedPorts)
+		err = m.ServiceManager.HaproxyManager.DeleteTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), "", restrictedPorts)
 		if err != nil {
 			// set status as failed and exit
 			// because `DeleteTCPLink` can fail only if haproxy not working

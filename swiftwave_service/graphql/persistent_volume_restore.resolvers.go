@@ -19,7 +19,7 @@ func (r *mutationResolver) DeletePersistentVolumeRestore(ctx context.Context, id
 		return false, err
 	}
 	// delete the persistent volume restore
-	err = record.Delete(ctx, r.ServiceManager.DbClient, r.Config.ServiceConfig.DataDir)
+	err = record.Delete(ctx, r.ServiceManager.DbClient, r.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath)
 	if err != nil {
 		return false, err
 	}
@@ -29,7 +29,7 @@ func (r *mutationResolver) DeletePersistentVolumeRestore(ctx context.Context, id
 // DeletePersistentVolumeRestoresByPersistentVolumeID is the resolver for the deletePersistentVolumeRestoresByPersistentVolumeId field.
 func (r *mutationResolver) DeletePersistentVolumeRestoresByPersistentVolumeID(ctx context.Context, persistentVolumeID uint) (bool, error) {
 	// delete all persistent volume restores
-	err := core.DeletePersistentVolumeRestoresByPersistentVolumeId(ctx, r.ServiceManager.DbClient, persistentVolumeID, r.Config.ServiceConfig.DataDir)
+	err := core.DeletePersistentVolumeRestoresByPersistentVolumeId(ctx, r.ServiceManager.DbClient, persistentVolumeID, r.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath)
 	if err != nil {
 		return false, err
 	}

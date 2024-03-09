@@ -1,17 +1,17 @@
 package system_config
 
 import (
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"fmt"
 	"gorm.io/gorm"
 )
 
-var config *core.SystemConfig
-var configVersion uint = -1
+var config *SystemConfig
+var configVersion uint = 0
 
-func Fetch(db *gorm.DB) (*core.SystemConfig, error) {
+func Fetch(db *gorm.DB) (*SystemConfig, error) {
 	if config != nil {
 		// Fetch the latest version of the config
-		var record core.SystemConfig
+		var record SystemConfig
 		tx := db.First(&record).Select("config_version")
 		if tx.Error != nil {
 			return nil, tx.Error
@@ -22,7 +22,7 @@ func Fetch(db *gorm.DB) (*core.SystemConfig, error) {
 		}
 	}
 	// fetch first record
-	var record core.SystemConfig
+	var record SystemConfig
 	tx := db.First(&record)
 	if tx.Error != nil {
 		return nil, tx.Error
@@ -32,10 +32,14 @@ func Fetch(db *gorm.DB) (*core.SystemConfig, error) {
 	return config, nil
 }
 
-func Update(db *gorm.DB, config *core.SystemConfig) error {
+func Update(db *gorm.DB, config *SystemConfig) error {
 	tx := db.Save(config)
 	if tx.Error != nil {
 		return tx.Error
 	}
 	return nil
+}
+
+func (a AMQPConfig) URI() string {
+	return fmt.Sprintf("%s://%s:%s@%s", a.Protocol, a.User, a.Password, a.Host)
 }

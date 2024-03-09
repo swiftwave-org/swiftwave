@@ -2,13 +2,13 @@ package worker
 
 import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
 )
 
 // Manager : hold references to other functions of service
 type Manager struct {
 	Config         *config.Config
-	ServiceManager *core.ServiceManager
+	ServiceManager *service_manager.ServiceManager
 }
 
 // Queue names

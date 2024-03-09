@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// TODO: dont raise error if service not found, just log it
 func (m Manager) UDPProxyPortExposer() {
 	for {
 		// Fetch all ingress rules with only port field
@@ -23,7 +24,7 @@ func (m Manager) UDPProxyPortExposer() {
 			portsMap[int(ingressRule.Port)] = true
 		}
 		// Check if ports are changed
-		exposedPorts, err := m.ServiceManager.DockerManager.FetchPublishedHostPorts(m.Config.UDPProxyConfig.ServiceName)
+		exposedPorts, err := m.ServiceManager.DockerManager.FetchPublishedHostPorts(m.Config.LocalConfig.ServiceConfig.UDPProxyServiceName)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -44,14 +45,14 @@ func (m Manager) UDPProxyPortExposer() {
 				})
 			}
 			// Update exposed ports
-			err := m.ServiceManager.DockerManager.UpdatePublishedHostPorts(m.Config.UDPProxyConfig.ServiceName, portsUpdateRequired)
+			err := m.ServiceManager.DockerManager.UpdatePublishedHostPorts(m.Config.LocalConfig.ServiceConfig.UDPProxyServiceName, portsUpdateRequired)
 			if err != nil {
 				log.Println(err)
 			} else {
 				log.Println("Exposed ports of udp proxy service updated")
 			}
 			// Update firewall
-			if m.Config.ServiceConfig.FirewallEnabled {
+			if m.Config.SystemConfig.FirewallConfig.Enabled {
 				// Find out the ports that are unexposed
 				var unexposedPorts = make([]int, 0)
 				for port := range exposedPortsMap {
@@ -61,7 +62,7 @@ func (m Manager) UDPProxyPortExposer() {
 				}
 				// Deny unexposed ports
 				for _, port := range unexposedPorts {
-					err := firewallDenyPort(m.Config.ServiceConfig.FirewallDenyPortCommand, port)
+					err := firewallDenyPort(m.Config.SystemConfig.FirewallConfig.DenyPortCommand, port)
 					if err != nil {
 						log.Printf("Failed to deny port %d in firewall", port)
 					} else {
@@ -70,7 +71,7 @@ func (m Manager) UDPProxyPortExposer() {
 				}
 				// Allow exposed ports
 				for port := range portsMap {
-					err := firewallAllowPort(m.Config.ServiceConfig.FirewallAllowPortCommand, port)
+					err := firewallAllowPort(m.Config.SystemConfig.FirewallConfig.AllowPortCommand, port)
 					if err != nil {
 						log.Printf("Failed to allow port %d in firewall", port)
 					} else {

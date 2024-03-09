@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/uploader"
 	"gorm.io/gorm"
 	"log"
@@ -36,7 +37,7 @@ func (persistentVolumeBackup *PersistentVolumeBackup) Update(ctx context.Context
 	return tx.Error
 }
 
-func (persistentVolumeBackup *PersistentVolumeBackup) Delete(ctx context.Context, db gorm.DB, dataDir string, config S3BackupConfig) error {
+func (persistentVolumeBackup *PersistentVolumeBackup) Delete(ctx context.Context, db gorm.DB, dataDir string, config system_config.S3BackupConfig) error {
 	if persistentVolumeBackup.File != "" {
 		if persistentVolumeBackup.Type == LocalBackup {
 			err := os.Remove(filepath.Join(dataDir, persistentVolumeBackup.File))
@@ -61,7 +62,7 @@ func FindPersistentVolumeBackupsByPersistentVolumeId(ctx context.Context, db gor
 	return persistentVolumeBackups, tx.Error
 }
 
-func DeletePersistentVolumeBackupsByPersistentVolumeId(ctx context.Context, db gorm.DB, persistentVolumeId uint, dataDir string, config S3BackupConfig) error {
+func DeletePersistentVolumeBackupsByPersistentVolumeId(ctx context.Context, db gorm.DB, persistentVolumeId uint, dataDir string, config system_config.S3BackupConfig) error {
 	transaction := db.Begin()
 	var persistentVolumeBackups []*PersistentVolumeBackup
 	tx := transaction.Where("persistent_volume_id = ?", persistentVolumeId).Find(&persistentVolumeBackups)

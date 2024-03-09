@@ -3,7 +3,7 @@ package graphql
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/worker"
 )
 
@@ -11,6 +11,6 @@ import (
 type Server struct {
 	EchoServer     *echo.Echo
 	Config         *config.Config
-	ServiceManager *core.ServiceManager
+	ServiceManager *service_manager.ServiceManager
 	WorkerManager  *worker.Manager
 }

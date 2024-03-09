@@ -12,6 +12,11 @@ import (
 
 func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.Context, cancelContext context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
+	// restricted ports
+	restrictedPorts := make([]int, 0)
+	for _, port := range m.Config.SystemConfig.RestrictedPorts {
+		restrictedPorts = append(restrictedPorts, int(port))
+	}
 	// fetch ingress rule
 	ingressRule := &core.IngressRule{}
 	err := ingressRule.FindById(ctx, dbWithoutTx, request.Id)
@@ -81,7 +86,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 			}
 		} else {
 			// for other ports, use custom frontend
-			err = m.ServiceManager.HaproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, haproxymanager.HTTPMode, m.Config.ServiceConfig.RestrictedPorts)
+			err = m.ServiceManager.HaproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, haproxymanager.HTTPMode, restrictedPorts)
 			if err != nil {
 				// set status as failed and exit
 				_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
@@ -91,7 +96,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 			}
 		}
 	} else if ingressRule.Protocol == core.TCPProtocol {
-		err = m.ServiceManager.HaproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), "", haproxymanager.TCPMode, m.Config.ServiceConfig.RestrictedPorts)
+		err = m.ServiceManager.HaproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), "", haproxymanager.TCPMode, restrictedPorts)
 		if err != nil {
 			// set status as failed and exit
 			_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
@@ -104,7 +109,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 			Port:       int(ingressRule.Port),
 			TargetPort: int(ingressRule.TargetPort),
 			Service:    application.Name,
-		}, m.Config.ServiceConfig.RestrictedPorts)
+		}, restrictedPorts)
 		if err != nil {
 			// set status as failed and exit
 			_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)

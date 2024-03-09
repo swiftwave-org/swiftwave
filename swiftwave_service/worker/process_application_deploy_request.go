@@ -170,7 +170,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 		Image:          dockerImageUri,
 		Command:        command,
 		Env:            environmentVariablesMap,
-		Networks:       []string{m.Config.ServiceConfig.NetworkName},
+		Networks:       []string{m.Config.SystemConfig.NetworkName},
 		DeploymentMode: containermanger.DeploymentMode(application.DeploymentMode),
 		Replicas:       uint64(application.ReplicaCount()),
 		VolumeMounts:   volumeMounts,

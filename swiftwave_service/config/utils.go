@@ -3,14 +3,13 @@ package config
 import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
 )
 
 // Config : hold all configuration
 type Config struct {
 	LocalConfig  *local_config.Config
-	SystemConfig *core.SystemConfig
+	SystemConfig *system_config.SystemConfig
 }
 
 // Fetch : fetch all configuration
@@ -20,8 +19,13 @@ func Fetch() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	// fetch db client
+	dbClient, err := db.GetClient(localConfig, 0)
+	if err != nil {
+		return nil, err
+	}
 	// fetch system config
-	systemConfig, err := system_config.Fetch(db.GetClient(localConfig))
+	systemConfig, err := system_config.Fetch(dbClient)
 	if err != nil {
 		return nil, err
 	}
