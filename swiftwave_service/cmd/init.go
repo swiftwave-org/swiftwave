@@ -54,7 +54,6 @@ var initCmd = &cobra.Command{
 				printInfo("Domain name set to " + domainName)
 			}
 		}
-
 		// Create config
 		newConfig := &local_config.Config{
 			IsDevelopmentMode: false,
@@ -67,7 +66,7 @@ var initCmd = &cobra.Command{
 				Port:                   5432,
 				User:                   generateRandomString(8),
 				Password:               generateRandomString(20),
-				Database:               "swiftwave",
+				Database:               "db_" + generateRandomString(8),
 				TimeZone:               "Asia/Kolkata",
 				SSLMode:                "disable",
 				AutoStartLocalPostgres: true,
@@ -141,7 +140,7 @@ func getIPAddress() (string, error) {
 }
 
 func generateRandomString(length int) string {
-	chars := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	chars := []rune("abcdefghijklmnopqrstuvwxyz0123456789")
 	result := make([]rune, length)
 	for i := range result {
 		result[i] = chars[rand.Intn(len(chars))]
