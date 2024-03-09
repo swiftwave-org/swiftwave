@@ -6,7 +6,6 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
-	"log"
 	"time"
 )
 
@@ -17,23 +16,25 @@ func GetClient(config *local_config.Config) *gorm.DB {
 		return dbClient
 	}
 	dbDialect := postgres.Open(config.PostgresqlConfig.DSN())
+	logLevel := gormlogger.Error
+	if config.IsDevelopmentMode {
+		logLevel = gormlogger.Info
+	}
+	gormConfig := &gorm.Config{
+		SkipDefaultTransaction: true,
+		Logger: gormlogger.New(logger.DatabaseLogger, gormlogger.Config{
+			SlowThreshold: 500 * time.Millisecond,
+			Colorful:      false,
+			LogLevel:      logLevel,
+		}),
+	}
 	var db *gorm.DB
 	var err error
 	for {
-		logLevel := gormlogger.Error
-		if config.IsDevelopmentMode {
-			logLevel = gormlogger.Info
-		}
-		db, err = gorm.Open(dbDialect, &gorm.Config{
-			SkipDefaultTransaction: true,
-			Logger: gormlogger.New(logger.DatabaseLogger, gormlogger.Config{
-				SlowThreshold: 500 * time.Millisecond,
-				Colorful:      false,
-				LogLevel:      logLevel,
-			}),
-		})
+
+		db, err = gorm.Open(dbDialect, gormConfig)
 		if err != nil {
-			log.Println("Failed to connect to database. Retrying in 2 seconds...")
+			logger.DatabaseLogger.Println("Failed to connect to database. Retrying in 2 seconds...")
 			time.Sleep(2 * time.Second)
 		} else {
 			dbClient = db
