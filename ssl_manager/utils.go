@@ -33,8 +33,8 @@ func storePrivateKeyToFile(keyFile string, key *rsa.PrivateKey) error {
 	return nil
 }
 
-// Read the private key from a file
-func readPrivateKeyFromFile(keyFile string) (*rsa.PrivateKey, error) {
+// Decode the private key from a private key string
+func decodePrivateKey(keyFile string) (*rsa.PrivateKey, error) {
 	keyData, err := os.ReadFile(keyFile)
 	if err != nil {
 		return nil, errors.New("unable to read account private key file")

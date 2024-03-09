@@ -26,9 +26,9 @@ func (manager *ServiceManager) Load(config local_config2.Config) {
 
 	// Initiating SSL Manager
 	options := SSL.ManagerOptions{
-		IsStaging:                 config.LetsEncryptConfig.StagingEnvironment,
-		Email:                     config.LetsEncryptConfig.EmailID,
-		AccountPrivateKeyFilePath: config.LetsEncryptConfig.AccountPrivateKeyPath,
+		IsStaging:         config.LetsEncryptConfig.StagingEnvironment,
+		Email:             config.LetsEncryptConfig.EmailID,
+		AccountPrivateKey: config.LetsEncryptConfig.AccountPrivateKeyPath,
 	}
 	sslManager := SSL.Manager{}
 	err = sslManager.Init(context.Background(), *dbClient, options)

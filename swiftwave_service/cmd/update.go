@@ -99,15 +99,6 @@ var updateCmd = &cobra.Command{
 			printError("Failed to replace binary")
 			return
 		}
-		// apply patches
-		err = ApplyPatches()
-		if err != nil {
-			revertToOldBinary()
-			printError("Failed to apply patches")
-			return
-		} else {
-			printSuccess("Patches applied successfully")
-		}
 		// daemon-reload
 		runCommand := exec.Command("systemctl", "daemon-reload")
 		err = runCommand.Run()

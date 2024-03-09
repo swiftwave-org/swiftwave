@@ -1,12 +1,12 @@
 package cmd
 
 import (
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"os"
 	"os/exec"
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"github.com/swiftwave-org/swiftwave/local_config"
 )
 
 var postgresContainerName = "swiftwave-postgres"
@@ -57,16 +57,6 @@ var postgresStartCmd = &cobra.Command{
 	Short: "Start local postgres database",
 	Long:  "Start local postgres database (Recommended only for standalone installations)",
 	Run: func(cmd *cobra.Command, args []string) {
-		// If mode is not standalone, then return
-		if config.Mode != local_config.Standalone {
-			printError("Local postgres database is only for standalone installations\n" +
-				"For cluster installations, please use a remote postgres database for a better reliability")
-			return
-		} else {
-			printInfo("It is recommended to use a remote postgres database for a better reliability\n" +
-				"If you restart the host machine, then the local postgres database will not be available\n" +
-				"So, You should start again the local postgres database after restarting the host machine")
-		}
 		// Create /var/lib/swiftwave/postgres directory if it doesn't exist
 		err := createFolder("/var/lib/swiftwave/postgres")
 		if err != nil {
@@ -101,12 +91,12 @@ var postgresStartCmd = &cobra.Command{
 
 		// Create postgres container
 		dockerCmd := exec.Command("docker", "run", "-d", "--name", postgresContainerName,
-			"-e", "POSTGRESQL_DATABASE="+config.PostgresqlConfig.Database,
-			"-e", "POSTGRESQL_USERNAME="+config.PostgresqlConfig.User,
-			"-e", "POSTGRESQL_PASSWORD="+config.PostgresqlConfig.Password,
-			"-e", "POSTGRESQL_TIMEZONE="+config.PostgresqlConfig.TimeZone,
+			"-e", "POSTGRESQL_DATABASE="+config.LocalConfig.PostgresqlConfig.Database,
+			"-e", "POSTGRESQL_USERNAME="+config.LocalConfig.PostgresqlConfig.User,
+			"-e", "POSTGRESQL_PASSWORD="+config.LocalConfig.PostgresqlConfig.Password,
+			"-e", "POSTGRESQL_TIMEZONE="+config.LocalConfig.PostgresqlConfig.TimeZone,
 			"-v", "/var/lib/swiftwave/postgres:/bitnami/postgresql:rw",
-			"-p", config.PostgresqlConfig.Host+":"+strconv.Itoa(config.PostgresqlConfig.Port)+":5432",
+			"-p", config.LocalConfig.PostgresqlConfig.Host+":"+strconv.Itoa(config.LocalConfig.PostgresqlConfig.Port)+":5432",
 			"--user", "0:0",
 			"bitnami/postgresql:latest")
 		dockerCmd.Stdout = os.Stdout
@@ -162,11 +152,11 @@ var postgresAutoRunCmd = &cobra.Command{
 	Short: "Auto run postgres locally if `auto_run_local_postgres` is set to true in config file",
 	Long:  "Auto run postgres locally if `auto_run_local_postgres` is set to true in config file",
 	Run: func(cmd *cobra.Command, args []string) {
-		if config.PostgresqlConfig.AutoStartLocalPostgres && config.Mode == local_config.Standalone {
+		if config.LocalConfig.PostgresqlConfig.AutoStartLocalPostgres {
 			// Start local postgres database
 			postgresStartCmd.Run(cmd, args)
 		} else {
-			printInfo("Auto run local postgres is disabled in config file")
+			logger.DatabaseLogger.Println("[IGNORE] Auto run local postgres is disabled")
 		}
 	},
 }

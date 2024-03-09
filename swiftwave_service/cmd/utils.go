@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"github.com/fatih/color"
 	"net"
 	"os"
@@ -21,19 +20,7 @@ func checkIfFolderExists(folder string) bool {
 }
 
 func createFolder(folder string) error {
-	// mkdir -p
-	cmd := exec.Command("mkdir", "-p", folder)
-	err := cmd.Run()
-	if err != nil {
-		return errors.New("failed to create folder > " + folder)
-	}
-	// make the created folder all folders and subfolders 0600
-	cmd = exec.Command("chmod", "-R", "0600", folder)
-	err = cmd.Run()
-	if err != nil {
-		return errors.New("failed to change folder permissions > " + folder)
-	}
-	return nil
+	return os.MkdirAll(folder, 0600)
 }
 
 func checkIfFileExists(file string) bool {

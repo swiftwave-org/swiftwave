@@ -45,11 +45,8 @@ func (s *Manager) Init(ctx context.Context, db gorm.DB, options ManagerOptions) 
 			},
 		},
 	}
-	if options.AccountPrivateKeyFilePath == "" {
-		return errors.New("account private key file path is not provided")
-	}
 	// Init acme account
-	acme_account, err := initiateACMEAccount(s.ctx, &s.client, options.AccountPrivateKeyFilePath, options.Email)
+	acme_account, err := initiateACMEAccount(s.ctx, &s.client, options.AccountPrivateKey, options.Email)
 	if err != nil {
 		return errors.New("error while initiating acme account")
 	}

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/dashboard"
 	"log"
 	"net/http"
@@ -23,7 +23,7 @@ import (
 )
 
 // Start will start the swiftwave service [including worker manager, pubsub, cronjob, server]
-func Start(config *local_config.Config) {
+func Start(config *config.Config) {
 	// Load the manager
 	manager := &core.ServiceManager{
 		CancelImageBuildTopic: "cancel_image_build",

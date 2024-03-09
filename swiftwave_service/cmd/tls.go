@@ -12,6 +12,8 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/spf13/cobra"
 	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
 	"net/http"
 	"os"
 	"os/exec"
@@ -47,18 +49,18 @@ var tlsEnableCmd = &cobra.Command{
 	Short: "Enable TLS for swiftwave service",
 	Long:  `Enable TLS for swiftwave service`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if localConfig.ServiceConfig.UseTLS {
+		if config.LocalConfig.ServiceConfig.UseTLS {
 			printSuccess("TLS is already enabled")
 			return
 		}
 		// Check if some certificate is already present
-		if isFolderEmpty(localConfig.ServiceConfig.SSLCertificateDir) {
+		if isFolderEmpty(config.LocalConfig.ServiceConfig.SSLCertDirectoryPath) {
 			printError("No TLS certificate found")
 			printInfo("Use `swiftwave tls generate-certificate` to generate a new certificate")
 			return
 		}
-		localConfig.ServiceConfig.UseTLS = true
-		err := localConfig.WriteToFile(configFilePath)
+		config.LocalConfig.ServiceConfig.UseTLS = true
+		err := local_config.Update(config.LocalConfig)
 		if err != nil {
 			printError("Failed to update config")
 			printError(err.Error())
@@ -74,12 +76,13 @@ var tlsDisableCmd = &cobra.Command{
 	Short: "Disable TLS for swiftwave service",
 	Long:  `Disable TLS for swiftwave service`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if !localConfig.ServiceConfig.UseTLS {
+		lConfig := config.LocalConfig
+		if !lConfig.ServiceConfig.UseTLS {
 			printSuccess("TLS is already disabled")
 			return
 		}
-		localConfig.ServiceConfig.UseTLS = false
-		err := localConfig.WriteToFile(configFilePath)
+		lConfig.ServiceConfig.UseTLS = false
+		err := local_config.Update(lConfig)
 		if err != nil {
 			printError("Failed to update config")
 			printError(err.Error())
@@ -99,23 +102,23 @@ var generateCertificateCommand = &cobra.Command{
 		// If domain is not provided, use the domain from config
 		domain := cmd.Flag("domain").Value.String()
 		if strings.TrimSpace(domain) == "" {
-			domain = localConfig.ServiceConfig.AddressOfCurrentNode
+			domain = config.LocalConfig.ServiceConfig.ManagementNodeAddress
 		}
-		//// Start http-01 challenge server
+		// Start http-01 challenge server
 		echoServer := echo.New()
 		echoServer.HideBanner = true
 		echoServer.Pre(middleware.RemoveTrailingSlash())
 		// Initiating database client
-		dbClient, err := getDBClient()
+		dbClient, err := db.GetClient(config.LocalConfig, 1)
 		if err != nil {
 			printError("Failed to connect to database")
 			return
 		}
 		// Initiating SSL Manager
 		options := SSL.ManagerOptions{
-			IsStaging:                 localConfig.LetsEncryptConfig.StagingEnvironment,
-			Email:                     localConfig.LetsEncryptConfig.EmailID,
-			AccountPrivateKeyFilePath: localConfig.LetsEncryptConfig.AccountPrivateKeyPath,
+			IsStaging:         config.SystemConfig.LetsEncryptConfig.Staging,
+			Email:             config.SystemConfig.LetsEncryptConfig.EmailID,
+			AccountPrivateKey: config.SystemConfig.LetsEncryptConfig.PrivateKey,
 		}
 		sslManager := SSL.Manager{}
 		err = sslManager.Init(context.Background(), *dbClient, options)
@@ -126,7 +129,7 @@ var generateCertificateCommand = &cobra.Command{
 		// Check if there is already someone listening on port 80
 		isServerStarted := false
 		isPort80Blocked := checkIfPortIsInUse("80")
-		isServicePortBlocked := checkIfPortIsInUse(strconv.Itoa(localConfig.ServiceConfig.BindPort))
+		isServicePortBlocked := checkIfPortIsInUse(strconv.Itoa(config.LocalConfig.ServiceConfig.BindPort))
 		if isPort80Blocked {
 			if isServicePortBlocked {
 				printInfo("Already running swiftwave service will be used to solve http-01 challenge")
@@ -173,7 +176,7 @@ var generateCertificateCommand = &cobra.Command{
 			}
 		}
 		// Store private key and certificate in the service.ssl_certificate_dir/<domain> folder
-		dir := localConfig.ServiceConfig.SSLCertificateDir + "/" + domain
+		dir := filepath.Join(config.LocalConfig.ServiceConfig.SSLCertDirectoryPath, domain)
 		if !checkIfFolderExists(dir) {
 			err = createFolder(dir)
 			if err != nil {
@@ -183,14 +186,14 @@ var generateCertificateCommand = &cobra.Command{
 			}
 		}
 		// Store private key
-		err = os.WriteFile(dir+"/private.key", []byte(privateKey), 0644)
+		err = os.WriteFile(filepath.Join(dir, "private.key"), []byte(privateKey), 0644)
 		if err != nil {
 			printError("Failed to store private key")
 			os.Exit(1)
 			return
 		}
 		// Store certificate
-		err = os.WriteFile(dir+"/certificate.crt", []byte(certificate), 0644)
+		err = os.WriteFile(filepath.Join(dir, "certificate.crt"), []byte(certificate), 0644)
 		if err != nil {
 			printError("Failed to store certificate")
 			os.Exit(1)
@@ -210,7 +213,7 @@ var renewCertificatesCommand = &cobra.Command{
 	It's not for renewing certificates for domain of hosted applications`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Find-out domain names for which certificates are to be renewed
-		files, err := os.ReadDir(localConfig.ServiceConfig.SSLCertificateDir)
+		files, err := os.ReadDir(config.LocalConfig.ServiceConfig.SSLCertDirectoryPath)
 		if err != nil {
 			printError("Failed to read SSL certificate directory")
 			return
@@ -224,7 +227,7 @@ var renewCertificatesCommand = &cobra.Command{
 
 		for _, file := range files {
 			domain := file.Name()
-			certPath := filepath.Join(localConfig.ServiceConfig.SSLCertificateDir, domain, "certificate.crt")
+			certPath := filepath.Join(config.LocalConfig.ServiceConfig.SSLCertDirectoryPath, domain, "certificate.crt")
 			isRenewalRequired, err := isRenewalImminent(certPath)
 			if err != nil {
 				printError("> " + domain + ": " + err.Error())

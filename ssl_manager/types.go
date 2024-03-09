@@ -16,9 +16,9 @@ type Manager struct {
 }
 
 type ManagerOptions struct {
-	IsStaging                 bool
-	Email                     string
-	AccountPrivateKeyFilePath string
+	IsStaging         bool
+	Email             string
+	AccountPrivateKey string
 }
 
 type http01Solver struct {

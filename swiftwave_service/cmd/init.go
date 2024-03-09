@@ -58,7 +58,7 @@ var initCmd = &cobra.Command{
 		newConfig := &local_config.Config{
 			IsDevelopmentMode: false,
 			ServiceConfig: local_config.ServiceConfig{
-				UseTLS:                true,
+				UseTLS:                false,
 				ManagementNodeAddress: domainName,
 			},
 			PostgresqlConfig: local_config.PostgresqlConfig{
@@ -88,7 +88,7 @@ var initCmd = &cobra.Command{
 		}
 		// create folders
 		for _, folder := range requiredFolders {
-			err = os.MkdirAll(folder, 0600)
+			err = createFolder(folder)
 			if err != nil {
 				printError("Failed to create folder " + folder)
 				os.Exit(1)

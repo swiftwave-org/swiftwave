@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"os"
 )
 
@@ -13,7 +14,8 @@ var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Open SwiftWave configuration file in editor",
 	Run: func(cmd *cobra.Command, args []string) {
-		if checkIfFileExists(configFilePath) {
+		p := local_config.LocalConfigPath
+		if checkIfFileExists(p) {
 			if editor, _ := cmd.Flags().GetString("editor"); editor != "" {
 				// set env variable
 				err := os.Setenv("EDITOR", editor)
@@ -21,9 +23,9 @@ var configCmd = &cobra.Command{
 					printError("Failed to set EDITOR environment variable")
 				}
 			}
-			openFileInEditor(configFilePath)
+			openFileInEditor(p)
 		} else {
-			printError("Config file not found at " + configFilePath)
+			printError("Config file not found at " + p)
 			printInfo("Run `swiftwave init` to create a new config file")
 		}
 	},
