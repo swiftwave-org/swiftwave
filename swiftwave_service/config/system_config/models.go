@@ -16,7 +16,6 @@ type SystemConfig struct {
 	NetworkName                  string                       `json:"network_name"`
 	RestrictedPorts              pq.Int64Array                `json:"restricted_ports" gorm:"type:integer[]"`
 	JWTSecretKey                 string                       `json:"jwt_secret_key"`
-	UseTLS                       bool                         `json:"use_tls" gorm:"default:false"`
 	SshPrivateKey                string                       `json:"ssh_private_key"`
 	FirewallConfig               FirewallConfig               `json:"firewall_config" gorm:"embedded;embeddedPrefix:firewall_config_"`
 	LetsEncryptConfig            LetsEncryptConfig            `json:"lets_encrypt_config" gorm:"embedded;embeddedPrefix:lets_encrypt_config_"`
