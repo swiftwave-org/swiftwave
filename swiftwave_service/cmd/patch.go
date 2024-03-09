@@ -27,7 +27,7 @@ var applyPatchesCmd = &cobra.Command{
 
 func ApplyPatches() error {
 	// deep copy system config
-	systemConfigCopy := localConfig.DeepCopy()
+	systemConfigCopy := config.DeepCopy()
 	if systemConfigCopy == nil {
 		return fmt.Errorf("failed to deep copy system config file")
 	}

@@ -4,6 +4,7 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
 )
 
 // Config : hold all configuration
@@ -20,5 +21,12 @@ func Fetch() (*Config, error) {
 		return nil, err
 	}
 	// fetch system config
-	systemConfig, err := system_config.Fetch(localConfig.DB)
+	systemConfig, err := system_config.Fetch(db.GetClient(localConfig))
+	if err != nil {
+		return nil, err
+	}
+	return &Config{
+		LocalConfig:  localConfig,
+		SystemConfig: systemConfig,
+	}, nil
 }

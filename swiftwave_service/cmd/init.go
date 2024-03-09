@@ -3,55 +3,32 @@ package cmd
 import (
 	_ "embed"
 	"fmt"
+	"github.com/spf13/cobra"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
-
-	"github.com/spf13/cobra"
 )
-
-//go:embed config.standalone.yml
-var standaloneConfigSample []byte
-
-//go:embed config.cluster.yml
-var clusterConfigSample []byte
 
 func init() {
 	initCmd.Flags().SortFlags = false
 	initCmd.Flags().Bool("auto-domain", false, "Resolve domain name automatically")
-	initCmd.Flags().Bool("overwrite", false, "Overwrite existing configuration")
 }
 
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize SwiftWave configuration on server",
 	Run: func(cmd *cobra.Command, args []string) {
-		isOverwrite := cmd.Flag("overwrite").Value.String() == "true"
 		isAutoDomainResolve := cmd.Flag("auto-domain").Value.String() == "true"
-
-		// Check if config file exists > /etc/swiftwave/config.yml
-		if checkIfFileExists(configFilePath) {
-			printSuccess("Config file /etc/swiftwave/config.yml already exists")
-			// If exists, check if overwrite flag is set
-			if isOverwrite {
-				// If yes, prompt user to overwrite
-				printSuccess("The operation will overwrite existing config file")
-				fmt.Print("Do you want to continue? [y/N] ")
-				var response string
-				_, err := fmt.Scanln(&response)
-				if err != nil {
-					log.Println(err.Error())
-					os.Exit(1)
-				}
-				if !(response == "y" || response == "Y") {
-					return
-				}
-			} else {
-				printError("Config file already exists. Use --overwrite flag to overwrite existing config file")
-				os.Exit(1)
-			}
+		// Try to fetch local config
+		_, err := local_config.Fetch()
+		if err == nil {
+			printError("Config already exists at " + local_config.LocalConfigPath)
+			printInfo("Run `swiftwave config` to edit the config file")
+			os.Exit(1)
 		}
 
 		// Get Domain Name
@@ -78,8 +55,52 @@ var initCmd = &cobra.Command{
 			}
 		}
 
-		// TODO: create the config file and folders
-		// give option, if you like to edit the files
+		// Create config
+		newConfig := &local_config.Config{
+			IsDevelopmentMode: false,
+			ServiceConfig: local_config.ServiceConfig{
+				UseTLS:                true,
+				ManagementNodeAddress: domainName,
+			},
+			PostgresqlConfig: local_config.PostgresqlConfig{
+				Host:                   "127.0.0.1",
+				Port:                   5432,
+				User:                   generateRandomString(8),
+				Password:               generateRandomString(20),
+				Database:               "swiftwave",
+				TimeZone:               "Asia/Kolkata",
+				SSLMode:                "disable",
+				AutoStartLocalPostgres: true,
+			},
+		}
+		err = local_config.FillDefaults(newConfig)
+		if err != nil {
+			printError(err.Error())
+			os.Exit(1)
+		}
+		// generate list of folders to create
+		requiredFolders := []string{
+			newConfig.ServiceConfig.DataDirectory,
+			newConfig.ServiceConfig.LogDirectoryPath,
+			newConfig.ServiceConfig.SSLCertDirectoryPath,
+			newConfig.ServiceConfig.SocketPathDirectory,
+			newConfig.ServiceConfig.HAProxyDataDirectoryPath,
+			newConfig.ServiceConfig.UDPProxyDataDirectoryPath,
+		}
+		// create folders
+		for _, folder := range requiredFolders {
+			err = os.MkdirAll(folder, 0600)
+			if err != nil {
+				printError("Failed to create folder " + folder)
+				os.Exit(1)
+			}
+		}
+		// save config
+		err = local_config.Update(newConfig)
+		if err != nil {
+			printError(err.Error())
+			os.Exit(1)
+		}
 	},
 }
 
@@ -117,4 +138,13 @@ func getIPAddress() (string, error) {
 		return "", err
 	}
 	return string(body), nil
+}
+
+func generateRandomString(length int) string {
+	chars := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	result := make([]rune, length)
+	for i := range result {
+		result[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(result)
 }

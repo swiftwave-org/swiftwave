@@ -3,19 +3,18 @@ package cmd
 import (
 	_ "embed"
 	"fmt"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
+	swiftwave_config "github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
-var localConfig *local_config.Config
+var config *swiftwave_config.Config
 
 //go:embed .version
 var swiftwaveVersion string
 
 func init() {
-	rootCmd.PersistentFlags().Bool("dev", false, "Run in development mode")
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(configCmd)
@@ -44,10 +43,21 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-func Execute(config *local_config.Config) {
-	localConfig = config
+func Execute() {
 	// set config and manager
 	cobra.EnableCommandSorting = false
+	// Check whether first argument is "install" or no arguments
+	if (len(os.Args) > 1 && (os.Args[1] == "init" || os.Args[1] == "completion" || os.Args[1] == "--help")) || len(os.Args) == 1 {
+		// if first argument is "init" or no arguments, do not load config
+	} else {
+		// load config
+		c, err := swiftwave_config.Fetch()
+		if err != nil {
+			printError("Failed to load config: " + err.Error())
+			os.Exit(1)
+		}
+		config = c
+	}
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

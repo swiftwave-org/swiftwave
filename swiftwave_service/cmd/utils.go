@@ -2,48 +2,11 @@ package cmd
 
 import (
 	"errors"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-	"log"
+	"github.com/fatih/color"
 	"net"
 	"os"
 	"os/exec"
-	"time"
-
-	"github.com/fatih/color"
-	"github.com/spf13/cobra"
 )
-
-func getDBClient() (*gorm.DB, error) {
-	dbDialect := postgres.Open(localConfig.PostgresqlConfig.DSN())
-	maxAttempts := 5
-	var dbClient *gorm.DB
-	var err error
-	for i := 0; i < maxAttempts; i++ {
-		if localConfig.IsDevelopmentMode {
-			dbClient, err = gorm.Open(dbDialect, &gorm.Config{
-				SkipDefaultTransaction: true,
-			})
-		} else {
-			dbClient, err = gorm.Open(dbDialect, &gorm.Config{
-				SkipDefaultTransaction: true,
-				Logger:                 logger.Default.LogMode(logger.Silent),
-			})
-		}
-		if err != nil {
-			if i == maxAttempts-1 {
-				return nil, err
-			}
-			log.Println("Failed to connect to database. Retrying in 10 seconds...")
-			time.Sleep(10 * time.Second)
-			continue
-		}
-		return dbClient, nil
-	}
-	log.Println("Failed to connect to database. Retried 5 times. Exiting...")
-	return nil, errors.New("failed to connect to database")
-}
 
 func checkIfCommandExists(command string) bool {
 	cmd := exec.Command("which", command)
@@ -61,9 +24,14 @@ func createFolder(folder string) error {
 	// mkdir -p
 	cmd := exec.Command("mkdir", "-p", folder)
 	err := cmd.Run()
-
 	if err != nil {
 		return errors.New("failed to create folder > " + folder)
+	}
+	// make the created folder all folders and subfolders 0600
+	cmd = exec.Command("chmod", "-R", "0600", folder)
+	err = cmd.Run()
+	if err != nil {
+		return errors.New("failed to change folder permissions > " + folder)
 	}
 	return nil
 }
@@ -80,7 +48,12 @@ func checkIfPortIsInUse(port string) bool {
 	if err != nil {
 		return false
 	}
-	defer conn.Close()
+	defer func(conn net.Conn) {
+		err := conn.Close()
+		if err != nil {
+			printError("Error closing connection")
+		}
+	}(conn)
 	return true
 }
 
@@ -122,9 +95,4 @@ func printError(message string) {
 
 func printInfo(message string) {
 	color.Blue(InfoSymbol + " " + message)
-}
-
-func isDevelopmentMode(cmd *cobra.Command) bool {
-	dev, _ := cmd.Flags().GetBool("dev")
-	return dev
 }

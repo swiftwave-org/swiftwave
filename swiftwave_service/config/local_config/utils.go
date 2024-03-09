@@ -78,11 +78,11 @@ func readConfigFile(path string) (*Config, error) {
 		return nil, errors.New("failed to parse config file")
 	}
 	// validate config
-	err = fillDefaults(&config)
+	err = FillDefaults(&config)
 	return &config, nil
 }
 
-func fillDefaults(config *Config) error {
+func FillDefaults(config *Config) error {
 	if config.ServiceConfig.BindAddress == "" {
 		config.ServiceConfig.BindAddress = defaultBindAddress
 	}
@@ -101,6 +101,7 @@ func fillDefaults(config *Config) error {
 	config.ServiceConfig.UDPProxyServiceName = defaultUDPProxyServiceName
 	config.ServiceConfig.UDPProxyDataDirectoryPath = defaultUDPProxyDataDirectoryPath
 	config.ServiceConfig.SSLCertDirectoryPath = defaultSSLCertDirectoryPath
+	config.ServiceConfig.LogDirectoryPath = LogDirectoryPath
 	config.ServiceConfig.InfoLogFilePath = InfoLogFilePath
 	config.ServiceConfig.ErrorLogFilePath = ErrorLogFilePath
 	return nil

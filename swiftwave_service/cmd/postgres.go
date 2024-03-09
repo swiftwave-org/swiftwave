@@ -58,7 +58,7 @@ var postgresStartCmd = &cobra.Command{
 	Long:  "Start local postgres database (Recommended only for standalone installations)",
 	Run: func(cmd *cobra.Command, args []string) {
 		// If mode is not standalone, then return
-		if localConfig.Mode != local_config.Standalone {
+		if config.Mode != local_config.Standalone {
 			printError("Local postgres database is only for standalone installations\n" +
 				"For cluster installations, please use a remote postgres database for a better reliability")
 			return
@@ -101,12 +101,12 @@ var postgresStartCmd = &cobra.Command{
 
 		// Create postgres container
 		dockerCmd := exec.Command("docker", "run", "-d", "--name", postgresContainerName,
-			"-e", "POSTGRESQL_DATABASE="+localConfig.PostgresqlConfig.Database,
-			"-e", "POSTGRESQL_USERNAME="+localConfig.PostgresqlConfig.User,
-			"-e", "POSTGRESQL_PASSWORD="+localConfig.PostgresqlConfig.Password,
-			"-e", "POSTGRESQL_TIMEZONE="+localConfig.PostgresqlConfig.TimeZone,
+			"-e", "POSTGRESQL_DATABASE="+config.PostgresqlConfig.Database,
+			"-e", "POSTGRESQL_USERNAME="+config.PostgresqlConfig.User,
+			"-e", "POSTGRESQL_PASSWORD="+config.PostgresqlConfig.Password,
+			"-e", "POSTGRESQL_TIMEZONE="+config.PostgresqlConfig.TimeZone,
 			"-v", "/var/lib/swiftwave/postgres:/bitnami/postgresql:rw",
-			"-p", localConfig.PostgresqlConfig.Host+":"+strconv.Itoa(localConfig.PostgresqlConfig.Port)+":5432",
+			"-p", config.PostgresqlConfig.Host+":"+strconv.Itoa(config.PostgresqlConfig.Port)+":5432",
 			"--user", "0:0",
 			"bitnami/postgresql:latest")
 		dockerCmd.Stdout = os.Stdout
@@ -162,7 +162,7 @@ var postgresAutoRunCmd = &cobra.Command{
 	Short: "Auto run postgres locally if `auto_run_local_postgres` is set to true in config file",
 	Long:  "Auto run postgres locally if `auto_run_local_postgres` is set to true in config file",
 	Run: func(cmd *cobra.Command, args []string) {
-		if localConfig.PostgresqlConfig.AutoStartLocalPostgres && localConfig.Mode == local_config.Standalone {
+		if config.PostgresqlConfig.AutoStartLocalPostgres && config.Mode == local_config.Standalone {
 			// Start local postgres database
 			postgresStartCmd.Run(cmd, args)
 		} else {

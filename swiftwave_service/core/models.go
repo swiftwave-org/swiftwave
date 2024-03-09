@@ -12,6 +12,7 @@ import (
 // SystemConfig : hold information about system configuration
 type SystemConfig struct {
 	ID                           uint                         `json:"id" gorm:"primaryKey"`
+	ConfigVersion                uint                         `json:"config_version" gore:"default:1"`
 	SWVersion                    string                       `json:"sw_version"`
 	SetupCompleted               bool                         `json:"setup_completed" gorm:"default:false"`
 	ConfigHash                   string                       `json:"config_hash"`
