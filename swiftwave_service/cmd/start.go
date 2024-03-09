@@ -13,7 +13,7 @@ var startCmd = &cobra.Command{
 	Short: "Start swiftwave service",
 	Long:  `Start swiftwave service`,
 	Run: func(cmd *cobra.Command, args []string) {
-		systemConfig.IsDevelopmentMode = isDevelopmentMode(cmd)
+		localConfig.IsDevelopmentMode = isDevelopmentMode(cmd)
 		binaryPath, err := os.Executable()
 		if err != nil {
 			printError("Failed to get swiftwave binary path")
@@ -39,26 +39,26 @@ var startCmd = &cobra.Command{
 				return
 			}
 		}
-		swiftwave.Start(systemConfig)
+		swiftwave.Start(localConfig)
 	},
 }
 
 func isHaproxyRunning() bool {
-	dockerManager, err := containermanger.NewDockerManager(systemConfig.ServiceConfig.DockerUnixSocketPath)
+	dockerManager, err := containermanger.NewDockerManager(localConfig.ServiceConfig.DockerUnixSocketPath)
 	if err != nil {
 		printError("Failed to connect to docker daemon")
 		return false
 	}
-	_, err = dockerManager.GetService(systemConfig.HAProxyConfig.ServiceName)
+	_, err = dockerManager.GetService(localConfig.HAProxyConfig.ServiceName)
 	return err == nil
 }
 
 func isUDPProxyRunning() bool {
-	dockerManager, err := containermanger.NewDockerManager(systemConfig.ServiceConfig.DockerUnixSocketPath)
+	dockerManager, err := containermanger.NewDockerManager(localConfig.ServiceConfig.DockerUnixSocketPath)
 	if err != nil {
 		printError("Failed to connect to docker daemon")
 		return false
 	}
-	_, err = dockerManager.GetService(systemConfig.UDPProxyConfig.ServiceName)
+	_, err = dockerManager.GetService(localConfig.UDPProxyConfig.ServiceName)
 	return err == nil
 }

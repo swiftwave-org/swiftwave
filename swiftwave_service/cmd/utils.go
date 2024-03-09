@@ -16,12 +16,12 @@ import (
 )
 
 func getDBClient() (*gorm.DB, error) {
-	dbDialect := postgres.Open(systemConfig.PostgresqlConfig.DSN())
+	dbDialect := postgres.Open(localConfig.PostgresqlConfig.DSN())
 	maxAttempts := 5
 	var dbClient *gorm.DB
 	var err error
 	for i := 0; i < maxAttempts; i++ {
-		if systemConfig.IsDevelopmentMode {
+		if localConfig.IsDevelopmentMode {
 			dbClient, err = gorm.Open(dbDialect, &gorm.Config{
 				SkipDefaultTransaction: true,
 			})

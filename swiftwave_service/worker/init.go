@@ -1,11 +1,11 @@
 package worker
 
 import (
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
-	"github.com/swiftwave-org/swiftwave/system_config"
 )
 
-func NewManager(config *system_config.Config, manager *core.ServiceManager) *Manager {
+func NewManager(config *local_config.Config, manager *core.ServiceManager) *Manager {
 	if config == nil {
 		panic("config cannot be nil")
 	}

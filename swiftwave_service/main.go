@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/dashboard"
 	"log"
 	"net/http"
@@ -19,11 +20,10 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/rest"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/worker"
-	"github.com/swiftwave-org/swiftwave/system_config"
 )
 
 // Start will start the swiftwave service [including worker manager, pubsub, cronjob, server]
-func Start(config *system_config.Config) {
+func Start(config *local_config.Config) {
 	// Load the manager
 	manager := &core.ServiceManager{
 		CancelImageBuildTopic: "cancel_image_build",
@@ -31,19 +31,16 @@ func Start(config *system_config.Config) {
 	manager.Load(*config)
 
 	// Migrate Database
-	if config.ServiceConfig.AutoMigrateDatabase {
-		log.Println("Migrating Database")
-		// Migrate Database
-		err := core.MigrateDatabase(&manager.DbClient)
-		if err != nil {
-			panic(err)
-		} else {
-			log.Println("Database Migration Complete")
-		}
+	err := core.MigrateDatabase(&manager.DbClient)
+	if err != nil {
+		panic(err)
+	} else {
+		log.Println("Database Migration Complete")
 	}
 
 	// Cancel pending tasks
-	err := worker.CancelPendingTasksLocalQueue(*config, *manager)
+	// TODO: don't cancel, requeue the tasks
+	err = worker.CancelPendingTasksLocalQueue(*config, *manager)
 	if err != nil {
 		panic(err)
 	}
@@ -80,7 +77,7 @@ func Start(config *system_config.Config) {
 }
 
 // StartServer starts the swiftwave graphql and rest server
-func StartServer(config *system_config.Config, manager *core.ServiceManager, workerManager *worker.Manager) {
+func StartServer(config *local_config.Config, manager *core.ServiceManager, workerManager *worker.Manager) {
 	// Create Echo Server
 	echoServer := echo.New()
 	echoServer.HideBanner = true
@@ -165,7 +162,7 @@ func StartServer(config *system_config.Config, manager *core.ServiceManager, wor
 		println("TLS Server Started on " + address)
 
 		tlsCfg := &tls.Config{
-			Certificates: fetchCertificates(config.ServiceConfig.SSLCertificateDir),
+			Certificates: fetchCertificates(config.ServiceConfig.SSLCertDirectoryPath),
 		}
 
 		s := http.Server{

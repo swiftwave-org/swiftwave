@@ -3,9 +3,11 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"github.com/swiftwave-org/swiftwave/system_config"
+	local_config2 "github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"os"
 )
+
+// TODO: System config + db related, not related to local config
 
 var applyPatchesCmd = &cobra.Command{
 	Use:   "apply-patches",
@@ -25,22 +27,22 @@ var applyPatchesCmd = &cobra.Command{
 
 func ApplyPatches() error {
 	// deep copy system config
-	systemConfigCopy := systemConfig.DeepCopy()
+	systemConfigCopy := localConfig.DeepCopy()
 	if systemConfigCopy == nil {
 		return fmt.Errorf("failed to deep copy system config file")
 	}
-	return runPatch(systemConfigCopy, []func(*system_config.Config) error{
+	return runPatch(systemConfigCopy, []func(*local_config2.Config) error{
 		saveUpdatedSystemConfig,
 	})
 }
 
 // Patches list
-func saveUpdatedSystemConfig(config *system_config.Config) error {
-	return config.WriteToFile(configFilePath)
+func saveUpdatedSystemConfig(config *local_config2.Config) error {
+	return local_config2.Update(config)
 }
 
 // private function
-func runPatch(config *system_config.Config, listedPatches []func(*system_config.Config) error) error {
+func runPatch(config *local_config2.Config, listedPatches []func(*local_config2.Config) error) error {
 	for _, patch := range listedPatches {
 		err := patch(config)
 		if err != nil {

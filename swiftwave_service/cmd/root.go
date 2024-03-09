@@ -3,15 +3,13 @@ package cmd
 import (
 	_ "embed"
 	"fmt"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/swiftwave-org/swiftwave/system_config"
 )
 
-var systemConfig *system_config.Config
-
-var configFilePath = "/etc/swiftwave/config.yml"
+var localConfig *local_config.Config
 
 //go:embed .version
 var swiftwaveVersion string
@@ -20,21 +18,17 @@ func init() {
 	rootCmd.PersistentFlags().Bool("dev", false, "Run in development mode")
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(initCmd)
-	rootCmd.AddCommand(setupCmd)
 	rootCmd.AddCommand(configCmd)
 	rootCmd.AddCommand(createUserCmd)
 	rootCmd.AddCommand(deleteUserCmd)
 	rootCmd.AddCommand(tlsCmd)
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(serviceCmd)
-	rootCmd.AddCommand(haproxyCmd)
-	rootCmd.AddCommand(udpProxyCmd)
 	rootCmd.AddCommand(postgresCmd)
 	rootCmd.AddCommand(dbMigrateCmd)
 	rootCmd.AddCommand(applyPatchesCmd)
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(autoUpdaterCmd)
-	rootCmd.AddCommand(infoCmd)
 }
 
 var rootCmd = &cobra.Command{
@@ -50,8 +44,8 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-func Execute(config *system_config.Config) {
-	systemConfig = config
+func Execute(config *local_config.Config) {
+	localConfig = config
 	// set config and manager
 	cobra.EnableCommandSorting = false
 	if err := rootCmd.Execute(); err != nil {

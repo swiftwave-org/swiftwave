@@ -1,7 +1,7 @@
-package system_config
+package local_config
 
 type Config struct {
-	IsDevelopmentMode bool             `yaml:"-"`
+	IsDevelopmentMode bool             `yaml:"dev_mode"`
 	ServiceConfig     ServiceConfig    `yaml:"service"`
 	PostgresqlConfig  PostgresqlConfig `yaml:"postgresql"`
 }
@@ -19,6 +19,7 @@ type ServiceConfig struct {
 	HAProxyDataDirectoryPath  string `yaml:"-"`
 	UDPProxyServiceName       string `yaml:"-"`
 	UDPProxyDataDirectoryPath string `yaml:"-"`
+	SSLCertDirectoryPath      string `yaml:"-"`
 }
 
 type PostgresqlConfig struct {

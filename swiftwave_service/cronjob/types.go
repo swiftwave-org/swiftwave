@@ -1,8 +1,8 @@
 package cronjob
 
 import (
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
-	"github.com/swiftwave-org/swiftwave/system_config"
 	"sync"
 )
 
@@ -12,7 +12,7 @@ type CronJob interface {
 }
 
 type Manager struct {
-	SystemConfig   *system_config.Config
+	SystemConfig   *local_config.Config
 	ServiceManager *core.ServiceManager
 	wg             *sync.WaitGroup
 }

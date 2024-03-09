@@ -38,7 +38,7 @@ var enableUpdaterServiceCmd = &cobra.Command{
 	Long:  `Enable auto update service`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Check if auto-db-migrate is disabled
-		if !systemConfig.ServiceConfig.AutoMigrateDatabase {
+		if !localConfig.ServiceConfig.AutoMigrateDatabase {
 			printError("You must enable automated database migration to avail this feature")
 			printError("Run `swiftwave config` and set `auto_migrate_database` to true")
 			return
