@@ -101,6 +101,8 @@ func fillDefaults(config *Config) error {
 	config.ServiceConfig.UDPProxyServiceName = defaultUDPProxyServiceName
 	config.ServiceConfig.UDPProxyDataDirectoryPath = defaultUDPProxyDataDirectoryPath
 	config.ServiceConfig.SSLCertDirectoryPath = defaultSSLCertDirectoryPath
+	config.ServiceConfig.InfoLogFilePath = InfoLogFilePath
+	config.ServiceConfig.ErrorLogFilePath = ErrorLogFilePath
 	return nil
 }
 

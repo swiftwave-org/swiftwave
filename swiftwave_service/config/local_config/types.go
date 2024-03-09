@@ -20,6 +20,8 @@ type ServiceConfig struct {
 	UDPProxyServiceName       string `yaml:"-"`
 	UDPProxyDataDirectoryPath string `yaml:"-"`
 	SSLCertDirectoryPath      string `yaml:"-"`
+	InfoLogFilePath           string `yaml:"-"`
+	ErrorLogFilePath          string `yaml:"-"`
 }
 
 type PostgresqlConfig struct {
