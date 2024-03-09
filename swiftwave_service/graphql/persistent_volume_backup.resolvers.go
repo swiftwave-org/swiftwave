@@ -8,7 +8,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/swiftwave-org/swiftwave/local_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
@@ -17,11 +16,8 @@ import (
 func (r *mutationResolver) BackupPersistentVolume(ctx context.Context, input model.PersistentVolumeBackupInput) (*model.PersistentVolumeBackup, error) {
 	record := persistentVolumeBackupInputToDatabaseObject(&input)
 	// check if s3 enabled
-	if record.Type == core.S3Backup && !r.ServiceConfig.PersistentVolumeBackupConfig.S3Config.Enabled {
+	if record.Type == core.S3Backup && !r.Config.SystemConfig.PersistentVolumeBackupConfig.S3BackupConfig.Enabled {
 		return nil, errors.New("s3 backup is not enabled. Please enable it in the swiftwave configuration file")
-	}
-	if r.ServiceConfig.Mode == local_config.Cluster && record.Type == core.LocalBackup {
-		return nil, errors.New("local backup is not supported in cluster mode, use s3 backup instead")
 	}
 	err := record.Create(ctx, r.ServiceManager.DbClient)
 	if err != nil {
@@ -42,7 +38,7 @@ func (r *mutationResolver) DeletePersistentVolumeBackup(ctx context.Context, id 
 	if err != nil {
 		return false, err
 	}
-	err = record.Delete(ctx, r.ServiceManager.DbClient, r.ServiceConfig.ServiceConfig.DataDir, r.ServiceConfig.PersistentVolumeBackupConfig.S3Config)
+	err = record.Delete(ctx, r.ServiceManager.DbClient, r.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath, r.Config.SystemConfig.PersistentVolumeBackupConfig.S3BackupConfig)
 	if err != nil {
 		return false, err
 	}
@@ -51,7 +47,7 @@ func (r *mutationResolver) DeletePersistentVolumeBackup(ctx context.Context, id 
 
 // DeletePersistentVolumeBackupsByPersistentVolumeID is the resolver for the deletePersistentVolumeBackupsByPersistentVolumeId field.
 func (r *mutationResolver) DeletePersistentVolumeBackupsByPersistentVolumeID(ctx context.Context, persistentVolumeID uint) (bool, error) {
-	err := core.DeletePersistentVolumeBackupsByPersistentVolumeId(ctx, r.ServiceManager.DbClient, persistentVolumeID, r.ServiceConfig.ServiceConfig.DataDir, r.ServiceConfig.PersistentVolumeBackupConfig.S3Config)
+	err := core.DeletePersistentVolumeBackupsByPersistentVolumeId(ctx, r.ServiceManager.DbClient, persistentVolumeID, r.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath, r.Config.SystemConfig.PersistentVolumeBackupConfig.S3BackupConfig)
 	if err != nil {
 		return false, err
 	}

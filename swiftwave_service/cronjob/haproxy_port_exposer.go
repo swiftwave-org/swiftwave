@@ -29,7 +29,7 @@ func (m Manager) HaProxyPortExposer() {
 		portsMap[80] = true
 		portsMap[443] = true
 		// Check if ports are changed
-		exposedPorts, err := m.ServiceManager.DockerManager.FetchPublishedHostPorts(m.SystemConfig.HAProxyConfig.ServiceName)
+		exposedPorts, err := m.ServiceManager.DockerManager.FetchPublishedHostPorts(m.Config.HAProxyConfig.ServiceName)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -50,14 +50,14 @@ func (m Manager) HaProxyPortExposer() {
 				})
 			}
 			// Update exposed ports
-			err := m.ServiceManager.DockerManager.UpdatePublishedHostPorts(m.SystemConfig.HAProxyConfig.ServiceName, portsUpdateRequired)
+			err := m.ServiceManager.DockerManager.UpdatePublishedHostPorts(m.Config.HAProxyConfig.ServiceName, portsUpdateRequired)
 			if err != nil {
 				log.Println(err)
 			} else {
 				log.Println("Exposed ports of haproxy service updated")
 			}
 			// Update firewall
-			if m.SystemConfig.ServiceConfig.FirewallEnabled {
+			if m.Config.ServiceConfig.FirewallEnabled {
 				// Find out the ports that are unexposed
 				var unexposedPorts = make([]int, 0)
 				for port := range exposedPortsMap {
@@ -67,7 +67,7 @@ func (m Manager) HaProxyPortExposer() {
 				}
 				// Deny unexposed ports
 				for _, port := range unexposedPorts {
-					err := firewallDenyPort(m.SystemConfig.ServiceConfig.FirewallDenyPortCommand, port)
+					err := firewallDenyPort(m.Config.ServiceConfig.FirewallDenyPortCommand, port)
 					if err != nil {
 						log.Printf("Failed to deny port %d in firewall", port)
 					} else {
@@ -76,7 +76,7 @@ func (m Manager) HaProxyPortExposer() {
 				}
 				// Allow exposed ports
 				for port := range portsMap {
-					err := firewallAllowPort(m.SystemConfig.ServiceConfig.FirewallAllowPortCommand, port)
+					err := firewallAllowPort(m.Config.ServiceConfig.FirewallAllowPortCommand, port)
 					if err != nil {
 						log.Printf("Failed to allow port %d in firewall", port)
 					} else {

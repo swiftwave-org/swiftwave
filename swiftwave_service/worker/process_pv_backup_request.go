@@ -34,7 +34,7 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 	backupFileName := "backup_" + persistentVolume.Name + "_" + uuid.NewString() + ".tar.gz"
 	var backupFilePath string
 	if persistentVolumeBackup.Type == core.LocalBackup {
-		backupFilePath = filepath.Join(m.SystemConfig.ServiceConfig.DataDir, backupFileName)
+		backupFilePath = filepath.Join(m.Config.ServiceConfig.DataDir, backupFileName)
 	} else if persistentVolumeBackup.Type == core.S3Backup {
 		// fetch tmp dir
 		tmpDir := os.TempDir()
@@ -67,7 +67,7 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 				log.Println("failed to close backup file reader " + err.Error())
 			}
 		}()
-		s3Config := m.SystemConfig.PersistentVolumeBackupConfig.S3Config
+		s3Config := m.Config.PersistentVolumeBackupConfig.S3Config
 		err = uploader.UploadFileToS3(backupFileReader, backupFileName, s3Config.Bucket, s3Config)
 		if err != nil {
 			log.Println("error while uploading backup to s3 > " + err.Error())

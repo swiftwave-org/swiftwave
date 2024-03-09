@@ -77,7 +77,7 @@ func Start(config *config.Config) {
 }
 
 // StartServer starts the swiftwave graphql and rest server
-func StartServer(config *local_config.Config, manager *core.ServiceManager, workerManager *worker.Manager) {
+func StartServer(config *config.Config, manager *core.ServiceManager, workerManager *worker.Manager) {
 	// Create Echo Server
 	echoServer := echo.New()
 	echoServer.HideBanner = true
@@ -109,7 +109,7 @@ func StartServer(config *local_config.Config, manager *core.ServiceManager, work
 			}
 			return false
 		},
-		SigningKey: []byte(config.ServiceConfig.JwtSecretKey),
+		SigningKey: []byte(config.SystemConfig.JWTSecretKey),
 		ContextKey: "jwt_data",
 	}))
 	// Authorization Middleware
@@ -138,14 +138,14 @@ func StartServer(config *local_config.Config, manager *core.ServiceManager, work
 	// Create Rest Server
 	restServer := rest.Server{
 		EchoServer:     echoServer,
-		SystemConfig:   config,
+		Config:         config,
 		ServiceManager: manager,
 		WorkerManager:  workerManager,
 	}
 	// Create GraphQL Server
 	graphqlServer := graphql.Server{
 		EchoServer:     echoServer,
-		SystemConfig:   config,
+		Config:         config,
 		ServiceManager: manager,
 		WorkerManager:  workerManager,
 	}
@@ -157,12 +157,12 @@ func StartServer(config *local_config.Config, manager *core.ServiceManager, work
 	graphqlServer.Initialize()
 
 	// Start the server
-	address := fmt.Sprintf("%s:%d", config.ServiceConfig.BindAddress, config.ServiceConfig.BindPort)
-	if config.ServiceConfig.UseTLS {
+	address := fmt.Sprintf("%s:%d", config.LocalConfig.ServiceConfig.BindAddress, config.LocalConfig.ServiceConfig.BindPort)
+	if config.LocalConfig.ServiceConfig.UseTLS {
 		println("TLS Server Started on " + address)
 
 		tlsCfg := &tls.Config{
-			Certificates: fetchCertificates(config.ServiceConfig.SSLCertDirectoryPath),
+			Certificates: fetchCertificates(config.LocalConfig.ServiceConfig.SSLCertDirectoryPath),
 		}
 
 		s := http.Server{

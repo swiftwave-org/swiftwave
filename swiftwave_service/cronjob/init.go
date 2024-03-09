@@ -1,12 +1,12 @@
 package cronjob
 
 import (
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"sync"
 )
 
-func NewManager(config *local_config.Config, manager *core.ServiceManager) CronJob {
+func NewManager(config *config.Config, manager *core.ServiceManager) CronJob {
 	if config == nil {
 		panic("config cannot be nil")
 	}
@@ -14,7 +14,7 @@ func NewManager(config *local_config.Config, manager *core.ServiceManager) CronJ
 		panic("manager cannot be nil")
 	}
 	return Manager{
-		SystemConfig:   config,
+		Config:         config,
 		ServiceManager: manager,
 		wg:             &sync.WaitGroup{},
 	}

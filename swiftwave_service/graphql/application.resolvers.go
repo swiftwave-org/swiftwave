@@ -116,7 +116,7 @@ func (r *mutationResolver) CreateApplication(ctx context.Context, input model.Ap
 	record := applicationInputToDatabaseObject(&input)
 	// create transaction
 	transaction := r.ServiceManager.DbClient.Begin()
-	err := record.Create(ctx, *transaction, r.ServiceManager.DockerManager, r.ServiceConfig.ServiceConfig.DataDir)
+	err := record.Create(ctx, *transaction, r.ServiceManager.DockerManager, r.Config.ServiceConfig.DataDir)
 	if err != nil {
 		transaction.Rollback()
 		return nil, err

@@ -6,13 +6,14 @@ import (
 	"github.com/docker/docker/client"
 )
 
-func NewDockerManager(unixSocketPath string) (*Manager, error) {
+func NewDockerManager() (*Manager, error) {
+	unixSocketPath := "/var/run/docker.sock" // TODO: Read from config
 	manager := &Manager{}
-	client, err := client.NewClientWithOpts(client.WithHost("unix://"+unixSocketPath), client.WithAPIVersionNegotiation())
+	c, err := client.NewClientWithOpts(client.WithHost("unix://"+unixSocketPath), client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, err
 	}
-	err = manager.init(context.Background(), *client)
+	err = manager.init(context.Background(), *c)
 	if err != nil {
 		return nil, err
 	}

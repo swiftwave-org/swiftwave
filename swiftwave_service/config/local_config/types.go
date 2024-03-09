@@ -13,6 +13,7 @@ type ServiceConfig struct {
 	BindPort                  int    `yaml:"bind_port"`
 	SocketPathDirectory       string `yaml:"-"`
 	DataDirectory             string `yaml:"-"`
+	PVBackupDirectoryPath     string `yaml:"-"`
 	NetworkName               string `yaml:"-"`
 	HAProxyServiceName        string `yaml:"-"`
 	HAProxyUnixSocketPath     string `yaml:"-"`

@@ -27,7 +27,7 @@ func (m Manager) PersistentVolumeRestore(request PersistentVolumeRestoreRequest,
 	}
 	dockerManager := m.ServiceManager.DockerManager
 	// restore backup
-	filePath := filepath.Join(m.SystemConfig.ServiceConfig.DataDir, persistentVolumeRestore.File)
+	filePath := filepath.Join(m.Config.ServiceConfig.DataDir, persistentVolumeRestore.File)
 	err = dockerManager.RestoreVolume(persistentVolume.Name, filePath)
 	if err != nil {
 		markPVRestoreRequestAsFailed(dbWithoutTx, persistentVolumeRestore)
@@ -35,7 +35,7 @@ func (m Manager) PersistentVolumeRestore(request PersistentVolumeRestoreRequest,
 	}
 	// update status
 	persistentVolumeRestore.Status = core.RestoreSuccess
-	err = persistentVolumeRestore.Update(ctx, dbWithoutTx, m.SystemConfig.ServiceConfig.DataDir)
+	err = persistentVolumeRestore.Update(ctx, dbWithoutTx, m.Config.ServiceConfig.DataDir)
 	return err
 }
 

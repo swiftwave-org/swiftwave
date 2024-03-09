@@ -1,18 +1,5 @@
 package core
 
-import (
-	DOCKER_CLIENT "github.com/docker/docker/client"
-	"github.com/go-redis/redis/v8"
-	DOCKER "github.com/swiftwave-org/swiftwave/container_manager"
-	DOCKER_CONFIG_GENERATOR "github.com/swiftwave-org/swiftwave/docker_config_generator"
-	HAPROXY "github.com/swiftwave-org/swiftwave/haproxy_manager"
-	"github.com/swiftwave-org/swiftwave/pubsub"
-	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
-	"github.com/swiftwave-org/swiftwave/task_queue"
-	UDP_PROXY "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
-	"gorm.io/gorm"
-)
-
 // ************************************************************************************* //
 //                                Swiftwave System Configuration 		   			     //
 // ************************************************************************************* //
@@ -162,27 +149,13 @@ type HAProxyConfig struct {
 
 // UDPProxyConfig : configuration for UDP Proxy
 type UDPProxyConfig struct {
-	Image string `json:"image"`
+	UnixSocketPath string `json:"unix_socket_path"`
+	Image          string `json:"image"`
 }
 
 // ************************************************************************************* //
 //                                Application Level Table       		   			     //
 // ************************************************************************************* //
-
-// ServiceManager : holds the instance of all the managers
-type ServiceManager struct {
-	SslManager            SSL.Manager
-	HaproxyManager        HAPROXY.Manager
-	UDPProxyManager       UDP_PROXY.Manager
-	DockerManager         DOCKER.Manager
-	DockerConfigGenerator DOCKER_CONFIG_GENERATOR.Manager
-	DockerClient          DOCKER_CLIENT.Client
-	DbClient              gorm.DB
-	RedisClient           redis.Client
-	PubSubClient          pubsub.Client
-	TaskQueueClient       task_queue.Client
-	CancelImageBuildTopic string
-}
 
 // UpstreamType : type of source for the codebase of the application
 type UpstreamType string
