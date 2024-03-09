@@ -313,7 +313,7 @@ func daysUntilExpiration(certPath string) (int, error) {
 		return 0, err
 	}
 
-	daysRemaining := int(cert.NotAfter.Sub(time.Now()).Hours() / 24)
+	daysRemaining := int(time.Until(cert.NotAfter).Hours() / 24)
 	return daysRemaining, nil
 }
 

@@ -138,6 +138,7 @@ func persistentVolumeRestoreToGraphqlObject(record *core.PersistentVolumeRestore
 }
 
 // persistentVolumeRestoreInputToDatabaseObject : converts PersistentVolumeRestoreInput to PersistentVolumeRestoreDatabaseObject
+// nolint:unused
 func persistentVolumeRestoreInputToDatabaseObject(record *model.PersistentVolumeRestoreInput) *core.PersistentVolumeRestore {
 	return &core.PersistentVolumeRestore{
 		Type:               core.RestoreType(record.Type),

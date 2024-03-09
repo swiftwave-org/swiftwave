@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/labstack/echo/v4"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"gorm.io/gorm"
 	"io"
 	"net/url"
@@ -37,7 +38,7 @@ func (server *Server) redeployApp(c echo.Context) error {
 	// Fetch latest deployment
 	deployment, err := core.FindCurrentLiveDeploymentByApplicationId(ctx, server.ServiceManager.DbClient, application.ID)
 	if err != nil {
-		deployment, err = core.FindLatestDeploymentByApplicationId(ctx, server.ServiceManager.DbClient, application.ID)
+		_, err = core.FindLatestDeploymentByApplicationId(ctx, server.ServiceManager.DbClient, application.ID)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.String(404, "No deployment found")
 		}
@@ -52,6 +53,9 @@ func (server *Server) redeployApp(c echo.Context) error {
 	bodyString := string(body)
 	// url decode body
 	bodyString, err = url.QueryUnescape(bodyString)
+	if err != nil {
+		logger.HTTPLoggerError.Println(err)
+	}
 
 	triggeredRebuild := false
 	// Check if latest deployment is git
@@ -97,6 +101,10 @@ func (server *Server) redeployApp(c echo.Context) error {
 		}
 		tx := server.ServiceManager.DbClient.Begin()
 		deploymentId, err := record.RebuildApplication(ctx, *tx)
+		if err != nil {
+			tx.Rollback()
+			return errors.New("failed to create new deployment")
+		}
 		// commit transaction
 		err = tx.Commit().Error
 		if err != nil {

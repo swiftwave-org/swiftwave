@@ -40,6 +40,7 @@ func (server *Server) Initialize() {
 			if jwtToken == "" {
 				return ctx, nil, errors.New("missing jwt token")
 			}
+			//nolint:staticcheck
 			ctx = context.WithValue(ctx, "jwt_data", jwtToken)
 			// decode jwt token
 			token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
@@ -58,7 +59,9 @@ func (server *Server) Initialize() {
 			}
 			// Data in context is available in all resolvers
 			username := claims["username"].(string)
+			//nolint:staticcheck
 			ctx = context.WithValue(ctx, "authorized", true)
+			//nolint:staticcheck
 			ctx = context.WithValue(ctx, "username", username)
 			return ctx, nil, nil
 		},

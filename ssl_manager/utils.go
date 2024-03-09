@@ -8,31 +8,6 @@ import (
 	"os"
 )
 
-// Store the private key to a file
-func storePrivateKeyToFile(keyFile string, key *rsa.PrivateKey) error {
-	// Encode the private key to PEM format
-	keyBytes := x509.MarshalPKCS1PrivateKey(key)
-
-	pemKey := pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: keyBytes,
-	}
-
-	// Create the PEM file
-	file, err := os.Create(keyFile)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Write the PEM-encoded key to the file
-	err = pem.Encode(file, &pemKey)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // Decode the private key from a private key string
 func decodePrivateKey(keyFile string) (*rsa.PrivateKey, error) {
 	keyData, err := os.ReadFile(keyFile)

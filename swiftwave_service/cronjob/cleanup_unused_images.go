@@ -21,5 +21,4 @@ func (m Manager) CleanupUnusedImages() {
 		// sleep for 1 hour
 		time.Sleep(1 * time.Hour)
 	}
-	m.wg.Done()
 }

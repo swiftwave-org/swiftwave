@@ -88,8 +88,6 @@ func (m Manager) HaProxyPortExposer() {
 		}
 		time.Sleep(20 * time.Second)
 	}
-	// just to satisfy the linter
-	m.wg.Done()
 }
 
 func firewallDenyPort(commandTemplate string, port int) error {

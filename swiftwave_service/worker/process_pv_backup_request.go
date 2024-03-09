@@ -13,11 +13,6 @@ import (
 
 func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, ctx context.Context, cancelContext context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
-	// restricted ports
-	restrictedPorts := make([]int, 0)
-	for _, port := range m.Config.SystemConfig.RestrictedPorts {
-		restrictedPorts = append(restrictedPorts, int(port))
-	}
 	// fetch persistent volume backup
 	var persistentVolumeBackup core.PersistentVolumeBackup
 	err := persistentVolumeBackup.FindById(ctx, dbWithoutTx, request.Id)

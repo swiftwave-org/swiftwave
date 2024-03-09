@@ -121,14 +121,18 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 			if !ok {
 				c.Set("authorized", false)
 				c.Set("username", "")
+				//nolint:staticcheck
 				ctx = context.WithValue(ctx, "authorized", false)
+				//nolint:staticcheck
 				ctx = context.WithValue(ctx, "username", "")
 			} else {
 				claims := token.Claims.(jwt.MapClaims)
 				username := claims["username"].(string)
 				c.Set("authorized", true)
 				c.Set("username", username)
+				//nolint:staticcheck
 				ctx = context.WithValue(ctx, "authorized", true)
+				//nolint:staticcheck
 				ctx = context.WithValue(ctx, "username", username)
 			}
 			c.SetRequest(c.Request().WithContext(ctx))

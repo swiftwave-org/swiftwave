@@ -23,7 +23,7 @@ func (m Manager) BuildApplication(request BuildApplicationRequest, ctx context.C
 			return nil
 		}
 	}
-	subscriptionId, subscriptionChannel, err := m.ServiceManager.PubSubClient.Subscribe(m.ServiceManager.CancelImageBuildTopic)
+	subscriptionId, subscriptionChannel, _ := m.ServiceManager.PubSubClient.Subscribe(m.ServiceManager.CancelImageBuildTopic)
 	defer func(id string) {
 		err := m.ServiceManager.PubSubClient.Unsubscribe(m.ServiceManager.CancelImageBuildTopic, id)
 		if err != nil {

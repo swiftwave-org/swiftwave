@@ -7,12 +7,6 @@ import (
 	"os/exec"
 )
 
-func checkIfCommandExists(command string) bool {
-	cmd := exec.Command("which", command)
-	err := cmd.Run()
-	return err == nil
-}
-
 func checkIfFolderExists(folder string) bool {
 	cmd := exec.Command("ls", folder)
 	err := cmd.Run()

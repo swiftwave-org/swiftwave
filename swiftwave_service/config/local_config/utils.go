@@ -78,7 +78,7 @@ func readConfigFile(path string) (*Config, error) {
 		return nil, errors.New("failed to parse config file")
 	}
 	// validate config
-	err = FillDefaults(&config)
+	_ = FillDefaults(&config)
 	return &config, nil
 }
 
