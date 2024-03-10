@@ -10,7 +10,7 @@ type SystemLog struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"created_at"`
-	Metadata  string    `json:"metadata" gorm:"type:jsonb, default:{}"`
+	Metadata  string    `json:"metadata" gorm:"type:jsonb;default:'{}'"`
 }
 
 // Server : hold information about server
