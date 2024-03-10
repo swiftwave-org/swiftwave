@@ -1,0 +1,58 @@
+enum SwarmMode {
+    manager
+    worker
+}
+
+enum ProxyType {
+    backup
+    active
+}
+
+enum ServerStatus {
+    needs_setup
+    preparing
+    online
+    offline
+}
+
+input NewServerInput {
+    ip: String!
+    user: String!
+}
+
+type Server {
+    id: Uint!
+    ip: String!
+    hostname: String!
+    user: String!
+    swarmMode: SwarmMode!
+    scheduleDeployments: Boolean!
+    dockerUnixSocketPath: String!
+    proxyEnabled: Boolean!
+    proxyType: ProxyType!
+    status: ServerStatus!
+    logs: [ServerLog!]!
+}
+
+input ServerSetupInput {
+    id: Uint!
+    dockerUnixSocketPath: String!
+    swarmMode: SwarmMode!
+}
+
+type Dependency {
+    name: String!
+    available: Boolean!
+}
+
+extend type Query {
+    servers: [Server!]
+}
+
+extend type Mutation {
+    createServer(input: NewServerInput!): Server!
+    testSSHAccessToServer(id: Uint!): Boolean!
+    checkDependenciesOnServer(id: Uint!): [Dependency!]
+    installDependenciesOnServer(id: Uint!): Boolean!
+    setupServer(input: ServerSetupInput!): Boolean!
+}

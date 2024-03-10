@@ -2,6 +2,7 @@ package core
 
 import (
 	"github.com/lib/pq"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -17,8 +18,9 @@ type SystemLog struct {
 type Server struct {
 	ID                   uint         `json:"id" gorm:"primaryKey"`
 	IP                   string       `json:"ip"`
-	HostName             string       `json:"host_name"`
+	HostName             string       `json:"host_name" gorm:"unique"`
 	User                 string       `json:"user"`
+	ScheduleDeployments  bool         `json:"schedule_deployments" gorm:"default:true"`
 	DockerUnixSocketPath string       `json:"docker_unix_socket_path"`
 	SwarmMode            SwarmMode    `json:"swarm_mode"`
 	ProxyConfig          ProxyConfig  `json:"proxy_config" gorm:"embedded;embeddedPrefix:proxy_"`
@@ -29,10 +31,11 @@ type Server struct {
 
 // ServerLog : hold logs of server
 type ServerLog struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	ServerID  uint      `json:"serverID"`
-	Content   string    `json:"content"`
-	CreatedAt time.Time `json:"createdAt"`
+	*gorm.Model
+	ID       uint   `json:"id" gorm:"primaryKey"`
+	ServerID uint   `json:"serverID"`
+	Title    string `json:"title"` // can be empty, but will be useful if we want to
+	Content  string `json:"content"`
 }
 
 // User : hold information about user

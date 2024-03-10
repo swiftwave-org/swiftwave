@@ -13,16 +13,17 @@ type Manager struct {
 
 // Queue names
 const (
-	buildApplicationQueueName        = "build_application"
-	deployApplicationQueueName       = "deploy_application"
-	deleteApplicationQueueName       = "delete_application"
-	ingressRuleApplyQueueName        = "ingress_rule_apply"
-	ingressRuleDeleteQueueName       = "ingress_rule_delete"
-	redirectRuleApplyQueueName       = "redirect_rule_apply"
-	redirectRuleDeleteQueueName      = "redirect_rule_delete"
-	sslGenerateQueueName             = "ssl_generate"
-	persistentVolumeBackupQueueName  = "persistent_volume_backup"
-	persistentVolumeRestoreQueueName = "persistent_volume_restore"
+	buildApplicationQueueName            = "build_application"
+	deployApplicationQueueName           = "deploy_application"
+	deleteApplicationQueueName           = "delete_application"
+	ingressRuleApplyQueueName            = "ingress_rule_apply"
+	ingressRuleDeleteQueueName           = "ingress_rule_delete"
+	redirectRuleApplyQueueName           = "redirect_rule_apply"
+	redirectRuleDeleteQueueName          = "redirect_rule_delete"
+	sslGenerateQueueName                 = "ssl_generate"
+	persistentVolumeBackupQueueName      = "persistent_volume_backup"
+	persistentVolumeRestoreQueueName     = "persistent_volume_restore"
+	installDependenciesOnServerQueueName = "install_dependencies_on_server"
 )
 
 // Request Payload
@@ -77,4 +78,10 @@ type PersistentVolumeBackupRequest struct {
 // PersistentVolumeRestoreRequest : request payload for persistent volume restore
 type PersistentVolumeRestoreRequest struct {
 	Id uint `json:"id"`
+}
+
+// InstallDependenciesOnServerRequest : request payload for install dependencies on server
+type InstallDependenciesOnServerRequest struct {
+	ServerId uint `json:"server_id"`
+	LogId    uint `json:"log_id"`
 }

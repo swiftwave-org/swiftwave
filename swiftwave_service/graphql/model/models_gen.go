@@ -73,6 +73,11 @@ type CustomSSLInput struct {
 	SslIssuer  string `json:"sslIssuer"`
 }
 
+type Dependency struct {
+	Name      string `json:"name"`
+	Available bool   `json:"available"`
+}
+
 type Deployment struct {
 	ID                           string                   `json:"id"`
 	ApplicationID                string                   `json:"applicationID"`
@@ -233,6 +238,11 @@ type NFSConfigInput struct {
 	Version int    `json:"version"`
 }
 
+type NewServerInput struct {
+	IP   string `json:"ip"`
+	User string `json:"user"`
+}
+
 type PasswordUpdateInput struct {
 	OldPassword string `json:"oldPassword"`
 	NewPassword string `json:"newPassword"`
@@ -325,6 +335,33 @@ type RedirectRuleInput struct {
 type RuntimeLog struct {
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+type Server struct {
+	ID                   uint         `json:"id"`
+	IP                   string       `json:"ip"`
+	Hostname             string       `json:"hostname"`
+	User                 string       `json:"user"`
+	SwarmMode            SwarmMode    `json:"swarmMode"`
+	ScheduleDeployments  bool         `json:"scheduleDeployments"`
+	DockerUnixSocketPath string       `json:"dockerUnixSocketPath"`
+	ProxyEnabled         bool         `json:"proxyEnabled"`
+	ProxyType            ProxyType    `json:"proxyType"`
+	Status               ServerStatus `json:"status"`
+	Logs                 []*ServerLog `json:"logs"`
+}
+
+type ServerLog struct {
+	ID        uint      `json:"id"`
+	Title     string    `json:"title"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type ServerSetupInput struct {
+	ID                   uint      `json:"id"`
+	DockerUnixSocketPath string    `json:"dockerUnixSocketPath"`
+	SwarmMode            SwarmMode `json:"swarmMode"`
 }
 
 type StackInput struct {
@@ -880,6 +917,47 @@ func (e ProtocolType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type ProxyType string
+
+const (
+	ProxyTypeBackup ProxyType = "backup"
+	ProxyTypeActive ProxyType = "active"
+)
+
+var AllProxyType = []ProxyType{
+	ProxyTypeBackup,
+	ProxyTypeActive,
+}
+
+func (e ProxyType) IsValid() bool {
+	switch e {
+	case ProxyTypeBackup, ProxyTypeActive:
+		return true
+	}
+	return false
+}
+
+func (e ProxyType) String() string {
+	return string(e)
+}
+
+func (e *ProxyType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ProxyType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ProxyType", str)
+	}
+	return nil
+}
+
+func (e ProxyType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type RedirectRuleStatus string
 
 const (
@@ -922,6 +1000,92 @@ func (e *RedirectRuleStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e RedirectRuleStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ServerStatus string
+
+const (
+	ServerStatusNeedsSetup ServerStatus = "needs_setup"
+	ServerStatusPreparing  ServerStatus = "preparing"
+	ServerStatusOnline     ServerStatus = "online"
+	ServerStatusOffline    ServerStatus = "offline"
+)
+
+var AllServerStatus = []ServerStatus{
+	ServerStatusNeedsSetup,
+	ServerStatusPreparing,
+	ServerStatusOnline,
+	ServerStatusOffline,
+}
+
+func (e ServerStatus) IsValid() bool {
+	switch e {
+	case ServerStatusNeedsSetup, ServerStatusPreparing, ServerStatusOnline, ServerStatusOffline:
+		return true
+	}
+	return false
+}
+
+func (e ServerStatus) String() string {
+	return string(e)
+}
+
+func (e *ServerStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ServerStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ServerStatus", str)
+	}
+	return nil
+}
+
+func (e ServerStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SwarmMode string
+
+const (
+	SwarmModeManager SwarmMode = "manager"
+	SwarmModeWorker  SwarmMode = "worker"
+)
+
+var AllSwarmMode = []SwarmMode{
+	SwarmModeManager,
+	SwarmModeWorker,
+}
+
+func (e SwarmMode) IsValid() bool {
+	switch e {
+	case SwarmModeManager, SwarmModeWorker:
+		return true
+	}
+	return false
+}
+
+func (e SwarmMode) String() string {
+	return string(e)
+}
+
+func (e *SwarmMode) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SwarmMode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SwarmMode", str)
+	}
+	return nil
+}
+
+func (e SwarmMode) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

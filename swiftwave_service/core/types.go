@@ -189,3 +189,42 @@ type NFSConfig struct {
 	Path    string `json:"path,omitempty"`
 	Version int    `json:"version,omitempty"`
 }
+
+var RequiredServerDependencies = []string{
+	"init",
+	"curl",
+	"unzip",
+	"git",
+	"tar",
+	"nfs",
+	"docker",
+}
+
+var DependencyCheckCommands = map[string]string{
+	"init":   "echo hi", // dummy command
+	"curl":   "which curl",
+	"unzip":  "which unzip",
+	"git":    "which git",
+	"tar":    "which tar",
+	"nfs":    "which nfsstat",
+	"docker": "which docker",
+}
+
+var DebianDependenciesInstallCommands = map[string]string{
+	"init":   "sudo apt -y update",
+	"curl":   "sudo apt install -y curl",
+	"unzip":  "sudo apt install -y unzip",
+	"git":    "sudo apt install -y git",
+	"tar":    "sudo apt install -y tar",
+	"nfs":    "sudo apt install -y nfs-common",
+	"docker": "curl -fsSL get.docker.com | sudo sh -",
+}
+var FedoraDependenciesInstallCommands = map[string]string{
+	"init":   "sudo dnf -y update",
+	"curl":   "sudo dnf install -y curl",
+	"unzip":  "sudo dnf install -y unzip",
+	"git":    "sudo dnf install -y git",
+	"tar":    "sudo dnf install -y tar",
+	"nfs":    "sudo dnf install -y nfs-utils",
+	"docker": "curl -fsSL get.docker.com | sudo sh -",
+}

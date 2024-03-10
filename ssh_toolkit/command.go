@@ -36,6 +36,12 @@ func ExecCommandOverSSH(cmd string,
 		}
 	}(session)
 	// set buffers
+	if stdoutBuf == nil {
+		stdoutBuf = new(bytes.Buffer)
+	}
+	if stderrBuf == nil {
+		stderrBuf = new(bytes.Buffer)
+	}
 	session.Stdout = stdoutBuf
 	session.Stderr = stderrBuf
 	// run command

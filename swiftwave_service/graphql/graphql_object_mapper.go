@@ -436,3 +436,46 @@ func stackToApplicationsInput(record *stack_parser.Stack, db gorm.DB) ([]model.A
 
 	return applications, nil
 }
+
+// newServerInputToDatabaseObject : converts NewServerInput to ServerDatabaseObject
+func newServerInputToDatabaseObject(record *model.NewServerInput) *core.Server {
+	return &core.Server{
+		IP:                   record.IP,
+		HostName:             "",
+		User:                 record.User,
+		ScheduleDeployments:  false,
+		DockerUnixSocketPath: "",
+		SwarmMode:            core.SwarmMode(model.SwarmModeWorker),
+		ProxyConfig: core.ProxyConfig{
+			Enabled: false,
+			Type:    core.ProxyType(model.ProxyTypeActive),
+		},
+		Status: core.ServerStatus(model.ServerStatusNeedsSetup),
+	}
+}
+
+// serverToGraphqlObject : converts Server to ServerGraphqlObject
+func serverToGraphqlObject(record *core.Server) *model.Server {
+	return &model.Server{
+		ID:                   record.ID,
+		IP:                   record.IP,
+		Hostname:             record.HostName,
+		User:                 record.User,
+		ScheduleDeployments:  record.ScheduleDeployments,
+		DockerUnixSocketPath: record.DockerUnixSocketPath,
+		SwarmMode:            model.SwarmMode(record.SwarmMode),
+		ProxyType:            model.ProxyType(record.ProxyConfig.Type),
+		ProxyEnabled:         record.ProxyConfig.Enabled,
+		Status:               model.ServerStatus(record.Status),
+	}
+}
+
+// serverLogToGraphqlObject : converts ServerLog to ServerLogGraphqlObject
+func serverLogToGraphqlObject(record *core.ServerLog) *model.ServerLog {
+	return &model.ServerLog{
+		ID:        record.ID,
+		Title:     record.Title,
+		CreatedAt: record.CreatedAt,
+		UpdatedAt: record.UpdatedAt,
+	}
+}

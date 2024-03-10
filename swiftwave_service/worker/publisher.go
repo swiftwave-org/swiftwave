@@ -61,3 +61,10 @@ func (m Manager) EnqueuePersistentVolumeRestoreRequest(persistentVolumeRestoreId
 		Id: persistentVolumeRestoreId,
 	})
 }
+
+func (m Manager) EnqueueInstallDependenciesOnServerRequest(serverId uint, logId uint) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(installDependenciesOnServerQueueName, InstallDependenciesOnServerRequest{
+		ServerId: serverId,
+		LogId:    logId,
+	})
+}

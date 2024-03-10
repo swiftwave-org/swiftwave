@@ -14,3 +14,10 @@ type sshClient struct {
 	client *ssh.Client
 	mutex  *sync.RWMutex
 }
+
+type OperatingSystem string
+
+const (
+	DebianBased OperatingSystem = "debian"
+	FedoraBased OperatingSystem = "fedora"
+)

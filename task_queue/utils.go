@@ -18,6 +18,7 @@ func getTypeName(object interface{}) string {
 func invokeFunction(function interface{}, argument interface{}, argumentType ArgumentType) error {
 	// create context with cancel
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	// create argument slice
 	argumentSlice := []reflect.Value{
 		reflect.ValueOf(argument),

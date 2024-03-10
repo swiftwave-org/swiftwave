@@ -103,3 +103,7 @@ models:
         resolver: true
       application:
         resolver: true
+  Server:
+    fields:
+      logs:
+        resolver: true

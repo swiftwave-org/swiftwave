@@ -19,7 +19,7 @@ func (m Manager) CleanupUnusedImages() {
 			time.Sleep(1 * time.Hour)
 		}
 		// Fetch all servers
-		servers, err := core.FetchAllServers(&m.ServiceManager.DbClient)
+		servers, err := core.FetchAllOnlineServers(&m.ServiceManager.DbClient)
 		if err != nil {
 			logger.CronJobLoggerError.Println("Failed to fetch server list")
 			logger.CronJobLoggerError.Println(err)
