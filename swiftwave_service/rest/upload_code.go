@@ -41,8 +41,7 @@ func (server *Server) uploadTarFile(c echo.Context) error {
 
 	// Destination
 	destFilename := uuid.New().String() + ".tar"
-	// TODO: provide tar directory
-	destFile := filepath.Join(server.Config.LocalConfig.ServiceConfig.DataDirectory, destFilename)
+	destFile := filepath.Join(server.Config.LocalConfig.ServiceConfig.TarballDirectoryPath, destFilename)
 	dst, err := os.Create(destFile)
 	if err != nil {
 		return c.JSON(500, map[string]string{

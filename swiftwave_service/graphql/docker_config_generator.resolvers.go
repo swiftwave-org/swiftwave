@@ -23,7 +23,7 @@ func (r *queryResolver) DockerConfigGenerator(ctx context.Context, input model.D
 		}
 		filename := sanitizeFileName(*input.SourceCodeCompressedFileName)
 		// TODO; tarball directory setup
-		filename = filepath.Join(r.Config.LocalConfig.ServiceConfig.DataDirectory, filename)
+		filename = filepath.Join(r.Config.LocalConfig.ServiceConfig.TarballDirectoryPath, filename)
 		config, err := r.ServiceManager.DockerConfigGenerator.GenerateConfigFromSourceCodeTar(filename)
 		if err != nil {
 			return nil, errors.New("failed to generate docker config from source code")

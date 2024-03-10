@@ -14,6 +14,7 @@ var defaultUDPProxyServiceName = "swiftwave_udpproxy"
 var defaultUDPProxyDataDirectoryPath = filepath.Join(defaultSocketPathDirectory, "udpproxy", "api.sock")
 var defaultSSLCertDirectoryPath = filepath.Join(defaultDataDirectory, "certs")
 var defaultPVBackupDirectoryPath = filepath.Join(defaultDataDirectory, "pvbackup")
+var defaultTarballDirectoryPath = filepath.Join(defaultDataDirectory, "tarball")
 var LocalConfigPath = filepath.Join(defaultDataDirectory, "config.yml")
 var LogDirectoryPath = "/var/log/swiftwave"
 var InfoLogFilePath = filepath.Join(LogDirectoryPath, "swiftwave.log")

@@ -94,6 +94,7 @@ func FillDefaults(config *Config) error {
 	}
 	config.ServiceConfig.SocketPathDirectory = defaultSocketPathDirectory
 	config.ServiceConfig.DataDirectory = defaultDataDirectory
+	config.ServiceConfig.TarballDirectoryPath = defaultTarballDirectoryPath
 	config.ServiceConfig.NetworkName = defaultNetworkName
 	config.ServiceConfig.HAProxyServiceName = defaultHAProxyServiceName
 	config.ServiceConfig.HAProxyUnixSocketPath = defaultHAProxyUnixSocketPath
