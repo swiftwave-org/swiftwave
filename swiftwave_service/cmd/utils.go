@@ -14,7 +14,7 @@ func checkIfFolderExists(folder string) bool {
 }
 
 func createFolder(folder string) error {
-	return os.MkdirAll(folder, 0600)
+	return os.MkdirAll(folder, 0711)
 }
 
 func checkIfFileExists(file string) bool {

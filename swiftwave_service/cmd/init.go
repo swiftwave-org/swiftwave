@@ -92,6 +92,8 @@ var initCmd = &cobra.Command{
 			if err != nil {
 				printError("Failed to create folder " + folder)
 				os.Exit(1)
+			} else {
+				printSuccess("Folder created > " + folder)
 			}
 		}
 		// save config
@@ -100,6 +102,7 @@ var initCmd = &cobra.Command{
 			printError(err.Error())
 			os.Exit(1)
 		}
+		printSuccess("Config created at " + local_config.LocalConfigPath)
 	},
 }
 

@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	swiftwave_config "github.com/swiftwave-org/swiftwave/swiftwave_service/config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -18,6 +19,7 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(configCmd)
+	rootCmd.AddCommand(dbMigrateCmd)
 	rootCmd.AddCommand(createUserCmd)
 	rootCmd.AddCommand(deleteUserCmd)
 	rootCmd.AddCommand(tlsCmd)
@@ -47,6 +49,17 @@ func Execute() {
 	// Check whether first argument is "install" or no arguments
 	if (len(os.Args) > 1 && (os.Args[1] == "init" || os.Args[1] == "completion" || os.Args[1] == "--help")) || len(os.Args) == 1 {
 		// if first argument is "init" or no arguments, do not load config
+	} else if len(os.Args) >= 1 && (os.Args[1] == "postgres" || os.Args[1] == "db-migrate") {
+		// load only local config
+		c, err := local_config.Fetch()
+		if err != nil {
+			printError("Failed to load config: " + err.Error())
+			os.Exit(1)
+		}
+		config = &swiftwave_config.Config{
+			LocalConfig:  c,
+			SystemConfig: nil,
+		}
 	} else {
 		// load config
 		c, err := swiftwave_config.Fetch()
