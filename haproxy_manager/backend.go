@@ -78,11 +78,7 @@ func (s Manager) AddBackend(transactionId string, serviceName string, port int, 
 		}
 	}(backendRes.Body)
 
-	// TODO: check if with 0 replicas, it will still work
 	// Add server template request body
-	if replicas <= 0 {
-		replicas = 1
-	}
 	replicasStr := strconv.Itoa(replicas)
 	// Server template prefix
 	serverTemplatePrefix := serviceName + "_container-"

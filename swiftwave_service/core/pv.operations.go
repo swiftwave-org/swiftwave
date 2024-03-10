@@ -101,7 +101,6 @@ func (persistentVolume *PersistentVolume) Delete(ctx context.Context, db gorm.DB
 	if count > 0 {
 		return errors.New("there are some applications using this volume, delete them to delete this volume")
 	}
-	// TODO: verify there is no container in runtime outside scope of swiftwave using this volume
 	// Start a database transaction
 	transaction := db.Begin()
 	// check if there is any backup of this persistentVolume
