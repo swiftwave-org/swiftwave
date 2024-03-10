@@ -68,3 +68,10 @@ func (m Manager) EnqueueInstallDependenciesOnServerRequest(serverId uint, logId 
 		LogId:    logId,
 	})
 }
+
+func (m Manager) EnqueueSetupServerRequest(serverId uint, logId uint) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(setupServerQueueName, SetupServerRequest{
+		ServerId: serverId,
+		LogId:    logId,
+	})
+}

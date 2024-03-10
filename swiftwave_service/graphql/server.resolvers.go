@@ -101,6 +101,17 @@ func (r *mutationResolver) SetupServer(ctx context.Context, input model.ServerSe
 		return false, err
 	}
 
+	// Check if all dependencies are installed
+	installedDependencies, err := r.CheckDependenciesOnServer(ctx, input.ID)
+	if err != nil {
+		return false, err
+	}
+	for _, dependency := range installedDependencies {
+		if !dependency.Available {
+			return false, errors.New("dependency " + dependency.Name + " is not installed")
+		}
+	}
+
 	// Proceed request logic (reject in any other case)
 	// - if, want to be manager
 	//    - if, there are some managers already, need to be online any of them
@@ -145,9 +156,31 @@ func (r *mutationResolver) SetupServer(ctx context.Context, input model.ServerSe
 	}
 	hostname := strings.TrimSpace(hostnameStdoutBuffer.String())
 	server.HostName = hostname
+	server.Status = core.ServerPreparing
+	server.SwarmMode = core.SwarmMode(input.SwarmMode)
+	server.DockerUnixSocketPath = input.DockerUnixSocketPath
 	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
+	if err != nil {
+		return false, err
+	}
 
-	return false, errors.New("not implemented " + hostname)
+	// Enqueue the request
+	// - create a server log
+	// - push the request to the queue
+	serverLog := &core.ServerLog{
+		ServerID: input.ID,
+		Title:    "Setup server",
+	}
+	err = core.CreateServerLog(&r.ServiceManager.DbClient, serverLog)
+	if err != nil {
+		return false, err
+	}
+	// Push the request to the queue
+	err = r.WorkerManager.EnqueueSetupServerRequest(input.ID, serverLog.ID)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // Servers is the resolver for the servers field.

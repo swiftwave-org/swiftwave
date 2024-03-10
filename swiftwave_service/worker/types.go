@@ -24,6 +24,7 @@ const (
 	persistentVolumeBackupQueueName      = "persistent_volume_backup"
 	persistentVolumeRestoreQueueName     = "persistent_volume_restore"
 	installDependenciesOnServerQueueName = "install_dependencies_on_server"
+	setupServerQueueName                 = "setup_server"
 )
 
 // Request Payload
@@ -82,6 +83,12 @@ type PersistentVolumeRestoreRequest struct {
 
 // InstallDependenciesOnServerRequest : request payload for install dependencies on server
 type InstallDependenciesOnServerRequest struct {
+	ServerId uint `json:"server_id"`
+	LogId    uint `json:"log_id"`
+}
+
+// SetupServerRequest : request payload for setup server
+type SetupServerRequest struct {
 	ServerId uint `json:"server_id"`
 	LogId    uint `json:"log_id"`
 }
