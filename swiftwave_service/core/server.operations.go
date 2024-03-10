@@ -27,8 +27,16 @@ func FetchProxyActiveServers(db *gorm.DB) ([]Server, error) {
 }
 
 // FetchProxyBackupServers fetches all backup servers from the database
+// nolint:unused
 func FetchProxyBackupServers(db *gorm.DB) ([]Server, error) {
 	var servers []Server
 	err := db.Where("proxy_enabled = ?", true).Where("proxy_type = ?", BackupProxy).Find(&servers).Error
+	return servers, err
+}
+
+// FetchAllProxyServers fetches all proxy servers from the database
+func FetchAllProxyServers(db *gorm.DB) ([]Server, error) {
+	var servers []Server
+	err := db.Where("proxy_enabled = ?", true).Find(&servers).Error
 	return servers, err
 }

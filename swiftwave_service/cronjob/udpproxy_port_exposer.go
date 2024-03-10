@@ -24,6 +24,12 @@ func (m Manager) UDPProxyPortExposer() {
 			log.Println(err)
 			continue
 		}
+		// Fetch all proxy servers
+		proxyServers, err := core.FetchAllProxyServers(&m.ServiceManager.DbClient)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
 		// Fetch all ingress rules with only port field
 		var ingressRules []core.IngressRule
 		tx := m.ServiceManager.DbClient.Select("port").Where("port IS NOT NULL").Where("protocol = ?", "udp").Find(&ingressRules)
@@ -75,7 +81,7 @@ func (m Manager) UDPProxyPortExposer() {
 				}
 				// Deny unexposed ports
 				for _, port := range unexposedPorts {
-					err := firewallDenyPort(m.Config.SystemConfig.FirewallConfig.DenyPortCommand, port)
+					err := firewallDenyPort(proxyServers, m.Config.SystemConfig.FirewallConfig.DenyPortCommand, port)
 					if err != nil {
 						log.Printf("Failed to deny port %d in firewall", port)
 					} else {
@@ -84,7 +90,7 @@ func (m Manager) UDPProxyPortExposer() {
 				}
 				// Allow exposed ports
 				for port := range portsMap {
-					err := firewallAllowPort(m.Config.SystemConfig.FirewallConfig.AllowPortCommand, port)
+					err := firewallAllowPort(proxyServers, m.Config.SystemConfig.FirewallConfig.AllowPortCommand, port)
 					if err != nil {
 						log.Printf("Failed to allow port %d in firewall", port)
 					} else {

@@ -1,13 +1,16 @@
 package cronjob
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"log"
-	"os/exec"
 	"reflect"
 	"strings"
 	"time"
@@ -23,6 +26,12 @@ func (m Manager) HaProxyPortExposer() {
 		}
 		// Fetch docker manager
 		dockerManager, err := manager.DockerClient(context.Background(), swarmManagerServer)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		// Fetch all proxy servers
+		proxyServers, err := core.FetchAllProxyServers(&m.ServiceManager.DbClient)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -81,7 +90,7 @@ func (m Manager) HaProxyPortExposer() {
 				}
 				// Deny unexposed ports
 				for _, port := range unexposedPorts {
-					err := firewallDenyPort(m.Config.SystemConfig.FirewallConfig.DenyPortCommand, port)
+					err := firewallDenyPort(proxyServers, m.Config.SystemConfig.FirewallConfig.DenyPortCommand, port)
 					if err != nil {
 						log.Printf("Failed to deny port %d in firewall", port)
 					} else {
@@ -90,7 +99,7 @@ func (m Manager) HaProxyPortExposer() {
 				}
 				// Allow exposed ports
 				for port := range portsMap {
-					err := firewallAllowPort(m.Config.SystemConfig.FirewallConfig.AllowPortCommand, port)
+					err := firewallAllowPort(proxyServers, m.Config.SystemConfig.FirewallConfig.AllowPortCommand, port)
 					if err != nil {
 						log.Printf("Failed to allow port %d in firewall", port)
 					} else {
@@ -103,28 +112,52 @@ func (m Manager) HaProxyPortExposer() {
 	}
 }
 
-func firewallDenyPort(commandTemplate string, port int) error {
-	// TODO: replace with ssh
-	command := strings.ReplaceAll(commandTemplate, "{{PORT}}", fmt.Sprintf("%d", port))
-	// Run using os package
-	cmd := exec.Command("sh", "-c", command)
-	err := cmd.Run()
+func firewallDenyPort(servers []core.Server, commandTemplate string, port int) error {
+	// close port in all proxy servers
+	c, err := config.Fetch()
 	if err != nil {
 		return err
-	} else {
-		return nil
 	}
+	command := strings.ReplaceAll(commandTemplate, "{{PORT}}", fmt.Sprintf("%d", port))
+	isFailed := false
+	for _, server := range servers {
+		stdoutBuf := bytes.Buffer{}
+		stderrBuf := bytes.Buffer{}
+		err := ssh_toolkit.ExecCommandOverSSH(command, &stdoutBuf, &stderrBuf, 5, server.IP, 22, server.User, c.SystemConfig.SshPrivateKey, 20)
+		if err != nil {
+			isFailed = true
+			logger.CronJobLoggerError.Printf("Failed to execute firewall command: %s on %s\nstdout:\n%s\nstderr:\n%s\n", command, server.IP, stdoutBuf.String(), stderrBuf.String())
+		} else {
+			logger.CronJobLogger.Printf("Firewall command: %s executed successfully on %s\nstdout:\n%s\nstderr:\n%s\n", command, server.IP, stdoutBuf.String(), stderrBuf.String())
+		}
+	}
+	if isFailed {
+		return fmt.Errorf("failed to deny port %d in firewall\ncheck cron job logs.", port)
+	}
+	return nil
 }
 
-func firewallAllowPort(commandTemplate string, port int) error {
-	// TODO: replace with ssh
-	command := strings.ReplaceAll(commandTemplate, "{{PORT}}", fmt.Sprintf("%d", port))
-	// Run using os package
-	cmd := exec.Command("sh", "-c", command)
-	err := cmd.Run()
+func firewallAllowPort(servers []core.Server, commandTemplate string, port int) error {
+	// open port in all proxy servers
+	c, err := config.Fetch()
 	if err != nil {
 		return err
-	} else {
-		return nil
 	}
+	command := strings.ReplaceAll(commandTemplate, "{{PORT}}", fmt.Sprintf("%d", port))
+	isFailed := false
+	for _, server := range servers {
+		stdoutBuf := bytes.Buffer{}
+		stderrBuf := bytes.Buffer{}
+		err := ssh_toolkit.ExecCommandOverSSH(command, &stdoutBuf, &stderrBuf, 5, server.IP, 22, server.User, c.SystemConfig.SshPrivateKey, 20)
+		if err != nil {
+			isFailed = true
+			logger.CronJobLoggerError.Printf("Failed to execute firewall command: %s on %s\nstdout:\n%s\nstderr:\n%s\n", command, server.IP, stdoutBuf.String(), stderrBuf.String())
+		} else {
+			logger.CronJobLogger.Printf("Firewall command: %s executed successfully on %s\nstdout:\n%s\nstderr:\n%s\n", command, server.IP, stdoutBuf.String(), stderrBuf.String())
+		}
+	}
+	if isFailed {
+		return fmt.Errorf("failed to allow port %d in firewall\ncheck cron job logs.", port)
+	}
+	return nil
 }
