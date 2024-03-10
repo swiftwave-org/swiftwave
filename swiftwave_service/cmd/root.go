@@ -49,7 +49,7 @@ func Execute() {
 	// Check whether first argument is "install" or no arguments
 	if (len(os.Args) > 1 && (os.Args[1] == "init" || os.Args[1] == "completion" || os.Args[1] == "--help")) || len(os.Args) == 1 {
 		// if first argument is "init" or no arguments, do not load config
-	} else if len(os.Args) >= 1 && (os.Args[1] == "postgres" || os.Args[1] == "db-migrate") {
+	} else if len(os.Args) >= 1 && (os.Args[1] == "postgres" || os.Args[1] == "db-migrate" || os.Args[1] == "config") {
 		// load only local config
 		c, err := local_config.Fetch()
 		if err != nil {
