@@ -5,16 +5,11 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"os"
 )
 
 // Decode the private key from a private key string
-func decodePrivateKey(keyFile string) (*rsa.PrivateKey, error) {
-	keyData, err := os.ReadFile(keyFile)
-	if err != nil {
-		return nil, errors.New("unable to read account private key file")
-	}
-
+func decodePrivateKey(key string) (*rsa.PrivateKey, error) {
+	keyData := []byte(key)
 	// Parse the PEM-encoded data
 	block, _ := pem.Decode(keyData)
 	if block == nil || block.Type != "RSA PRIVATE KEY" {

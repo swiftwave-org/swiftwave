@@ -10,37 +10,43 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
-	"log"
 	"reflect"
 	"strings"
 	"time"
 )
 
 func (m Manager) HaProxyPortExposer() {
+	isFirstTime := true
 	for {
+		if isFirstTime {
+			time.Sleep(5 * time.Second)
+			isFirstTime = false
+		} else {
+			time.Sleep(20 * time.Second)
+		}
 		// Fetch a random swarm manager
 		swarmManagerServer, err := core.FetchSwarmManager(&m.ServiceManager.DbClient)
 		if err != nil {
-			log.Println(err)
+			logger.CronJobLoggerError.Println(err)
 			continue
 		}
 		// Fetch docker manager
 		dockerManager, err := manager.DockerClient(context.Background(), swarmManagerServer)
 		if err != nil {
-			log.Println(err)
+			logger.CronJobLoggerError.Println(err)
 			continue
 		}
 		// Fetch all proxy servers
 		proxyServers, err := core.FetchAllProxyServers(&m.ServiceManager.DbClient)
 		if err != nil {
-			log.Println(err)
+			logger.CronJobLoggerError.Println(err)
 			continue
 		}
 		// Fetch all ingress rules with only port field
 		var ingressRules []core.IngressRule
 		tx := m.ServiceManager.DbClient.Select("port").Where("port IS NOT NULL").Not("protocol = ?", "udp").Find(&ingressRules)
 		if tx.Error != nil {
-			log.Println(tx.Error)
+			logger.CronJobLoggerError.Println(tx.Error)
 			continue
 		}
 		// Serialize port
@@ -54,7 +60,7 @@ func (m Manager) HaProxyPortExposer() {
 		// Check if ports are changed
 		exposedPorts, err := dockerManager.FetchPublishedHostPorts(m.Config.LocalConfig.ServiceConfig.HAProxyServiceName)
 		if err != nil {
-			log.Println(err)
+			logger.CronJobLoggerError.Println(err)
 			continue
 		}
 		exposedPortsMap := make(map[int]bool)
@@ -75,9 +81,9 @@ func (m Manager) HaProxyPortExposer() {
 			// Update exposed ports
 			err := dockerManager.UpdatePublishedHostPorts(m.Config.LocalConfig.ServiceConfig.HAProxyServiceName, portsUpdateRequired)
 			if err != nil {
-				log.Println(err)
+				logger.CronJobLoggerError.Println(err)
 			} else {
-				log.Println("Exposed ports of haproxy service updated")
+				logger.CronJobLogger.Println("Exposed ports of haproxy service updated")
 			}
 			// Update firewall
 			if m.Config.SystemConfig.FirewallConfig.Enabled {
@@ -92,23 +98,22 @@ func (m Manager) HaProxyPortExposer() {
 				for _, port := range unexposedPorts {
 					err := firewallDenyPort(proxyServers, m.Config.SystemConfig.FirewallConfig.DenyPortCommand, port)
 					if err != nil {
-						log.Printf("Failed to deny port %d in firewall", port)
+						logger.CronJobLoggerError.Printf("Failed to deny port %d in firewall", port)
 					} else {
-						log.Printf("Port %d denied", port)
+						logger.CronJobLogger.Printf("Port %d denied", port)
 					}
 				}
 				// Allow exposed ports
 				for port := range portsMap {
 					err := firewallAllowPort(proxyServers, m.Config.SystemConfig.FirewallConfig.AllowPortCommand, port)
 					if err != nil {
-						log.Printf("Failed to allow port %d in firewall", port)
+						logger.CronJobLoggerError.Printf("Failed to allow port %d in firewall", port)
 					} else {
-						log.Printf("Port %d allowed", port)
+						logger.CronJobLogger.Printf("Port %d allowed", port)
 					}
 				}
 			}
 		}
-		time.Sleep(20 * time.Second)
 	}
 }
 

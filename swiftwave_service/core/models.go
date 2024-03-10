@@ -20,7 +20,7 @@ type Server struct {
 	HostName             string       `json:"host_name"`
 	User                 string       `json:"user"`
 	DockerUnixSocketPath string       `json:"docker_unix_socket_path"`
-	SwarmMode            SwarmMode    `json:"swarm_node"`
+	SwarmMode            SwarmMode    `json:"swarm_mode"`
 	ProxyConfig          ProxyConfig  `json:"proxy_config" gorm:"embedded;embeddedPrefix:proxy_"`
 	Status               ServerStatus `json:"status"`
 	LastPing             time.Time    `json:"last_ping"`

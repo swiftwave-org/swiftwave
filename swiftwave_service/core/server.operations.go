@@ -15,7 +15,7 @@ func FetchSwarmManager(db *gorm.DB) (Server, error) {
 	// The reason behind using Order("RANDOM()") is
 	// if any swarm manager is down, the next one will be used
 	// so remove the possibility of complete failure
-	err := db.Where("role = ?", SwarmManager).Order("RANDOM()").First(&server).Error
+	err := db.Where("swarm_mode = ?", SwarmManager).Order("RANDOM()").First(&server).Error
 	return server, err
 }
 

@@ -24,11 +24,20 @@ var TaskQueueLogger = log.New(os.Stdout, "[TASKQUEUE] ", log.Ldate|log.Ltime|log
 var TaskQueueLoggerError = log.New(os.Stdout, "[TASKQUEUE] ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
 
 func init() {
+	// try to fetch local config
+	isDevelopmentMode := false
+	config, err := local_config.Fetch()
+	if err == nil {
+		isDevelopmentMode = config.IsDevelopmentMode
+	}
 	// log file path
 	infoLogFilePath := local_config.InfoLogFilePath
 	errorLogFilePath := local_config.ErrorLogFilePath
 	infoLogFile, err := openLogFile(infoLogFilePath)
-	if err != nil {
+	if isDevelopmentMode {
+		log.Println("Using stdout for info logs in development mode")
+		showInfoLogsInStdout()
+	} else if err != nil {
 		log.Println("Failed to open info log file. Using stdout")
 		showInfoLogsInStdout()
 	} else {
@@ -42,7 +51,10 @@ func init() {
 		CronJobLogger.SetOutput(infoLogFile)
 	}
 	errorLogFile, err := openLogFile(errorLogFilePath)
-	if err != nil {
+	if isDevelopmentMode {
+		log.Println("Using stdout for error logs in development mode")
+		showInfoLogsInStdout()
+	} else if err != nil {
 		log.Println("Failed to open error log file. Using stdout")
 		showErrorLogsInStdout()
 
