@@ -80,6 +80,7 @@ var initCmd = &cobra.Command{
 		// generate list of folders to create
 		requiredFolders := []string{
 			newConfig.ServiceConfig.DataDirectory,
+			newConfig.ServiceConfig.TarballDirectoryPath,
 			newConfig.ServiceConfig.LogDirectoryPath,
 			newConfig.ServiceConfig.SSLCertDirectoryPath,
 			newConfig.ServiceConfig.SocketPathDirectory,
