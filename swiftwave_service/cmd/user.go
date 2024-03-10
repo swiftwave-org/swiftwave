@@ -3,14 +3,17 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
+	"golang.org/x/term"
+	"os"
 )
 
 func init() {
 	createUserCmd.Flags().StringP("username", "u", "", "Username")
-	createUserCmd.Flags().StringP("password", "p", "", "Password")
+	createUserCmd.Flags().StringP("password", "p", "", "Password [Optional]")
 	deleteUserCmd.Flags().StringP("username", "u", "", "Username")
 }
 
@@ -30,12 +33,33 @@ var createUserCmd = &cobra.Command{
 			return
 		}
 		if password == "" {
-			printError("Password is required")
-			err := cmd.Help()
+			// Ask for password
+			fmt.Print("Enter password: ")
+			enteredPassword, err := term.ReadPassword(int(os.Stdin.Fd()))
 			if err != nil {
+				printError("Failed to read password")
 				return
 			}
-			return
+			fmt.Println()
+			fmt.Print("Confirm password: ")
+			confirmPassword, err := term.ReadPassword(int(os.Stdin.Fd()))
+			if err != nil {
+				printError("Failed to read password")
+				return
+			}
+			fmt.Println()
+			if string(enteredPassword) != string(confirmPassword) {
+				printError("Passwords do not match")
+				return
+			}
+			password = string(enteredPassword)
+			if password == "" {
+				printError("Password is required")
+				return
+			}
+		} else {
+			color.Yellow("Passing password as a flag is not recommended. It will be visible in the terminal history.")
+			color.Yellow("Use it only for automation purposes")
 		}
 		// Initiating database client
 		dbClient, err := db.GetClient(config.LocalConfig, 1)
@@ -57,7 +81,7 @@ var createUserCmd = &cobra.Command{
 			printError("Failed to create user")
 			return
 		}
-		printSuccess("Created user > username: " + createUser.Username)
+		printSuccess("Created user > " + createUser.Username)
 	},
 }
 

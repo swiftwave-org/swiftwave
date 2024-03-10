@@ -19,6 +19,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/spf13/cobra v1.8.0
 	github.com/vektah/gqlparser/v2 v2.5.11
+	golang.org/x/term v0.18.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.5.6
 	gorm.io/gorm v1.25.7
