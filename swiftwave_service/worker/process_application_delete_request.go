@@ -9,7 +9,7 @@ import (
 	"log"
 )
 
-func (m Manager) DeleteApplication(request DeleteApplicationRequest, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) DeleteApplication(request DeleteApplicationRequest, ctx context.Context, _ context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
 	// fetch the swarm server
 	swarmManager, err := core.FetchSwarmManager(&dbWithoutTx)

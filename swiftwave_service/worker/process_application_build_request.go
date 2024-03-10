@@ -107,7 +107,7 @@ func (m Manager) buildApplicationHelper(request BuildApplicationRequest, ctx con
 	return nil
 }
 
-func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, cancelContext context.CancelFunc, dockerManager *containermanger.Manager) error {
+func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, _ context.CancelFunc, _ *containermanger.Manager) error {
 	// TODO: add support for registry authentication
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "As the upstream type is image, no build is required\n", false)
 	err := deployment.UpdateStatus(ctx, db, core.DeploymentStatusDeployPending)
@@ -128,7 +128,7 @@ func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, db 
 	return err
 }
 
-func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, cancelContext context.CancelFunc, dockerManager *containermanger.Manager) error {
+func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, _ context.CancelFunc, dockerManager *containermanger.Manager) error {
 	gitUsername := ""
 	gitPassword := ""
 
@@ -244,7 +244,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 	}
 }
 
-func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, cancelContext context.CancelFunc, dockerManager *containermanger.Manager) error {
+func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, _ context.CancelFunc, dockerManager *containermanger.Manager) error {
 	// TODO; update tar file path
 	tarballPath := filepath.Join(m.Config.LocalConfig.ServiceConfig.DataDirectory, deployment.SourceCodeCompressedFileName)
 	// Verify file exists

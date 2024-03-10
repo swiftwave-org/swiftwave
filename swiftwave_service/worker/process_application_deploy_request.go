@@ -15,7 +15,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (m Manager) DeployApplication(request DeployApplicationRequest, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) DeployApplication(request DeployApplicationRequest, _ context.Context, _ context.CancelFunc) error {
 	// fetch the swarm server
 	swarmManager, err := core.FetchSwarmManager(&m.ServiceManager.DbClient)
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 	"log"
 )
 
-func (m Manager) RedirectRuleApply(request RedirectRuleApplyRequest, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) RedirectRuleApply(request RedirectRuleApplyRequest, ctx context.Context, _ context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
 	// fetch redirect rule
 	redirectRule := &core.RedirectRule{}

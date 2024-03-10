@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 )
 
-func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, ctx context.Context, _ context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
 	// fetch persistent volume backup
 	var persistentVolumeBackup core.PersistentVolumeBackup
@@ -63,9 +63,10 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 		markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
 		return nil
 	}
+	// TODO: copy it from swarm to management node
 	// upload to s3
 	if persistentVolumeBackup.Type == core.S3Backup {
-		backupFileReader, err := os.Open(backupFilePath)
+		backupFileReader, err := os.Open(backupFilePath) // TODO
 		if err != nil {
 			markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
 			return nil

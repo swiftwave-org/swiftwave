@@ -10,7 +10,7 @@ import (
 	"log"
 )
 
-func (m Manager) RedirectRuleDelete(request RedirectRuleDeleteRequest, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) RedirectRuleDelete(request RedirectRuleDeleteRequest, ctx context.Context, _ context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
 	// fetch redirect rule
 	var redirectRule core.RedirectRule

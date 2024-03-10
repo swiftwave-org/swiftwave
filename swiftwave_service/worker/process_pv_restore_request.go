@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-func (m Manager) PersistentVolumeRestore(request PersistentVolumeRestoreRequest, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) PersistentVolumeRestore(request PersistentVolumeRestoreRequest, ctx context.Context, _ context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
 	// fetch persistent volume restore
 	var persistentVolumeRestore core.PersistentVolumeRestore
@@ -35,6 +35,7 @@ func (m Manager) PersistentVolumeRestore(request PersistentVolumeRestoreRequest,
 	if err != nil {
 		return err
 	}
+	// TODO: move the file to swarm node before restoring
 	// restore backup
 	filePath := filepath.Join(m.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath, persistentVolumeRestore.File)
 	err = dockerManager.RestoreVolume(persistentVolume.Name, filePath)

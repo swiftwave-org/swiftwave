@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func (m Manager) SSLGenerate(request SSLGenerateRequest, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) SSLGenerate(request SSLGenerateRequest, ctx context.Context, _ context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
 	// fetch domain
 	var domain core.Domain

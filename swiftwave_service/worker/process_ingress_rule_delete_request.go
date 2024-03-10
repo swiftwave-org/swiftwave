@@ -6,12 +6,12 @@ import (
 	haproxymanager "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
-	UDP_PROXY "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
+	udpproxy "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
 	"gorm.io/gorm"
 	"log"
 )
 
-func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context.Context, _ context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
 	// restricted ports
 	restrictedPorts := make([]int, 0)
@@ -156,7 +156,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 	// delete ingress rule from udp proxy
 	for _, udpProxyManager := range udpProxyManagers {
 		if ingressRule.Protocol == core.UDPProtocol {
-			err = udpProxyManager.Remove(UDP_PROXY.Proxy{
+			err = udpProxyManager.Remove(udpproxy.Proxy{
 				Port:       int(ingressRule.Port),
 				TargetPort: int(ingressRule.TargetPort),
 				Service:    application.Name,
