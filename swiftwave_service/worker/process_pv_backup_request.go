@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/uploader"
 	"gorm.io/gorm"
 	"log"
@@ -29,7 +30,15 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 	if err != nil {
 		return nil
 	}
-	dockerManager := m.ServiceManager.DockerManager
+	// fetch swarm server
+	server, err := core.FetchSwarmManager(&dbWithoutTx)
+	if err != nil {
+		return err
+	}
+	dockerManager, err := manager.DockerClient(ctx, server)
+	if err != nil {
+		return err
+	}
 	// generate a random filename
 	backupFileName := "backup_" + persistentVolume.Name + "_" + uuid.NewString() + ".tar.gz"
 	var backupFilePath string

@@ -1,6 +1,7 @@
 package haproxymanager
 
 import (
+	"log"
 	"net/url"
 	"strings"
 )
@@ -42,4 +43,13 @@ func (q *QueryParameters) add(key string, value string) {
 // Reference: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#successful_responses
 func isValidStatusCode(statusCode int) bool {
 	return statusCode >= 200 && statusCode < 300
+}
+
+// Close the connection
+func (s Manager) Close() {
+	err := s.netConn.Close()
+	if err != nil {
+		log.Println("Error while closing the connection", err)
+		return
+	}
 }

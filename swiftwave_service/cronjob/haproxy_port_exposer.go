@@ -1,9 +1,11 @@
 package cronjob
 
 import (
+	"context"
 	"fmt"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"log"
 	"os/exec"
 	"reflect"
@@ -11,9 +13,20 @@ import (
 	"time"
 )
 
-// TODO: don't raise error if service not found, just log it
 func (m Manager) HaProxyPortExposer() {
 	for {
+		// Fetch a random swarm manager
+		swarmManagerServer, err := core.FetchSwarmManager(&m.ServiceManager.DbClient)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		// Fetch docker manager
+		dockerManager, err := manager.DockerClient(context.Background(), swarmManagerServer)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
 		// Fetch all ingress rules with only port field
 		var ingressRules []core.IngressRule
 		tx := m.ServiceManager.DbClient.Select("port").Where("port IS NOT NULL").Not("protocol = ?", "udp").Find(&ingressRules)
@@ -30,7 +43,7 @@ func (m Manager) HaProxyPortExposer() {
 		portsMap[80] = true
 		portsMap[443] = true
 		// Check if ports are changed
-		exposedPorts, err := m.ServiceManager.DockerManager.FetchPublishedHostPorts(m.Config.LocalConfig.ServiceConfig.HAProxyServiceName)
+		exposedPorts, err := dockerManager.FetchPublishedHostPorts(m.Config.LocalConfig.ServiceConfig.HAProxyServiceName)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -51,7 +64,7 @@ func (m Manager) HaProxyPortExposer() {
 				})
 			}
 			// Update exposed ports
-			err := m.ServiceManager.DockerManager.UpdatePublishedHostPorts(m.Config.LocalConfig.ServiceConfig.HAProxyServiceName, portsUpdateRequired)
+			err := dockerManager.UpdatePublishedHostPorts(m.Config.LocalConfig.ServiceConfig.HAProxyServiceName, portsUpdateRequired)
 			if err != nil {
 				log.Println(err)
 			} else {

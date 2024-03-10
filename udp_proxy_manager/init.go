@@ -1,5 +1,10 @@
 package udp_proxy_manager
 
-func NewManager(unixSocketPath string) Manager {
-	return Manager{unixSocketPath: unixSocketPath}
+import "net"
+
+// New : Constructor for new instance of udp proxy manager
+func New(conn net.Conn) Manager {
+	return Manager{
+		netConn: conn,
+	}
 }

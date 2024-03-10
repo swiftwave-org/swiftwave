@@ -8,6 +8,8 @@ import (
 
 var DatabaseLogger = log.New(os.Stdout, "[DATABASE] ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
 var DatabaseLoggerError = log.New(os.Stdout, "[DATABASE] ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
+var CronJobLogger = log.New(os.Stdout, "[CRONJOB] ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
+var CronJobLoggerError = log.New(os.Stdout, "[CRONJOB] ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
 var WorkerLogger = log.New(os.Stdout, "[WORKER] ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
 var WorkerLoggerError = log.New(os.Stdout, "[WORKER] ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
 var GraphQLLogger = log.New(os.Stdout, "[GRAPHQL] ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
@@ -37,6 +39,7 @@ func init() {
 		InternalLogger.SetOutput(infoLogFile)
 		PubSubLogger.SetOutput(infoLogFile)
 		TaskQueueLogger.SetOutput(infoLogFile)
+		CronJobLogger.SetOutput(infoLogFile)
 	}
 	errorLogFile, err := openLogFile(errorLogFilePath)
 	if err != nil {
@@ -51,6 +54,7 @@ func init() {
 		InternalLoggerError.SetOutput(errorLogFile)
 		PubSubLoggerError.SetOutput(errorLogFile)
 		TaskQueueLoggerError.SetOutput(errorLogFile)
+		CronJobLoggerError.SetOutput(errorLogFile)
 	}
 }
 
@@ -77,6 +81,7 @@ func showInfoLogsInStdout() {
 	InternalLogger.SetOutput(os.Stdout)
 	PubSubLogger.SetOutput(os.Stdout)
 	TaskQueueLogger.SetOutput(os.Stdout)
+	CronJobLogger.SetOutput(os.Stdout)
 }
 
 func showErrorLogsInStdout() {
@@ -87,4 +92,5 @@ func showErrorLogsInStdout() {
 	InternalLoggerError.SetOutput(os.Stdout)
 	PubSubLoggerError.SetOutput(os.Stdout)
 	TaskQueueLoggerError.SetOutput(os.Stdout)
+	CronJobLoggerError.SetOutput(os.Stdout)
 }

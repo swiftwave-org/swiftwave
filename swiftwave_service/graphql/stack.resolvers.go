@@ -54,9 +54,14 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 	}
 	// fetch all the service names
 	serviceNames := stackFilled.ServiceNames()
+	// fetch docker manager
+	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
 	// check if any service name is existing in database
 	for _, serviceName := range serviceNames {
-		isExist, err := core.IsExistApplicationName(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager, serviceName)
+		isExist, err := core.IsExistApplicationName(ctx, r.ServiceManager.DbClient, *dockerManager, serviceName)
 		if err != nil {
 			return nil, err
 		}
@@ -69,7 +74,7 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 	// check volume names
 	volumeNames := stackFilled.VolumeNames()
 	for _, volumeName := range volumeNames {
-		isExist, err := core.IsExistPersistentVolume(ctx, r.ServiceManager.DbClient, volumeName, r.ServiceManager.DockerManager)
+		isExist, err := core.IsExistPersistentVolume(ctx, r.ServiceManager.DbClient, volumeName, *dockerManager)
 		if err != nil {
 			return nil, err
 		}

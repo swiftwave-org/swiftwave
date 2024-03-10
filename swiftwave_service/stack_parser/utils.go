@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
 	"math/rand"
 	"regexp"
@@ -110,6 +111,16 @@ func (s *Stack) FillAndVerifyVariables(variableMapping *map[string]string, servi
 	}
 	// check if docs is present
 	if stackCopy.Docs != nil {
+		// fetch a swarm manager server
+		server, err := core.FetchSwarmManager(&serviceManager.DbClient)
+		if err != nil {
+			return nil, errors.New("error in fetching swarm manager")
+		}
+		// fetch docker manager
+		dockerManager, err := manager.DockerClient(context.Background(), server)
+		if err != nil {
+			return nil, errors.New("error in connecting to docker manager")
+		}
 		// verify the type of variables
 		for variableKey, variable := range stackCopy.Docs.Variables {
 			// check if variableKey is present in variableMapping
@@ -137,7 +148,7 @@ func (s *Stack) FillAndVerifyVariables(variableMapping *map[string]string, servi
 					}
 				} else if variable.Type == DocsVariableTypeVolume {
 					val := (*variableMapping)[variableKey]
-					isExist, err := core.IsExistPersistentVolume(context.Background(), serviceManager.DbClient, val, serviceManager.DockerManager)
+					isExist, err := core.IsExistPersistentVolume(context.Background(), serviceManager.DbClient, val, *dockerManager)
 					if err != nil {
 						return nil, errors.New("error in checking volume " + val)
 					}
@@ -148,7 +159,7 @@ func (s *Stack) FillAndVerifyVariables(variableMapping *map[string]string, servi
 					// do nothing, just for the sake of completeness
 				} else if variable.Type == DocsVariableTypeApplication {
 					val := (*variableMapping)[variableKey]
-					isExist, err := core.IsExistApplicationName(context.Background(), serviceManager.DbClient, serviceManager.DockerManager, val)
+					isExist, err := core.IsExistApplicationName(context.Background(), serviceManager.DbClient, *dockerManager, val)
 					if err != nil {
 						return nil, errors.New("error in checking application " + val)
 					}

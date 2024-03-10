@@ -6,13 +6,10 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
-	udpproxy "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
 	"os"
 
 	"github.com/go-redis/redis/v8"
-	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	dockerConfigGenerator "github.com/swiftwave-org/swiftwave/docker_config_generator"
-	haproxy "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/pubsub"
 	ssl "github.com/swiftwave-org/swiftwave/ssl_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
@@ -34,7 +31,7 @@ func (manager *ServiceManager) Load(config config.Config) {
 	}
 	manager.DbClient = *dbClient
 
-	// Initiating ssl Manager
+	// Initiating ssl manager
 	options := ssl.ManagerOptions{
 		IsStaging:         config.SystemConfig.LetsEncryptConfig.Staging,
 		Email:             config.SystemConfig.LetsEncryptConfig.EmailID,
@@ -43,27 +40,11 @@ func (manager *ServiceManager) Load(config config.Config) {
 	sslManager := ssl.Manager{}
 	err = sslManager.Init(context.Background(), *dbClient, options)
 	if err != nil {
-		logger.InternalLogger.Println("Failed to initiate ssl Manager")
+		logger.InternalLogger.Println("Failed to initiate ssl manager")
 		logger.InternalLoggerError.Println(err)
 		panic(err)
 	}
 	manager.SslManager = sslManager
-
-	// Initiating haproxy Manager
-	manager.HaproxyManager = haproxy.NewManager(config.SystemConfig.HAProxyConfig.UnixSocketPath, config.SystemConfig.HAProxyConfig.Username, config.SystemConfig.HAProxyConfig.Password)
-
-	// Initiating UDP Proxy Manager
-	udpProxyManager := udpproxy.NewManager(config.SystemConfig.UDPProxyConfig.UnixSocketPath)
-	manager.UDPProxyManager = udpProxyManager
-
-	// Initiating Docker Manager
-	dockerManager, err := containermanger.NewDockerManager()
-	if err != nil {
-		logger.InternalLogger.Println("Failed to initiate Docker Manager")
-		logger.InternalLoggerError.Println(err)
-		panic(err)
-	}
-	manager.DockerManager = *dockerManager
 
 	// Initiating Docker Config Generator
 	dockerConfigGeneratorInstance := dockerConfigGenerator.Manager{}

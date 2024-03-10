@@ -1,9 +1,16 @@
 package graphql
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	dockerconfiggenerator "github.com/swiftwave-org/swiftwave/docker_config_generator"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
+	"gorm.io/gorm"
+	"log"
 	"path/filepath"
 	"strings"
 )
@@ -51,4 +58,20 @@ func sanitizeFileName(fileName string) string {
 	// You can add more sanitization rules as needed
 
 	return fileName
+}
+
+func FetchDockerManager(ctx context.Context, db *gorm.DB) (*containermanger.Manager, error) {
+	// Fetch a random swarm manager
+	swarmManagerServer, err := core.FetchSwarmManager(db)
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New("failed to fetch swarm manager")
+	}
+	// Fetch docker manager
+	dockerManager, err := manager.DockerClient(ctx, swarmManagerServer)
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New("failed to fetch docker manager")
+	}
+	return dockerManager, nil
 }

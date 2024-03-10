@@ -1,10 +1,12 @@
 package haproxymanager
 
-// NewManager : Constructor for HAPROXY Manager
-func NewManager(unixSocketPath string, username string, password string) Manager {
-	m := Manager{}
-	m.unixSocketPath = unixSocketPath
-	m.username = username
-	m.password = password
-	return m
+import "net"
+
+// New : Constructor for new instance of haproxy manager
+func New(con net.Conn, username string, password string) Manager {
+	return Manager{
+		netConn:  con,
+		username: username,
+		password: password,
+	}
 }

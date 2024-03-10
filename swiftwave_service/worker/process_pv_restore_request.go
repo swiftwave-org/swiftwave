@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"gorm.io/gorm"
 	"path/filepath"
 )
@@ -25,7 +26,15 @@ func (m Manager) PersistentVolumeRestore(request PersistentVolumeRestoreRequest,
 	if err != nil {
 		return nil
 	}
-	dockerManager := m.ServiceManager.DockerManager
+	// fetch swarm server
+	server, err := core.FetchSwarmManager(&dbWithoutTx)
+	if err != nil {
+		return err
+	}
+	dockerManager, err := manager.DockerClient(ctx, server)
+	if err != nil {
+		return err
+	}
 	// restore backup
 	filePath := filepath.Join(m.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath, persistentVolumeRestore.File)
 	err = dockerManager.RestoreVolume(persistentVolume.Name, filePath)

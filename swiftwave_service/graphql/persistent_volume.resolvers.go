@@ -14,7 +14,11 @@ import (
 // CreatePersistentVolume is the resolver for the createPersistentVolume field.
 func (r *mutationResolver) CreatePersistentVolume(ctx context.Context, input model.PersistentVolumeInput) (*model.PersistentVolume, error) {
 	record := persistentVolumeInputToDatabaseObject(&input)
-	err := record.Create(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
+	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	err = record.Create(ctx, r.ServiceManager.DbClient, *dockerManager)
 	if err != nil {
 		return nil, err
 	}
@@ -29,8 +33,13 @@ func (r *mutationResolver) DeletePersistentVolume(ctx context.Context, id uint) 
 	if err != nil {
 		return false, err
 	}
+	// fetch docker manager
+	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
+	if err != nil {
+		return false, err
+	}
 	// delete record
-	err = record.Delete(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
+	err = record.Delete(ctx, r.ServiceManager.DbClient, *dockerManager)
 	if err != nil {
 		return false, err
 	}
@@ -113,8 +122,12 @@ func (r *queryResolver) PersistentVolumeSizeMb(ctx context.Context, id uint) (fl
 	if err != nil {
 		return 0, err
 	}
+	// fetch docker manager
+	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
+	if err != nil {
+		return 0, err
+	}
 	// fetch size
-	dockerManager := r.ServiceManager.DockerManager
 	size, err := dockerManager.SizeVolume(record.Name)
 	if err != nil {
 		return 0, err
@@ -124,7 +137,11 @@ func (r *queryResolver) PersistentVolumeSizeMb(ctx context.Context, id uint) (fl
 
 // IsExistPersistentVolume is the resolver for the isExistPersistentVolume field.
 func (r *queryResolver) IsExistPersistentVolume(ctx context.Context, name string) (bool, error) {
-	isExists, err := core.IsExistPersistentVolume(ctx, r.ServiceManager.DbClient, name, r.ServiceManager.DockerManager)
+	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
+	if err != nil {
+		return false, err
+	}
+	isExists, err := core.IsExistPersistentVolume(ctx, r.ServiceManager.DbClient, name, *dockerManager)
 	return isExists, err
 }
 

@@ -6,10 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	dockerconfiggenerator "github.com/swiftwave-org/swiftwave/docker_config_generator"
 	gitmanager "github.com/swiftwave-org/swiftwave/git_manager"
 	"github.com/swiftwave-org/swiftwave/pubsub"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"gorm.io/gorm"
 	"log"
 	"os"
@@ -17,6 +19,16 @@ import (
 )
 
 func (m Manager) BuildApplication(request BuildApplicationRequest, ctx context.Context, cancelContext context.CancelFunc) error {
+	// fetch swarm server
+	swarmServer, err := core.FetchSwarmManager(&m.ServiceManager.DbClient)
+	if err != nil {
+		return err
+	}
+	// fetch docker manager
+	dockerManager, err := manager.DockerClient(context.Background(), swarmServer)
+	if err != nil {
+		return err
+	}
 	isFailed, err := core.IsDeploymentFailed(context.Background(), m.ServiceManager.DbClient, request.DeploymentId)
 	if err == nil {
 		if isFailed {
@@ -46,7 +58,7 @@ func (m Manager) BuildApplication(request BuildApplicationRequest, ctx context.C
 		}
 	}(request.DeploymentId, cancelContext)
 
-	err = m.buildApplicationHelper(request, ctx, cancelContext)
+	err = m.buildApplicationHelper(request, ctx, cancelContext, dockerManager)
 	isHelperExited <- true
 	if err != nil {
 		addDeploymentLog(m.ServiceManager.DbClient, m.ServiceManager.PubSubClient, request.DeploymentId, "Failed to build application\n"+err.Error()+"\n", true)
@@ -63,7 +75,7 @@ func (m Manager) BuildApplication(request BuildApplicationRequest, ctx context.C
 }
 
 // private functions
-func (m Manager) buildApplicationHelper(request BuildApplicationRequest, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) buildApplicationHelper(request BuildApplicationRequest, ctx context.Context, cancelContext context.CancelFunc, dockerManager *containermanger.Manager) error {
 	// database client to work without transaction
 	dbWithoutTx := m.ServiceManager.DbClient
 	// pubSub client
@@ -82,20 +94,20 @@ func (m Manager) buildApplicationHelper(request BuildApplicationRequest, ctx con
 	// #####  FOR IMAGE  ######
 	// build for docker image
 	if deployment.UpstreamType == core.UpstreamTypeImage {
-		return m.buildApplicationForDockerImage(deployment, *db, dbWithoutTx, pubSubClient, ctx, cancelContext)
+		return m.buildApplicationForDockerImage(deployment, *db, dbWithoutTx, pubSubClient, ctx, cancelContext, dockerManager)
 	}
 	// #####  FOR GIT  ######
 	if deployment.UpstreamType == core.UpstreamTypeGit {
-		return m.buildApplicationForGit(deployment, *db, dbWithoutTx, pubSubClient, ctx, cancelContext)
+		return m.buildApplicationForGit(deployment, *db, dbWithoutTx, pubSubClient, ctx, cancelContext, dockerManager)
 	}
 	// #####  FOR SOURCE CODE TARBALL  ######
 	if deployment.UpstreamType == core.UpstreamTypeSourceCode {
-		return m.buildApplicationForTarball(deployment, *db, dbWithoutTx, pubSubClient, ctx, cancelContext)
+		return m.buildApplicationForTarball(deployment, *db, dbWithoutTx, pubSubClient, ctx, cancelContext, dockerManager)
 	}
 	return nil
 }
 
-func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, cancelContext context.CancelFunc, dockerManager *containermanger.Manager) error {
 	// TODO: add support for registry authentication
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "As the upstream type is image, no build is required\n", false)
 	err := deployment.UpdateStatus(ctx, db, core.DeploymentStatusDeployPending)
@@ -116,7 +128,7 @@ func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, db 
 	return err
 }
 
-func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, cancelContext context.CancelFunc, dockerManager *containermanger.Manager) error {
 	gitUsername := ""
 	gitPassword := ""
 
@@ -180,7 +192,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 	}
 
 	// start building docker image
-	scanner, err := m.ServiceManager.DockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.CodePath, deployment.DeployableDockerImageURI())
+	scanner, err := dockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.CodePath, deployment.DeployableDockerImageURI())
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image\n", true)
 		return err
@@ -232,7 +244,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 	}
 }
 
-func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, cancelContext context.CancelFunc, dockerManager *containermanger.Manager) error {
 	// TODO; update tar file path
 	tarballPath := filepath.Join(m.Config.LocalConfig.ServiceConfig.DataDirectory, deployment.SourceCodeCompressedFileName)
 	// Verify file exists
@@ -271,7 +283,7 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm
 	}
 
 	// start building docker image
-	scanner, err := m.ServiceManager.DockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.CodePath, deployment.DeployableDockerImageURI())
+	scanner, err := dockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.CodePath, deployment.DeployableDockerImageURI())
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image\n", true)
 		return err

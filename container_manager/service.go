@@ -10,7 +10,7 @@ import (
 	"io"
 )
 
-// Get Service
+// GetService returns a service
 func (m Manager) GetService(serviceName string) (Service, error) {
 	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
 	if err != nil {

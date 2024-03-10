@@ -45,7 +45,11 @@ func (r *applicationResolver) PersistentVolumeBindings(ctx context.Context, obj 
 
 // RealtimeInfo is the resolver for the realtimeInfo field.
 func (r *applicationResolver) RealtimeInfo(ctx context.Context, obj *model.Application) (*model.RealtimeInfo, error) {
-	info, err := r.ServiceManager.DockerManager.RealtimeInfoService(obj.Name, true)
+	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	info, err := dockerManager.RealtimeInfoService(obj.Name, true)
 	if err != nil {
 		return &model.RealtimeInfo{
 			InfoFound:       false,
@@ -117,7 +121,11 @@ func (r *mutationResolver) CreateApplication(ctx context.Context, input model.Ap
 	// create transaction
 	transaction := r.ServiceManager.DbClient.Begin()
 	// TODO; tarbll directory setup
-	err := record.Create(ctx, *transaction, r.ServiceManager.DockerManager, r.Config.LocalConfig.ServiceConfig.DataDirectory)
+	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
+	err = record.Create(ctx, *transaction, *dockerManager, r.Config.LocalConfig.ServiceConfig.DataDirectory)
 	if err != nil {
 		transaction.Rollback()
 		return nil, err
@@ -170,8 +178,13 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 		databaseObject.LatestDeployment.CommitHash = commitHash
 	}
 
+	// fetch docker manager
+	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
 	// update record
-	result, err := databaseObject.Update(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
+	result, err := databaseObject.Update(ctx, r.ServiceManager.DbClient, *dockerManager)
 	if err != nil {
 		return nil, err
 	} else {
@@ -198,8 +211,13 @@ func (r *mutationResolver) DeleteApplication(ctx context.Context, id string) (bo
 	if err != nil {
 		return false, err
 	}
+	// fetch docker manager
+	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
+	if err != nil {
+		return false, err
+	}
 	// delete record
-	err = record.SoftDelete(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager)
+	err = record.SoftDelete(ctx, r.ServiceManager.DbClient, *dockerManager)
 	if err != nil {
 		return false, err
 	}
@@ -248,8 +266,13 @@ func (r *mutationResolver) RestartApplication(ctx context.Context, id string) (b
 	}
 	// service name
 	serviceName := record.Name
+	// fetch docker manager
+	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
+	if err != nil {
+		return false, err
+	}
 	// restart
-	err = r.ServiceManager.DockerManager.RestartService(serviceName)
+	err = dockerManager.RestartService(serviceName)
 	if err != nil {
 		return false, err
 	}
@@ -364,7 +387,12 @@ func (r *queryResolver) Applications(ctx context.Context) ([]*model.Application,
 
 // IsExistApplicationName is the resolver for the isExistApplicationName field.
 func (r *queryResolver) IsExistApplicationName(ctx context.Context, name string) (bool, error) {
-	return core.IsExistApplicationName(ctx, r.ServiceManager.DbClient, r.ServiceManager.DockerManager, name)
+	// fetch docker manager
+	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
+	if err != nil {
+		return false, err
+	}
+	return core.IsExistApplicationName(ctx, r.ServiceManager.DbClient, *dockerManager, name)
 }
 
 // Application returns ApplicationResolver implementation.

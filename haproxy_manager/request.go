@@ -31,7 +31,7 @@ func (s Manager) getRequest(route string, queryParams QueryParameters) (*http.Re
 	client := &http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", s.unixSocketPath)
+				return s.netConn, nil
 			},
 		},
 	}
@@ -52,7 +52,7 @@ func (s Manager) deleteRequest(route string, queryParams QueryParameters) (*http
 	client := &http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", s.unixSocketPath)
+				return s.netConn, nil
 			},
 		},
 	}
@@ -74,7 +74,7 @@ func (s Manager) postRequest(route string, queryParams QueryParameters, body io.
 	client := &http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", s.unixSocketPath)
+				return s.netConn, nil
 			},
 		},
 	}
@@ -96,7 +96,7 @@ func (s Manager) putRequest(route string, queryParams QueryParameters, body io.R
 	client := &http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", s.unixSocketPath)
+				return s.netConn, nil
 			},
 		},
 	}
@@ -138,7 +138,7 @@ func (s Manager) uploadSSL(route string, domain string, file io.Reader) (*http.R
 	client := &http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", s.unixSocketPath)
+				return s.netConn, nil
 			},
 		},
 	}
@@ -170,7 +170,7 @@ func (s Manager) replaceSSL(route string, domain string, file io.Reader) (*http.
 	client := &http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", s.unixSocketPath)
+				return s.netConn, nil
 			},
 		},
 	}

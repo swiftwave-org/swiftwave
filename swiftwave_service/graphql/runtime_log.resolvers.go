@@ -23,8 +23,13 @@ func (r *subscriptionResolver) FetchRuntimeLog(ctx context.Context, applicationI
 	if err != nil {
 		return nil, err
 	}
+	// fetch docker manager
+	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
+	if err != nil {
+		return nil, err
+	}
 	// fetch runtime logs
-	logsReader, err := r.ServiceManager.DockerManager.LogsService(application.Name)
+	logsReader, err := dockerManager.LogsService(application.Name)
 	if err != nil {
 		return nil, err
 	}

@@ -7,6 +7,7 @@ import (
 )
 
 /*
+CreateNetwork
 Create a new network with the given name
 It will create an overlay network with the given name and allow to attach containers to it
 */
@@ -21,7 +22,7 @@ func (m Manager) CreateNetwork(name string) error {
 	return nil
 }
 
-// Delete a network
+// RemoveNetwork Delete a network
 func (m Manager) RemoveNetwork(name string) error {
 	err := m.client.NetworkRemove(m.ctx, name)
 	if err != nil {
@@ -30,13 +31,13 @@ func (m Manager) RemoveNetwork(name string) error {
 	return nil
 }
 
-// Check if a network exists
+// ExistsNetwork Check if a network exists
 func (m Manager) ExistsNetwork(name string) bool {
 	_, err := m.client.NetworkInspect(m.ctx, name, types.NetworkInspectOptions{})
 	return err == nil
 }
 
-// Fetch CIDR of a network
+// CIDRNetwork Fetch CIDR of a network
 func (m Manager) CIDRNetwork(name string) (string, error) {
 	network, err := m.client.NetworkInspect(m.ctx, name, types.NetworkInspectOptions{})
 	if err != nil {
@@ -45,7 +46,7 @@ func (m Manager) CIDRNetwork(name string) (string, error) {
 	return network.IPAM.Config[0].Subnet, nil
 }
 
-// Fetch gateway of a network
+// GatewayNetwork Fetch gateway of a network
 func (m Manager) GatewayNetwork(name string) (string, error) {
 	network, err := m.client.NetworkInspect(m.ctx, name, types.NetworkInspectOptions{})
 	if err != nil {

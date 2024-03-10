@@ -65,7 +65,7 @@ func (m Manager) FetchVolumes() ([]string, error) {
 	if err != nil {
 		return nil, errors.New("error fetching volumes " + err.Error())
 	}
-	var volumeNames []string = make([]string, len(volumes.Volumes))
+	var volumeNames = make([]string, len(volumes.Volumes))
 	for i, v := range volumes.Volumes {
 		volumeNames[i] = v.Name
 	}

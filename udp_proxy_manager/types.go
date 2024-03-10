@@ -1,7 +1,9 @@
 package udp_proxy_manager
 
+import "net"
+
 type Manager struct {
-	unixSocketPath string
+	netConn net.Conn
 }
 
 type Proxy struct {

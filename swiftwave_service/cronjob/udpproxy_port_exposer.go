@@ -1,16 +1,29 @@
 package cronjob
 
 import (
+	"context"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"log"
 	"reflect"
 	"time"
 )
 
-// TODO: dont raise error if service not found, just log it
 func (m Manager) UDPProxyPortExposer() {
 	for {
+		// Fetch a random swarm manager
+		swarmManagerServer, err := core.FetchSwarmManager(&m.ServiceManager.DbClient)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		// Fetch docker manager
+		dockerManager, err := manager.DockerClient(context.Background(), swarmManagerServer)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
 		// Fetch all ingress rules with only port field
 		var ingressRules []core.IngressRule
 		tx := m.ServiceManager.DbClient.Select("port").Where("port IS NOT NULL").Where("protocol = ?", "udp").Find(&ingressRules)
@@ -24,7 +37,7 @@ func (m Manager) UDPProxyPortExposer() {
 			portsMap[int(ingressRule.Port)] = true
 		}
 		// Check if ports are changed
-		exposedPorts, err := m.ServiceManager.DockerManager.FetchPublishedHostPorts(m.Config.LocalConfig.ServiceConfig.UDPProxyServiceName)
+		exposedPorts, err := dockerManager.FetchPublishedHostPorts(m.Config.LocalConfig.ServiceConfig.UDPProxyServiceName)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -45,7 +58,7 @@ func (m Manager) UDPProxyPortExposer() {
 				})
 			}
 			// Update exposed ports
-			err := m.ServiceManager.DockerManager.UpdatePublishedHostPorts(m.Config.LocalConfig.ServiceConfig.UDPProxyServiceName, portsUpdateRequired)
+			err := dockerManager.UpdatePublishedHostPorts(m.Config.LocalConfig.ServiceConfig.UDPProxyServiceName, portsUpdateRequired)
 			if err != nil {
 				log.Println(err)
 			} else {

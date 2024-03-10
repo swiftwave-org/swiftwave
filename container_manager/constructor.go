@@ -2,27 +2,28 @@ package containermanger
 
 import (
 	"context"
-
 	"github.com/docker/docker/client"
+	"net"
+	"net/http"
 )
 
-func NewDockerManager() (*Manager, error) {
-	unixSocketPath := "/var/run/docker.sock" // TODO: Read from config
+// New creates a new container manager
+func New(ctx context.Context, conn net.Conn) (*Manager, error) {
 	manager := &Manager{}
-	c, err := client.NewClientWithOpts(client.WithHost("unix://"+unixSocketPath), client.WithAPIVersionNegotiation())
+	c, err := client.NewClientWithOpts(
+		client.WithAPIVersionNegotiation(),
+		client.WithHTTPClient(&http.Client{
+			Transport: &http.Transport{
+				DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+					return conn, nil
+				},
+			},
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}
-	err = manager.init(context.Background(), *c)
-	if err != nil {
-		return nil, err
-	}
+	manager.ctx = ctx
+	manager.client = c
 	return manager, nil
-}
-
-// init: Initializes the container manager with the given context and docker client.
-func (m *Manager) init(ctx context.Context, client client.Client) error {
-	m.ctx = ctx
-	m.client = &client
-	return nil
 }

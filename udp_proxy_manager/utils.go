@@ -3,6 +3,7 @@ package udp_proxy_manager
 import (
 	"context"
 	"io"
+	"log"
 	"net"
 	"net/http"
 	"strings"
@@ -26,7 +27,7 @@ func (m Manager) getRequest(route string) (*http.Response, error) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", m.unixSocketPath)
+				return m.netConn, nil
 			},
 		},
 	}
@@ -47,16 +48,25 @@ func (m Manager) postRequest(route string, body io.Reader) (*http.Response, erro
 	client := &http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", m.unixSocketPath)
+				return m.netConn, nil
 			},
 		},
 	}
 	return client.Do(req)
 }
 
-/*
-This function is used to check if a port is restricted or not for application.
+// Close : Close the connection
+func (m Manager) Close() {
+	err := m.netConn.Close()
+	if err != nil {
+		log.Println("Error while closing the connection", err)
+	}
+}
 
+/*
+IsPortRestrictedForManualConfig
+
+This function is used to check if a port is restricted or not for application.
 There are some ports that are restricted.
 because those port are pre-occupied by Swarm services or other required services.
 So, binding to those ports will cause errors.
