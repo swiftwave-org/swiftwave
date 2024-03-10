@@ -49,22 +49,7 @@ func (m Manager) RedirectRuleDelete(request RedirectRuleDeleteRequest, ctx conte
 	// map of server ip and transaction id
 	transactionIdMap := make(map[*haproxymanager.Manager]string)
 	isFailed := false
-	defer func() {
-		for haproxyManager, haproxyTransactionId := range transactionIdMap {
-			if !isFailed {
-				// commit the haproxy transaction
-				err = haproxyManager.CommitTransaction(haproxyTransactionId)
-			}
-			if isFailed || err != nil {
-				log.Println("failed to commit haproxy transaction", err)
-				err := haproxyManager.DeleteTransaction(haproxyTransactionId)
-				if err != nil {
-					log.Println("failed to rollback haproxy transaction", err)
-				}
-			}
-		}
-		manager.KillAllHAProxyConnections(haproxyManagers)
-	}()
+
 	// create new haproxy transaction
 	for _, haproxyManager := range haproxyManagers {
 		haproxyTransactionId, err := haproxyManager.FetchNewTransactionId()
@@ -88,14 +73,23 @@ func (m Manager) RedirectRuleDelete(request RedirectRuleDeleteRequest, ctx conte
 			// requeue required as it fault of haproxy and may be resolved in next try
 			return err
 		}
-		// commit haproxy transaction
-		err = haproxyManager.CommitTransaction(haproxyTransactionId)
-		if err != nil {
-			isFailed = true
-			// requeue required as it fault of haproxy and may be resolved in next try
-			return err
+	}
+
+	for haproxyManager, haproxyTransactionId := range transactionIdMap {
+		if !isFailed {
+			// commit the haproxy transaction
+			err = haproxyManager.CommitTransaction(haproxyTransactionId)
+		}
+		if isFailed || err != nil {
+			log.Println("failed to commit haproxy transaction", err)
+			err := haproxyManager.DeleteTransaction(haproxyTransactionId)
+			if err != nil {
+				log.Println("failed to rollback haproxy transaction", err)
+			}
 		}
 	}
+	manager.KillAllHAProxyConnections(haproxyManagers)
+
 	// delete redirect rule from database
 	err = redirectRule.Delete(ctx, dbWithoutTx, true)
 	if err != nil {

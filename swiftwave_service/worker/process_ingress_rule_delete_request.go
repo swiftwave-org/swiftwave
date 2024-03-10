@@ -75,23 +75,6 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 	// map of server ip and transaction id
 	transactionIdMap := make(map[*haproxymanager.Manager]string)
 	isFailed := false
-	defer func() {
-		for haproxyManager, haproxyTransactionId := range transactionIdMap {
-			if !isFailed {
-				// commit the haproxy transaction
-				err = haproxyManager.CommitTransaction(haproxyTransactionId)
-			}
-			if isFailed || err != nil {
-				log.Println("failed to commit haproxy transaction", err)
-				err := haproxyManager.DeleteTransaction(haproxyTransactionId)
-				if err != nil {
-					log.Println("failed to rollback haproxy transaction", err)
-				}
-			}
-		}
-		manager.KillAllHAProxyConnections(haproxyManagers)
-		manager.KillAllUDPProxyConnections(udpProxyManagers)
-	}()
 
 	for _, haproxyManager := range haproxyManagers {
 		// generate backend name
@@ -186,6 +169,22 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			}
 		}
 	}
+
+	for haproxyManager, haproxyTransactionId := range transactionIdMap {
+		if !isFailed {
+			// commit the haproxy transaction
+			err = haproxyManager.CommitTransaction(haproxyTransactionId)
+		}
+		if isFailed || err != nil {
+			log.Println("failed to commit haproxy transaction", err)
+			err := haproxyManager.DeleteTransaction(haproxyTransactionId)
+			if err != nil {
+				log.Println("failed to rollback haproxy transaction", err)
+			}
+		}
+	}
+	manager.KillAllHAProxyConnections(haproxyManagers)
+	manager.KillAllUDPProxyConnections(udpProxyManagers)
 
 	// delete ingress rule from database
 	err = ingressRule.Delete(ctx, dbWithoutTx, true)

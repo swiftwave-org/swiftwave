@@ -269,24 +269,6 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 			// map of server ip and transaction id
 			transactionIdMap := make(map[*haproxymanager.Manager]string)
 			isFailed := false
-			defer func() {
-				for haproxyManager, haproxyTransactionId := range transactionIdMap {
-					if !isFailed {
-						// commit the haproxy transaction
-						err = haproxyManager.CommitTransaction(haproxyTransactionId)
-					}
-					if isFailed || err != nil {
-						log.Println("failed to commit haproxy transaction", err)
-						addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to commit haproxy transaction\n", false)
-						err := haproxyManager.DeleteTransaction(haproxyTransactionId)
-						if err != nil {
-							log.Println("failed to rollback haproxy transaction", err)
-							addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to rollback haproxy transaction\n", false)
-						}
-					}
-				}
-				manager.KillAllHAProxyConnections(haproxyManagers)
-			}()
 
 			for _, haproxyManager := range haproxyManagers {
 				// create new haproxy transaction
@@ -329,6 +311,23 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 					}
 				}
 			}
+
+			for haproxyManager, haproxyTransactionId := range transactionIdMap {
+				if !isFailed {
+					// commit the haproxy transaction
+					err = haproxyManager.CommitTransaction(haproxyTransactionId)
+				}
+				if isFailed || err != nil {
+					log.Println("failed to commit haproxy transaction", err)
+					addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to commit haproxy transaction\n", false)
+					err := haproxyManager.DeleteTransaction(haproxyTransactionId)
+					if err != nil {
+						log.Println("failed to rollback haproxy transaction", err)
+						addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to rollback haproxy transaction\n", false)
+					}
+				}
+			}
+			manager.KillAllHAProxyConnections(haproxyManagers)
 		} else {
 			log.Println("failed to update replica count", err)
 			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update replica count\n", false)
