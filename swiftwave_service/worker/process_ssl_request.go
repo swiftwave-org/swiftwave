@@ -95,6 +95,7 @@ func (m Manager) SSLGenerate(request SSLGenerateRequest, ctx context.Context, _ 
 		// upload certificate to haproxy
 		err = haproxyManager.UpdateSSL(transactionId, domain.Name, []byte(domain.SSLPrivateKey), []byte(domain.SSLFullChain))
 		if err != nil {
+			//nolint:ineffassign
 			isFailed = true
 			return err
 		}

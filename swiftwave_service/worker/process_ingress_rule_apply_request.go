@@ -66,7 +66,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 	}
 	// map of server ip and transaction id
 	transactionIdMap := make(map[*haproxymanager.Manager]string)
-	isFailed := false
+	var isFailed bool
 
 	for _, haproxyManager := range haproxyManagers {
 		// create new haproxy transaction
@@ -82,6 +82,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 		// add backend
 		_, err = haproxyManager.AddBackend(haproxyTransactionId, application.Name, int(ingressRule.TargetPort), int(application.Replicas))
 		if err != nil {
+			//nolint:ineffassign
 			isFailed = true
 			// set status as failed and exit
 			_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
@@ -92,6 +93,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 		if ingressRule.Protocol == core.HTTPSProtocol {
 			err = haproxyManager.AddHTTPSLink(haproxyTransactionId, backendName, domain.Name)
 			if err != nil {
+				//nolint:ineffassign
 				isFailed = true
 				// set status as failed and exit
 				_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
@@ -103,6 +105,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 			if ingressRule.Port == 80 {
 				err = haproxyManager.AddHTTPLink(haproxyTransactionId, backendName, domain.Name)
 				if err != nil {
+					//nolint:ineffassign
 					isFailed = true
 					// set status as failed and exit
 					_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
@@ -113,6 +116,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 				// for other ports, use custom frontend
 				err = haproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, haproxymanager.HTTPMode, restrictedPorts)
 				if err != nil {
+					//nolint:ineffassign
 					isFailed = true
 					// set status as failed and exit
 					_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
@@ -123,6 +127,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 		} else if ingressRule.Protocol == core.TCPProtocol {
 			err = haproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), "", haproxymanager.TCPMode, restrictedPorts)
 			if err != nil {
+				//nolint:ineffassign
 				isFailed = true
 				// set status as failed and exit
 				_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
@@ -132,6 +137,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 		} else if ingressRule.Protocol == core.UDPProtocol {
 			// will be handled by udp proxy
 		} else {
+			//nolint:ineffassign
 			isFailed = true
 			// set status as failed and exit
 			_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
@@ -148,6 +154,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 				Service:    application.Name,
 			}, restrictedPorts)
 			if err != nil {
+				//nolint:ineffassign
 				isFailed = true
 				// set status as failed and exit
 				_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)

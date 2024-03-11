@@ -64,6 +64,7 @@ func (m Manager) RedirectRuleApply(request RedirectRuleApplyRequest, ctx context
 		if err != nil {
 			// set status as failed and exit
 			_ = redirectRule.UpdateStatus(ctx, dbWithoutTx, core.RedirectRuleStatusFailed)
+			//nolint:ineffassign
 			isFailed = true
 			// no requeue
 			return nil
@@ -73,6 +74,7 @@ func (m Manager) RedirectRuleApply(request RedirectRuleApplyRequest, ctx context
 		if err != nil {
 			// set status as failed and exit
 			_ = redirectRule.UpdateStatus(ctx, dbWithoutTx, core.RedirectRuleStatusFailed)
+			//nolint:ineffassign
 			isFailed = true
 			// no requeue
 			return nil

@@ -69,6 +69,7 @@ func (m Manager) RedirectRuleDelete(request RedirectRuleDeleteRequest, ctx conte
 		if err != nil {
 			// set status as failed and exit
 			// because `DeleteHTTPRedirectRule` can fail only if haproxy not working
+			//nolint:ineffassign
 			isFailed = true
 			// requeue required as it fault of haproxy and may be resolved in next try
 			return err

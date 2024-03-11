@@ -91,6 +91,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			if err != nil {
 				// set status as failed and exit
 				// because `DeleteHTTPSLink` can fail only if haproxy not working
+				//nolint:ineffassign
 				isFailed = true
 				// requeue required as it fault of haproxy and may be resolved in next try
 				return err
@@ -101,6 +102,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 				if err != nil {
 					// set status as failed and exit
 					// because `DeleteHTTPLink` can fail only if haproxy not working
+					//nolint:ineffassign
 					isFailed = true
 					// requeue required as it fault of haproxy and may be resolved in next try
 					return err
@@ -110,6 +112,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 				if err != nil {
 					// set status as failed and exit
 					// because `DeleteTCPLink` can fail only if haproxy not working
+					//nolint:ineffassign
 					isFailed = true
 					// requeue required as it fault of haproxy and may be resolved in next try
 					return err
@@ -120,6 +123,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			if err != nil {
 				// set status as failed and exit
 				// because `DeleteTCPLink` can fail only if haproxy not working
+				//nolint:ineffassign
 				isFailed = true
 				// requeue required as it fault of haproxy and may be resolved in next try
 				return err
@@ -128,6 +132,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			// leave it for udp proxy
 		} else {
 			// unknown protocol
+			//nolint:ineffassign
 			isFailed = true
 			return nil
 		}
@@ -146,6 +151,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			if err != nil {
 				// set status as failed and exit
 				// because `DeleteBackend` can fail only if haproxy not working
+				//nolint:ineffassign
 				isFailed = true
 				// requeue required as it fault of haproxy and may be resolved in next try
 				return err
@@ -163,6 +169,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			})
 			if err != nil {
 				// set status as failed and exit
+				//nolint:ineffassign
 				isFailed = true
 				// requeue required as it fault of udp proxy and may be resolved in next try
 				return err
