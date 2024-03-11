@@ -30,6 +30,8 @@ func (m Manager) Start(nowait bool) {
 	go m.CleanupUnusedImages()
 	m.wg.Add(1)
 	go m.SyncProxy()
+	m.wg.Add(1)
+	go m.SyncBackupProxyServer()
 	if !nowait {
 		m.wg.Wait()
 	}
