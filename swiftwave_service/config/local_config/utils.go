@@ -94,12 +94,16 @@ func FillDefaults(config *Config) error {
 	}
 	config.ServiceConfig.SocketPathDirectory = defaultSocketPathDirectory
 	config.ServiceConfig.DataDirectory = defaultDataDirectory
+	config.ServiceConfig.LocalPostgresDataDirectory = defaultLocalPostgresDataDirectory
 	config.ServiceConfig.TarballDirectoryPath = defaultTarballDirectoryPath
 	config.ServiceConfig.NetworkName = defaultNetworkName
 	config.ServiceConfig.HAProxyServiceName = defaultHAProxyServiceName
+	config.ServiceConfig.HAProxyUnixSocketDirectory = defaultHAProxyUnixSocketDirectory
 	config.ServiceConfig.HAProxyUnixSocketPath = defaultHAProxyUnixSocketPath
 	config.ServiceConfig.HAProxyDataDirectoryPath = defaultHAProxyDataDirectoryPath
 	config.ServiceConfig.UDPProxyServiceName = defaultUDPProxyServiceName
+	config.ServiceConfig.UDPProxyUnixSocketDirectory = defaultUDPProxyUnixSocketDirectory
+	config.ServiceConfig.UDPProxyUnixSocketPath = defaultUDPProxyUnixSocketPath
 	config.ServiceConfig.UDPProxyDataDirectoryPath = defaultUDPProxyDataDirectoryPath
 	config.ServiceConfig.SSLCertDirectoryPath = defaultSSLCertDirectoryPath
 	config.ServiceConfig.LogDirectoryPath = LogDirectoryPath

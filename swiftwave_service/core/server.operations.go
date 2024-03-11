@@ -59,6 +59,14 @@ func FetchSwarmManager(db *gorm.DB) (Server, error) {
 	return server, err
 }
 
+// FetchSwarmManagerExceptServer fetches the swarm manager from the database except the given server
+func FetchSwarmManagerExceptServer(db *gorm.DB, serverId uint) (Server, error) {
+	var swarmManager Server
+	err := db.Where("status = ?", ServerOnline).Where("swarm_mode = ?", SwarmManager).Where("id != ?", serverId).Order("RANDOM()").First(&swarmManager).Error
+	return swarmManager, err
+
+}
+
 // FetchProxyActiveServers fetches all active servers from the database
 func FetchProxyActiveServers(db *gorm.DB) ([]Server, error) {
 	var servers []Server

@@ -80,12 +80,16 @@ var initCmd = &cobra.Command{
 		// generate list of folders to create
 		requiredFolders := []string{
 			newConfig.ServiceConfig.DataDirectory,
+			newConfig.ServiceConfig.SocketPathDirectory,
 			newConfig.ServiceConfig.TarballDirectoryPath,
 			newConfig.ServiceConfig.LogDirectoryPath,
+			newConfig.ServiceConfig.PVBackupDirectoryPath,
 			newConfig.ServiceConfig.SSLCertDirectoryPath,
-			newConfig.ServiceConfig.SocketPathDirectory,
 			newConfig.ServiceConfig.HAProxyDataDirectoryPath,
+			newConfig.ServiceConfig.HAProxyUnixSocketDirectory,
 			newConfig.ServiceConfig.UDPProxyDataDirectoryPath,
+			newConfig.ServiceConfig.UDPProxyUnixSocketDirectory,
+			newConfig.ServiceConfig.LocalPostgresDataDirectory,
 		}
 		// create folders
 		for _, folder := range requiredFolders {

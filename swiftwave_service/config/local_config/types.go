@@ -7,24 +7,28 @@ type Config struct {
 }
 
 type ServiceConfig struct {
-	UseTLS                    bool   `yaml:"use_tls"`
-	ManagementNodeAddress     string `yaml:"management_node_address"`
-	BindAddress               string `yaml:"bind_address"`
-	BindPort                  int    `yaml:"bind_port"`
-	SocketPathDirectory       string `yaml:"-"`
-	DataDirectory             string `yaml:"-"`
-	TarballDirectoryPath      string `yaml:"-"`
-	PVBackupDirectoryPath     string `yaml:"-"`
-	NetworkName               string `yaml:"-"`
-	HAProxyServiceName        string `yaml:"-"`
-	HAProxyUnixSocketPath     string `yaml:"-"`
-	HAProxyDataDirectoryPath  string `yaml:"-"`
-	UDPProxyServiceName       string `yaml:"-"`
-	UDPProxyDataDirectoryPath string `yaml:"-"`
-	SSLCertDirectoryPath      string `yaml:"-"`
-	LogDirectoryPath          string `yaml:"-"`
-	InfoLogFilePath           string `yaml:"-"`
-	ErrorLogFilePath          string `yaml:"-"`
+	UseTLS                      bool   `yaml:"use_tls"`
+	ManagementNodeAddress       string `yaml:"management_node_address"`
+	BindAddress                 string `yaml:"bind_address"`
+	BindPort                    int    `yaml:"bind_port"`
+	SocketPathDirectory         string `yaml:"-"`
+	DataDirectory               string `yaml:"-"`
+	LocalPostgresDataDirectory  string `yaml:"-"`
+	TarballDirectoryPath        string `yaml:"-"`
+	PVBackupDirectoryPath       string `yaml:"-"`
+	NetworkName                 string `yaml:"-"`
+	HAProxyServiceName          string `yaml:"-"`
+	HAProxyUnixSocketDirectory  string `yaml:"-"`
+	HAProxyUnixSocketPath       string `yaml:"-"`
+	HAProxyDataDirectoryPath    string `yaml:"-"`
+	UDPProxyServiceName         string `yaml:"-"`
+	UDPProxyUnixSocketDirectory string `yaml:"-"`
+	UDPProxyUnixSocketPath      string `yaml:"-"`
+	UDPProxyDataDirectoryPath   string `yaml:"-"`
+	SSLCertDirectoryPath        string `yaml:"-"`
+	LogDirectoryPath            string `yaml:"-"`
+	InfoLogFilePath             string `yaml:"-"`
+	ErrorLogFilePath            string `yaml:"-"`
 }
 
 type PostgresqlConfig struct {

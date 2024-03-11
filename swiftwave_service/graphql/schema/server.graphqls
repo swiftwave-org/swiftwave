@@ -55,4 +55,8 @@ extend type Mutation {
     checkDependenciesOnServer(id: Uint!): [Dependency!]
     installDependenciesOnServer(id: Uint!): Boolean!
     setupServer(input: ServerSetupInput!): Boolean!
+    promoteServerToManager(id: Uint!): Boolean!
+    demoteServerToWorker(id: Uint!): Boolean!
+    restrictDeploymentOnServer(id: Uint!): Boolean!
+    allowDeploymentOnServer(id: Uint!): Boolean!
 }

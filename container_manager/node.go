@@ -9,6 +9,7 @@ import (
 func (m Manager) InitializeAsManager() error {
 	_, err := m.client.SwarmInit(m.ctx, swarm.InitRequest{
 		ForceNewCluster: true,
+		ListenAddr:      "0.0.0.0:2377",
 	})
 	return err
 }
@@ -17,6 +18,7 @@ func (m Manager) InitializeAsManager() error {
 func (m Manager) JoinSwarm(address string, token string) error {
 	return m.client.SwarmJoin(m.ctx, swarm.JoinRequest{
 		JoinToken:   token,
+		ListenAddr:  "0.0.0.0:2377",
 		RemoteAddrs: []string{address},
 	})
 }
@@ -88,33 +90,23 @@ func (m Manager) MarkNodeAsDrained(hostname string) error {
 }
 
 // GenerateManagerJoinToken generates a manager join token
-func (m Manager) GenerateManagerJoinToken() (token string, address string, err error) {
+func (m Manager) GenerateManagerJoinToken() (token string, err error) {
 	// fetch swarm info
 	info, err := m.client.SwarmInspect(m.ctx)
 	if err != nil {
-		return "", "", err
-	}
-	// fetch node
-	node, _, err := m.client.NodeInspectWithRaw(m.ctx, info.JoinTokens.Manager)
-	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	// return token and address
-	return info.JoinTokens.Manager, node.ManagerStatus.Addr, nil
+	return info.JoinTokens.Manager, nil
 }
 
 // GenerateWorkerJoinToken generates a worker join token
-func (m Manager) GenerateWorkerJoinToken() (token string, address string, err error) {
+func (m Manager) GenerateWorkerJoinToken() (token string, err error) {
 	// fetch swarm info
 	info, err := m.client.SwarmInspect(m.ctx)
 	if err != nil {
-		return "", "", err
-	}
-	// fetch node
-	node, _, err := m.client.NodeInspectWithRaw(m.ctx, info.JoinTokens.Worker)
-	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	// return token and address
-	return info.JoinTokens.Worker, node.ManagerStatus.Addr, nil
+	return info.JoinTokens.Worker, nil
 }

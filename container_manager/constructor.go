@@ -27,3 +27,8 @@ func New(ctx context.Context, conn net.Conn) (*Manager, error) {
 	manager.client = c
 	return manager, nil
 }
+
+// Close closes the manager
+func (m Manager) Close() error {
+	return m.client.Close()
+}

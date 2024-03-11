@@ -8,11 +8,14 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"net"
 	"strings"
 
+	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 )
 
 // CreateServer is the resolver for the createServer field.
@@ -181,6 +184,166 @@ func (r *mutationResolver) SetupServer(ctx context.Context, input model.ServerSe
 		return false, err
 	}
 	return true, nil
+}
+
+// PromoteServerToManager is the resolver for the promoteServerToManager field.
+func (r *mutationResolver) PromoteServerToManager(ctx context.Context, id uint) (bool, error) {
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	if server.Status != core.ServerOnline {
+		return false, errors.New("server is not online")
+	}
+	// Fetch any swarm manager
+	swarmManagerServer, err := core.FetchSwarmManagerExceptServer(&r.ServiceManager.DbClient, server.ID)
+	if err != nil {
+		return false, errors.New("no manager found")
+	}
+	// If there is any swarm manager, then promote this server to manager
+	// Fetch net.Conn to the swarm manager
+	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, 22, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey, 30)
+	if err != nil {
+		return false, err
+	}
+	defer func(conn net.Conn) {
+		err := conn.Close()
+		if err != nil {
+			logger.GraphQLLoggerError.Println(err.Error())
+		}
+	}(conn)
+	// Promote this server to manager
+	manager, err := containermanger.New(ctx, conn)
+	if err != nil {
+		return false, err
+	}
+	err = manager.PromoteToManager(server.HostName)
+	if err != nil {
+		return false, err
+	}
+	server.SwarmMode = core.SwarmManager
+	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
+	return err == nil, err
+}
+
+// DemoteServerToWorker is the resolver for the demoteServerToWorker field.
+func (r *mutationResolver) DemoteServerToWorker(ctx context.Context, id uint) (bool, error) {
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	if server.Status != core.ServerOnline {
+		return false, errors.New("server is not online")
+	}
+	// Fetch any swarm manager
+	swarmManagerServer, err := core.FetchSwarmManagerExceptServer(&r.ServiceManager.DbClient, server.ID)
+	if err != nil {
+		return false, errors.New("no manager found")
+	}
+	// If there is any swarm manager, then promote this server to manager
+	// Fetch net.Conn to the swarm manager
+	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, 22, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey, 30)
+	if err != nil {
+		return false, err
+	}
+	defer func(conn net.Conn) {
+		err := conn.Close()
+		if err != nil {
+			logger.GraphQLLoggerError.Println(err.Error())
+		}
+	}(conn)
+	// Promote this server to manager
+	manager, err := containermanger.New(ctx, conn)
+	if err != nil {
+		return false, err
+	}
+	err = manager.DemoteToWorker(server.HostName)
+	if err != nil {
+		return false, err
+	}
+	server.SwarmMode = core.SwarmWorker
+	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
+	return err == nil, err
+}
+
+// RestrictDeploymentOnServer is the resolver for the restrictDeploymentOnServer field.
+func (r *mutationResolver) RestrictDeploymentOnServer(ctx context.Context, id uint) (bool, error) {
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	if server.Status != core.ServerOnline {
+		return false, errors.New("server is not online")
+	}
+	// Fetch any swarm manager
+	swarmManagerServer, err := core.FetchSwarmManagerExceptServer(&r.ServiceManager.DbClient, server.ID)
+	if err != nil {
+		return false, errors.New("no manager found")
+	}
+	// If there is any swarm manager, then promote this server to manager
+	// Fetch net.Conn to the swarm manager
+	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, 22, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey, 30)
+	if err != nil {
+		return false, err
+	}
+	defer func(conn net.Conn) {
+		err := conn.Close()
+		if err != nil {
+			logger.GraphQLLoggerError.Println(err.Error())
+		}
+	}(conn)
+	// Promote this server to manager
+	manager, err := containermanger.New(ctx, conn)
+	if err != nil {
+		return false, err
+	}
+	err = manager.MarkNodeAsDrained(server.HostName)
+	if err != nil {
+		return false, err
+	}
+	server.ScheduleDeployments = false
+	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
+	return err == nil, err
+}
+
+// AllowDeploymentOnServer is the resolver for the allowDeploymentOnServer field.
+func (r *mutationResolver) AllowDeploymentOnServer(ctx context.Context, id uint) (bool, error) {
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	if server.Status != core.ServerOnline {
+		return false, errors.New("server is not online")
+	}
+	// Fetch any swarm manager
+	swarmManagerServer, err := core.FetchSwarmManagerExceptServer(&r.ServiceManager.DbClient, server.ID)
+	if err != nil {
+		return false, errors.New("no manager found")
+	}
+	// If there is any swarm manager, then promote this server to manager
+	// Fetch net.Conn to the swarm manager
+	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, 22, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey, 30)
+	if err != nil {
+		return false, err
+	}
+	defer func(conn net.Conn) {
+		err := conn.Close()
+		if err != nil {
+			logger.GraphQLLoggerError.Println(err.Error())
+		}
+	}(conn)
+	// Promote this server to manager
+	manager, err := containermanger.New(ctx, conn)
+	if err != nil {
+		return false, err
+	}
+	err = manager.MarkNodeAsActive(server.HostName)
+	if err != nil {
+		return false, err
+	}
+	server.ScheduleDeployments = true
+	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
+	return err == nil, err
 }
 
 // Servers is the resolver for the servers field.
