@@ -4,25 +4,135 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"gorm.io/gorm"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
-func (m Manager) SetupAndEnableProxy(request SetupAndEnableProxyRequest, ctx context.Context, _ context.CancelFunc) error {
+func (m Manager) SetupAndEnableProxy(request SetupAndEnableProxyRequest, ctx context.Context, cancelCtx context.CancelFunc) error {
+	// fetch server
+	server, err := core.FetchServerByID(&m.ServiceManager.DbClient, request.ServerId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		return err
+	}
+	// fetch server log
+	serverLog, err := core.FetchServerLogByID(&m.ServiceManager.DbClient, request.LogId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		return err
+	}
+	err = m.setupAndEnableProxy(request, ctx, cancelCtx)
+	if err != nil {
+		serverLog.Content += "\nFailed to setup and enable proxy: " + err.Error()
+		_ = serverLog.Update(&m.ServiceManager.DbClient)
+	} else {
+		// mark server as proxy enabled
+		server.ProxyConfig.Enabled = true
+		server.ProxyConfig.SetupRunning = false
+		err = core.UpdateServer(&m.ServiceManager.DbClient, server)
+		if err != nil {
+			serverLog.Content += "\nFailed to update server status: " + err.Error()
+		} else {
+			serverLog.Content += "\nProxy setup and enabled successfully !\nProxy Will be online within ~2 minutes\n"
+		}
+		_ = serverLog.Update(&m.ServiceManager.DbClient)
+	}
 	return nil
 }
-
-// try to generate default haproxy configuration
-//err := generateDefaultHAProxyConfiguration(m.Config)
-//if err != nil {
-//logger.CronJobLoggerError.Println("Failed to generate default haproxy configuration", err.Error())
-//return
-//}
+func (m Manager) setupAndEnableProxy(request SetupAndEnableProxyRequest, ctx context.Context, _ context.CancelFunc) error {
+	// fetch server
+	server, err := core.FetchServerByID(&m.ServiceManager.DbClient, request.ServerId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		return err
+	}
+	// fetch server log
+	serverLog, err := core.FetchServerLogByID(&m.ServiceManager.DbClient, request.LogId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		return err
+	}
+	// log
+	logText := "Starting proxy setup on server " + server.HostName + "\n"
+	// spawn a goroutine to update server log each 5 seconds
+	go func() {
+		lastSent := time.Now()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				if time.Since(lastSent) > 5*time.Second {
+					serverLog.Content = logText
+					_ = serverLog.Update(&m.ServiceManager.DbClient)
+					lastSent = time.Now()
+				}
+			}
+		}
+	}()
+	// defer to push final log
+	defer func() {
+		serverLog.Content = logText
+		_ = serverLog.Update(&m.ServiceManager.DbClient)
+	}()
+	// fill local haproxy configuration (will be skipped anyhow if already exists)
+	err = generateDefaultHAProxyConfiguration(m.Config)
+	if err != nil {
+		logText += "Failed to generate default haproxy configuration: " + err.Error() + "\n"
+		return err
+	}
+	// check if any proxy server is already running
+	servers, err := core.FetchAllProxyServers(&m.ServiceManager.DbClient)
+	if err != nil {
+		logText += "Failed to fetch all proxy servers: " + err.Error() + "\n"
+		return err
+	}
+	if len(servers) > 0 {
+		var chosenServer core.Server
+		// try to find out an active proxy server
+		activeProxyServer, err := core.FetchRandomActiveProxyServer(&m.ServiceManager.DbClient)
+		if err == nil {
+			chosenServer = activeProxyServer
+		} else {
+			// if no active proxy server found, choose a random one
+			chosenServer = servers[0]
+		}
+		// copy haproxy directory to the management server
+		logText += "Copying haproxy config from server " + chosenServer.HostName + " to local\n"
+		err = ssh_toolkit.CopyFileFromRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, chosenServer.IP, 22, chosenServer.User, m.Config.SystemConfig.SshPrivateKey)
+		if err != nil {
+			logText += "Failed to copy haproxy config from server " + chosenServer.HostName + " to " + server.HostName + "\n"
+			logText += "Error: " + err.Error() + "\n"
+			return err
+		}
+	}
+	// copy haproxy directory to the server
+	logText += "Copying haproxy config from local to server " + server.HostName + "\n"
+	err = ssh_toolkit.CopyFileToRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
+	if err != nil {
+		logText += "Failed to copy haproxy config from local to server " + server.HostName + "\n"
+		logText += "Error: " + err.Error() + "\n"
+		return err
+	}
+	return nil
+}
 
 // generateDefaultHAProxyConfiguration : Generate default haproxy configuration (skip if already exists)
 func generateDefaultHAProxyConfiguration(config *config.Config) error {

@@ -74,6 +74,14 @@ func FetchProxyActiveServers(db *gorm.DB) ([]Server, error) {
 	return servers, err
 }
 
+// FetchRandomActiveProxyServer fetches a random active server from the database
+func FetchRandomActiveProxyServer(db *gorm.DB) (Server, error) {
+	var server Server
+	err := db.Where("status = ?", ServerOnline).Where("proxy_enabled = ?", true).Where("proxy_type = ?", ActiveProxy).Order("RANDOM()").First(&server).Error
+	return server, err
+
+}
+
 // FetchProxyBackupServers fetches all backup servers from the database
 // nolint:unused
 func FetchProxyBackupServers(db *gorm.DB) ([]Server, error) {
