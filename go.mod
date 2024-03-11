@@ -4,7 +4,7 @@ go 1.21.7
 
 require (
 	github.com/99designs/gqlgen v0.17.44
-	github.com/aws/aws-sdk-go v1.50.34
+	github.com/aws/aws-sdk-go v1.50.35
 	github.com/docker/docker v25.0.4+incompatible
 	github.com/fatih/color v1.16.0
 	github.com/go-git/go-git/v5 v5.11.0
@@ -21,7 +21,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.5.11
 	golang.org/x/term v0.18.0
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/driver/postgres v1.5.6
+	gorm.io/driver/postgres v1.5.7
 	gorm.io/gorm v1.25.7
 )
 
