@@ -14,10 +14,10 @@ func (m Manager) SyncProxy() {
 	isFirstTime := true
 	for {
 		if isFirstTime {
-			time.Sleep(5 * time.Second)
+			time.Sleep(5 * time.Minute)
 			isFirstTime = false
 		} else {
-			time.Sleep(20 * time.Second)
+			time.Sleep(50 * time.Minute)
 		}
 		m.syncProxy()
 	}
@@ -27,7 +27,7 @@ func (m Manager) syncProxy() {
 	// create context
 	ctx := context.Background()
 	// fetch all proxy servers hostnames
-	proxyServers, err := core.FetchAllProxyServers(&m.ServiceManager.DbClient)
+	proxyServers, err := core.FetchAllServers(&m.ServiceManager.DbClient)
 	if err != nil {
 		logger.CronJobLoggerError.Println("Failed to fetch all proxy servers", err.Error())
 		return
@@ -42,6 +42,8 @@ func (m Manager) syncProxy() {
 			placementConstraints = append(placementConstraints, "node.hostname!="+proxyServer.HostName)
 		}
 	}
+	fmt.Println(placementConstraints)
+	fmt.Println("HERE")
 
 	// fetch a swarm manager
 	swarmManager, err := core.FetchSwarmManager(&m.ServiceManager.DbClient)

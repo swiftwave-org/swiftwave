@@ -57,6 +57,12 @@ func (m Manager) GetService(serviceName string) (Service, error) {
 	if serviceData.Spec.Mode.Replicated != nil {
 		service.Replicas = *serviceData.Spec.Mode.Replicated.Replicas
 	}
+	// Set deployment mode
+	if serviceData.Spec.Mode.Replicated != nil {
+		service.DeploymentMode = DeploymentModeReplicated
+	} else {
+		service.DeploymentMode = DeploymentModeGlobal
+	}
 	return service, nil
 }
 
@@ -65,6 +71,16 @@ func (m Manager) CreateService(service Service, username string, password string
 	authHeader, err := generateAuthHeader(username, password)
 	if err != nil {
 		return errors.New("failed to generate auth header")
+	}
+	// check if required networks exist
+	for _, network := range service.Networks {
+		if !m.ExistsNetwork(network) {
+			// try to create network
+			err := m.CreateNetwork(network)
+			if err != nil {
+				return errors.New("as network does not exist, while creating network" + network + " error occurred")
+			}
+		}
 	}
 	_, err = m.client.ServiceCreate(m.ctx, m.serviceToServiceSpec(service), types.ServiceCreateOptions{
 		EncodedRegistryAuth: authHeader,
@@ -368,7 +384,8 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 			Global: &swarm.GlobalService{},
 		}
 	} else {
-		panic("invalid deployment mode")
+		print(service.DeploymentMode)
+		panic("invalid deployment mode > ")
 	}
 
 	// Build service spec
