@@ -60,4 +60,6 @@ extend type Mutation {
     restrictDeploymentOnServer(id: Uint!): Boolean!
     allowDeploymentOnServer(id: Uint!): Boolean!
     removeServerFromSwarmCluster(id: Uint!): Boolean!
+    enableProxyOnServer(id: Uint!): Boolean!
+    disableProxyOnServer(id: Uint!): Boolean!
 }

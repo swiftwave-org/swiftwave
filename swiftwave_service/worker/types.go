@@ -25,6 +25,7 @@ const (
 	persistentVolumeRestoreQueueName     = "persistent_volume_restore"
 	installDependenciesOnServerQueueName = "install_dependencies_on_server"
 	setupServerQueueName                 = "setup_server"
+	setupAndEnableProxyQueueName         = "setup_and_enable_proxy"
 )
 
 // Request Payload
@@ -89,6 +90,12 @@ type InstallDependenciesOnServerRequest struct {
 
 // SetupServerRequest : request payload for setup server
 type SetupServerRequest struct {
+	ServerId uint `json:"server_id"`
+	LogId    uint `json:"log_id"`
+}
+
+// SetupAndEnableProxyRequest : request payload for setup server
+type SetupAndEnableProxyRequest struct {
 	ServerId uint `json:"server_id"`
 	LogId    uint `json:"log_id"`
 }

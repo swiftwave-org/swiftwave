@@ -19,7 +19,7 @@ import (
 )
 
 // CreateServer is the resolver for the createServer field.
-func (r *mutationResolver) CreateServer(_ context.Context, input model.NewServerInput) (*model.Server, error) {
+func (r *mutationResolver) CreateServer(ctx context.Context, input model.NewServerInput) (*model.Server, error) {
 	server := newServerInputToDatabaseObject(&input)
 	err := core.CreateServer(&r.ServiceManager.DbClient, server)
 	if err != nil {
@@ -29,7 +29,7 @@ func (r *mutationResolver) CreateServer(_ context.Context, input model.NewServer
 }
 
 // TestSSHAccessToServer is the resolver for the testSSHAccessToServer field.
-func (r *mutationResolver) TestSSHAccessToServer(_ context.Context, id uint) (bool, error) {
+func (r *mutationResolver) TestSSHAccessToServer(ctx context.Context, id uint) (bool, error) {
 	command := "echo 'Hi'"
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
@@ -43,7 +43,7 @@ func (r *mutationResolver) TestSSHAccessToServer(_ context.Context, id uint) (bo
 }
 
 // CheckDependenciesOnServer is the resolver for the checkDependenciesOnServer field.
-func (r *mutationResolver) CheckDependenciesOnServer(_ context.Context, id uint) ([]*model.Dependency, error) {
+func (r *mutationResolver) CheckDependenciesOnServer(ctx context.Context, id uint) ([]*model.Dependency, error) {
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (r *mutationResolver) CheckDependenciesOnServer(_ context.Context, id uint)
 }
 
 // InstallDependenciesOnServer is the resolver for the installDependenciesOnServer field.
-func (r *mutationResolver) InstallDependenciesOnServer(_ context.Context, id uint) (bool, error) {
+func (r *mutationResolver) InstallDependenciesOnServer(ctx context.Context, id uint) (bool, error) {
 	_, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
 		return false, err
@@ -396,8 +396,52 @@ func (r *mutationResolver) RemoveServerFromSwarmCluster(ctx context.Context, id 
 	return err == nil, err
 }
 
+// EnableProxyOnServer is the resolver for the enableProxyOnServer field.
+func (r *mutationResolver) EnableProxyOnServer(ctx context.Context, id uint) (bool, error) {
+	// Fetch the server
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	if server.ProxyConfig.Enabled {
+		return false, errors.New("proxy is already enabled")
+	}
+	// Enable the proxy
+	server.ProxyConfig.SetupRunning = true
+	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
+	if err != nil {
+		return false, err
+	}
+	// Create a server log
+	serverLog := &core.ServerLog{
+		ServerID: id,
+		Title:    "Enable proxy on server " + server.HostName,
+	}
+	err = core.CreateServerLog(&r.ServiceManager.DbClient, serverLog)
+	if err != nil {
+		return false, err
+	}
+	// Queue the request
+	err = r.WorkerManager.EnqueueSetupAndEnableProxyRequest(id, serverLog.ID)
+	return err == nil, err
+}
+
+// DisableProxyOnServer is the resolver for the disableProxyOnServer field.
+func (r *mutationResolver) DisableProxyOnServer(ctx context.Context, id uint) (bool, error) {
+	// Fetch the server
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	// Disable the proxy
+	server.ProxyConfig.Enabled = false
+	server.ProxyConfig.SetupRunning = false
+	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
+	return err == nil, err
+}
+
 // Servers is the resolver for the servers field.
-func (r *queryResolver) Servers(_ context.Context) ([]*model.Server, error) {
+func (r *queryResolver) Servers(ctx context.Context) ([]*model.Server, error) {
 	servers, err := core.FetchAllServers(&r.ServiceManager.DbClient)
 	if err != nil {
 		return nil, err
@@ -410,7 +454,7 @@ func (r *queryResolver) Servers(_ context.Context) ([]*model.Server, error) {
 }
 
 // Logs is the resolver for the logs field.
-func (r *serverResolver) Logs(_ context.Context, obj *model.Server) ([]*model.ServerLog, error) {
+func (r *serverResolver) Logs(ctx context.Context, obj *model.Server) ([]*model.ServerLog, error) {
 	serverLogs, err := core.FetchServerLogByServerID(&r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
 		return nil, err

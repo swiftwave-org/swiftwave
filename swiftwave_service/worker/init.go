@@ -44,7 +44,7 @@ func (m Manager) registerWorkerFunctions() {
 	panicOnError(taskQueueClient.RegisterFunction(persistentVolumeRestoreQueueName, m.PersistentVolumeRestore))
 	panicOnError(taskQueueClient.RegisterFunction(installDependenciesOnServerQueueName, m.InstallDependenciesOnServer))
 	panicOnError(taskQueueClient.RegisterFunction(setupServerQueueName, m.SetupServer))
-
+	panicOnError(taskQueueClient.RegisterFunction(setupAndEnableProxyQueueName, m.SetupAndEnableProxy))
 }
 
 func panicOnError(err error) {

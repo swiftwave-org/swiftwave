@@ -75,3 +75,10 @@ func (m Manager) EnqueueSetupServerRequest(serverId uint, logId uint) error {
 		LogId:    logId,
 	})
 }
+
+func (m Manager) EnqueueSetupAndEnableProxyRequest(serverId uint, logId uint) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(setupAndEnableProxyQueueName, SetupAndEnableProxyRequest{
+		ServerId: serverId,
+		LogId:    logId,
+	})
+}
