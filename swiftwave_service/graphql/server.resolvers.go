@@ -19,7 +19,7 @@ import (
 )
 
 // CreateServer is the resolver for the createServer field.
-func (r *mutationResolver) CreateServer(ctx context.Context, input model.NewServerInput) (*model.Server, error) {
+func (r *mutationResolver) CreateServer(_ context.Context, input model.NewServerInput) (*model.Server, error) {
 	server := newServerInputToDatabaseObject(&input)
 	err := core.CreateServer(&r.ServiceManager.DbClient, server)
 	if err != nil {
@@ -29,7 +29,7 @@ func (r *mutationResolver) CreateServer(ctx context.Context, input model.NewServ
 }
 
 // TestSSHAccessToServer is the resolver for the testSSHAccessToServer field.
-func (r *mutationResolver) TestSSHAccessToServer(ctx context.Context, id uint) (bool, error) {
+func (r *mutationResolver) TestSSHAccessToServer(_ context.Context, id uint) (bool, error) {
 	command := "echo 'Hi'"
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
@@ -43,7 +43,7 @@ func (r *mutationResolver) TestSSHAccessToServer(ctx context.Context, id uint) (
 }
 
 // CheckDependenciesOnServer is the resolver for the checkDependenciesOnServer field.
-func (r *mutationResolver) CheckDependenciesOnServer(ctx context.Context, id uint) ([]*model.Dependency, error) {
+func (r *mutationResolver) CheckDependenciesOnServer(_ context.Context, id uint) ([]*model.Dependency, error) {
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (r *mutationResolver) CheckDependenciesOnServer(ctx context.Context, id uin
 }
 
 // InstallDependenciesOnServer is the resolver for the installDependenciesOnServer field.
-func (r *mutationResolver) InstallDependenciesOnServer(ctx context.Context, id uint) (bool, error) {
+func (r *mutationResolver) InstallDependenciesOnServer(_ context.Context, id uint) (bool, error) {
 	_, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
 		return false, err
@@ -346,8 +346,58 @@ func (r *mutationResolver) AllowDeploymentOnServer(ctx context.Context, id uint)
 	return err == nil, err
 }
 
+// RemoveServerFromSwarmCluster is the resolver for the removeServerFromSwarmCluster field.
+func (r *mutationResolver) RemoveServerFromSwarmCluster(ctx context.Context, id uint) (bool, error) {
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	// Fetch any swarm manager
+	swarmManagerServer, err := core.FetchSwarmManagerExceptServer(&r.ServiceManager.DbClient, server.ID)
+	if err != nil {
+		return false, errors.New("no manager found")
+	}
+	// If there is any swarm manager, then promote this server to manager
+	// Fetch net.Conn to the swarm manager
+	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, 22, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey, 30)
+	if err != nil {
+		return false, err
+	}
+	defer func(conn net.Conn) {
+		err := conn.Close()
+		if err != nil {
+			logger.GraphQLLoggerError.Println(err.Error())
+		}
+	}(conn)
+	manager, err := containermanger.New(ctx, conn)
+	if err != nil {
+		return false, err
+	}
+	err = manager.RemoveNode(server.HostName)
+	if err != nil {
+		return false, err
+	}
+	server.Status = core.ServerNeedsSetup
+	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
+	if err == nil {
+		// try to connect to the server and leave from the swarm
+		serverConn, err2 := ssh_toolkit.NetConnOverSSH("unix", server.DockerUnixSocketPath, 5, server.IP, 22, server.User, r.Config.SystemConfig.SshPrivateKey, 30)
+		if err2 == nil {
+			defer func(serverConn net.Conn) {
+				_ = serverConn.Close()
+			}(serverConn)
+			serverDockerManager, err2 := containermanger.New(ctx, serverConn)
+			if err2 == nil {
+				_ = serverDockerManager.LeaveSwarm()
+			}
+		}
+
+	}
+	return err == nil, err
+}
+
 // Servers is the resolver for the servers field.
-func (r *queryResolver) Servers(ctx context.Context) ([]*model.Server, error) {
+func (r *queryResolver) Servers(_ context.Context) ([]*model.Server, error) {
 	servers, err := core.FetchAllServers(&r.ServiceManager.DbClient)
 	if err != nil {
 		return nil, err
@@ -360,7 +410,7 @@ func (r *queryResolver) Servers(ctx context.Context) ([]*model.Server, error) {
 }
 
 // Logs is the resolver for the logs field.
-func (r *serverResolver) Logs(ctx context.Context, obj *model.Server) ([]*model.ServerLog, error) {
+func (r *serverResolver) Logs(_ context.Context, obj *model.Server) ([]*model.ServerLog, error) {
 	serverLogs, err := core.FetchServerLogByServerID(&r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
 		return nil, err

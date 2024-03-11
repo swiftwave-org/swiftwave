@@ -16,6 +16,8 @@ func (m Manager) InitializeAsManager() error {
 
 // JoinSwarm joins the swarm
 func (m Manager) JoinSwarm(address string, token string) error {
+	// Try to leave swarm if already joined
+	_ = m.client.SwarmLeave(m.ctx, true)
 	return m.client.SwarmJoin(m.ctx, swarm.JoinRequest{
 		JoinToken:   token,
 		ListenAddr:  "0.0.0.0:2377",
@@ -26,6 +28,13 @@ func (m Manager) JoinSwarm(address string, token string) error {
 // LeaveSwarm leaves the swarm
 func (m Manager) LeaveSwarm() error {
 	return m.client.SwarmLeave(m.ctx, true)
+}
+
+// RemoveNode removes a node from the swarm
+func (m Manager) RemoveNode(hostname string) error {
+	return m.client.NodeRemove(m.ctx, hostname, types.NodeRemoveOptions{
+		Force: true,
+	})
 }
 
 // PromoteToManager promotes a node to manager

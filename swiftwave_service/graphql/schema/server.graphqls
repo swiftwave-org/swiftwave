@@ -59,4 +59,5 @@ extend type Mutation {
     demoteServerToWorker(id: Uint!): Boolean!
     restrictDeploymentOnServer(id: Uint!): Boolean!
     allowDeploymentOnServer(id: Uint!): Boolean!
+    removeServerFromSwarmCluster(id: Uint!): Boolean!
 }
