@@ -26,29 +26,17 @@ func (m Manager) SetupAndEnableProxy(request SetupAndEnableProxyRequest, ctx con
 		}
 		return err
 	}
-	// fetch server log
-	serverLog, err := core.FetchServerLogByID(&m.ServiceManager.DbClient, request.LogId)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil
-		}
-		return err
-	}
 	err = m.setupAndEnableProxy(request, ctx, cancelCtx)
-	if err != nil {
-		serverLog.Content += "\nFailed to setup and enable proxy: " + err.Error()
-		_ = serverLog.Update(&m.ServiceManager.DbClient)
-	} else {
+	if err == nil {
 		// mark server as proxy enabled
 		server.ProxyConfig.Enabled = true
 		server.ProxyConfig.SetupRunning = false
 		err = core.UpdateServer(&m.ServiceManager.DbClient, server)
 		if err != nil {
-			serverLog.Content += "\nFailed to update server status: " + err.Error()
+			log.Println("Failed to update server:", err)
 		} else {
-			serverLog.Content += "\nProxy setup and enabled successfully !\nProxy Will be online within ~2 minutes\n"
+
 		}
-		_ = serverLog.Update(&m.ServiceManager.DbClient)
 	}
 	return nil
 }
@@ -116,7 +104,7 @@ func (m Manager) setupAndEnableProxy(request SetupAndEnableProxyRequest, ctx con
 		}
 		// copy haproxy directory to the management server
 		logText += "Copying haproxy config from server " + chosenServer.HostName + " to local\n"
-		err = ssh_toolkit.CopyFileFromRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, chosenServer.IP, 22, chosenServer.User, m.Config.SystemConfig.SshPrivateKey)
+		err = ssh_toolkit.CopyFolderFromRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, chosenServer.IP, 22, chosenServer.User, m.Config.SystemConfig.SshPrivateKey)
 		if err != nil {
 			logText += "Failed to copy haproxy config from server " + chosenServer.HostName + " to " + server.HostName + "\n"
 			logText += "Error: " + err.Error() + "\n"
@@ -125,12 +113,15 @@ func (m Manager) setupAndEnableProxy(request SetupAndEnableProxyRequest, ctx con
 	}
 	// copy haproxy directory to the server
 	logText += "Copying haproxy config from local to server " + server.HostName + "\n"
-	err = ssh_toolkit.CopyFileToRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
+	err = ssh_toolkit.CopyFolderToRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		logText += "Failed to copy haproxy config from local to server " + server.HostName + "\n"
 		logText += "Error: " + err.Error() + "\n"
 		return err
 	}
+
+	logText += "Copied haproxy config from local to server " + server.HostName + "\n"
+	log.Println("Copied haproxy config from local to server " + server.HostName)
 	return nil
 }
 
@@ -204,6 +195,7 @@ func generateDefaultHAProxyConfiguration(config *config.Config) error {
 			}
 		}
 	}
+
 	return nil
 }
 

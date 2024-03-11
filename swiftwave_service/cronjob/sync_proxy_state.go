@@ -14,13 +14,12 @@ func (m Manager) SyncProxy() {
 	isFirstTime := true
 	for {
 		if isFirstTime {
-			time.Sleep(5 * time.Minute)
+			time.Sleep(5 * time.Second)
 			isFirstTime = false
 		} else {
-			time.Sleep(20 * time.Minute)
+			time.Sleep(20 * time.Second)
 		}
 		m.syncProxy()
-		time.Sleep(20 * time.Minute)
 	}
 }
 
