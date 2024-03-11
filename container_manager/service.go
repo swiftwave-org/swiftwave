@@ -29,13 +29,25 @@ func (m Manager) GetService(serviceName string) (Service, error) {
 	for _, env := range serviceData.Spec.TaskTemplate.ContainerSpec.Env {
 		service.Env[env] = ""
 	}
-	// Set volume mounts
+	// Set volume mounts and binds
 	for _, volumeMount := range serviceData.Spec.TaskTemplate.ContainerSpec.Mounts {
-		service.VolumeMounts = append(service.VolumeMounts, VolumeMount{
-			Source:   volumeMount.Source,
-			Target:   volumeMount.Target,
-			ReadOnly: volumeMount.ReadOnly,
-		})
+		if volumeMount.Type == mount.TypeVolume {
+			service.VolumeMounts = append(service.VolumeMounts, VolumeMount{
+				Source:   volumeMount.Source,
+				Target:   volumeMount.Target,
+				ReadOnly: volumeMount.ReadOnly,
+			})
+		}
+		if volumeMount.Type == mount.TypeBind {
+			service.VolumeBinds = append(service.VolumeBinds, VolumeBind{
+				Source: volumeMount.Source,
+				Target: volumeMount.Target,
+			})
+		}
+	}
+	// set placement constraints
+	if serviceData.Spec.TaskTemplate.Placement != nil {
+		service.PlacementConstraints = serviceData.Spec.TaskTemplate.Placement.Constraints
 	}
 	// Set networks
 	for _, network := range serviceData.Spec.TaskTemplate.Networks {
@@ -326,6 +338,15 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 		})
 	}
 
+	for _, volumeBind := range service.VolumeBinds {
+		volumeMounts = append(volumeMounts, mount.Mount{
+			Type:     mount.TypeBind,
+			Source:   volumeBind.Source,
+			Target:   volumeBind.Target,
+			ReadOnly: false,
+		})
+	}
+
 	// Create `ENV_VAR=value` array from env map
 	env := []string{}
 	for key, value := range service.Env {
@@ -375,6 +396,9 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 				},
 				CapabilityAdd: service.Capabilities,
 				Sysctls:       service.Sysctls,
+			},
+			Placement: &swarm.Placement{
+				Constraints: service.PlacementConstraints,
 			},
 			// Set network name
 			Networks: networkAttachmentConfigs,

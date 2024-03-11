@@ -97,14 +97,12 @@ type AMQPConfig struct {
 
 // HAProxyConfig : configuration for HAProxy
 type HAProxyConfig struct {
-	Image          string `json:"image"`
-	UnixSocketPath string `json:"unix_socket_path"`
-	Username       string `json:"username"`
-	Password       string `json:"password"`
+	Image    string `json:"image"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 // UDPProxyConfig : configuration for UDP Proxy
 type UDPProxyConfig struct {
-	UnixSocketPath string `json:"unix_socket_path"`
-	Image          string `json:"image"`
+	Image string `json:"image"`
 }

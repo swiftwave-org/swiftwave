@@ -28,6 +28,8 @@ func (m Manager) Start(nowait bool) {
 	go m.UDPProxyPortExposer()
 	m.wg.Add(1)
 	go m.CleanupUnusedImages()
+	m.wg.Add(1)
+	go m.SyncProxy()
 	if !nowait {
 		m.wg.Wait()
 	}

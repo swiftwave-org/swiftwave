@@ -19,16 +19,18 @@ const (
 )
 
 type Service struct {
-	Name           string            `json:"name"`
-	Image          string            `json:"image"`
-	Command        []string          `json:"command,omitempty"`
-	Env            map[string]string `json:"env,omitempty"`
-	Capabilities   []string          `json:"capabilities,omitempty"`
-	Sysctls        map[string]string `json:"sysctl,omitempty"`
-	VolumeMounts   []VolumeMount     `json:"volumemounts,omitempty"`
-	Networks       []string          `json:"networks,omitempty"`
-	DeploymentMode DeploymentMode    `json:"deploymentmode"`
-	Replicas       uint64            `json:"replicas"`
+	Name                 string            `json:"name"`
+	Image                string            `json:"image"`
+	Command              []string          `json:"command,omitempty"`
+	Env                  map[string]string `json:"env,omitempty"`
+	Capabilities         []string          `json:"capabilities,omitempty"`
+	Sysctls              map[string]string `json:"sysctl,omitempty"`
+	VolumeMounts         []VolumeMount     `json:"volumemounts,omitempty"`
+	VolumeBinds          []VolumeBind      `json:"volumebinds,omitempty"`
+	Networks             []string          `json:"networks,omitempty"`
+	DeploymentMode       DeploymentMode    `json:"deploymentmode"`
+	Replicas             uint64            `json:"replicas"`
+	PlacementConstraints []string          `json:"placementconstraints,omitempty"`
 }
 
 type ServiceRealtimeInfo struct {
@@ -46,9 +48,15 @@ type ServiceTaskPlacementInfo struct {
 	RunningReplicas int    `json:"runningreplicas"`
 }
 
-// Volume Mount
 type VolumeMount struct {
 	Source   string `json:"source"`
 	Target   string `json:"target"`
 	ReadOnly bool   `json:"readonly"`
+}
+
+type VolumeBind struct {
+	Source string `json:"source"`
+	Target string `json:"target"`
+	// No need to specify readonly for volume bind
+	// VolumeBind is for special internal use, and need readwrite access all the time
 }
