@@ -82,8 +82,10 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 		// delete ingress rule from haproxy
 		// create new haproxy transaction
 		haproxyTransactionId, err := haproxyManager.FetchNewTransactionId()
+		// store transaction id
+		transactionIdMap[haproxyManager] = haproxyTransactionId
 		if err != nil {
-			return err
+			continue
 		}
 		// delete ingress rule
 		if ingressRule.Protocol == core.HTTPSProtocol {
@@ -181,6 +183,9 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 		if !isFailed {
 			// commit the haproxy transaction
 			err = haproxyManager.CommitTransaction(haproxyTransactionId)
+			if err != nil {
+				log.Println("committing haproxy transaction", haproxyTransactionId, err)
+			}
 		}
 		if isFailed || err != nil {
 			log.Println("failed to commit haproxy transaction", err)
@@ -190,8 +195,6 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			}
 		}
 	}
-	manager.KillAllHAProxyConnections(haproxyManagers)
-	manager.KillAllUDPProxyConnections(udpProxyManagers)
 
 	// delete ingress rule from database
 	err = ingressRule.Delete(ctx, dbWithoutTx, true)

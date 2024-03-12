@@ -1,13 +1,13 @@
 package haproxymanager
 
 import (
-	"net"
+	"net/http"
 )
 
 type Manager struct {
-	netConn  net.Conn
-	username string
-	password string
+	httpClient *http.Client
+	username   string
+	password   string
 }
 
 type QueryParameter struct {

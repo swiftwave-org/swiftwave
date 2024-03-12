@@ -333,7 +333,6 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 					}
 				}
 			}
-			manager.KillAllHAProxyConnections(haproxyManagers)
 		} else {
 			log.Println("failed to update replica count", err)
 			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update replica count\n", false)

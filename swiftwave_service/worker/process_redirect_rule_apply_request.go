@@ -94,7 +94,6 @@ func (m Manager) RedirectRuleApply(request RedirectRuleApplyRequest, ctx context
 			}
 		}
 	}
-	manager.KillAllHAProxyConnections(haproxyManagers)
 
 	// set status as applied
 	err = redirectRule.UpdateStatus(ctx, dbWithoutTx, core.RedirectRuleStatusApplied)

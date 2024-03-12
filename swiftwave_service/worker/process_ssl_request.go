@@ -113,7 +113,6 @@ func (m Manager) SSLGenerate(request SSLGenerateRequest, ctx context.Context, _ 
 			}
 		}
 	}
-	manager.KillAllHAProxyConnections(haproxyManagers)
 	return nil
 }
 

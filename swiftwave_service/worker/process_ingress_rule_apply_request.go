@@ -177,8 +177,6 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 			}
 		}
 	}
-	manager.KillAllHAProxyConnections(haproxyManagers)
-	manager.KillAllUDPProxyConnections(udpProxyManagers)
 
 	if isFailed {
 		// set status as failed and exit

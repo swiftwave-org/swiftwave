@@ -1,15 +1,12 @@
 package udp_proxy_manager
 
 import (
-	"context"
 	"io"
-	"log"
-	"net"
 	"net/http"
 	"strings"
 )
 
-// Generate Base URI for HAProxy Server
+// URI Generate Base URI for HAProxy Server
 func (m Manager) URI() string {
 	return "http://unix/v1"
 }
@@ -24,14 +21,8 @@ func (m Manager) getRequest(route string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	client := &http.Client{
-		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return m.netConn, nil
-			},
-		},
-	}
-	return client.Do(req)
+	req.Close = true
+	return m.httpClient.Do(req)
 }
 
 // Wrapper to send request to HAProxy Server
@@ -45,22 +36,8 @@ func (m Manager) postRequest(route string, body io.Reader) (*http.Response, erro
 		return nil, err
 	}
 	req.Header.Add("Content-Type", "application/json")
-	client := &http.Client{
-		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return m.netConn, nil
-			},
-		},
-	}
-	return client.Do(req)
-}
-
-// Close : Close the connection
-func (m Manager) Close() {
-	err := m.netConn.Close()
-	if err != nil {
-		log.Println("Error while closing the connection", err)
-	}
+	req.Close = true
+	return m.httpClient.Do(req)
 }
 
 /*

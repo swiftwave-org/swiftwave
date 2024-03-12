@@ -6,42 +6,37 @@ import (
 	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"net"
 )
 
-func HAProxyClient(ctx context.Context, server core.Server) (*haproxymanager.Manager, error) {
+func HAProxyClient(_ context.Context, server core.Server) (*haproxymanager.Manager, error) {
 	// Fetch config
 	c, err := config.Fetch()
 	if err != nil {
 		return nil, err
 	}
-	// Create Net.Conn over SSH
-	conn, err := ssh_toolkit.NetConnOverSSH("unix", c.LocalConfig.ServiceConfig.HAProxyUnixSocketPath, 5, server.IP, 22, server.User, c.SystemConfig.SshPrivateKey, 20)
-	if err != nil {
-		return nil, err
-	}
-	// Create Docker client
-	manager := haproxymanager.New(conn, c.SystemConfig.HAProxyConfig.Username, c.SystemConfig.HAProxyConfig.Password)
+	// Create client
+	manager := haproxymanager.New(func() (net.Conn, error) {
+		return ssh_toolkit.NetConnOverSSH("unix", c.LocalConfig.ServiceConfig.HAProxyUnixSocketPath, 50, server.IP, 22, server.User, c.SystemConfig.SshPrivateKey, 20)
+	}, c.SystemConfig.HAProxyConfig.Username, c.SystemConfig.HAProxyConfig.Password)
 	return &manager, nil
 }
 
 func HAProxyClients(ctx context.Context, servers []core.Server) ([]*haproxymanager.Manager, error) {
 	var managers []*haproxymanager.Manager
+	isErrEncountered := false
+	var errEncountered error
 	for _, server := range servers {
 		manager, err := HAProxyClient(ctx, server)
 		if err != nil {
-			// close all the connections
-			for _, manager := range managers {
-				manager.Close()
-			}
-			return nil, err
+			isErrEncountered = true
+			errEncountered = err
+			break
 		}
 		managers = append(managers, manager)
 	}
-	return managers, nil
-}
-
-func KillAllHAProxyConnections(managers []*haproxymanager.Manager) {
-	for _, manager := range managers {
-		manager.Close()
+	if isErrEncountered {
+		return nil, errEncountered
 	}
+	return managers, nil
 }

@@ -186,6 +186,7 @@ func (m Manager) syncProxy() {
 	}
 	// add port 80 and 443
 	tcpPorts = append(tcpPorts, 80, 443)
+	tcpPorts = removeDuplicatesInt(tcpPorts)
 	tcpPortsRule := make([]swarm.PortConfig, 0)
 	for _, port := range tcpPorts {
 		tcpPortsRule = append(tcpPortsRule, swarm.PortConfig{
@@ -197,6 +198,7 @@ func (m Manager) syncProxy() {
 	}
 	// fetch all exposed udp ports
 	udpPorts, err := core.FetchAllExposedUDPPorts(ctx, m.ServiceManager.DbClient)
+	udpPorts = removeDuplicatesInt(udpPorts)
 	if err != nil {
 		logger.CronJobLoggerError.Println("Failed to fetch all exposed udp ports", err.Error())
 		return
@@ -272,6 +274,18 @@ func isListSame(list1 []string, list2 []string) bool {
 		}
 	}
 	return true
+}
+
+func removeDuplicatesInt(list []int) []int {
+	keys := make(map[int]bool)
+	var listWithoutDuplicates []int
+	for _, entry := range list {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			listWithoutDuplicates = append(listWithoutDuplicates, entry)
+		}
+	}
+	return listWithoutDuplicates
 }
 
 func isPortListSame(list1 []swarm.PortConfig, list2 []swarm.PortConfig) bool {

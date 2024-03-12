@@ -89,7 +89,6 @@ func (m Manager) RedirectRuleDelete(request RedirectRuleDeleteRequest, ctx conte
 			}
 		}
 	}
-	manager.KillAllHAProxyConnections(haproxyManagers)
 
 	// delete redirect rule from database
 	err = redirectRule.Delete(ctx, dbWithoutTx, true)

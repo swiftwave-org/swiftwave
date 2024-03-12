@@ -1,9 +1,11 @@
 package udp_proxy_manager
 
-import "net"
+import (
+	"net/http"
+)
 
 type Manager struct {
-	netConn net.Conn
+	httpClient *http.Client
 }
 
 type Proxy struct {
