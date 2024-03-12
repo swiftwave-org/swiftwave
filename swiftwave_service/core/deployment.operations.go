@@ -170,14 +170,14 @@ func (deployment *Deployment) Delete(ctx context.Context, db gorm.DB) error {
 
 func (deployment *Deployment) DeployableDockerImageURI(remoteRegistryPrefix string) string {
 	isRemoteRegistryPrefixEmpty := strings.Compare(remoteRegistryPrefix, "") == 0
-	if isRemoteRegistryPrefixEmpty && strings.HasSuffix(remoteRegistryPrefix, "/") {
+	if !isRemoteRegistryPrefixEmpty && strings.HasSuffix(remoteRegistryPrefix, "/") {
 		remoteRegistryPrefix = remoteRegistryPrefix[:len(remoteRegistryPrefix)-1]
 	}
 	if deployment.UpstreamType == UpstreamTypeImage {
 		return deployment.DockerImage
 	} else if deployment.UpstreamType == UpstreamTypeGit || deployment.UpstreamType == UpstreamTypeSourceCode {
 		imageURI := deployment.ApplicationID + ":" + deployment.ID
-		if isRemoteRegistryPrefixEmpty {
+		if !isRemoteRegistryPrefixEmpty {
 			imageURI = remoteRegistryPrefix + "/" + imageURI
 		}
 		return imageURI

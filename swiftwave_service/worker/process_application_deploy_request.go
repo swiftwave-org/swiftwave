@@ -139,7 +139,13 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 			registryPassword = imageRegistryCredential.Password
 		}
 
-		scanner, err := dockerManager.PullImage(deployment.DeployableDockerImageURI(m.Config.SystemConfig.ImageRegistryConfig.URI()), registryUsername, registryPassword)
+		imageURI := deployment.DeployableDockerImageURI(m.Config.SystemConfig.ImageRegistryConfig.URI())
+		if strings.HasPrefix(imageURI, m.Config.SystemConfig.ImageRegistryConfig.URI()) {
+			registryUsername = m.Config.SystemConfig.ImageRegistryConfig.Username
+			registryPassword = m.Config.SystemConfig.ImageRegistryConfig.Password
+		}
+
+		scanner, err := dockerManager.PullImage(imageURI, registryUsername, registryPassword)
 		if err != nil {
 			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to pull docker image\n", false)
 			return err

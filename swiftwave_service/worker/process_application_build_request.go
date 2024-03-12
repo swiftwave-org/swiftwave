@@ -114,6 +114,18 @@ func (m Manager) buildApplicationHelper(request BuildApplicationRequest, ctx con
 			return err
 		}
 	}
+
+	// Update deployment status
+	err = deployment.UpdateStatus(ctx, *db, core.DeploymentStatusDeployPending)
+	if err != nil {
+		return err
+	}
+	// commit the transaction
+	err = db.Commit().Error
+	if err != nil {
+		return err
+	}
+
 	// push task to queue for deployment
 	err = m.EnqueueDeployApplicationRequest(deployment.ApplicationID, deployment.ID)
 	if err == nil {
@@ -124,16 +136,7 @@ func (m Manager) buildApplicationHelper(request BuildApplicationRequest, ctx con
 
 func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, _ context.CancelFunc, _ *containermanger.Manager) error {
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "As the upstream type is image, no build is required\n", false)
-	err := deployment.UpdateStatus(ctx, db, core.DeploymentStatusDeployPending)
-	if err != nil {
-		return err
-	}
-	// commit the transaction
-	err = db.Commit().Error
-	if err != nil {
-		return err
-	}
-	return err
+	return nil
 }
 
 func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, _ context.CancelFunc, dockerManager *containermanger.Manager) error {
@@ -233,17 +236,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 			return errors.New("docker image build failed\n")
 		}
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully\n", false)
-		// update status
-		err = deployment.UpdateStatus(ctx, db, core.DeploymentStatusDeployPending)
-		if err != nil {
-			return err
-		}
-		// commit the transaction
-		err = db.Commit().Error
-		if err != nil {
-			return err
-		}
-		return err
+		return nil
 	}
 }
 
@@ -320,17 +313,7 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm
 			return errors.New("docker image build failed\n")
 		}
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully\n", false)
-		// update status
-		err = deployment.UpdateStatus(ctx, db, core.DeploymentStatusDeployPending)
-		if err != nil {
-			return err
-		}
-		// commit the transaction
-		err = db.Commit().Error
-		if err != nil {
-			return err
-		}
-		return err
+		return nil
 	}
 }
 
@@ -351,11 +334,11 @@ func (m Manager) pushImageToRegistry(deployment *core.Deployment, _ gorm.DB, dbW
 			if err != nil {
 				continue
 			}
-			if data["stream"] != nil {
-				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["stream"].(string), false)
+			if data["id"] != nil && data["progress"] != nil && data["status"] != nil {
+				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, fmt.Sprintf("%s %s %s\n", data["id"].(string), data["progress"].(string), data["status"].(string)), false)
 			}
 			if data["error"] != nil {
-				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["error"].(string), false)
+				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["error"].(string)+"\n", false)
 				isErrorEncountered = true
 				break
 			}
