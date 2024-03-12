@@ -7,6 +7,7 @@ import (
 	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"gorm.io/gorm"
 	"io"
 	"log"
@@ -33,9 +34,9 @@ func (m Manager) SetupAndEnableProxy(request SetupAndEnableProxyRequest, ctx con
 		server.ProxyConfig.SetupRunning = false
 		err = core.UpdateServer(&m.ServiceManager.DbClient, server)
 		if err != nil {
-			log.Println("Failed to update server:", err)
+			logger.WorkerLoggerError.Println("Failed to update server "+server.HostName+" proxy config", err.Error())
 		} else {
-
+			logger.WorkerLogger.Println("Proxy config updated for server " + server.HostName)
 		}
 	}
 	return nil

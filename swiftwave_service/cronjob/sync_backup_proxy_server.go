@@ -10,7 +10,7 @@ import (
 func (m Manager) SyncBackupProxyServer() {
 	for {
 		m.syncBackupProxyServer()
-		time.Sleep(30 * time.Second)
+		time.Sleep(30 * time.Minute)
 	}
 }
 
@@ -61,4 +61,6 @@ func (m Manager) syncBackupProxyServer() {
 			logger.CronJobLogger.Println("Copied udpproxy config to remote server", backupServer.HostName)
 		}
 	}
+
+	// TODO: reload backup proxy servers, avoid using swarm_manager
 }
