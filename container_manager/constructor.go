@@ -28,6 +28,18 @@ func New(ctx context.Context, conn net.Conn) (*Manager, error) {
 	return manager, nil
 }
 
+// NewLocalClient creates a new container manager with a local client
+func NewLocalClient(ctx context.Context) (*Manager, error) {
+	manager := &Manager{}
+	c, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return nil, err
+	}
+	manager.ctx = ctx
+	manager.client = c
+	return manager, nil
+}
+
 // Close closes the manager
 func (m Manager) Close() error {
 	return m.client.Close()

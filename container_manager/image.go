@@ -52,6 +52,7 @@ func (m Manager) CreateImageWithContext(ctx context.Context, dockerfile string, 
 	response, err := m.client.ImageBuild(ctx, tar, types.ImageBuildOptions{
 		Dockerfile: "Dockerfile",
 		Remove:     true,
+		NoCache:    true,
 		Tags:       []string{imagename},
 		BuildArgs:  final_buildargs,
 	})
@@ -61,6 +62,22 @@ func (m Manager) CreateImageWithContext(ctx context.Context, dockerfile string, 
 	// Return scanner to read the build logs
 	scanner := bufio.NewScanner(response.Body)
 	return scanner, nil
+}
+
+// PushImage pushes a Docker image to a remote registry and returns a scanner to read the push logs.
+func (m Manager) PushImage(ctx context.Context, image string, username string, password string) (*bufio.Scanner, error) {
+	authHeader, err := generateAuthHeader(username, password)
+	if err != nil {
+		return nil, errors.New("failed to generate auth header")
+	}
+	// Push the image
+	scanner, err := m.client.ImagePush(ctx, image, types.ImagePushOptions{
+		RegistryAuth: authHeader,
+	})
+	if err != nil {
+		return nil, errors.New("failed to push the image")
+	}
+	return bufio.NewScanner(scanner), nil
 }
 
 // PullImage pulls a Docker image from a remote registry and returns a scanner to read the pull logs.

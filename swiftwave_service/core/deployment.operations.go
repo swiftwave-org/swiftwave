@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"strings"
 	"time"
 )
 
@@ -167,14 +168,19 @@ func (deployment *Deployment) Delete(ctx context.Context, db gorm.DB) error {
 	return tx.Error
 }
 
-func (deployment *Deployment) DeployableDockerImageURI() string {
-	// TODO : add support for providing generated docker image uri
+func (deployment *Deployment) DeployableDockerImageURI(remoteRegistryPrefix string) string {
+	isRemoteRegistryPrefixEmpty := strings.Compare(remoteRegistryPrefix, "") == 0
+	if isRemoteRegistryPrefixEmpty && strings.HasSuffix(remoteRegistryPrefix, "/") {
+		remoteRegistryPrefix = remoteRegistryPrefix[:len(remoteRegistryPrefix)-1]
+	}
 	if deployment.UpstreamType == UpstreamTypeImage {
 		return deployment.DockerImage
-	} else if deployment.UpstreamType == UpstreamTypeGit {
-		return deployment.ApplicationID + ":" + deployment.ID
-	} else if deployment.UpstreamType == UpstreamTypeSourceCode {
-		return deployment.ApplicationID + ":" + deployment.ID
+	} else if deployment.UpstreamType == UpstreamTypeGit || deployment.UpstreamType == UpstreamTypeSourceCode {
+		imageURI := deployment.ApplicationID + ":" + deployment.ID
+		if isRemoteRegistryPrefixEmpty {
+			imageURI = remoteRegistryPrefix + "/" + imageURI
+		}
+		return imageURI
 	} else {
 		return ""
 	}

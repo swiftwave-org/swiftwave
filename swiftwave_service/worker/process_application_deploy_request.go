@@ -118,7 +118,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 		})
 	}
 	// docker pull image
-	dockerImageUri := deployment.DeployableDockerImageURI()
+	dockerImageUri := deployment.DeployableDockerImageURI(m.Config.SystemConfig.ImageRegistryConfig.URI())
 	// check if image exists
 	isImageExists := dockerManager.ExistsImage(dockerImageUri)
 	if isImageExists {
@@ -139,7 +139,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 			registryPassword = imageRegistryCredential.Password
 		}
 
-		scanner, err := dockerManager.PullImage(deployment.DeployableDockerImageURI(), registryUsername, registryPassword)
+		scanner, err := dockerManager.PullImage(deployment.DeployableDockerImageURI(m.Config.SystemConfig.ImageRegistryConfig.URI()), registryUsername, registryPassword)
 		if err != nil {
 			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to pull docker image\n", false)
 			return err

@@ -3,6 +3,7 @@ package system_config
 import (
 	"fmt"
 	"gorm.io/gorm"
+	"strings"
 )
 
 var config *SystemConfig
@@ -42,4 +43,15 @@ func Update(db *gorm.DB, config *SystemConfig) error {
 
 func (a AMQPConfig) URI() string {
 	return fmt.Sprintf("%s://%s:%s@%s", a.Protocol, a.User, a.Password, a.Host)
+}
+
+func (r ImageRegistryConfig) URI() string {
+	if strings.Compare(r.Namespace, "") == 0 {
+		return r.Endpoint
+	}
+	return fmt.Sprintf("%s/%s", r.Endpoint, r.Namespace)
+}
+
+func (r ImageRegistryConfig) IsConfigured() bool {
+	return strings.Compare(r.Endpoint, "") != 0
 }
