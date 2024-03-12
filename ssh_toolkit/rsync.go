@@ -33,7 +33,7 @@ func CopyFolderToRemoteServer(
 	if localPath[len(localPath)-1] != '/' {
 		localPath = localPath + "/"
 	}
-	cmd := exec.Command("rsync", "-az", "-e", "ssh -q -o StrictHostKeyChecking=no -p "+fmt.Sprintf("%d", port)+" -i "+tmpFile, localPath, user+"@"+host+":"+remotePath)
+	cmd := exec.Command("rsync", "-az", "--delete", "-e", "ssh -q -o StrictHostKeyChecking=no -p "+fmt.Sprintf("%d", port)+" -i "+tmpFile, localPath, user+"@"+host+":"+remotePath)
 	cmdErr := cmd.Run()
 	if cmdErr != nil {
 		return cmdErr
@@ -63,7 +63,7 @@ func CopyFolderFromRemoteServer(
 	if remotePath[len(remotePath)-1] != '/' {
 		remotePath = remotePath + "/"
 	}
-	cmd := exec.Command("rsync", "-az", "-e", "ssh -q -o StrictHostKeyChecking=no -p "+fmt.Sprintf("%d", port)+" -i "+tmpFile, user+"@"+host+":"+remotePath, localPath)
+	cmd := exec.Command("rsync", "-az", "--delete", "-e", "ssh -q -o StrictHostKeyChecking=no -p "+fmt.Sprintf("%d", port)+" -i "+tmpFile, user+"@"+host+":"+remotePath, localPath)
 	err = cmd.Run()
 	if err != nil {
 		return err

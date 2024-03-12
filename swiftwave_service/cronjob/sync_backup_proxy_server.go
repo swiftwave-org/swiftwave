@@ -9,8 +9,8 @@ import (
 
 func (m Manager) SyncBackupProxyServer() {
 	for {
-		time.Sleep(30 * time.Minute)
 		m.syncBackupProxyServer()
+		time.Sleep(30 * time.Second)
 	}
 }
 
@@ -22,16 +22,20 @@ func (m Manager) syncBackupProxyServer() {
 		return
 	}
 	// copy haproxy config to local server
-	err = ssh_toolkit.CopyFolderFromRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, activeProxyServer.HostName, 22, activeProxyServer.User, m.Config.SystemConfig.SshPrivateKey)
+	err = ssh_toolkit.CopyFolderFromRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, activeProxyServer.IP, 22, activeProxyServer.User, m.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		logger.CronJobLoggerError.Println("Failed to copy haproxy config from remote server", err.Error())
 		return
+	} else {
+		logger.CronJobLogger.Println("Copied haproxy config from remote server", activeProxyServer.HostName)
 	}
 	// copy udpproxy config to local server
-	err = ssh_toolkit.CopyFolderFromRemoteServer(m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, activeProxyServer.HostName, 22, activeProxyServer.User, m.Config.SystemConfig.SshPrivateKey)
+	err = ssh_toolkit.CopyFolderFromRemoteServer(m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, activeProxyServer.IP, 22, activeProxyServer.User, m.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		logger.CronJobLoggerError.Println("Failed to copy udpproxy config from remote server", err.Error())
 		return
+	} else {
+		logger.CronJobLogger.Println("Copied udpproxy config from remote server", activeProxyServer.HostName)
 	}
 	// fetch all backup proxy servers
 	backupServers, err := core.FetchBackupProxyServers(&m.ServiceManager.DbClient)
@@ -41,16 +45,20 @@ func (m Manager) syncBackupProxyServer() {
 	}
 	// copy haproxy config to all backup proxy servers
 	for _, backupServer := range backupServers {
-		err = ssh_toolkit.CopyFolderToRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, backupServer.HostName, 22, backupServer.User, m.Config.SystemConfig.SshPrivateKey)
+		err = ssh_toolkit.CopyFolderToRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, backupServer.IP, 22, backupServer.User, m.Config.SystemConfig.SshPrivateKey)
 		if err != nil {
 			logger.CronJobLoggerError.Println("Failed to copy haproxy config to remote server", backupServer.HostName, "\n", err.Error())
+		} else {
+			logger.CronJobLogger.Println("Copied haproxy config to remote server", backupServer.HostName)
 		}
 	}
 	// copy udpproxy config to all backup proxy servers
 	for _, backupServer := range backupServers {
-		err = ssh_toolkit.CopyFolderToRemoteServer(m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, backupServer.HostName, 22, backupServer.User, m.Config.SystemConfig.SshPrivateKey)
+		err = ssh_toolkit.CopyFolderToRemoteServer(m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, backupServer.IP, 22, backupServer.User, m.Config.SystemConfig.SshPrivateKey)
 		if err != nil {
 			logger.CronJobLoggerError.Println("Failed to copy udpproxy config to remote server", backupServer.HostName, "\n", err.Error())
+		} else {
+			logger.CronJobLogger.Println("Copied udpproxy config to remote server", backupServer.HostName)
 		}
 	}
 }
