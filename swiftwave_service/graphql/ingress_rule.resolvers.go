@@ -63,6 +63,9 @@ func (r *mutationResolver) DeleteIngressRule(ctx context.Context, id uint) (bool
 	}
 	err = record.Delete(ctx, r.ServiceManager.DbClient, false)
 	if err != nil {
+		if errors.Is(err, core.IngressRuleDeletingError) {
+			_ = r.WorkerManager.EnqueueIngressRuleDeleteRequest(record.ID)
+		}
 		return false, err
 	}
 	// schedule task
