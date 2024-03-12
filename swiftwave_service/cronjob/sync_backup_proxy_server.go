@@ -1,6 +1,8 @@
 package cronjob
 
 import (
+	"context"
+	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
@@ -62,5 +64,38 @@ func (m Manager) syncBackupProxyServer() {
 		}
 	}
 
-	// TODO: reload backup proxy servers, avoid using swarm_manager
+	// reload proxies on backup server
+	for _, server := range backupServers {
+		// open ssh connection to backup proxy server for docker
+		conn, err := ssh_toolkit.NetConnOverSSH("unix", server.DockerUnixSocketPath, 5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey, 20)
+		if err != nil {
+			logger.CronJobLoggerError.Println("Failed to open ssh connection to backup proxy server", server.HostName, "\n", err.Error())
+			continue
+		}
+		dockerManager, err := containermanger.New(context.Background(), conn)
+		if err != nil {
+			logger.CronJobLoggerError.Println("Failed to create docker manager for backup proxy server", server.HostName, "\n", err.Error())
+			continue
+		}
+		// remove udpproxy containers from all backup proxy servers, to trigger reload
+		err = dockerManager.RemoveServiceContainers(m.Config.LocalConfig.ServiceConfig.UDPProxyServiceName)
+		if err != nil {
+			logger.CronJobLoggerError.Println("Failed to remove udpproxy containers from backup proxy server", server.HostName, "\n", err.Error())
+		} else {
+			logger.CronJobLogger.Println("Removed udpproxy containers from backup proxy server", server.HostName, " for a force reload")
+		}
+		// reload haproxy on backup proxy serverskill -SIGUSR2 1
+		err = dockerManager.RunCommandInServiceContainers(m.Config.LocalConfig.ServiceConfig.HAProxyServiceName, []string{"kill", "-SIGUSR2", "1"})
+		if err != nil {
+			logger.CronJobLoggerError.Println("Failed to reload haproxy on backup proxy server", server.HostName, "\n", err.Error())
+		} else {
+			logger.CronJobLogger.Println("Reloaded haproxy on backup proxy server", server.HostName)
+		}
+		err = conn.Close()
+		if err != nil {
+			logger.CronJobLoggerError.Println("Failed to close ssh connection to backup proxy server", server.HostName, "\n", err.Error())
+		} else {
+			logger.CronJobLogger.Println("Closed ssh connection to backup proxy server", server.HostName)
+		}
+	}
 }
