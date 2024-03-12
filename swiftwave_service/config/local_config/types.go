@@ -1,7 +1,13 @@
 package local_config
 
+import _ "embed"
+
+//go:embed .version
+var softwareVersion string
+
 type Config struct {
 	IsDevelopmentMode bool             `yaml:"dev_mode"`
+	Version           string           `yaml:"-"`
 	ServiceConfig     ServiceConfig    `yaml:"service"`
 	PostgresqlConfig  PostgresqlConfig `yaml:"postgresql"`
 }

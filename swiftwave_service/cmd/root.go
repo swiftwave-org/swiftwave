@@ -12,11 +12,7 @@ import (
 
 var config *swiftwave_config.Config
 
-//go:embed .version
-var swiftwaveVersion string
-
 func init() {
-	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(configCmd)
 	rootCmd.AddCommand(dbMigrateCmd)
@@ -65,6 +61,7 @@ func Execute() {
 		c, err := swiftwave_config.Fetch()
 		if err != nil {
 			printError("Failed to load config: " + err.Error())
+			printInfo("Run 'swiftwave init' to initialize")
 			os.Exit(1)
 		}
 		config = c

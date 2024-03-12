@@ -19,6 +19,7 @@ func Fetch() (*Config, error) {
 		return nil, e
 	}
 	config = c
+	config.Version = softwareVersion
 	return config, nil
 }
 

@@ -18,7 +18,7 @@ var updateCmd = &cobra.Command{
 	Short: "Update Swiftwave to the latest minor patch version",
 	Long:  `Update Swiftwave to the latest minor patch version`,
 	Run: func(cmd *cobra.Command, args []string) {
-		swiftwaveVersion := strings.TrimSpace(swiftwaveVersion)
+		swiftwaveVersion := strings.TrimSpace(config.LocalConfig.Version)
 		if swiftwaveVersion == "develop" {
 			printError("You should use a stable version of Swiftwave to avail this feature")
 			return

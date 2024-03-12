@@ -38,8 +38,8 @@ jobs:
         cp -r dashboard/dist/* swiftwave_service/dashboard/www/
     - name: Set Version
       run: |
-        rm cmd/.version
-        echo "${{ github.event.release.tag_name }}" >> cmd/.version
+        rm config/local_config/.version
+        echo "${{ github.event.release.tag_name }}" >> config/local_config/.version
     - name: Build and publish
       uses: wangyoucao577/go-release-action@v1
       with:
