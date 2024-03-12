@@ -9,15 +9,8 @@ import (
 )
 
 func (m Manager) CleanupUnusedImages() {
-	isFirstTime := true
 	for {
-		if isFirstTime {
-			time.Sleep(20 * time.Second)
-			isFirstTime = false
-		} else {
-			// sleep for 1 hour
-			time.Sleep(1 * time.Hour)
-		}
+		time.Sleep(1 * time.Hour)
 		// Fetch all servers
 		servers, err := core.FetchAllOnlineServers(&m.ServiceManager.DbClient)
 		if err != nil {

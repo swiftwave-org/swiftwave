@@ -8,14 +8,14 @@ import (
 	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
+	"strings"
 	"time"
 )
 
 func (m Manager) SyncProxy() {
 	for {
 		m.syncProxy()
-		time.Sleep(20 * time.Second)
-		//time.Sleep(1 * time.Minute)
+		time.Sleep(1 * time.Minute)
 	}
 }
 
@@ -111,7 +111,7 @@ func (m Manager) syncProxy() {
 		}
 	} else {
 		// check if env variables, image or placement constraints have changed
-		if !isSameMap(haproxyService.Env, haProxyEnvironmentVariables) || haproxyService.Image != m.Config.SystemConfig.HAProxyConfig.Image || !isListSame(haproxyService.PlacementConstraints, placementConstraints) {
+		if !isSameMap(haproxyService.Env, haProxyEnvironmentVariables) || strings.Compare(haproxyService.Image, m.Config.SystemConfig.HAProxyConfig.Image) != 0 || !isListSame(haproxyService.PlacementConstraints, placementConstraints) {
 			logger.CronJobLogger.Println("Updating haproxy service")
 			// update haproxy service
 			haproxyService.Env = haProxyEnvironmentVariables
@@ -123,6 +123,8 @@ func (m Manager) syncProxy() {
 			} else {
 				logger.CronJobLogger.Println("Updated haproxy service")
 			}
+		} else {
+			logger.CronJobLogger.Println("No change in haproxy service")
 		}
 	}
 	// udp proxy
@@ -169,6 +171,8 @@ func (m Manager) syncProxy() {
 			} else {
 				logger.CronJobLogger.Println("Updated udpproxy service")
 			}
+		} else {
+			logger.CronJobLogger.Println("No change in udpproxy service")
 		}
 	}
 
@@ -222,6 +226,8 @@ func (m Manager) syncProxy() {
 			} else {
 				logger.CronJobLogger.Println("Updated exposed tcp ports of haproxy service")
 			}
+		} else {
+			logger.CronJobLogger.Println("No change in exposed tcp ports of haproxy service")
 		}
 	}
 
@@ -240,6 +246,8 @@ func (m Manager) syncProxy() {
 			} else {
 				logger.CronJobLogger.Println("Updated exposed udp ports of udpproxy service")
 			}
+		} else {
+			logger.CronJobLogger.Println("No change in exposed udp ports of udpproxy service")
 		}
 	}
 

@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/swarm"
 	"io"
+	"strings"
 )
 
 // GetService returns a service
@@ -27,7 +28,13 @@ func (m Manager) GetService(serviceName string) (Service, error) {
 	}
 	// Set env
 	for _, env := range serviceData.Spec.TaskTemplate.ContainerSpec.Env {
-		service.Env[env] = ""
+		// try to split env at first occurrence of '='
+		envSplit := strings.SplitN(env, "=", 2)
+		if len(envSplit) == 2 {
+			service.Env[envSplit[0]] = envSplit[1]
+		} else {
+			service.Env[env] = ""
+		}
 	}
 	// Set volume mounts and binds
 	for _, volumeMount := range serviceData.Spec.TaskTemplate.ContainerSpec.Mounts {
