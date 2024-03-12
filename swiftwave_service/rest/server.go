@@ -13,6 +13,8 @@ func (server *Server) Initialize() {
 func (server *Server) initiateProjectRoutes(e *echo.Echo) {
 	// Initiating Routes for Healthcheck
 	e.GET("/healthcheck", server.healthcheck)
+	// Initiating Routes for Version
+	e.GET("/version", server.version)
 	// Initiating Routes for Auth
 	e.POST("/auth/login", server.login)
 	e.GET("/verify-auth", server.verifyAuth)
