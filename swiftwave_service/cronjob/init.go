@@ -23,10 +23,6 @@ func NewManager(config *config.Config, manager *service_manager.ServiceManager) 
 func (m Manager) Start(nowait bool) {
 	// Start cron jobs
 	m.wg.Add(1)
-	go m.HaProxyPortExposer()
-	m.wg.Add(1)
-	go m.UDPProxyPortExposer()
-	m.wg.Add(1)
 	go m.CleanupUnusedImages()
 	m.wg.Add(1)
 	go m.SyncProxy()

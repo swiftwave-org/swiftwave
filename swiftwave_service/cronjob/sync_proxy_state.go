@@ -3,6 +3,7 @@ package cronjob
 import (
 	"context"
 	"fmt"
+	"github.com/docker/docker/api/types/swarm"
 	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
@@ -11,39 +12,22 @@ import (
 )
 
 func (m Manager) SyncProxy() {
-	isFirstTime := true
 	for {
-		if isFirstTime {
-			time.Sleep(5 * time.Minute)
-			isFirstTime = false
-		} else {
-			time.Sleep(50 * time.Minute)
-		}
 		m.syncProxy()
+		time.Sleep(20 * time.Second)
+		//time.Sleep(1 * time.Minute)
 	}
 }
 
 func (m Manager) syncProxy() {
 	// create context
 	ctx := context.Background()
-	// fetch all proxy servers hostnames
-	proxyServers, err := core.FetchAllServers(&m.ServiceManager.DbClient)
+	// fetch all servers hostnames
+	servers, err := core.FetchAllServers(&m.ServiceManager.DbClient)
 	if err != nil {
 		logger.CronJobLoggerError.Println("Failed to fetch all proxy servers", err.Error())
 		return
 	}
-	if len(proxyServers) == 0 {
-		return
-	}
-	// prepare placement constraints
-	var placementConstraints []string
-	for _, proxyServer := range proxyServers {
-		if !proxyServer.ProxyConfig.Enabled {
-			placementConstraints = append(placementConstraints, "node.hostname!="+proxyServer.HostName)
-		}
-	}
-	fmt.Println(placementConstraints)
-	fmt.Println("HERE")
 
 	// fetch a swarm manager
 	swarmManager, err := core.FetchSwarmManager(&m.ServiceManager.DbClient)
@@ -69,6 +53,30 @@ func (m Manager) syncProxy() {
 		logger.CronJobLoggerError.Println("Failed to create docker client", err.Error())
 		return
 	}
+	if len(servers) == 0 {
+		// delete haproxy and udpproxy services
+		err = dockerClient.RemoveService(m.Config.LocalConfig.ServiceConfig.HAProxyServiceName)
+		if err != nil {
+			logger.CronJobLoggerError.Println("Failed to remove haproxy service", err.Error())
+		} else {
+			logger.CronJobLogger.Println("Removed haproxy service")
+		}
+		err = dockerClient.RemoveService(m.Config.LocalConfig.ServiceConfig.UDPProxyServiceName)
+		if err != nil {
+			logger.CronJobLoggerError.Println("Failed to remove udpproxy service", err.Error())
+		} else {
+			logger.CronJobLogger.Println("Removed udpproxy service")
+		}
+		return
+	}
+	// prepare placement constraints
+	var placementConstraints []string
+	for _, proxyServer := range servers {
+		if !proxyServer.ProxyConfig.Enabled {
+			placementConstraints = append(placementConstraints, "node.hostname!="+proxyServer.HostName)
+		}
+	}
+	// haproxy
 	haProxyEnvironmentVariables := map[string]string{
 		"ADMIN_USERNAME":             m.Config.SystemConfig.HAProxyConfig.Username,
 		"ADMIN_PASSWORD":             m.Config.SystemConfig.HAProxyConfig.Password,
@@ -117,6 +125,7 @@ func (m Manager) syncProxy() {
 			}
 		}
 	}
+	// udp proxy
 	udpProxyEnvironmentVariables := map[string]string{
 		"SWIFTWAVE_SERVICE_ENDPOINT": fmt.Sprintf("%s:%d", m.Config.LocalConfig.ServiceConfig.ManagementNodeAddress, m.Config.LocalConfig.ServiceConfig.BindPort),
 	}
@@ -163,6 +172,77 @@ func (m Manager) syncProxy() {
 		}
 	}
 
+	// PORT EXPOSER
+
+	// fetch all exposed tcp ports
+	tcpPorts, err := core.FetchAllExposedTCPPorts(ctx, m.ServiceManager.DbClient)
+	if err != nil {
+		logger.CronJobLoggerError.Println("Failed to fetch all exposed tcp ports", err.Error())
+		return
+	}
+	// add port 80 and 443
+	tcpPorts = append(tcpPorts, 80, 443)
+	tcpPortsRule := make([]swarm.PortConfig, 0)
+	for _, port := range tcpPorts {
+		tcpPortsRule = append(tcpPortsRule, swarm.PortConfig{
+			Protocol:      swarm.PortConfigProtocolTCP,
+			PublishMode:   swarm.PortConfigPublishModeHost,
+			TargetPort:    uint32(port),
+			PublishedPort: uint32(port),
+		})
+	}
+	// fetch all exposed udp ports
+	udpPorts, err := core.FetchAllExposedUDPPorts(ctx, m.ServiceManager.DbClient)
+	if err != nil {
+		logger.CronJobLoggerError.Println("Failed to fetch all exposed udp ports", err.Error())
+		return
+	}
+	udpPortsRule := make([]swarm.PortConfig, 0)
+	for _, port := range udpPorts {
+		udpPortsRule = append(udpPortsRule, swarm.PortConfig{
+			Protocol:      swarm.PortConfigProtocolUDP,
+			PublishMode:   swarm.PortConfigPublishModeHost,
+			TargetPort:    uint32(port),
+			PublishedPort: uint32(port),
+		})
+	}
+
+	// fetch exposed tcp ports of haproxy service
+	existingTcpPortRules, err := dockerClient.FetchPublishedPortRules(m.Config.LocalConfig.ServiceConfig.HAProxyServiceName)
+	if err != nil {
+		logger.CronJobLoggerError.Println("Failed to fetch exposed tcp ports of haproxy service", err.Error())
+		return
+	} else {
+		// check if exposed tcp ports are changed
+		if !isPortListSame(existingTcpPortRules, tcpPortsRule) {
+			// update exposed tcp ports
+			err = dockerClient.UpdatePublishedHostPorts(m.Config.LocalConfig.ServiceConfig.HAProxyServiceName, tcpPortsRule)
+			if err != nil {
+				logger.CronJobLoggerError.Println("Failed to update exposed tcp ports of haproxy service", err.Error())
+			} else {
+				logger.CronJobLogger.Println("Updated exposed tcp ports of haproxy service")
+			}
+		}
+	}
+
+	// fetch exposed udp ports of udpproxy service
+	existingUdpPortRules, err := dockerClient.FetchPublishedPortRules(m.Config.LocalConfig.ServiceConfig.UDPProxyServiceName)
+	if err != nil {
+		logger.CronJobLoggerError.Println("Failed to fetch exposed udp ports of udpproxy service", err.Error())
+		return
+	} else {
+		// check if exposed udp ports are changed
+		if !isPortListSame(existingUdpPortRules, udpPortsRule) {
+			// update exposed udp ports
+			err = dockerClient.UpdatePublishedHostPorts(m.Config.LocalConfig.ServiceConfig.UDPProxyServiceName, udpPortsRule)
+			if err != nil {
+				logger.CronJobLoggerError.Println("Failed to update exposed udp ports of udpproxy service", err.Error())
+			} else {
+				logger.CronJobLogger.Println("Updated exposed udp ports of udpproxy service")
+			}
+		}
+	}
+
 }
 
 // private function
@@ -175,6 +255,28 @@ func isListSame(list1 []string, list2 []string) bool {
 		found := false
 		for _, item2 := range list2 {
 			if item1 == item2 {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
+func isPortListSame(list1 []swarm.PortConfig, list2 []swarm.PortConfig) bool {
+	if len(list1) != len(list2) {
+		return false
+	}
+	for _, item1 := range list1 {
+		found := false
+		for _, item2 := range list2 {
+			if item1.PublishedPort == item2.PublishedPort &&
+				item1.TargetPort == item2.TargetPort &&
+				item1.Protocol == item2.Protocol &&
+				item1.PublishMode == item2.PublishMode {
 				found = true
 				break
 			}

@@ -136,3 +136,29 @@ func (ingressRule *IngressRule) UpdateStatus(ctx context.Context, db gorm.DB, st
 	tx := db.Model(&ingressRule).Update("status", status)
 	return tx.Error
 }
+
+func FetchAllExposedTCPPorts(ctx context.Context, db gorm.DB) ([]int, error) {
+	var ingressRules []*IngressRule
+	tx := db.Select("port").Where("port IS NOT NULL").Not("protocol = ?", "udp").Find(&ingressRules)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	var ports []int
+	for _, ingressRule := range ingressRules {
+		ports = append(ports, int(ingressRule.Port))
+	}
+	return ports, nil
+}
+
+func FetchAllExposedUDPPorts(ctx context.Context, db gorm.DB) ([]int, error) {
+	var ingressRules []*IngressRule
+	tx := db.Select("port").Where("port IS NOT NULL").Where("protocol = ?", "udp").Find(&ingressRules)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	var ports []int
+	for _, ingressRule := range ingressRules {
+		ports = append(ports, int(ingressRule.Port))
+	}
+	return ports, nil
+}

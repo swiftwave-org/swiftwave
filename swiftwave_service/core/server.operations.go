@@ -95,3 +95,10 @@ func FetchAllProxyServers(db *gorm.DB) ([]Server, error) {
 	err := db.Where("status = ?", ServerOnline).Where("proxy_enabled = ?", true).Find(&servers).Error
 	return servers, err
 }
+
+// FetchAllProxyServersIrrespectiveOfStatus fetches all proxy servers from the database irrespective of status
+func FetchAllProxyServersIrrespectiveOfStatus(db *gorm.DB) ([]Server, error) {
+	var servers []Server
+	err := db.Where("proxy_enabled = ?", true).Find(&servers).Error
+	return servers, err
+}
