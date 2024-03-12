@@ -33,7 +33,22 @@ func Fetch(db *gorm.DB) (*SystemConfig, error) {
 	return config, nil
 }
 
-func Update(db *gorm.DB, config *SystemConfig) error {
+func (config *SystemConfig) Create(db *gorm.DB) error {
+	// check if there is only one record
+	var count int64
+	tx := db.Model(&SystemConfig{}).Count(&count)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if count > 0 {
+		return fmt.Errorf("system config already exists! consider updating it instead")
+	}
+	tx = db.Create(config)
+	return tx.Error
+}
+
+func (config *SystemConfig) Update(db *gorm.DB) error {
+	config.ConfigVersion++
 	tx := db.Save(config)
 	if tx.Error != nil {
 		return tx.Error

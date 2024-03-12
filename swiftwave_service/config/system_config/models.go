@@ -10,7 +10,6 @@ import "github.com/lib/pq"
 type SystemConfig struct {
 	ID                           uint                         `json:"id" gorm:"primaryKey"`
 	ConfigVersion                uint                         `json:"config_version" gorm:"default:1"`
-	SWVersion                    string                       `json:"sw_version"`
 	NetworkName                  string                       `json:"network_name"`
 	RestrictedPorts              pq.Int64Array                `json:"restricted_ports" gorm:"type:integer[]"`
 	JWTSecretKey                 string                       `json:"jwt_secret_key"`
