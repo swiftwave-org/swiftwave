@@ -1,10 +1,18 @@
 package bootstrap
 
 import (
+	cryptorand "crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+
+	"encoding/pem"
 	"errors"
+	"github.com/lib/pq"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
 	"math/rand"
+	"strconv"
+	"strings"
 )
 
 func IsSystemSetupRequired() (bool, error) {
@@ -30,7 +38,69 @@ func generateRandomString(length int) string {
 	return string(result)
 }
 
-func payloadToDBRecord(payload SystemConfigurationPayload) system_config.SystemConfig {
+func portsStringToArray(ports string) []int64 {
+	var portsMap = make(map[int64]bool)
+	portsSplit := strings.Split(ports, ",")
+	for _, port := range portsSplit {
+		p := strings.TrimSpace(port)
+		pInt, e := strconv.ParseInt(p, 10, 64)
+		if e == nil {
+			portsMap[pInt] = true
+		}
+	}
+	// add default ports
+	portsMap[22] = true
+	portsMap[80] = true
+	portsMap[443] = true
+	portsMap[2376] = true
+	portsMap[2377] = true
+	portsMap[4789] = true
+	portsMap[7946] = true
+	// bind port
+	bindPort := localConfig.ServiceConfig.BindPort
+	portsMap[int64(bindPort)] = true
+	// convert map to array
+	portsArr := pq.Int64Array{}
+	for k := range portsMap {
+		portsArr = append(portsArr, k)
+	}
+	return portsArr
+}
+
+func generateRSAPrivateKey() (string, error) {
+	// Generate RSA private key
+	privateKey, err := rsa.GenerateKey(cryptorand.Reader, 2048)
+	if err != nil {
+		return "", errors.New("failed to generate RSA private key")
+	}
+	// Encode private key to PEM format
+	privateKeyBytes := x509.MarshalPKCS1PrivateKey(privateKey)
+	privateKeyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: privateKeyBytes,
+	})
+	keyStr := string(privateKeyPEM)
+	// add newline at the end of the key
+	keyStr = keyStr + "\n"
+	return keyStr, nil
+}
+
+func portsArrayToString(ports []int64) string {
+	var portsStr = ""
+	for _, port := range ports {
+		portsStr = portsStr + strconv.FormatInt(port, 10) + ","
+	}
+	return portsStr
+}
+
+func generateRandomStringIfEmpty(s string, length int) string {
+	if s == "" {
+		return generateRandomString(length)
+	}
+	return s
+}
+
+func payloadToDBRecord(payload SystemConfigurationPayload) (system_config.SystemConfig, error) {
 	imageRegistryConfig := system_config.ImageRegistryConfig{}
 	if payload.ImageRegistry.Type == RemoteRegistry {
 		imageRegistryConfig = system_config.ImageRegistryConfig{
@@ -40,19 +110,45 @@ func payloadToDBRecord(payload SystemConfigurationPayload) system_config.SystemC
 			Password:  payload.ImageRegistry.Password,
 		}
 	}
+
+	// generate ssh private key
+	var sshPrivateKey string
+	if payload.SSHPrivateKey != "" {
+		key, err := generateRSAPrivateKey()
+		if err != nil {
+			return system_config.SystemConfig{}, err
+		}
+		sshPrivateKey = key
+	} else {
+		sshPrivateKey = payload.SSHPrivateKey
+	}
+	// generate letsencrypt private key
+	var letsEncryptPrivateKey string
+	if payload.LetsEncrypt.PrivateKey != "" {
+		key, err := generateRSAPrivateKey()
+		if err != nil {
+			return system_config.SystemConfig{}, err
+		}
+		letsEncryptPrivateKey = key
+	} else {
+		letsEncryptPrivateKey = payload.LetsEncrypt.PrivateKey
+	}
+
 	return system_config.SystemConfig{
-		NetworkName:   payload.NetworkName,
-		ConfigVersion: 1,
-		JWTSecretKey:  generateRandomString(64),
-		SshPrivateKey: "",
-		//ExtraRestrictedPorts: payload.ExtraRestrictedPorts,
+		NetworkName:     payload.NetworkName,
+		ConfigVersion:   1,
+		JWTSecretKey:    generateRandomStringIfEmpty(payload.JWTSecretKey, 32),
+		SshPrivateKey:   sshPrivateKey,
+		RestrictedPorts: portsStringToArray(payload.ExtraRestrictedPorts),
 		LetsEncryptConfig: system_config.LetsEncryptConfig{
 			EmailID:    payload.LetsEncrypt.EmailAddress,
 			Staging:    payload.LetsEncrypt.StagingEnv,
-			PrivateKey: "",
+			PrivateKey: letsEncryptPrivateKey,
 		},
 		HAProxyConfig: system_config.HAProxyConfig{
-			Image: payload.HAProxyConfig.Image,
+			Image:    payload.HAProxyConfig.Image,
+			Username: generateRandomStringIfEmpty(payload.HAProxyConfig.Username, 16),
+			Password: generateRandomStringIfEmpty(payload.HAProxyConfig.Password, 16),
 		},
 		UDPProxyConfig: system_config.UDPProxyConfig{
 			Image: payload.UDPProxyConfig.Image,
@@ -92,5 +188,84 @@ func payloadToDBRecord(payload SystemConfigurationPayload) system_config.SystemC
 			},
 		},
 		ImageRegistryConfig: imageRegistryConfig,
+	}, nil
+}
+
+func dbRecordToPayload(record *system_config.SystemConfig) SystemConfigurationPayload {
+	var imageRegistry = ImageRegistryConfig{
+		Type: LocalRegistry,
+	}
+	if record.ImageRegistryConfig.IsConfigured() {
+		imageRegistry = ImageRegistryConfig{
+			Type:      RemoteRegistry,
+			Endpoint:  record.ImageRegistryConfig.Endpoint,
+			Namespace: record.ImageRegistryConfig.Namespace,
+			Username:  record.ImageRegistryConfig.Username,
+			Password:  record.ImageRegistryConfig.Password,
+		}
+	}
+	var pubsubConfig = PubsubConfig{
+		Type:         LocalPubsub,
+		BufferLength: record.PubSubConfig.BufferLength,
+	}
+	if record.PubSubConfig.Mode == system_config.RemotePubSub {
+		pubsubConfig = PubsubConfig{
+			Type:         RemotePubsub,
+			BufferLength: record.PubSubConfig.BufferLength,
+			RedisConfig: RedisConfig{
+				Host:     record.PubSubConfig.RedisConfig.Host,
+				Port:     record.PubSubConfig.RedisConfig.Port,
+				Password: record.PubSubConfig.RedisConfig.Password,
+				Database: record.PubSubConfig.RedisConfig.DatabaseID,
+			},
+		}
+	}
+	var taskQueueConfig = TaskQueueConfig{
+		Type:                           LocalTaskQueue,
+		MaxOutstandingMessagesPerQueue: record.TaskQueueConfig.MaxOutstandingMessagesPerQueue,
+		NoOfWorkersPerQueue:            record.TaskQueueConfig.NoOfWorkersPerQueue,
+	}
+	if record.TaskQueueConfig.Mode == system_config.RemoteTaskQueue {
+		taskQueueConfig = TaskQueueConfig{
+			Type:                           RemoteTaskQueue,
+			MaxOutstandingMessagesPerQueue: record.TaskQueueConfig.MaxOutstandingMessagesPerQueue,
+			NoOfWorkersPerQueue:            record.TaskQueueConfig.NoOfWorkersPerQueue,
+			AmqpConfig: AmqpConfig{
+				Protocol: TaskQueueQueueProtocol(record.TaskQueueConfig.AMQPConfig.Protocol),
+				Host:     record.TaskQueueConfig.AMQPConfig.Host,
+				Port:     record.TaskQueueConfig.AMQPConfig.Port,
+				Username: record.TaskQueueConfig.AMQPConfig.User,
+				Password: record.TaskQueueConfig.AMQPConfig.Password,
+				Vhost:    record.TaskQueueConfig.AMQPConfig.VHost,
+			},
+		}
+	}
+	return SystemConfigurationPayload{
+		NetworkName:          record.NetworkName,
+		ExtraRestrictedPorts: portsArrayToString(record.RestrictedPorts),
+		LetsEncrypt: LetsEncryptConfig{
+			EmailAddress: record.LetsEncryptConfig.EmailID,
+			StagingEnv:   record.LetsEncryptConfig.Staging,
+		},
+		ImageRegistry: imageRegistry,
+		HAProxyConfig: HAProxyConfig{
+			Image: record.HAProxyConfig.Image,
+		},
+		UDPProxyConfig: UDPProxyConfig{
+			Image: record.UDPProxyConfig.Image,
+		},
+		PvBackupConfig: PvBackupConfig{
+			S3Config: S3Config{
+				Enabled:        record.PersistentVolumeBackupConfig.S3BackupConfig.Enabled,
+				Endpoint:       record.PersistentVolumeBackupConfig.S3BackupConfig.Endpoint,
+				Region:         record.PersistentVolumeBackupConfig.S3BackupConfig.Region,
+				BucketName:     record.PersistentVolumeBackupConfig.S3BackupConfig.Bucket,
+				AccessKeyId:    record.PersistentVolumeBackupConfig.S3BackupConfig.AccessKeyID,
+				SecretKey:      record.PersistentVolumeBackupConfig.S3BackupConfig.SecretAccessKey,
+				ForcePathStyle: record.PersistentVolumeBackupConfig.S3BackupConfig.ForcePathStyle,
+			},
+		},
+		PubsubConfig:    pubsubConfig,
+		TaskQueueConfig: taskQueueConfig,
 	}
 }
