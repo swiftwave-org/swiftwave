@@ -11,6 +11,7 @@ var dbMigrateCmd = &cobra.Command{
 	Short: "Migrate the database",
 	Long:  `Migrate the database`,
 	Run: func(cmd *cobra.Command, args []string) {
+		autorunDBIfRequired()
 		// Initiating database client
 		client, err := db.GetClient(config.LocalConfig, 1)
 		if err != nil {

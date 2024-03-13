@@ -5,6 +5,8 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"strconv"
+	"time"
 )
 
 func checkIfFolderExists(folder string) bool {
@@ -25,7 +27,7 @@ func checkIfFileExists(file string) bool {
 
 func checkIfPortIsInUse(port string) bool {
 	// Attempt to establish a connection to the address
-	conn, err := net.Dial("tcp", ":"+port)
+	conn, err := net.DialTimeout("tcp", ":"+port, 10*time.Second)
 	if err != nil {
 		return false
 	}
@@ -62,6 +64,34 @@ func openFileInEditor(filePath string) {
 		if err := cmd.Run(); err != nil {
 			printError("Error opening file with mimeopen")
 			printError("Set the $EDITOR environment variable to open the file with your preferred editor")
+		}
+	}
+}
+
+func autorunDBIfRequired() {
+	if config.LocalConfig.PostgresqlConfig.AutoStartLocalPostgres {
+		// check if anything binds to port 5432
+		port := strconv.Itoa(config.LocalConfig.PostgresqlConfig.Port)
+		if checkIfPortIsInUse(port) {
+			printSuccess("Local postgres server already running at port " + port)
+			return
+		}
+		// fetch current executable path
+		executablePath, err := os.Executable()
+		if err != nil {
+			printError(err.Error())
+			os.Exit(1)
+		} else {
+			cmd := exec.Command(executablePath, "postgres", "start")
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			err := cmd.Run()
+			if err != nil {
+				printError("Failed to start local postgres server")
+				os.Exit(1)
+			} else {
+				printSuccess("Local postgres server started")
+			}
 		}
 	}
 }

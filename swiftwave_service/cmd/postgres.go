@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"os"
 	"os/exec"
 	"strconv"
@@ -43,7 +42,6 @@ func init() {
 	postgresCmd.AddCommand(postgresStatusCmd)
 	postgresCmd.AddCommand(postgresStartCmd)
 	postgresCmd.AddCommand(postgresStopCmd)
-	postgresCmd.AddCommand(postgresAutoRunCmd)
 }
 
 var postgresCmd = &cobra.Command{
@@ -57,10 +55,10 @@ var postgresStartCmd = &cobra.Command{
 	Short: "Start local postgres database",
 	Long:  "Start local postgres database (Recommended only for standalone installations)",
 	Run: func(cmd *cobra.Command, args []string) {
-		// Create /var/lib/swiftwave/postgres directory if it doesn't exist
-		err := createFolder("/var/lib/swiftwave/postgres")
+		pgDataDirectory := config.LocalConfig.ServiceConfig.LocalPostgresDataDirectory
+		err := createFolder(pgDataDirectory)
 		if err != nil {
-			printError("Failed to create folder > /var/lib/swiftwave/postgres")
+			printError("Failed to create folder > " + pgDataDirectory)
 			return
 		}
 		// Check if postgres container is already running
@@ -68,23 +66,19 @@ var postgresStartCmd = &cobra.Command{
 			printError("Local postgres database is already running")
 			return
 		}
+		// check if something running on the port
+		if checkIfPortIsInUse(strconv.Itoa(config.LocalConfig.PostgresqlConfig.Port)) {
+			printError("Port " + strconv.Itoa(config.LocalConfig.PostgresqlConfig.Port) + " is already in use")
+			return
+		}
 		// Check if postgres container exists
 		if checkIfPostgresContainerExists() {
-			// remove the container
+			// remove the stopped container
 			dockerCmd := exec.Command("docker", "rm", postgresContainerName)
 			dockerCmd.Stderr = os.Stderr
 			err = dockerCmd.Run()
 			if err != nil {
 				printError("Failed to remove existing local postgres database")
-				return
-			}
-		}
-
-		// create folder at /var/lib/swiftwave/postgres if not exists
-		if !checkIfFolderExists("/var/lib/swiftwave/postgres") {
-			err := createFolder("/var/lib/swiftwave/postgres")
-			if err != nil {
-				printError("Failed to create folder > /var/lib/swiftwave/postgres")
 				return
 			}
 		}
@@ -143,20 +137,6 @@ var postgresStatusCmd = &cobra.Command{
 			printSuccess("Local postgres database is running")
 		} else {
 			printError("Local postgres database is not running")
-		}
-	},
-}
-
-var postgresAutoRunCmd = &cobra.Command{
-	Use:   "auto-run-local",
-	Short: "Auto run postgres locally if `auto_run_local_postgres` is set to true in config file",
-	Long:  "Auto run postgres locally if `auto_run_local_postgres` is set to true in config file",
-	Run: func(cmd *cobra.Command, args []string) {
-		if config.LocalConfig.PostgresqlConfig.AutoStartLocalPostgres {
-			// Start local postgres database
-			postgresStartCmd.Run(cmd, args)
-		} else {
-			logger.DatabaseLogger.Println("[IGNORE] Auto run local postgres is disabled")
 		}
 	},
 }

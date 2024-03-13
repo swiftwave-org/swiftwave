@@ -10,12 +10,14 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
 )
 
 func init() {
 	initCmd.Flags().SortFlags = false
 	initCmd.Flags().Bool("auto-domain", false, "Resolve domain name automatically")
+	initCmd.Flags().Bool("local-postgres", false, "Start local postgres server")
 }
 
 var initCmd = &cobra.Command{
@@ -23,6 +25,7 @@ var initCmd = &cobra.Command{
 	Short: "Initialize SwiftWave configuration on server",
 	Run: func(cmd *cobra.Command, args []string) {
 		isAutoDomainResolve := cmd.Flag("auto-domain").Value.String() == "true"
+		isLocalPostgres := cmd.Flag("local-postgres").Value.String() == "true"
 		// Try to fetch local config
 		_, err := local_config.Fetch()
 		if err == nil {
@@ -69,7 +72,7 @@ var initCmd = &cobra.Command{
 				Database:               "db_" + generateRandomString(8),
 				TimeZone:               "Asia/Kolkata",
 				SSLMode:                "disable",
-				AutoStartLocalPostgres: true,
+				AutoStartLocalPostgres: isLocalPostgres,
 			},
 		}
 		err = local_config.FillDefaults(newConfig)
@@ -108,6 +111,24 @@ var initCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		printSuccess("Config created at " + local_config.LocalConfigPath)
+		// run local postgres
+		if isLocalPostgres {
+			printInfo("Starting local postgres server")
+			// fetch current executable path
+			executablePath, err := os.Executable()
+			if err != nil {
+				printError(err.Error())
+				os.Exit(1)
+			} else {
+				err := exec.Command(executablePath, "postgres", "start").Run()
+				if err != nil {
+					printError(err.Error())
+					os.Exit(1)
+				} else {
+					printSuccess("Local postgres server started")
+				}
+			}
+		}
 	},
 }
 

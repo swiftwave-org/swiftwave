@@ -43,7 +43,7 @@ func Execute() {
 	// set config and manager
 	cobra.EnableCommandSorting = false
 	// Check whether first argument is "install" or no arguments
-	if (len(os.Args) > 1 && (os.Args[1] == "init" || os.Args[1] == "completion" || os.Args[1] == "--help")) || len(os.Args) == 1 {
+	if (len(os.Args) > 1 && (os.Args[1] == "init" || os.Args[1] == "completion" || os.Args[1] == "--help" || os.Args[1] == "help")) || len(os.Args) == 1 {
 		// if first argument is "init" or no arguments, do not load config
 	} else if len(os.Args) >= 1 && (os.Args[1] == "postgres" || os.Args[1] == "db-migrate" || os.Args[1] == "config") {
 		// load only local config
@@ -56,8 +56,22 @@ func Execute() {
 			LocalConfig:  c,
 			SystemConfig: nil,
 		}
+		if os.Args[1] == "db-migrate" {
+			autorunDBIfRequired()
+		}
 	} else {
-		// load config
+		// load only local config
+		lc, err := local_config.Fetch()
+		if err != nil {
+			printError("Failed to load local config: " + err.Error())
+			os.Exit(1)
+		}
+		config = &swiftwave_config.Config{
+			LocalConfig:  lc,
+			SystemConfig: nil,
+		}
+		autorunDBIfRequired()
+		// load complete config
 		c, err := swiftwave_config.Fetch()
 		if err != nil {
 			printError("Failed to load config: " + err.Error())
