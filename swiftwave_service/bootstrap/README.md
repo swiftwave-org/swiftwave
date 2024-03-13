@@ -1,0 +1,1 @@
+This module is responsible to configure Swiftwave Service. It will expose a public API to setup system for the first time. It should not do any operations if system already configured.

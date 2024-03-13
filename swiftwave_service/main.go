@@ -22,8 +22,8 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/worker"
 )
 
-// Start will start the swiftwave service [including worker manager, pubsub, cronjob, server]
-func Start(config *config.Config) {
+// StartSwiftwave will start the swiftwave service [including worker manager, pubsub, cronjob, server]
+func StartSwiftwave(config *config.Config) {
 	// Load the manager
 	manager := &service_manager.ServiceManager{
 		CancelImageBuildTopic: "cancel_image_build",
@@ -57,7 +57,7 @@ func Start(config *config.Config) {
 	// create a channel to block the main thread
 	var waitForever chan struct{}
 
-	// Start the swift wave server
+	// StartSwiftwave the swift wave server
 	go StartServer(config, manager, workerManager)
 	// Wait for consumers
 	go workerManager.WaitForConsumers()
@@ -152,7 +152,7 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 	// Initialize GraphQL Server
 	graphqlServer.Initialize()
 
-	// Start the server
+	// StartSwiftwave the server
 	address := fmt.Sprintf("%s:%d", config.LocalConfig.ServiceConfig.BindAddress, config.LocalConfig.ServiceConfig.BindPort)
 	if config.LocalConfig.ServiceConfig.UseTLS {
 		println("TLS Server Started on " + address)

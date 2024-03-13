@@ -57,7 +57,7 @@ func (config *SystemConfig) Update(db *gorm.DB) error {
 }
 
 func (a AMQPConfig) URI() string {
-	return fmt.Sprintf("%s://%s:%s@%s", a.Protocol, a.User, a.Password, a.Host)
+	return fmt.Sprintf("%s://%s:%s@%s:%d/%s", a.Protocol, a.User, a.Password, a.Host, a.Port, a.VHost)
 }
 
 func (r ImageRegistryConfig) URI() string {

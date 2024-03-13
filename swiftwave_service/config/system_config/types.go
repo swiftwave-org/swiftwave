@@ -90,6 +90,7 @@ type RedisConfig struct {
 type AMQPConfig struct {
 	Protocol AMQPProtocol `json:"protocol"`
 	Host     string       `json:"host"`
+	Port     uint         `json:"port"`
 	User     string       `json:"user"`
 	Password string       `json:"password"`
 	VHost    string       `json:"vhost"`
