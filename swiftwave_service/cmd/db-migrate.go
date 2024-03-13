@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	swiftwave "github.com/swiftwave-org/swiftwave/swiftwave_service"
+	swiftwave "github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
 )
 

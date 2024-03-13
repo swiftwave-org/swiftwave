@@ -30,17 +30,9 @@ func Start(config *config.Config) {
 	}
 	manager.Load(*config)
 
-	// Migrate Database
-	err := MigrateDatabase(&manager.DbClient)
-	if err != nil {
-		panic(err)
-	} else {
-		log.Println("Database Migration Complete")
-	}
-
 	// Cancel pending tasks
 	// TODO: don't cancel, requeue the tasks
-	err = worker.CancelPendingTasksLocalQueue(*config, *manager)
+	err := worker.CancelPendingTasksLocalQueue(*config, *manager)
 	if err != nil {
 		panic(err)
 	}

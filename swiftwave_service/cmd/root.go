@@ -5,6 +5,8 @@ import (
 	"fmt"
 	swiftwave_config "github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -71,6 +73,20 @@ func Execute() {
 			SystemConfig: nil,
 		}
 		autorunDBIfRequired()
+		// Migrate Database
+		dbClient, err := db.GetClient(lc, 5)
+		if err != nil {
+			printError("Failed to connect to database: " + err.Error())
+			os.Exit(1)
+		}
+		err = core.MigrateDatabase(dbClient)
+		if err != nil {
+			printError("Failed to migrate database: " + err.Error())
+			os.Exit(1)
+		} else {
+			printSuccess("Database migrated successfully")
+		}
+
 		// load complete config
 		c, err := swiftwave_config.Fetch()
 		if err != nil {
