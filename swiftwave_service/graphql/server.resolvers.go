@@ -25,6 +25,18 @@ func (r *mutationResolver) CreateServer(ctx context.Context, input model.NewServ
 	if err != nil {
 		return nil, err
 	}
+	// if localhost, insert public key
+	if server.IsLocalhost() {
+		publicKey, err := r.Config.SystemConfig.PublicSSHKey()
+		if err != nil {
+			logger.GraphQLLoggerError.Println("Failed to generate public ssh key", err.Error())
+		}
+		// append the public key to current server ~/.ssh/authorized_keys
+		err = AppendPublicSSHKeyLocally(publicKey)
+		if err != nil {
+			logger.GraphQLLoggerError.Println("Failed to append public ssh key", err.Error())
+		}
+	}
 	return serverToGraphqlObject(server), nil
 }
 

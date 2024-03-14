@@ -83,6 +83,7 @@ func (m Manager) setupServerHelper(request SetupServerRequest, ctx context.Conte
 		m.Config.LocalConfig.ServiceConfig.TarballDirectoryPath,
 		m.Config.LocalConfig.ServiceConfig.LogDirectoryPath,
 		m.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath,
+		m.Config.LocalConfig.ServiceConfig.PVRestoreDirectoryPath,
 		m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath,
 		m.Config.LocalConfig.ServiceConfig.HAProxyUnixSocketDirectory,
 		m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath,

@@ -53,3 +53,9 @@ func (domain *Domain) IsIPv4() bool {
 	regex := regexp.MustCompile(IPV4Regex)
 	return regex.MatchString(domain.Name)
 }
+
+// IsLocalhost : check if the domain is localhost
+func (server *Server) IsLocalhost() bool {
+	// if `localhost` or `127.0.0.1` or `0.0.0.0`
+	return server.IP == "localhost" || server.IP == "127.0.0.1" || server.IP == "0.0.0.0"
+}

@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"gorm.io/gorm"
@@ -35,9 +36,14 @@ func (m Manager) PersistentVolumeRestore(request PersistentVolumeRestoreRequest,
 	if err != nil {
 		return err
 	}
-	// TODO: move the file to swarm node before restoring
 	// restore backup
-	filePath := filepath.Join(m.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath, persistentVolumeRestore.File)
+	filePath := filepath.Join(m.Config.LocalConfig.ServiceConfig.PVRestoreDirectoryPath, persistentVolumeRestore.File)
+	// copy to swarm node
+	err = ssh_toolkit.CopyFileToRemoteServer(filePath, filePath, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
+	if err != nil {
+		markPVRestoreRequestAsFailed(dbWithoutTx, persistentVolumeRestore)
+		return nil
+	}
 	err = dockerManager.RestoreVolume(persistentVolume.Name, filePath)
 	if err != nil {
 		markPVRestoreRequestAsFailed(dbWithoutTx, persistentVolumeRestore)
@@ -45,7 +51,7 @@ func (m Manager) PersistentVolumeRestore(request PersistentVolumeRestoreRequest,
 	}
 	// update status
 	persistentVolumeRestore.Status = core.RestoreSuccess
-	err = persistentVolumeRestore.Update(ctx, dbWithoutTx, m.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath)
+	err = persistentVolumeRestore.Update(ctx, dbWithoutTx, m.Config.LocalConfig.ServiceConfig.PVRestoreDirectoryPath)
 	return err
 }
 

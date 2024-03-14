@@ -1,6 +1,8 @@
 package system_config
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"gorm.io/gorm"
 	"strings"
@@ -77,4 +79,30 @@ func (r ImageRegistryConfig) URI() string {
 
 func (r ImageRegistryConfig) IsConfigured() bool {
 	return strings.Compare(r.Endpoint, "") != 0
+}
+
+func (config *SystemConfig) PublicSSHKey() (string, error) {
+	// Decode the PEM-encoded private key
+	block, _ := pem.Decode([]byte(config.SshPrivateKey))
+	if block == nil {
+		return "", fmt.Errorf("failed to decode PEM block")
+	}
+
+	// Parse the private key
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse private key: %v", err)
+	}
+
+	// Convert the private key to a public key
+	publicKey := &privateKey.PublicKey
+
+	// Get the public key in OpenSSH format
+	pubKeyBytes, err := x509.MarshalPKIXPublicKey(publicKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal public key: %v", err)
+	}
+
+	pubKey := fmt.Sprintf("ssh-rsa %X swiftwave", pubKeyBytes)
+	return pubKey, nil
 }

@@ -17,6 +17,7 @@ var defaultUDPProxyUnixSocketDirectory = filepath.Join(defaultSocketPathDirector
 var defaultUDPProxyUnixSocketPath = filepath.Join(defaultUDPProxyUnixSocketDirectory, "api.sock")
 var defaultSSLCertDirectoryPath = filepath.Join(defaultDataDirectory, "certs")
 var defaultPVBackupDirectoryPath = filepath.Join(defaultDataDirectory, "pvbackup")
+var defaultPVRestoreDirectoryPath = filepath.Join(defaultDataDirectory, "pvrestore")
 var defaultTarballDirectoryPath = filepath.Join(defaultDataDirectory, "tarball")
 var defaultLocalPostgresDataDirectory = filepath.Join(defaultDataDirectory, "postgres")
 var LocalConfigPath = filepath.Join(defaultDataDirectory, "config.yml")

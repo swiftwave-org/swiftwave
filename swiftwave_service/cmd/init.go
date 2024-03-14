@@ -86,6 +86,7 @@ var initCmd = &cobra.Command{
 			newConfig.ServiceConfig.TarballDirectoryPath,
 			newConfig.ServiceConfig.LogDirectoryPath,
 			newConfig.ServiceConfig.PVBackupDirectoryPath,
+			newConfig.ServiceConfig.PVRestoreDirectoryPath,
 			newConfig.ServiceConfig.SSLCertDirectoryPath,
 			newConfig.ServiceConfig.HAProxyDataDirectoryPath,
 			newConfig.ServiceConfig.HAProxyUnixSocketDirectory,

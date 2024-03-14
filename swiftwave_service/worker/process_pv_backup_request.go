@@ -2,8 +2,11 @@ package worker
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/uuid"
+	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/uploader"
 	"gorm.io/gorm"
@@ -63,10 +66,18 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 		markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
 		return nil
 	}
-	// TODO: copy it from swarm to management node
+	// copy to management node
+	err = ssh_toolkit.CopyFileFromRemoteServer(backupFilePath, backupFilePath, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
+	if err != nil {
+		logger.CronJobLoggerError.Println("error while copying backup file to management node > " + err.Error())
+		markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
+		return nil
+	}
+	// delete backup from swarm node
+	_ = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("sudo rm -f %s", backupFilePath), nil, nil, 20, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey, 30)
 	// upload to s3
 	if persistentVolumeBackup.Type == core.S3Backup {
-		backupFileReader, err := os.Open(backupFilePath) // TODO
+		backupFileReader, err := os.Open(backupFilePath)
 		if err != nil {
 			markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
 			return nil
@@ -83,6 +94,11 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 			log.Println("error while uploading backup to s3 > " + err.Error())
 			markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
 			return nil
+		}
+		// delete backup file
+		err = os.Remove(backupFilePath)
+		if err != nil {
+			log.Println("error while deleting backup file > " + err.Error())
 		}
 	}
 	// update status

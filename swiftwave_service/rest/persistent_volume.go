@@ -165,7 +165,7 @@ func (server *Server) uploadPersistentVolumeRestoreFile(c echo.Context) error {
 	}
 	// Destination
 	fileName := fmt.Sprintf("restore-%s-%d.tar.gz", uuid.NewString(), persistentVolumeRestore.ID)
-	filePath := filepath.Join(server.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath, fileName)
+	filePath := filepath.Join(server.Config.LocalConfig.ServiceConfig.PVRestoreDirectoryPath, fileName)
 	// Write file
 	dst, err := os.Create(filePath)
 	if err != nil {

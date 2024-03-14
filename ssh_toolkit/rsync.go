@@ -71,6 +71,58 @@ func CopyFolderFromRemoteServer(
 	return nil
 }
 
+func CopyFileToRemoteServer(
+	localPath string,
+	remotePath string,
+	host string, port int, user string, privateKey string,
+) error {
+	if localPath == "" || remotePath == "" || host == "" || port == 0 || user == "" || privateKey == "" {
+		return fmt.Errorf("invalid parameters")
+	}
+	tmpFile, err := storePrivateKeyInTmp(privateKey)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err := os.Remove(tmpFile)
+		if err != nil {
+			fmt.Println("Error removing temporary file:", err)
+		}
+	}()
+	cmd := exec.Command("rsync", "-z", "-e", "ssh -q -o StrictHostKeyChecking=no -p "+fmt.Sprintf("%d", port)+" -i "+tmpFile, localPath, user+"@"+host+":"+remotePath)
+	cmdErr := cmd.Run()
+	if cmdErr != nil {
+		return cmdErr
+	}
+	return nil
+}
+
+func CopyFileFromRemoteServer(
+	remotePath string,
+	localPath string,
+	host string, port int, user string, privateKey string,
+) error {
+	if localPath == "" || remotePath == "" || host == "" || port == 0 || user == "" || privateKey == "" {
+		return fmt.Errorf("invalid parameters")
+	}
+	tmpFile, err := storePrivateKeyInTmp(privateKey)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err := os.Remove(tmpFile)
+		if err != nil {
+			fmt.Println("Error removing temporary file:", err)
+		}
+	}()
+	cmd := exec.Command("rsync", "-z", "-e", "ssh -q -o StrictHostKeyChecking=no -p "+fmt.Sprintf("%d", port)+" -i "+tmpFile, user+"@"+host+":"+remotePath, localPath)
+	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // private functions
 func storePrivateKeyInTmp(privateKey string) (string, error) {
 	privateKey = privateKey + "\n"

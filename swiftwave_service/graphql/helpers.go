@@ -11,6 +11,8 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"gorm.io/gorm"
 	"log"
+	"os"
+	"os/user"
 	"path/filepath"
 	"strings"
 )
@@ -74,4 +76,44 @@ func FetchDockerManager(ctx context.Context, db *gorm.DB) (*containermanger.Mana
 		return nil, errors.New("failed to fetch docker manager")
 	}
 	return dockerManager, nil
+}
+
+func AppendPublicSSHKeyLocally(pubKey string) error {
+	// Get the current user
+	currentUser, err := user.Current()
+	if err != nil {
+		return fmt.Errorf("failed to get current user: %v", err)
+	}
+
+	// Construct the path to the .ssh directory
+	sshDirPath := filepath.Join(currentUser.HomeDir, ".ssh")
+
+	// Create the .ssh directory if it doesn't exist
+	err = os.MkdirAll(sshDirPath, 0700)
+	if err != nil {
+		return fmt.Errorf("failed to create .ssh directory: %v", err)
+	}
+
+	// Construct the path to the authorized_keys file
+	authorizedKeysPath := filepath.Join(sshDirPath, "authorized_keys")
+
+	// Open the authorized_keys file for appending
+	f, err := os.OpenFile(authorizedKeysPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
+	if err != nil {
+		return fmt.Errorf("failed to open authorized_keys file: %v", err)
+	}
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			log.Printf("failed to close authorized_keys file: %v", err)
+		}
+	}(f)
+
+	// Append the public key to the file
+	_, err = fmt.Fprintln(f, pubKey)
+	if err != nil {
+		return fmt.Errorf("failed to append public key to authorized_keys: %v", err)
+	}
+
+	return nil
 }

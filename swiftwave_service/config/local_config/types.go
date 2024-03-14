@@ -22,6 +22,7 @@ type ServiceConfig struct {
 	LocalPostgresDataDirectory  string `yaml:"-"`
 	TarballDirectoryPath        string `yaml:"-"`
 	PVBackupDirectoryPath       string `yaml:"-"`
+	PVRestoreDirectoryPath      string `yaml:"-"`
 	NetworkName                 string `yaml:"-"`
 	HAProxyServiceName          string `yaml:"-"`
 	HAProxyUnixSocketDirectory  string `yaml:"-"`

@@ -111,6 +111,7 @@ func FillDefaults(config *Config) error {
 	config.ServiceConfig.InfoLogFilePath = InfoLogFilePath
 	config.ServiceConfig.ErrorLogFilePath = ErrorLogFilePath
 	config.ServiceConfig.PVBackupDirectoryPath = defaultPVBackupDirectoryPath
+	config.ServiceConfig.PVRestoreDirectoryPath = defaultPVRestoreDirectoryPath
 	return nil
 }
 
