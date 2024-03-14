@@ -47,7 +47,7 @@ func Execute() {
 	// Check whether first argument is "install" or no arguments
 	if (len(os.Args) > 1 && (os.Args[1] == "init" || os.Args[1] == "completion" || os.Args[1] == "--help" || os.Args[1] == "help")) || len(os.Args) == 1 {
 		// if first argument is "init" or no arguments, do not load config
-	} else if len(os.Args) >= 1 && (os.Args[1] == "postgres" || os.Args[1] == "db-migrate" || os.Args[1] == "config") {
+	} else if len(os.Args) >= 1 && (os.Args[1] == "postgres" || os.Args[1] == "db-migrate" || os.Args[1] == "config" || os.Args[1] == "auto-updater" || os.Args[1] == "update" || os.Args[1] == "service") {
 		// load only local config
 		c, err := local_config.Fetch()
 		if err != nil {
@@ -58,7 +58,7 @@ func Execute() {
 			LocalConfig:  c,
 			SystemConfig: nil,
 		}
-		if os.Args[1] == "db-migrate" || os.Args[1] == "start" {
+		if os.Args[1] == "db-migrate" {
 			autorunDBIfRequired()
 		}
 	} else {
@@ -87,7 +87,7 @@ func Execute() {
 			printSuccess("Database migrated successfully")
 		}
 
-		loadSystemConfig := true
+		loadSystemConfig := false
 
 		// if it's start command, and system setup is required, don't load complete config
 		if len(os.Args) > 1 && os.Args[1] == "start" {
@@ -96,8 +96,8 @@ func Execute() {
 				printError("Failed to check if system setup is required: " + err.Error())
 				os.Exit(1)
 			}
-			if setupRequired {
-				loadSystemConfig = false
+			if !setupRequired {
+				loadSystemConfig = true
 			}
 		}
 

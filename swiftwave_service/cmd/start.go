@@ -10,8 +10,8 @@ import (
 
 var startCmd = &cobra.Command{
 	Use:   "start",
-	Short: "StartSwiftwave swiftwave service",
-	Long:  `StartSwiftwave swiftwave service`,
+	Short: "Start Swiftwave",
+	Long:  `Start Swiftwave`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if config == nil {
 			return
