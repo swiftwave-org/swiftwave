@@ -64,14 +64,14 @@ var initCmd = &cobra.Command{
 				ManagementNodeAddress: domainName,
 			},
 			PostgresqlConfig: local_config.PostgresqlConfig{
-				Host:                   "127.0.0.1",
-				Port:                   5432,
-				User:                   generateRandomString(8),
-				Password:               generateRandomString(20),
-				Database:               "db_" + generateRandomString(8),
-				TimeZone:               "Asia/Kolkata",
-				SSLMode:                "disable",
-				AutoStartLocalPostgres: isLocalPostgres,
+				Host:             "127.0.0.1",
+				Port:             5432,
+				User:             generateRandomString(8),
+				Password:         generateRandomString(20),
+				Database:         "db_" + generateRandomString(8),
+				TimeZone:         "Asia/Kolkata",
+				SSLMode:          "disable",
+				RunLocalPostgres: isLocalPostgres,
 			},
 		}
 		err = local_config.FillDefaults(newConfig)

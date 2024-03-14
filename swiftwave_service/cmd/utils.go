@@ -69,7 +69,7 @@ func openFileInEditor(filePath string) {
 }
 
 func autorunDBIfRequired() {
-	if config.LocalConfig.PostgresqlConfig.AutoStartLocalPostgres {
+	if config.LocalConfig.PostgresqlConfig.RunLocalPostgres {
 		// check if anything binds to port 5432
 		port := strconv.Itoa(config.LocalConfig.PostgresqlConfig.Port)
 		if checkIfPortIsInUse(port) {

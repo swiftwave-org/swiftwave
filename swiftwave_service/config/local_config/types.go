@@ -38,12 +38,12 @@ type ServiceConfig struct {
 }
 
 type PostgresqlConfig struct {
-	Host                   string `yaml:"host"`
-	Port                   int    `yaml:"port"`
-	User                   string `yaml:"user"`
-	Password               string `yaml:"password"`
-	Database               string `yaml:"database"`
-	TimeZone               string `yaml:"time_zone"`
-	SSLMode                string `yaml:"ssl_mode"`
-	AutoStartLocalPostgres bool   `yaml:"auto_start_local_postgres"`
+	Host             string `yaml:"host"`
+	Port             int    `yaml:"port"`
+	User             string `yaml:"user"`
+	Password         string `yaml:"password"`
+	Database         string `yaml:"database"`
+	TimeZone         string `yaml:"time_zone"`
+	SSLMode          string `yaml:"ssl_mode"`
+	RunLocalPostgres bool   `yaml:"run_local_postgres"`
 }

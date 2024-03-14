@@ -12,13 +12,27 @@ import (
 )
 
 func init() {
+	userManagementCmd.AddCommand(createUserCmd)
+	userManagementCmd.AddCommand(deleteUserCmd)
 	createUserCmd.Flags().StringP("username", "u", "", "Username")
 	createUserCmd.Flags().StringP("password", "p", "", "Password [Optional]")
 	deleteUserCmd.Flags().StringP("username", "u", "", "Username")
 }
 
+var userManagementCmd = &cobra.Command{
+	Use:   "user",
+	Short: "Manage users",
+	Long:  `Manage users`,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := cmd.Help()
+		if err != nil {
+			return
+		}
+	},
+}
+
 var createUserCmd = &cobra.Command{
-	Use:   "create-user",
+	Use:   "create",
 	Short: "Create a new user",
 	Long:  "Create a new user",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -86,7 +100,7 @@ var createUserCmd = &cobra.Command{
 }
 
 var deleteUserCmd = &cobra.Command{
-	Use:   "delete-user",
+	Use:   "delete",
 	Short: "Delete a user",
 	Long:  "Delete a user",
 	Run: func(cmd *cobra.Command, args []string) {

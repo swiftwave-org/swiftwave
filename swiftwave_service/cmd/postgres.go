@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -55,6 +56,13 @@ var postgresStartCmd = &cobra.Command{
 	Short: "Start local postgres database",
 	Long:  "Start local postgres database (Recommended only for standalone installations)",
 	Run: func(cmd *cobra.Command, args []string) {
+		if !config.LocalConfig.PostgresqlConfig.RunLocalPostgres {
+			printInfo("It seems that you have configured a remote postgres database.")
+			printInfo("If you don' want to start local postgres server, type CTRL+C to exit.")
+			printInfo("Starting local postgres in 10 seconds...")
+			// Wait for 10 seconds
+			<-time.After(10 * time.Second)
+		}
 		pgDataDirectory := config.LocalConfig.ServiceConfig.LocalPostgresDataDirectory
 		err := createFolder(pgDataDirectory)
 		if err != nil {
@@ -63,7 +71,7 @@ var postgresStartCmd = &cobra.Command{
 		}
 		// Check if postgres container is already running
 		if checkIfPostgresContainerIsRunning() {
-			printError("Local postgres database is already running")
+			printSuccess("Local postgres database is already running")
 			return
 		}
 		// check if something running on the port
@@ -123,7 +131,7 @@ var postgresStopCmd = &cobra.Command{
 				printSuccess("Local postgres database stopped successfully")
 			}
 		} else {
-			printError("Local postgres database is not running")
+			printSuccess("Local postgres database is not running")
 		}
 	},
 }
