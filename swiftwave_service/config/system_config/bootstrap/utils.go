@@ -16,6 +16,9 @@ import (
 )
 
 func IsSystemSetupRequired() (bool, error) {
+	if err := loadConfig(); err != nil {
+		return false, err
+	}
 	// Create db connection
 	dbConnection, err := db.GetClient(localConfig, 1)
 	if err != nil {
@@ -57,6 +60,9 @@ func portsStringToArray(ports string) []int64 {
 	portsMap[4789] = true
 	portsMap[7946] = true
 	// bind port
+	if err := loadConfig(); err != nil {
+		panic("You shouldn't call this function without having local config loaded !")
+	}
 	bindPort := localConfig.ServiceConfig.BindPort
 	portsMap[int64(bindPort)] = true
 	// convert map to array
@@ -101,6 +107,19 @@ func generateRandomStringIfEmpty(s string, length int) string {
 }
 
 func payloadToDBRecord(payload SystemConfigurationPayload) (system_config.SystemConfig, error) {
+	// validations
+	if isEmptyString(payload.NetworkName) {
+		return system_config.SystemConfig{}, errors.New("network name is required")
+	}
+	if isEmptyString(payload.LetsEncrypt.EmailAddress) {
+		return system_config.SystemConfig{}, errors.New("letsencrypt email address is required")
+	}
+	if isEmptyString(payload.HAProxyConfig.Image) {
+		return system_config.SystemConfig{}, errors.New("haproxy image is required")
+	}
+	if isEmptyString(payload.UDPProxyConfig.Image) {
+		return system_config.SystemConfig{}, errors.New("udp proxy image is required")
+	}
 	imageRegistryConfig := system_config.ImageRegistryConfig{}
 	if payload.ImageRegistry.Type == RemoteRegistry {
 		imageRegistryConfig = system_config.ImageRegistryConfig{
@@ -113,7 +132,7 @@ func payloadToDBRecord(payload SystemConfigurationPayload) (system_config.System
 
 	// generate ssh private key
 	var sshPrivateKey string
-	if payload.SSHPrivateKey != "" {
+	if isEmptyString(payload.SSHPrivateKey) {
 		key, err := generateRSAPrivateKey()
 		if err != nil {
 			return system_config.SystemConfig{}, err
@@ -124,7 +143,7 @@ func payloadToDBRecord(payload SystemConfigurationPayload) (system_config.System
 	}
 	// generate letsencrypt private key
 	var letsEncryptPrivateKey string
-	if payload.LetsEncrypt.PrivateKey != "" {
+	if isEmptyString(payload.LetsEncrypt.PrivateKey) {
 		key, err := generateRSAPrivateKey()
 		if err != nil {
 			return system_config.SystemConfig{}, err
@@ -268,4 +287,8 @@ func dbRecordToPayload(record *system_config.SystemConfig) SystemConfigurationPa
 		PubsubConfig:    pubsubConfig,
 		TaskQueueConfig: taskQueueConfig,
 	}
+}
+
+func isEmptyString(s string) bool {
+	return len(strings.TrimSpace(s)) == 0
 }

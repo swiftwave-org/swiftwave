@@ -1,10 +1,11 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	swiftwave "github.com/swiftwave-org/swiftwave/swiftwave_service"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/bootstrap"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config/bootstrap"
 )
 
 var startCmd = &cobra.Command{
@@ -27,6 +28,7 @@ var startCmd = &cobra.Command{
 			return
 		}
 		if setupRequired {
+			printSuccess(fmt.Sprintf("System Setup Server started successfully.\nVisit http://%s:%d to setup the system.", config.LocalConfig.ServiceConfig.ManagementNodeAddress, config.LocalConfig.ServiceConfig.BindPort))
 			err := bootstrap.StartBootstrapServer()
 			if err != nil {
 				printError("Failed to start bootstrap server")

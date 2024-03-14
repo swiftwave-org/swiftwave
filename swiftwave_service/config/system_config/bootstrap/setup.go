@@ -3,24 +3,38 @@ package bootstrap
 import (
 	"errors"
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/labstack/echo/v4"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/dashboard"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
 	"net/http"
 	"os"
 	"os/exec"
+	"time"
 )
 
 var localConfig *local_config.Config
 
-func StartBootstrapServer() error {
+func loadConfig() error {
+	if localConfig != nil {
+		return nil
+	}
 	// Fetch local configuration
 	lc, err := local_config.Fetch()
 	if err != nil {
 		return err
 	}
 	localConfig = lc
+	return nil
+}
+
+func StartBootstrapServer() error {
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
 	// Pre-check if system setup is required
 	setupRequired, err := IsSystemSetupRequired()
 	if err != nil {
@@ -31,8 +45,11 @@ func StartBootstrapServer() error {
 	}
 	// Create echo instance
 	e := echo.New()
+	e.HideBanner = true
 	// Setup routes
-	e.GET("/setup", SystemSetupHandler)
+	e.POST("/setup", SystemSetupHandler)
+	// Register dashboard
+	dashboard.RegisterHandlers(e, true)
 	// Start server
 	return e.Start(fmt.Sprintf("%s:%d", localConfig.ServiceConfig.BindAddress, localConfig.ServiceConfig.BindPort))
 }
@@ -78,7 +95,12 @@ func SystemSetupHandler(c echo.Context) error {
 		})
 	}
 	// Restart swiftwave service
-	defer func() {
+	go func() {
+		// wait for 2 seconds
+		<-time.After(2 * time.Second)
+		color.Green("Restarting swiftwave service")
+		color.Yellow("Swiftwave service will be restarted in 5 seconds")
+		color.Yellow("If you are running without enabling service, run `swiftwave start` to start the service")
 		_ = exec.Command("systemctl", "restart", "swiftwave.service").Run()
 		os.Exit(1)
 	}()
@@ -88,8 +110,11 @@ func SystemSetupHandler(c echo.Context) error {
 }
 
 // FetchSystemConfigHandler : Fetch system configuration handler
-// GET /setup
+// GET /config/system
 func FetchSystemConfigHandler(c echo.Context) error {
+	if err := loadConfig(); err != nil {
+		return err
+	}
 	// Fetch system configuration
 	dbClient, err := db.GetClient(localConfig, 1)
 	if err != nil {
@@ -109,8 +134,11 @@ func FetchSystemConfigHandler(c echo.Context) error {
 }
 
 // UpdateSystemConfigHandler : Update system configuration handler
-// PUT /setup
+// PUT /config/system
 func UpdateSystemConfigHandler(c echo.Context) error {
+	if err := loadConfig(); err != nil {
+		return err
+	}
 	dbClient, err := db.GetClient(localConfig, 1)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{

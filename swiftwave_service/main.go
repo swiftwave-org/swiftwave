@@ -146,7 +146,7 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 		WorkerManager:  workerManager,
 	}
 	// Initialize Dashboard Web App
-	dashboard.RegisterHandlers(echoServer)
+	dashboard.RegisterHandlers(echoServer, false)
 	// Initialize Rest Server
 	restServer.Initialize()
 	// Initialize GraphQL Server

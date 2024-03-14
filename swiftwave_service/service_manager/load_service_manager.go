@@ -31,6 +31,7 @@ func (manager *ServiceManager) Load(config config.Config) {
 	}
 	manager.DbClient = *dbClient
 
+	fmt.Println(config.SystemConfig.LetsEncryptConfig)
 	// Initiating ssl manager
 	options := ssl.ManagerOptions{
 		IsStaging:         config.SystemConfig.LetsEncryptConfig.Staging,

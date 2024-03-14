@@ -17,7 +17,7 @@ var (
 	distIndexHtml = echo.MustSubFS(indexHTML, "www")
 )
 
-func RegisterHandlers(e *echo.Echo) {
+func RegisterHandlers(e *echo.Echo, isBootStrapping bool) {
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Skipper: func(c echo.Context) bool {
 			// if request path doesn't start with /dashboard, skip
@@ -30,8 +30,15 @@ func RegisterHandlers(e *echo.Echo) {
 	}))
 	e.FileFS("/dashboard", "index.html", distIndexHtml)
 	e.StaticFS("/dashboard", distDirFS)
-	// Re-direct / to /dashboard
-	e.GET("/", func(c echo.Context) error {
-		return c.Redirect(302, "/dashboard")
-	})
+	if isBootStrapping {
+		// Re-direct / to /dashboard/setup
+		e.GET("/", func(c echo.Context) error {
+			return c.Redirect(http.StatusTemporaryRedirect, "/dashboard/setup")
+		})
+	} else {
+		// Re-direct / to /dashboard
+		e.GET("/", func(c echo.Context) error {
+			return c.Redirect(http.StatusFound, "/dashboard")
+		})
+	}
 }

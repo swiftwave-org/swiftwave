@@ -5,6 +5,7 @@ import (
 	"fmt"
 	swiftwave_config "github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config/bootstrap"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
 	"os"
@@ -58,7 +59,7 @@ func Execute() {
 			LocalConfig:  c,
 			SystemConfig: nil,
 		}
-		if os.Args[1] == "db-migrate" {
+		if os.Args[1] == "db-migrate" || os.Args[1] == "start" {
 			autorunDBIfRequired()
 		}
 	} else {
@@ -87,14 +88,30 @@ func Execute() {
 			printSuccess("Database migrated successfully")
 		}
 
-		// load complete config
-		c, err := swiftwave_config.Fetch()
-		if err != nil {
-			printError("Failed to load config: " + err.Error())
-			printInfo("Run 'swiftwave init' to initialize")
-			os.Exit(1)
+		loadSystemConfig := true
+
+		// if it's start command, and system setup is required, don't load complete config
+		if len(os.Args) > 1 && os.Args[1] == "start" {
+			setupRequired, err := bootstrap.IsSystemSetupRequired()
+			if err != nil {
+				printError("Failed to check if system setup is required: " + err.Error())
+				os.Exit(1)
+			}
+			if setupRequired {
+				loadSystemConfig = false
+			}
 		}
-		config = c
+
+		if loadSystemConfig {
+			// load complete config
+			c, err := swiftwave_config.Fetch()
+			if err != nil {
+				printError("Failed to load config: " + err.Error())
+				printInfo("Run 'swiftwave init' to initialize")
+				os.Exit(1)
+			}
+			config = c
+		}
 	}
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

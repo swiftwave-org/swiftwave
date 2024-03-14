@@ -2,7 +2,7 @@ package rest
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/bootstrap"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config/bootstrap"
 )
 
 // Initialize : Initialize the server and its routes
@@ -29,7 +29,7 @@ func (server *Server) initiateProjectRoutes(e *echo.Echo) {
 	e.POST("/persistent-volume/:id/restore", server.uploadPersistentVolumeRestoreFile)
 	// Initiating Routes for Webhook
 	e.Any("/webhook/redeploy-app/:app-id/:webhook-token", server.redeployApp)
-	// Initiating Routes for Setup
-	e.GET("/setup", bootstrap.FetchSystemConfigHandler)
-	e.PUT("/setup", bootstrap.UpdateSystemConfigHandler)
+	// Initiating Routes for fetch and update system config
+	e.GET("/config/system", bootstrap.FetchSystemConfigHandler)
+	e.PUT("/config/system", bootstrap.UpdateSystemConfigHandler)
 }
