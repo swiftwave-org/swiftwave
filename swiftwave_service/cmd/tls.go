@@ -24,11 +24,10 @@ import (
 )
 
 func init() {
-	generateCertificateCommand.Flags().String("domain", "", "Domain name for which to generate the certificate")
 	tlsCmd.AddCommand(tlsEnableCmd)
 	tlsCmd.AddCommand(tlsDisableCmd)
 	tlsCmd.AddCommand(generateCertificateCommand)
-	tlsCmd.AddCommand(renewCertificatesCommand)
+	tlsCmd.AddCommand(renewCertificateCommand)
 	tlsCmd.AddCommand(autoServiceTLSRenewCmd)
 }
 
@@ -56,7 +55,7 @@ var tlsEnableCmd = &cobra.Command{
 		// Check if some certificate is already present
 		if isFolderEmpty(config.LocalConfig.ServiceConfig.SSLCertDirectoryPath) {
 			printError("No TLS certificate found")
-			printInfo("Use `swiftwave tls generate-certificate` to generate a new certificate")
+			printInfo("Use `swiftwave tls generate` to generate a new certificate")
 			return
 		}
 		config.LocalConfig.ServiceConfig.UseTLS = true
@@ -94,16 +93,12 @@ var tlsDisableCmd = &cobra.Command{
 }
 
 var generateCertificateCommand = &cobra.Command{
-	Use:   "generate-certificate",
+	Use:   "generate",
 	Short: "Generate TLS certificate for swiftwave endpoints",
 	Long: `This command generates TLS certificate for swiftwave endpoints.
 	It's not for generating certificates for domain of hosted applications`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// If domain is not provided, use the domain from config
-		domain := cmd.Flag("domain").Value.String()
-		if strings.TrimSpace(domain) == "" {
-			domain = config.LocalConfig.ServiceConfig.ManagementNodeAddress
-		}
+		domain := config.LocalConfig.ServiceConfig.ManagementNodeAddress
 		// Start http-01 challenge server
 		echoServer := echo.New()
 		echoServer.HideBanner = true
@@ -201,61 +196,48 @@ var generateCertificateCommand = &cobra.Command{
 		}
 		// Print success message
 		printSuccess("Successfully generated TLS certificate for " + domain)
+		// Enable TLS for swiftwave service
+		config.LocalConfig.ServiceConfig.UseTLS = true
+		err = local_config.Update(config.LocalConfig)
+		if err != nil {
+			printError("Failed to update config")
+			os.Exit(1)
+			return
+		} else {
+			printSuccess("TLS has been enabled")
+			printInfo(fmt.Sprintf("Access dashboard at https://%s:%d", domain, config.LocalConfig.ServiceConfig.BindPort))
+		}
 		// Restart swiftwave service
 		restartSysctlService("swiftwave")
 	},
 }
 
-var renewCertificatesCommand = &cobra.Command{
-	Use:   "renew-certificates",
-	Short: "Renew TLS certificates for swiftwave endpoints",
+var renewCertificateCommand = &cobra.Command{
+	Use:   "renew",
+	Short: "Renew TLS certificate for swiftwave endpoints",
 	Long: `This command renews TLS certificates for swiftwave endpoints.
 	It's not for renewing certificates for domain of hosted applications`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Find-out domain names for which certificates are to be renewed
-		files, err := os.ReadDir(config.LocalConfig.ServiceConfig.SSLCertDirectoryPath)
-		if err != nil {
-			printError("Failed to read SSL certificate directory")
+		sslCertificatePath := filepath.Join(config.LocalConfig.ServiceConfig.SSLCertDirectoryPath, config.LocalConfig.ServiceConfig.ManagementNodeAddress, "certificate.crt")
+		if _, err := os.Stat(sslCertificatePath); os.IsNotExist(err) {
+			printError("No TLS certificate found")
+			printInfo("Use `swiftwave tls generate` to generate a new certificate")
 			return
 		}
-		// find out current executable
-		executablePath, err := os.Executable()
+		isRenewalRequired, err := isRenewalImminent(sslCertificatePath)
 		if err != nil {
-			printError("Failed to find out current executable path")
+			printError("Failed to check if renewal is required")
+			printError(err.Error())
 			return
 		}
-
-		for _, file := range files {
-			domain := file.Name()
-			certPath := filepath.Join(config.LocalConfig.ServiceConfig.SSLCertDirectoryPath, domain, "certificate.crt")
-			isRenewalRequired, err := isRenewalImminent(certPath)
-			if err != nil {
-				printError("> " + domain + ": " + err.Error())
-				continue
-			}
-			if isRenewalRequired {
-				cmd := exec.Command(executablePath, "tls", "generate-certificate", "--domain", domain)
-				// fetch exit code
-				err := cmd.Run()
-				if err != nil {
-					printError("> " + domain + ": " + err.Error())
-				}
-				if cmd.ProcessState.Success() {
-					printSuccess("> " + domain + ": certificate has been renewed")
-				} else {
-					printError("> " + domain + ": failed to renew certificate")
-				}
-				// wait 5 seconds
-				printInfo("Waiting for 5 seconds before renewing the next certificate")
-				time.Sleep(5 * time.Second)
-			}
+		if isRenewalRequired {
+			printSuccess("Renewal is required")
+			generateCertificateCommand.Run(cmd, args)
 		}
-		printInfo("Renewal process has been completed")
 	},
 }
 
 // private functions
-
 func generatePrivateKey() (string, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {

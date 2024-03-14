@@ -10,7 +10,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 )
 
@@ -111,23 +110,10 @@ var initCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		printSuccess("Config created at " + local_config.LocalConfigPath)
-		// run local postgres
-		if isLocalPostgres {
-			printInfo("Starting local postgres server")
-			// fetch current executable path
-			executablePath, err := os.Executable()
-			if err != nil {
-				printError(err.Error())
-				os.Exit(1)
-			} else {
-				err := exec.Command(executablePath, "postgres", "start").Run()
-				if err != nil {
-					printError(err.Error())
-					os.Exit(1)
-				} else {
-					printSuccess("Local postgres server started")
-				}
-			}
+		if !isLocalPostgres {
+			printInfo("You have opted to use your own postgres server")
+			printInfo("Configure postgresql credentials to connect to your own postgres server")
+			printInfo("Run `swiftwave config` to edit the config file")
 		}
 	},
 }
