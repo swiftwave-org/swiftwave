@@ -48,8 +48,16 @@ func (config *SystemConfig) Create(db *gorm.DB) error {
 }
 
 func (config *SystemConfig) Update(db *gorm.DB) error {
+	// fetch the latest version of the config
+	var record SystemConfig
+	tx := db.First(&record)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	// update the id
+	config.ID = record.ID
 	config.ConfigVersion++
-	tx := db.Save(config)
+	tx = db.Updates(config)
 	if tx.Error != nil {
 		return tx.Error
 	}

@@ -3,16 +3,18 @@ package bootstrap
 import (
 	"errors"
 	"fmt"
-	"github.com/fatih/color"
-	"github.com/labstack/echo/v4"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/dashboard"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
 	"net/http"
 	"os"
 	"os/exec"
 	"time"
+
+	"github.com/fatih/color"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/dashboard"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
 )
 
 var localConfig *local_config.Config
@@ -46,6 +48,7 @@ func StartBootstrapServer() error {
 	// Create echo instance
 	e := echo.New()
 	e.HideBanner = true
+	e.Use(middleware.CORS())
 	// Setup routes
 	e.POST("/setup", SystemSetupHandler)
 	// Register dashboard
@@ -78,14 +81,14 @@ func SystemSetupHandler(c echo.Context) error {
 	systemConfigReq := new(SystemConfigurationPayload)
 	if err := c.Bind(systemConfigReq); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"message": "Invalid request payload",
+			"message": err.Error(),
 		})
 	}
 	// Convert to DB record
 	systemConfig, err := payloadToDBRecord(*systemConfigReq)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"message": "Invalid request payload",
+			"message": err.Error(),
 		})
 	}
 	// Save to DB
@@ -177,6 +180,16 @@ func UpdateSystemConfigHandler(c echo.Context) error {
 			"message": "Failed to update system configuration",
 		})
 	}
+	// Restart swiftwave service
+	go func() {
+		// wait for 2 seconds
+		<-time.After(2 * time.Second)
+		color.Green("Restarting swiftwave service")
+		color.Yellow("Swiftwave service will be restarted in 5 seconds")
+		color.Yellow("If you are running without enabling service, run `swiftwave start` to start the service")
+		_ = exec.Command("systemctl", "restart", "swiftwave.service").Run()
+		os.Exit(1)
+	}()
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "System configuration updated successfully",
 	})
