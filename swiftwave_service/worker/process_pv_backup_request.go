@@ -10,6 +10,7 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/uploader"
 	"gorm.io/gorm"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -45,24 +46,17 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 	// generate a random filename
 	backupFileName := "backup_" + persistentVolume.Name + "_" + uuid.NewString() + ".tar.gz"
 	var backupFilePath string
-	if persistentVolumeBackup.Type == core.LocalBackup {
-		backupFilePath = filepath.Join(m.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath, backupFileName)
-	} else if persistentVolumeBackup.Type == core.S3Backup {
-		// fetch tmp dir
-		tmpDir := os.TempDir()
-		backupFilePath = filepath.Join(tmpDir, backupFileName)
-		defer func() {
-			err := os.Remove(backupFilePath)
-			if err != nil {
-				log.Println("failed to remove backup file " + err.Error())
-			}
-		}()
-	} else {
-		return nil
-	}
+	// fetch tmp dir
+	tmpDir := os.TempDir()
+	backupFilePath = filepath.Join(tmpDir, backupFileName)
+	defer func() {
+		// delete original backup from current node
+		_ = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("rm -f %s", backupFilePath), nil, nil, 20, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey, 30)
+	}()
 	// create backup
 	err = dockerManager.BackupVolume(persistentVolume.Name, backupFilePath)
 	if err != nil {
+		logger.CronJobLoggerError.Println("error while creating backup > " + err.Error())
 		markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
 		return nil
 	}
@@ -73,12 +67,40 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 		markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
 		return nil
 	}
-	// delete backup from swarm node
-	_ = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("sudo rm -f %s", backupFilePath), nil, nil, 20, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey, 30)
-	// upload to s3
-	if persistentVolumeBackup.Type == core.S3Backup {
+	if persistentVolumeBackup.Type == core.LocalBackup {
+		localBackupPath := filepath.Join(m.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath, backupFileName)
+		// open backup file
 		backupFileReader, err := os.Open(backupFilePath)
 		if err != nil {
+			logger.CronJobLoggerError.Println("error while opening backup file > " + err.Error())
+			markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
+			return nil
+		}
+		defer func() {
+			_ = backupFileReader.Close()
+		}()
+		// create backup file
+		backupFile, err := os.Create(localBackupPath)
+		if err != nil {
+			logger.CronJobLoggerError.Println("error while creating backup file > " + err.Error())
+			markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
+			return nil
+		}
+		defer func() {
+			_ = backupFile.Close()
+		}()
+		// copy backup file
+		_, err = io.Copy(backupFile, backupFileReader)
+		if err != nil {
+			logger.CronJobLoggerError.Println("error while copying backup file > " + err.Error())
+			markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
+			return nil
+		}
+	} else if persistentVolumeBackup.Type == core.S3Backup {
+		// upload to s3
+		backupFileReader, err := os.Open(backupFilePath)
+		if err != nil {
+			logger.CronJobLoggerError.Println("error while opening backup file > " + err.Error())
 			markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
 			return nil
 		}
@@ -95,17 +117,13 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 			markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
 			return nil
 		}
-		// delete backup file
-		err = os.Remove(backupFilePath)
-		if err != nil {
-			log.Println("error while deleting backup file > " + err.Error())
-		}
 	}
 	// update status
 	persistentVolumeBackup.Status = core.BackupSuccess
 	persistentVolumeBackup.File = backupFileName
 	size, err := sizeOfFileInMB(backupFilePath)
 	if err != nil {
+		logger.CronJobLoggerError.Println("error while getting backup file size > " + err.Error())
 		markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
 		return nil
 	}
