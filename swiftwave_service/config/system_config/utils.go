@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"golang.org/x/crypto/ssh"
 	"gorm.io/gorm"
 	"strings"
 )
@@ -95,14 +96,15 @@ func (config *SystemConfig) PublicSSHKey() (string, error) {
 	}
 
 	// Convert the private key to a public key
-	publicKey := &privateKey.PublicKey
-
-	// Get the public key in OpenSSH format
-	pubKeyBytes, err := x509.MarshalPKIXPublicKey(publicKey)
+	publicKey, err := ssh.NewPublicKey(&privateKey.PublicKey)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal public key: %v", err)
+		return "", fmt.Errorf("failed to create public key: %v", err)
 	}
 
-	pubKey := fmt.Sprintf("ssh-rsa %X swiftwave", pubKeyBytes)
-	return pubKey, nil
+	// Get the public key in OpenSSH format
+	pubKey := string(ssh.MarshalAuthorizedKey(publicKey))
+	// Convert the private key to a public key
+
+	pubKeyComplete := fmt.Sprintf("%s swiftwave", pubKey)
+	return pubKeyComplete, nil
 }
