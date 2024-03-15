@@ -103,7 +103,8 @@ func (config *SystemConfig) PublicSSHKey() (string, error) {
 
 	// Get the public key in OpenSSH format
 	pubKey := string(ssh.MarshalAuthorizedKey(publicKey))
-	// Convert the private key to a public key
+	// trim the trailing newline
+	pubKey = strings.TrimSuffix(pubKey, "\n")
 
 	pubKeyComplete := fmt.Sprintf("%s swiftwave", pubKey)
 	return pubKeyComplete, nil

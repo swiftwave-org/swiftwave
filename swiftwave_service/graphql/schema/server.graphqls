@@ -47,6 +47,7 @@ type Dependency {
 
 extend type Query {
     servers: [Server!]
+    publicSSHKey: String!
 }
 
 extend type Mutation {

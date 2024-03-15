@@ -94,7 +94,7 @@ func (m Manager) setupServerHelper(request SetupServerRequest, ctx context.Conte
 	for _, dir := range directories {
 		stdoutBuf := bytes.Buffer{}
 		stderrBuf := bytes.Buffer{}
-		err := ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("sudo mkdir -p %s && sudo chmod -R 0711 %s", dir, dir), &stdoutBuf, &stderrBuf, 5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey, 30)
+		err := ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("mkdir -p %s && chmod -R 0711 %s", dir, dir), &stdoutBuf, &stderrBuf, 5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey, 30)
 		if err != nil {
 			logText += "Failed to create folder " + dir + "\n"
 			logText += stdoutBuf.String() + "\n" + stderrBuf.String() + "\n"

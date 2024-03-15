@@ -212,20 +212,20 @@ var DependencyCheckCommands = map[string]string{
 }
 
 var DebianDependenciesInstallCommands = map[string]string{
-	"init":   "sudo apt -y update",
-	"curl":   "sudo apt install -y curl",
-	"unzip":  "sudo apt install -y unzip",
-	"git":    "sudo apt install -y git",
-	"tar":    "sudo apt install -y tar",
-	"nfs":    "sudo apt install -y nfs-common",
-	"docker": "curl -fsSL get.docker.com | sudo sh -",
+	"init":   "apt -y update",
+	"curl":   "apt install -y curl",
+	"unzip":  "apt install -y unzip",
+	"git":    "apt install -y git",
+	"tar":    "apt install -y tar",
+	"nfs":    "apt install -y nfs-common",
+	"docker": "curl -fsSL get.docker.com | sh -",
 }
 var FedoraDependenciesInstallCommands = map[string]string{
-	"init":   "sudo dnf -y update",
-	"curl":   "sudo dnf install -y curl",
-	"unzip":  "sudo dnf install -y unzip",
-	"git":    "sudo dnf install -y git",
-	"tar":    "sudo dnf install -y tar",
-	"nfs":    "sudo dnf install -y nfs-utils",
-	"docker": "curl -fsSL get.docker.com | sudo sh -",
+	"init":   "dnf -y update",
+	"curl":   "dnf install -y curl",
+	"unzip":  "dnf install -y unzip",
+	"git":    "dnf install -y git",
+	"tar":    "dnf install -y tar",
+	"nfs":    "dnf install -y nfs-utils",
+	"docker": "curl -fsSL get.docker.com | sh -",
 }

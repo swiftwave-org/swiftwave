@@ -85,6 +85,9 @@ func AppendPublicSSHKeyLocally(pubKey string) error {
 		return fmt.Errorf("failed to get current user: %v", err)
 	}
 
+	// add \n to the end of the public key
+	pubKey = pubKey + "\n"
+
 	// Construct the path to the .ssh directory
 	sshDirPath := filepath.Join(currentUser.HomeDir, ".ssh")
 

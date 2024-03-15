@@ -307,6 +307,7 @@ type ComplexityRoot struct {
 		PersistentVolume                   func(childComplexity int, id uint) int
 		PersistentVolumeSizeMb             func(childComplexity int, id uint) int
 		PersistentVolumes                  func(childComplexity int) int
+		PublicSSHKey                       func(childComplexity int) int
 		RedirectRule                       func(childComplexity int, id uint) int
 		RedirectRules                      func(childComplexity int) int
 		Servers                            func(childComplexity int) int
@@ -496,6 +497,7 @@ type QueryResolver interface {
 	RedirectRule(ctx context.Context, id uint) (*model.RedirectRule, error)
 	RedirectRules(ctx context.Context) ([]*model.RedirectRule, error)
 	Servers(ctx context.Context) ([]*model.Server, error)
+	PublicSSHKey(ctx context.Context) (string, error)
 	FetchServerLogContent(ctx context.Context, id uint) (string, error)
 	Users(ctx context.Context) ([]*model.User, error)
 	User(ctx context.Context, id uint) (*model.User, error)
@@ -2137,6 +2139,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.PersistentVolumes(childComplexity), true
+
+	case "Query.publicSSHKey":
+		if e.complexity.Query.PublicSSHKey == nil {
+			break
+		}
+
+		return e.complexity.Query.PublicSSHKey(childComplexity), true
 
 	case "Query.redirectRule":
 		if e.complexity.Query.RedirectRule == nil {
@@ -13876,6 +13885,50 @@ func (ec *executionContext) fieldContext_Query_servers(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_publicSSHKey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_publicSSHKey(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().PublicSSHKey(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_publicSSHKey(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_fetchServerLogContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_fetchServerLogContent(ctx, field)
 	if err != nil {
@@ -21563,6 +21616,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_servers(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "publicSSHKey":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_publicSSHKey(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 

@@ -465,6 +465,11 @@ func (r *queryResolver) Servers(ctx context.Context) ([]*model.Server, error) {
 	return serverList, nil
 }
 
+// PublicSSHKey is the resolver for the publicSSHKey field.
+func (r *queryResolver) PublicSSHKey(ctx context.Context) (string, error) {
+	return r.Config.SystemConfig.PublicSSHKey()
+}
+
 // Logs is the resolver for the logs field.
 func (r *serverResolver) Logs(ctx context.Context, obj *model.Server) ([]*model.ServerLog, error) {
 	serverLogs, err := core.FetchServerLogByServerID(&r.ServiceManager.DbClient, obj.ID)
