@@ -41,6 +41,10 @@ func (m Manager) RedirectRuleDelete(request RedirectRuleDeleteRequest, ctx conte
 	if err != nil {
 		return err
 	}
+	// don't attempt if no proxy servers are active
+	if len(proxyServers) == 0 {
+		return errors.New("no proxy servers are active")
+	}
 	// fetch all haproxy managers
 	haproxyManagers, err := manager.HAProxyClients(context.Background(), proxyServers)
 	if err != nil {
