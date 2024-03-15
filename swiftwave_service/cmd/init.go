@@ -16,7 +16,7 @@ import (
 func init() {
 	initCmd.Flags().SortFlags = false
 	initCmd.Flags().Bool("auto-domain", false, "Resolve domain name automatically")
-	initCmd.Flags().Bool("local-postgres", false, "Start local postgres server")
+	initCmd.Flags().Bool("remote-postgres", false, "Opt for remote postgres server")
 }
 
 var initCmd = &cobra.Command{
@@ -24,7 +24,7 @@ var initCmd = &cobra.Command{
 	Short: "Initialize SwiftWave configuration on server",
 	Run: func(cmd *cobra.Command, args []string) {
 		isAutoDomainResolve := cmd.Flag("auto-domain").Value.String() == "true"
-		isLocalPostgres := cmd.Flag("local-postgres").Value.String() == "true"
+		isLocalPostgres := cmd.Flag("remote-postgres").Value.String() == "false"
 		// Try to fetch local config
 		_, err := local_config.Fetch()
 		if err == nil {
