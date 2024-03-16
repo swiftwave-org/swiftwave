@@ -6,9 +6,10 @@ package graphql
 
 import (
 	"context"
-
+	"errors"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 )
 
 // CreatePersistentVolume is the resolver for the createPersistentVolume field.
@@ -122,13 +123,18 @@ func (r *queryResolver) PersistentVolumeSizeMb(ctx context.Context, id uint) (fl
 	if err != nil {
 		return 0, err
 	}
-	// fetch docker manager
-	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
+	// Fetch a random swarm manager
+	swarmManagerServer, err := core.FetchSwarmManager(&r.ServiceManager.DbClient)
 	if err != nil {
-		return 0, err
+		return 0, errors.New("failed to fetch swarm manager")
+	}
+	// Fetch docker manager
+	dockerManager, err := manager.DockerClient(ctx, swarmManagerServer)
+	if err != nil {
+		return 0, errors.New("failed to fetch docker manager")
 	}
 	// fetch size
-	size, err := dockerManager.SizeVolume(record.Name)
+	size, err := dockerManager.SizeVolume(record.Name, swarmManagerServer.IP, 22, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		return 0, err
 	}
