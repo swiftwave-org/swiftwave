@@ -10,6 +10,7 @@ import (
 	"github.com/docker/docker/api/types/volume"
 	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -225,7 +226,13 @@ func (m Manager) volumeToolkitRunner(volumeName string, command string, predefin
 	for {
 		select {
 		case err := <-waitErr:
+			// if the container does not exist, then it means the operation was successful and exited before the wait
+			if strings.Contains(err.Error(), "No such container") {
+				return *predefinedOutputPath, nil
+			}
+			log.Println("failed to wait for container " + err.Error())
 			return "", errors.New("failed to wait for container " + err.Error())
+			//return *predefinedOutputPath, nil
 		case res := <-waitRes:
 			if res.Error != nil {
 				return "", errors.New("container error " + res.Error.Message)
