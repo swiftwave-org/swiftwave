@@ -357,24 +357,3 @@ func (m Manager) pushImageToRegistry(deployment *core.Deployment, _ gorm.DB, dbW
 		return nil
 	}
 }
-
-func addDeploymentLog(dbClient gorm.DB, pubSubClient pubsub.Client, deploymentId string, content string, terminate bool) {
-	deploymentLog := &core.DeploymentLog{
-		DeploymentID: deploymentId,
-		Content:      content,
-	}
-	err := dbClient.Create(deploymentLog).Error
-	if err != nil {
-		log.Println("failed to add deployment log")
-	}
-	err = pubSubClient.Publish(fmt.Sprintf("deployment-log-%s", deploymentId), content)
-	if err != nil {
-		log.Println("failed to publish deployment log")
-	}
-	if terminate {
-		err := pubSubClient.RemoveTopic(fmt.Sprintf("deployment-log-%s", deploymentId))
-		if err != nil {
-			log.Println("failed to remove topic")
-		}
-	}
-}

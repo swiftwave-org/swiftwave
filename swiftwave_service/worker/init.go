@@ -17,6 +17,7 @@ func NewManager(config *config.Config, manager *service_manager.ServiceManager) 
 		ServiceManager: manager,
 	}
 	workerManager.registerWorkerFunctions()
+	go bulkInsertDeploymentLogs(manager.DbClient)
 	return &workerManager
 }
 
