@@ -327,7 +327,63 @@ func (m Manager) RealtimeInfoService(serviceName string, ignoreNodeDetails bool)
 	return serviceRealtimeInfo, nil
 }
 
-// Get service logs
+// ServiceRunningServers Fetch the servers where a service is running
+func (m Manager) ServiceRunningServers(serviceName string) ([]string, error) {
+	// fetch all nodes and store in map > nodeID:nodeDetails
+	nodes, err := m.client.NodeList(m.ctx, types.NodeListOptions{})
+	if err != nil {
+		return nil, errors.New("error getting node list")
+	}
+	nodeMap := make(map[string]swarm.Node)
+	for _, node := range nodes {
+		nodeMap[node.ID] = node
+	}
+	// fetch all services and store in map > serviceName:serviceDetails
+	services, err := m.client.ServiceList(m.ctx, types.ServiceListOptions{})
+	if err != nil {
+		return nil, errors.New("error getting service list")
+	}
+	// analyze each service
+	for _, service := range services {
+		if service.Spec.Name == serviceName {
+			// query task list
+			tasks, err := m.client.TaskList(m.ctx, types.TaskListOptions{
+				Filters: filters.NewArgs(
+					filters.Arg("desired-state", "running"),
+					filters.Arg("service", service.Spec.Name),
+				),
+			})
+			if err != nil {
+				return nil, errors.New("error getting task list")
+			}
+			var runningServers []string
+			for _, task := range tasks {
+				runningServers = append(runningServers, nodeMap[task.NodeID].Description.Hostname)
+			}
+			return runningServers, nil
+		}
+	}
+	return nil, errors.New("service not found")
+}
+
+// RandomServiceContainerID returns a random container id of a service
+func (m Manager) RandomServiceContainerID(serviceName string) (string, error) {
+	containers, err := m.client.ContainerList(m.ctx, container.ListOptions{
+		All: false,
+		Filters: filters.NewArgs(
+			filters.Arg("label", "com.docker.swarm.service.name="+serviceName),
+		),
+	})
+	if err != nil {
+		return "", errors.New("Failed to list containers for service " + serviceName + " " + err.Error())
+	}
+	if len(containers) == 0 {
+		return "", errors.New("No containers found for service " + serviceName)
+	}
+	return containers[0].ID, nil
+}
+
+// LogsService Get service logs
 func (m Manager) LogsService(serviceName string) (io.ReadCloser, error) {
 	logs, err := m.client.ServiceLogs(m.ctx, serviceName, container.LogsOptions{
 		ShowStdout: true,

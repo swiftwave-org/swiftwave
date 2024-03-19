@@ -31,7 +31,7 @@ func GenerateConsoleTokenForServer(db gorm.DB, serverId uint) (*ConsoleToken, er
 	return record, nil
 }
 
-func GenerateConsoleTokenForApplication(db gorm.DB, applicationId string) (*ConsoleToken, error) {
+func GenerateConsoleTokenForApplication(db gorm.DB, applicationId string, targetServerId uint) (*ConsoleToken, error) {
 	// find application
 	application := &Application{}
 	err := application.FindById(context.TODO(), db, applicationId)
@@ -43,6 +43,7 @@ func GenerateConsoleTokenForApplication(db gorm.DB, applicationId string) (*Cons
 		ID:            uuid.NewString(),
 		Target:        ConsoleTargetTypeApplication,
 		ApplicationID: &application.ID,
+		ServerID:      &targetServerId,
 		ExpiresAt:     time.Now().Add(time.Minute * 1),
 		Token:         random.String(64),
 	}

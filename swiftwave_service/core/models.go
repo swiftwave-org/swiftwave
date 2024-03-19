@@ -237,7 +237,12 @@ type DeploymentLog struct {
 	CreatedAt    time.Time `json:"created_at"`
 }
 
-// ConsoleToken : hold information about console auth tokens, used in establishing websocket connection
+// ConsoleToken hold information about console auth tokens, used in establishing websocket connection
+// Note this
+// If Target == ConsoleTargetTypeServer, ServerID denote which server to ssh into
+// If Target == ConsoleTargetTypeApplication, ApplicationID denote which application to connect to and ServerID denote which server to connect to.
+// In case of ConsoleTargetTypeApplication, we will connect to ServerID and try to ssh into the application container
+// If ServerID server has no container for the application, we will return error
 type ConsoleToken struct {
 	ID            string        `json:"id" gorm:"primaryKey"`
 	Target        ConsoleTarget `json:"target_type"`

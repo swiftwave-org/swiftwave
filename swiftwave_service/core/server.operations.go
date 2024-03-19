@@ -42,6 +42,13 @@ func FetchServerByID(db *gorm.DB, id uint) (*Server, error) {
 	return &server, err
 }
 
+// FetchServerIDByHostName fetches a server by its hostname from the database
+func FetchServerIDByHostName(db *gorm.DB, hostName string) (uint, error) {
+	var server Server
+	err := db.Select("id").Where("host_name = ?", hostName).First(&server).Error
+	return server.ID, err
+}
+
 // FetchAllOnlineServers fetches all servers from the database
 func FetchAllOnlineServers(db *gorm.DB) ([]Server, error) {
 	var servers []Server
