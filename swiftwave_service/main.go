@@ -7,6 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/console"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/dashboard"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
 	"log"
@@ -99,6 +100,10 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 				strings.Compare(c.Request().Header.Get("Upgrade"), "websocket") == 0 {
 				return true
 			}
+			// TODO temporarily ignore auth for console
+			if strings.HasPrefix(c.Request().URL.Path, "/console") {
+				return true
+			}
 			return false
 		},
 		SigningKey: []byte(config.SystemConfig.JWTSecretKey),
@@ -138,6 +143,13 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 		ServiceManager: manager,
 		WorkerManager:  workerManager,
 	}
+	// Create Console Server (Server + Deployed Applications Remote Shell)
+	consoleServer := console.Server{
+		EchoServer:     echoServer,
+		Config:         config,
+		ServiceManager: manager,
+		WorkerManager:  workerManager,
+	}
 	// Create GraphQL Server
 	graphqlServer := graphql.Server{
 		EchoServer:     echoServer,
@@ -149,6 +161,8 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 	dashboard.RegisterHandlers(echoServer, false)
 	// Initialize Rest Server
 	restServer.Initialize()
+	// Initialize Console Server
+	consoleServer.Initialize()
 	// Initialize GraphQL Server
 	graphqlServer.Initialize()
 

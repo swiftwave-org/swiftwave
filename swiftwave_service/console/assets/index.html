@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <link rel="icon" href="data:;base64,=">
+    <title>Virtual Console</title>
+    <link rel="stylesheet" href="/console/xterm.css">
+    <script src="/console/xterm.js" type="application/javascript"></script>
+    <script src="/console/xterm-addon-fit.js" type="application/javascript"></script>
+
+    <style type="text/css">
+        html, body, #terminal {
+            background: black;
+            height: 100%;
+            width: 100%;
+            padding: 0%;
+            margin: 0%;
+        }
+
+        #status_text {
+            display: none;
+            position: absolute;
+            left: 0px;
+            right: 0px;
+            z-index: 100;
+            top: 40vh;
+            text-align: center;
+        }
+
+        #status_text span {
+            background: #FFFFFF;
+            padding: 10px 15px;
+            border-radius: 20px;
+            opacity: 0.8;
+            font-size: 1.3rem;
+        }
+
+        #loader_container {
+            position: absolute;
+            bottom: 10vh;
+            right: 0px;
+            left: 0px;
+            display: none;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .loader {
+            height: 9px;
+            width: 60px;
+            --c:no-repeat linear-gradient(#ffffff 0 0);
+            background: var(--c), var(--c), var(--c), var(--c);
+            background-size: 26% 3px;
+            animation: l2 1s infinite;
+        }
+        @keyframes l2 {
+            0%,
+            70%,
+            100% {background-position: calc(0*100%/3) 100%,calc(1*100%/3) 100%,calc(2*100%/3) 100%,calc(3*100%/3) 100%}
+            14%  {background-position: calc(0*100%/3) 0   ,calc(1*100%/3) 100%,calc(2*100%/3) 100%,calc(3*100%/3) 100%}
+            28%  {background-position: calc(0*100%/3) 100%,calc(1*100%/3) 0   ,calc(2*100%/3) 100%,calc(3*100%/3) 100%}
+            42%  {background-position: calc(0*100%/3) 100%,calc(1*100%/3) 100%,calc(2*100%/3) 0   ,calc(3*100%/3) 100%}
+            56%  {background-position: calc(0*100%/3) 100%,calc(1*100%/3) 100%,calc(2*100%/3) 100%,calc(3*100%/3) 0   }
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal"></div>
+    <div id="status_text"><span></span></div>
+    <div id="loader_container"><div class="loader"></div></div>
+    <script type="application/javascript" src="/console/main.js"></script>
+</body>
+</html>

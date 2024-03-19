@@ -16,17 +16,18 @@ type SystemLog struct {
 
 // Server : hold information about server
 type Server struct {
-	ID                   uint         `json:"id" gorm:"primaryKey"`
-	IP                   string       `json:"ip"`
-	HostName             string       `json:"host_name" gorm:"unique"`
-	User                 string       `json:"user"`
-	ScheduleDeployments  bool         `json:"schedule_deployments" gorm:"default:true"`
-	DockerUnixSocketPath string       `json:"docker_unix_socket_path"`
-	SwarmMode            SwarmMode    `json:"swarm_mode"`
-	ProxyConfig          ProxyConfig  `json:"proxy_config" gorm:"embedded;embeddedPrefix:proxy_"`
-	Status               ServerStatus `json:"status"`
-	LastPing             time.Time    `json:"last_ping"`
-	Logs                 []ServerLog  `json:"logs" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ID                   uint           `json:"id" gorm:"primaryKey"`
+	IP                   string         `json:"ip"`
+	HostName             string         `json:"host_name" gorm:"unique"`
+	User                 string         `json:"user"`
+	ScheduleDeployments  bool           `json:"schedule_deployments" gorm:"default:true"`
+	DockerUnixSocketPath string         `json:"docker_unix_socket_path"`
+	SwarmMode            SwarmMode      `json:"swarm_mode"`
+	ProxyConfig          ProxyConfig    `json:"proxy_config" gorm:"embedded;embeddedPrefix:proxy_"`
+	Status               ServerStatus   `json:"status"`
+	LastPing             time.Time      `json:"last_ping"`
+	Logs                 []ServerLog    `json:"logs" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ConsoleTokens        []ConsoleToken `json:"console_tokens" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 // ServerLog : hold logs of server
@@ -189,6 +190,8 @@ type Application struct {
 	Capabilities pq.StringArray `json:"capabilities" gorm:"type:text[]"`
 	// Sysctls
 	Sysctls pq.StringArray `json:"sysctls" gorm:"type:text[]"`
+	// ConsoleTokens
+	ConsoleTokens []ConsoleToken `json:"console_tokens" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// Is deleted - soft delete - will be deleted from database in background
 	IsDeleted bool `json:"is_deleted" gorm:"default:false"`
 	// Webhook token
@@ -232,4 +235,14 @@ type DeploymentLog struct {
 	DeploymentID string    `json:"deployment_id"`
 	Content      string    `json:"content"`
 	CreatedAt    time.Time `json:"created_at"`
+}
+
+// ConsoleToken : hold information about console auth tokens, used in establishing websocket connection
+type ConsoleToken struct {
+	ID            string        `json:"id" gorm:"primaryKey"`
+	Target        ConsoleTarget `json:"target_type"`
+	ServerID      *uint         `json:"server_id"`
+	ApplicationID *string       `json:"application_id"`
+	Token         string        `json:"token" gorm:"unique"`
+	ExpiresAt     time.Time     `json:"expires_at"`
 }
