@@ -63,7 +63,8 @@ func (server *Server) fetchServersForApplication(c echo.Context) error {
 	applicationIdStr := c.Param("id")
 	// fetch application
 	applicationRecord := &core.Application{}
-	err := applicationRecord.FindById(c.Request().Context(), server.ServiceManager.DbClient, applicationIdStr)
+	var err error
+	err = applicationRecord.FindById(c.Request().Context(), server.ServiceManager.DbClient, applicationIdStr)
 	if err != nil {
 		return c.String(http.StatusNotFound, "Application not found")
 	}
@@ -74,6 +75,9 @@ func (server *Server) fetchServersForApplication(c echo.Context) error {
 	}
 	// fetch docker manager
 	dockerManager, err := manager.DockerClient(c.Request().Context(), swarmManagerServer)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Failed to connect to docker")
+	}
 	// fetch servers hostname
 	serverHostnames, err := dockerManager.ServiceRunningServers(applicationRecord.Name)
 	if err != nil {
@@ -300,6 +304,10 @@ func (server *Server) handleSSHConsoleRequestToApplication(c echo.Context, rows 
 	}
 	// create exec id
 	containerId, err := dockerManager.RandomServiceContainerID(applicationRecord.Name)
+	if err != nil {
+		ctxCancel()
+		return c.String(http.StatusInternalServerError, "Failed to connect to server")
+	}
 	// create ssh
 	dockerHost := fmt.Sprintf("unix://%s", remoteServer.DockerUnixSocketPath)
 	session, stdin, stdout, stderr, err := ssh_toolkit.DirectSSHToContainer(ctx, cols, rows, containerId, dockerHost, remoteServer.IP, 22, remoteServer.User, server.Config.SystemConfig.SshPrivateKey)
