@@ -83,6 +83,9 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 	// JWT Middleware
 	echoServer.Use(echojwt.WithConfig(echojwt.Config{
 		Skipper: func(c echo.Context) bool {
+			fmt.Println(c.Request().URL.RawQuery)
+			fmt.Println(c.Request().URL.Path)
+			fmt.Println(c.Request().URL)
 			if strings.Compare(c.Request().URL.Path, "/") == 0 ||
 				strings.HasPrefix(c.Request().URL.Path, "/healthcheck") ||
 				strings.HasPrefix(c.Request().URL.Path, "/.well-known") ||
@@ -100,10 +103,26 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 				strings.Compare(c.Request().Header.Get("Upgrade"), "websocket") == 0 {
 				return true
 			}
-			// TODO temporarily ignore auth for console
-			if strings.HasPrefix(c.Request().URL.Path, "/console") {
+
+			// on console websocket connection allow without jwt, as auth will be handled by the console server
+			if strings.HasPrefix(c.Request().URL.Path, "/console/ws") &&
+				strings.Compare(c.Request().Method, http.MethodGet) == 0 &&
+				strings.Compare(c.Request().URL.RawQuery, "") == 0 &&
+				strings.Contains(c.Request().Header.Get("Connection"), "Upgrade") &&
+				strings.Compare(c.Request().Header.Get("Upgrade"), "websocket") == 0 {
 				return true
 			}
+
+			// Whitelist console's HTML, JS, CSS
+			if (strings.Compare(c.Request().URL.Path, "/console") == 0 ||
+				strings.Compare(c.Request().URL.Path, "/console/main.js") == 0 ||
+				strings.Compare(c.Request().URL.Path, "/console/xterm.js") == 0 ||
+				strings.Compare(c.Request().URL.Path, "/console/xterm-addon-fit.js") == 0 ||
+				strings.Compare(c.Request().URL.Path, "/console/xterm.css") == 0) &&
+				strings.Compare(c.Request().Method, http.MethodGet) == 0 {
+				return true
+			}
+
 			return false
 		},
 		SigningKey: []byte(config.SystemConfig.JWTSecretKey),

@@ -18,6 +18,10 @@ function showInfoPanel() {
     document.getElementById('info_section_container').style.display = 'block';
 }
 
+function getAuthorizationHeader() {
+    return "Bearer " + localStorage.getItem("token");
+}
+
 
 // Initiate terminal
 const term = new Terminal({
@@ -57,7 +61,8 @@ async function init() {
         // generate a console request
         const response = await fetch(`/console/token/server/${serverId}`, {
             method: "POST", headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': getAuthorizationHeader()
             }
         });
         if (!response.ok) {
@@ -73,7 +78,8 @@ async function init() {
         // find servers
         const response = await fetch(`/console/application/${applicationId}/servers`, {
             method: "GET", headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': getAuthorizationHeader()
             }
         });
         if (!response.ok) {
@@ -110,7 +116,8 @@ async function init() {
         const response2 = await fetch(`/console/token/application/${applicationId}/${servers[serverList[parseInt(serverSrNo) - 1]]}`, {
             method: "POST",
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': getAuthorizationHeader()
             }
         });
         if (!response2.ok) {
