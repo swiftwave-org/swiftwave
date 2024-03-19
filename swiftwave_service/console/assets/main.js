@@ -10,6 +10,14 @@ function showStatus(text) {
     document.getElementById('loader_container').style.display = 'flex';
 }
 
+function hideInfoPanel() {
+    document.getElementById('info_section_container').style.display = 'none';
+}
+
+function showInfoPanel() {
+    document.getElementById('info_section_container').style.display = 'block';
+}
+
 
 // Initiate terminal
 const term = new Terminal({
@@ -39,9 +47,10 @@ async function init() {
         return;
     }
     const urlParams = new URLSearchParams(window.location.search);
-
     let data = {}
+    let targetType = "unknown"
     if (urlParams.has('server')) {
+        targetType = "server"
         // fetch server id
         const serverId = urlParams.get('server');
         showStatus("Authenticating...");
@@ -57,6 +66,7 @@ async function init() {
         }
         data = await response.json();
     } else if (urlParams.has('application')) {
+        targetType = "application"
         // fetch application id
         const applicationId = urlParams.get('application');
         showStatus("Fetching available servers...");
@@ -113,17 +123,33 @@ async function init() {
         return
     }
 
-    console.log(data)
-
     // fetch request_id and token
     const requestId = data.request_id;
     const token = data.token;
-    const target = "Will be added !" // TODO
     if (!requestId || !token) {
         showStatus("Error: Some error occurred");
         return;
     }
-    document.title = `[Console] ${target}`;
+    let target, host_info, host_user;
+    if (targetType === "server") {
+        target = data.target.hostname;
+        host_info = `${data.target.ip} (${data.target.hostname})`
+        host_user = data.target.user
+    } else if (targetType === "application") {
+        target = data.target.application;
+        host_info = `${data.target.server.ip} (${data.target.server.hostname})`
+        host_user = data.target.server.user
+    } else {
+        showStatus("Unknown configuration");
+        return;
+    }
+    document.title = `[${targetType}] ${target}`;
+    // Set all the info
+    document.getElementById('target_type').innerText = targetType;
+    document.getElementById('target_name').innerText = target;
+    document.getElementById('host_info').innerText = host_info;
+    document.getElementById('host_user').innerText = host_user;
+    showInfoPanel()
 
     // connect to websocket using the request_id and token
     let protocol = "ws";
@@ -170,7 +196,7 @@ async function init() {
 // Initiate the connection
 init()
     .then(() => {
-        console.log("inited")
+        console.log("console init done")
     })
     .catch((e) => {
         showStatus("Error: " + e.message);
