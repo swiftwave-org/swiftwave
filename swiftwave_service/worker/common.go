@@ -30,24 +30,20 @@ func addDeploymentLog(_ gorm.DB, pubSubClient pubsub.Client, deploymentId string
 }
 
 func bulkInsertDeploymentLogs(dbClient gorm.DB) {
-	ticker := time.NewTicker(2 * time.Second)
-	defer ticker.Stop()
-
 	for {
-		select {
-		case <-ticker.C:
-			var deploymentLogs []*core.DeploymentLog
-			for len(deploymentLogBuffer) > 0 {
-				deploymentLog := <-deploymentLogBuffer
-				deploymentLogs = append(deploymentLogs, deploymentLog)
-			}
+		var deploymentLogs []*core.DeploymentLog
+		for len(deploymentLogBuffer) > 0 {
+			deploymentLog := <-deploymentLogBuffer
+			deploymentLogs = append(deploymentLogs, deploymentLog)
+		}
 
-			if len(deploymentLogs) > 0 {
-				err := dbClient.Create(&deploymentLogs).Error
-				if err != nil {
-					log.Println("failed to bulk insert deployment logs")
-				}
+		if len(deploymentLogs) > 0 {
+			err := dbClient.Create(&deploymentLogs).Error
+			if err != nil {
+				log.Println("failed to bulk insert deployment logs")
 			}
 		}
+		<-time.After(5 * time.Second)
 	}
+
 }

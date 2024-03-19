@@ -42,8 +42,7 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 	}
 	// generate a random filename
 	backupFileName := persistentVolume.Name + "_" + uuid.NewString() + ".tar.gz"
-	var backupFilePath string
-	backupFilePath = filepath.Join(m.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath, backupFileName)
+	backupFilePath := filepath.Join(m.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath, backupFileName)
 	// create backup
 	err = dockerManager.BackupVolume(persistentVolume.Name, backupFilePath, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
