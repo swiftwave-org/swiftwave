@@ -32,6 +32,9 @@ func MigrateDatabase(dbClient *gorm.DB) error {
 		&PersistentVolumeBackup{},
 		&PersistentVolumeRestore{},
 		&ConsoleToken{},
+		&AnalyticsServiceToken{},
+		&ServerResourceStat{},
+		&ApplicationResourceStat{},
 	)
 	if err != nil {
 		log.Println(err)

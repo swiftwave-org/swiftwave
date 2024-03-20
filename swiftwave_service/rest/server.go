@@ -32,4 +32,6 @@ func (server *Server) initiateProjectRoutes(e *echo.Echo) {
 	// Initiating Routes for fetch and update system config
 	e.GET("/config/system", bootstrap.FetchSystemConfigHandler)
 	e.PUT("/config/system", bootstrap.UpdateSystemConfigHandler)
+	// analytics
+	e.POST("/service/analytics", server.analytics)
 }
