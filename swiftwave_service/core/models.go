@@ -16,18 +16,20 @@ type SystemLog struct {
 
 // Server : hold information about server
 type Server struct {
-	ID                   uint           `json:"id" gorm:"primaryKey"`
-	IP                   string         `json:"ip"`
-	HostName             string         `json:"host_name" gorm:"unique"`
-	User                 string         `json:"user"`
-	ScheduleDeployments  bool           `json:"schedule_deployments" gorm:"default:true"`
-	DockerUnixSocketPath string         `json:"docker_unix_socket_path"`
-	SwarmMode            SwarmMode      `json:"swarm_mode"`
-	ProxyConfig          ProxyConfig    `json:"proxy_config" gorm:"embedded;embeddedPrefix:proxy_"`
-	Status               ServerStatus   `json:"status"`
-	LastPing             time.Time      `json:"last_ping"`
-	Logs                 []ServerLog    `json:"logs" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	ConsoleTokens        []ConsoleToken `json:"console_tokens" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ID                    uint                   `json:"id" gorm:"primaryKey"`
+	IP                    string                 `json:"ip"`
+	HostName              string                 `json:"host_name" gorm:"unique"`
+	User                  string                 `json:"user"`
+	ScheduleDeployments   bool                   `json:"schedule_deployments" gorm:"default:true"`
+	DockerUnixSocketPath  string                 `json:"docker_unix_socket_path"`
+	SwarmMode             SwarmMode              `json:"swarm_mode"`
+	ProxyConfig           ProxyConfig            `json:"proxy_config" gorm:"embedded;embeddedPrefix:proxy_"`
+	Status                ServerStatus           `json:"status"`
+	LastPing              time.Time              `json:"last_ping"`
+	Logs                  []ServerLog            `json:"logs" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ConsoleTokens         []ConsoleToken         `json:"console_tokens" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	AnalyticsServiceToken *AnalyticsServiceToken `json:"analytics_service_token" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ResourceStats         []ServerResourceStat   `json:"resource_stats" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 // ServerLog : hold logs of server
@@ -198,6 +200,8 @@ type Application struct {
 	WebhookToken string `json:"webhook_token"`
 	// Sleeping
 	IsSleeping bool `json:"is_sleeping" gorm:"default:false"`
+	// Resource Stats
+	ResourceStats []ApplicationResourceStat `json:"resource_stats" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 // Deployment : hold information about deployment of application
@@ -250,4 +254,40 @@ type ConsoleToken struct {
 	ApplicationID *string       `json:"application_id"`
 	Token         string        `json:"token" gorm:"unique"`
 	ExpiresAt     time.Time     `json:"expires_at"`
+}
+
+type AnalyticsServiceToken struct {
+	ID        string    `json:"id" gorm:"primaryKey"`
+	Token     string    `json:"token" gorm:"unique"`
+	ServerID  uint      `json:"server_id"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// ************************************************************************************* //
+//                                Server Related Stats       		   			         //
+// ************************************************************************************* //
+
+// ServerResourceStat : struct to hold host resource stats
+type ServerResourceStat struct {
+	ID              uint             `json:"id" gorm:"primaryKey"`
+	ServerID        uint             `json:"server_id"`
+	CpuUsagePercent uint8            `json:"cpu_used_percent"`
+	MemStat         ServerMemoryStat `json:"memory" gorm:"embedded;embeddedPrefix:memory_"`
+	DiskStats       ServerDiskStats  `json:"disks"`
+	NetStat         ServerNetStat    `json:"network" gorm:"embedded;embeddedPrefix:network_"`
+	RecordedAt      time.Time        `json:"recorded_at"`
+}
+
+// ************************************************************************************* //
+//                                Server Related Stats       		   			         //
+// ************************************************************************************* //
+
+// ApplicationResourceStat : struct to hold service resource stats
+type ApplicationResourceStat struct {
+	ID              uint               `json:"id" gorm:"primaryKey"`
+	ApplicationID   string             `json:"application_id"`
+	CpuUsagePercent uint8              `json:"cpu_used_percent"`
+	UsedMemoryMB    uint64             `json:"used_memory_mb"`
+	NetStat         ApplicationNetStat `json:"network" gorm:"embedded;embeddedPrefix:network_"`
+	RecordedAt      time.Time          `json:"recorded_at"`
 }

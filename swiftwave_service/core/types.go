@@ -1,5 +1,10 @@
 package core
 
+import (
+	"database/sql/driver"
+	"encoding/json"
+)
+
 // ************************************************************************************* //
 //                                Swiftwave System Configuration 		   			     //
 // ************************************************************************************* //
@@ -237,3 +242,50 @@ const (
 	ConsoleTargetTypeServer      ConsoleTarget = "server"
 	ConsoleTargetTypeApplication ConsoleTarget = "application"
 )
+
+// ************************************************************************************* //
+//                              	Server Related Stats       		   			         //
+// ************************************************************************************* //
+
+type ServerDiskStat struct {
+	Path       string  `json:"path"`
+	MountPoint string  `json:"mount_point"`
+	TotalGB    float32 `json:"total_gb"`
+	UsedGB     float32 `json:"used_gb"`
+}
+
+type ServerDiskStats []ServerDiskStat
+
+// Scan implement value scanner interface for gorm
+func (d *ServerDiskStats) Scan(value interface{}) error {
+	return json.Unmarshal(value.([]byte), d)
+}
+
+// Value implement driver.Valuer interface for gorm
+func (d ServerDiskStats) Value() (driver.Value, error) {
+	return json.Marshal(d)
+}
+
+type ServerMemoryStat struct {
+	TotalGB  float32 `json:"total_gb"`
+	UsedGB   float32 `json:"used_gb"`
+	CachedGB float32 `json:"cached_gb"`
+}
+
+type ServerNetStat struct {
+	SentKB   uint64 `json:"sent_kb"`
+	RecvKB   uint64 `json:"recv_kb"`
+	SentKBPS uint64 `json:"sent_kbps"`
+	RecvKBPS uint64 `json:"recv_kbps"`
+}
+
+// ************************************************************************************* //
+//                            	Application Related Stats       		   			     //
+// ************************************************************************************* //
+
+type ApplicationNetStat struct {
+	SentKB   uint64 `json:"sent_kb"`
+	RecvKB   uint64 `json:"recv_kb"`
+	SentKBPS uint64 `json:"sent_kbps"`
+	RecvKBPS uint64 `json:"recv_kbps"`
+}

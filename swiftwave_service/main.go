@@ -8,6 +8,7 @@ import (
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/console"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/dashboard"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
 	"log"
@@ -80,12 +81,52 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 		Format: "${method} ${uri} | ${remote_ip} | ${status} ${error}\n",
 	}))
 	echoServer.Use(middleware.CORS())
+
+	// Internal Service Authentication Middleware
+	// Authorization : analytics_token <analytics_id>:<analytics_token>
+	// Only for /service/analytics endpoints
+	echoServer.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if strings.Compare(c.Request().URL.Path, "/service/analytics") == 0 {
+				authorization := c.Request().Header.Get("Authorization")
+				if strings.HasPrefix(authorization, "analytics_token ") {
+					token := strings.TrimPrefix(authorization, "analytics_token ")
+					tokenParts := strings.Split(token, ":")
+					if len(tokenParts) == 2 {
+						verified, serverHostName, err := core.ValidateAnalyticsServiceToken(c.Request().Context(), manager.DbClient, tokenParts[0], tokenParts[1])
+						if err != nil {
+							return c.JSON(http.StatusUnauthorized, map[string]interface{}{
+								"message": "invalid service token",
+							})
+						}
+						if verified {
+							c.Set("authorized", true)
+							c.Set("hostname", serverHostName)
+						} else {
+							return c.JSON(http.StatusUnauthorized, map[string]interface{}{
+								"message": "invalid service token",
+							})
+						}
+					}
+				} else {
+					c.Set("authorized", false)
+					c.Set("hostname", "")
+				}
+			}
+			return next(c)
+		}
+	})
+
 	// JWT Middleware
 	echoServer.Use(echojwt.WithConfig(echojwt.Config{
 		Skipper: func(c echo.Context) bool {
-			fmt.Println(c.Request().URL.RawQuery)
-			fmt.Println(c.Request().URL.Path)
-			fmt.Println(c.Request().URL)
+			// check if request is already authorized
+			if strings.HasPrefix(c.Request().URL.Path, "/service/analytics") &&
+				c.Get("authorized") != nil && c.Get("hostname") != nil {
+				if c.Get("authorized").(bool) && strings.Compare(c.Get("hostname").(string), "") != 0 {
+					return true
+				}
+			}
 			if strings.Compare(c.Request().URL.Path, "/") == 0 ||
 				strings.HasPrefix(c.Request().URL.Path, "/healthcheck") ||
 				strings.HasPrefix(c.Request().URL.Path, "/.well-known") ||
@@ -128,15 +169,22 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 		SigningKey: []byte(config.SystemConfig.JWTSecretKey),
 		ContextKey: "jwt_data",
 	}))
-	// Authorization Middleware
+
 	// Add `authorized` & `username` key to the context
 	echoServer.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			// ignore if already authorized
+			if c.Get("authorized") != nil && c.Get("hostname") != nil {
+				if c.Get("authorized").(bool) && strings.Compare(c.Get("hostname").(string), "") != 0 {
+					return next(c)
+				}
+			}
 			token, ok := c.Get("jwt_data").(*jwt.Token)
 			ctx := c.Request().Context()
 			if !ok {
 				c.Set("authorized", false)
 				c.Set("username", "")
+				c.Set("hostname", "")
 				//nolint:staticcheck
 				ctx = context.WithValue(ctx, "authorized", false)
 				//nolint:staticcheck
@@ -146,6 +194,7 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 				username := claims["username"].(string)
 				c.Set("authorized", true)
 				c.Set("username", username)
+				c.Set("hostname", "")
 				//nolint:staticcheck
 				ctx = context.WithValue(ctx, "authorized", true)
 				//nolint:staticcheck
