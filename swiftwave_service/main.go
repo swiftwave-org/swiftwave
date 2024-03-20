@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
@@ -70,13 +71,27 @@ func StartSwiftwave(config *config.Config) {
 	<-waitForever
 }
 
+func echoLogger(_ echo.Context, err error, stack []byte) error {
+	color.Red("Recovered from panic: %s\n", err)
+	fmt.Println(string(stack))
+	return nil
+}
+
 // StartServer starts the swiftwave graphql and rest server
 func StartServer(config *config.Config, manager *service_manager.ServiceManager, workerManager *worker.Manager) {
 	// Create Echo Server
 	echoServer := echo.New()
 	echoServer.HideBanner = true
 	echoServer.Pre(middleware.RemoveTrailingSlash())
-	echoServer.Use(middleware.Recover())
+	echoServer.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
+		Skipper:             middleware.DefaultSkipper,
+		StackSize:           4 << 10, // 4 KB
+		DisableStackAll:     false,
+		DisablePrintStack:   false,
+		LogLevel:            0,
+		LogErrorFunc:        echoLogger,
+		DisableErrorHandler: false,
+	}))
 	echoServer.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "${method} ${uri} | ${remote_ip} | ${status} ${error}\n",
 	}))

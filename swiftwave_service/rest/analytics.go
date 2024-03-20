@@ -57,5 +57,33 @@ func (server *Server) analytics(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "failed to create server resource stat")
 	}
+
+	// create application resource stat
+	appStats := make([]*core.ApplicationServiceResourceStat, 0)
+	for serviceName, serviceStat := range data.ServiceStats {
+		application := core.Application{}
+		err := application.FindByName(c.Request().Context(), server.ServiceManager.DbClient, serviceName)
+		if err != nil {
+			continue
+		}
+		appStats = append(appStats, &core.ApplicationServiceResourceStat{
+			ApplicationID:        application.ID,
+			CpuUsagePercent:      serviceStat.CpuUsagePercent,
+			ReportingServerCount: 1,
+			UsedMemoryMB:         serviceStat.UsedMemoryMB,
+			NetStat: core.ApplicationServiceNetStat{
+				RecvKB:   serviceStat.NetStat.RecvKB,
+				SentKB:   serviceStat.NetStat.SentKB,
+				RecvKBPS: serviceStat.NetStat.RecvKB / 60,
+				SentKBPS: serviceStat.NetStat.SentKB / 60,
+			},
+			RecordedAt: time.Unix(int64(data.TimeStamp), 0),
+		})
+	}
+	// create application resource stat
+	err = core.CreateApplicationServiceResourceStat(c.Request().Context(), server.ServiceManager.DbClient, appStats)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "failed to create application resource stat")
+	}
 	return c.String(200, "ok")
 }

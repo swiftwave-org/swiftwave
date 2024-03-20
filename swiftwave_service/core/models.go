@@ -201,7 +201,7 @@ type Application struct {
 	// Sleeping
 	IsSleeping bool `json:"is_sleeping" gorm:"default:false"`
 	// Resource Stats
-	ResourceStats []ApplicationResourceStat `json:"resource_stats" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ResourceStats []ApplicationServiceResourceStat `json:"resource_stats" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 // Deployment : hold information about deployment of application
@@ -282,12 +282,13 @@ type ServerResourceStat struct {
 //                                Server Related Stats       		   			         //
 // ************************************************************************************* //
 
-// ApplicationResourceStat : struct to hold service resource stats
-type ApplicationResourceStat struct {
-	ID              uint               `json:"id" gorm:"primaryKey"`
-	ApplicationID   string             `json:"application_id"`
-	CpuUsagePercent uint8              `json:"cpu_used_percent"`
-	UsedMemoryMB    uint64             `json:"used_memory_mb"`
-	NetStat         ApplicationNetStat `json:"network" gorm:"embedded;embeddedPrefix:network_"`
-	RecordedAt      time.Time          `json:"recorded_at"`
+// ApplicationServiceResourceStat : struct to hold service resource stats
+type ApplicationServiceResourceStat struct {
+	ID                   uint                      `json:"id" gorm:"primaryKey"`
+	ApplicationID        string                    `json:"application_id"`
+	CpuUsagePercent      uint8                     `json:"cpu_used_percent"`
+	ReportingServerCount uint                      `json:"reporting_server_count"` // to help in calculating average
+	UsedMemoryMB         uint64                    `json:"used_memory_mb"`
+	NetStat              ApplicationServiceNetStat `json:"network" gorm:"embedded;embeddedPrefix:network_"`
+	RecordedAt           time.Time                 `json:"recorded_at"`
 }

@@ -283,7 +283,7 @@ type ServerNetStat struct {
 //                            	Application Related Stats       		   			     //
 // ************************************************************************************* //
 
-type ApplicationNetStat struct {
+type ApplicationServiceNetStat struct {
 	SentKB   uint64 `json:"sent_kb"`
 	RecvKB   uint64 `json:"recv_kb"`
 	SentKBPS uint64 `json:"sent_kbps"`
