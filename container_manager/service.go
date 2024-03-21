@@ -11,7 +11,6 @@ import (
 	"strings"
 )
 
-// GetService returns a service
 func (m Manager) GetService(serviceName string) (Service, error) {
 	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
 	if err != nil {
@@ -73,8 +72,7 @@ func (m Manager) GetService(serviceName string) (Service, error) {
 	return service, nil
 }
 
-// Create a new service
-func (m Manager) CreateService(service Service, username string, password string) error {
+func (m Manager) CreateService(service Service, username string, password string, queryRegistry bool) error {
 	authHeader, err := generateAuthHeader(username, password)
 	if err != nil {
 		return errors.New("failed to generate auth header")
@@ -91,6 +89,7 @@ func (m Manager) CreateService(service Service, username string, password string
 	}
 	_, err = m.client.ServiceCreate(m.ctx, m.serviceToServiceSpec(service), types.ServiceCreateOptions{
 		EncodedRegistryAuth: authHeader,
+		QueryRegistry:       queryRegistry,
 	})
 	if err != nil {
 		return errors.New("error creating service")
@@ -98,8 +97,11 @@ func (m Manager) CreateService(service Service, username string, password string
 	return nil
 }
 
-// Update a service
-func (m Manager) UpdateService(service Service) error {
+func (m Manager) UpdateService(service Service, username string, password string, queryRegistry bool) error {
+	authHeader, err := generateAuthHeader(username, password)
+	if err != nil {
+		return errors.New("failed to generate auth header")
+	}
 	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, service.Name, types.ServiceInspectOptions{})
 	if err != nil {
 		return errors.New("error getting swarm server version")
@@ -110,14 +112,16 @@ func (m Manager) UpdateService(service Service) error {
 	if err != nil {
 		return errors.New("error getting swarm server version")
 	}
-	_, err = m.client.ServiceUpdate(m.ctx, service.Name, version, m.serviceToServiceSpec(service), types.ServiceUpdateOptions{})
+	_, err = m.client.ServiceUpdate(m.ctx, service.Name, version, m.serviceToServiceSpec(service), types.ServiceUpdateOptions{
+		EncodedRegistryAuth: authHeader,
+		QueryRegistry:       queryRegistry,
+	})
 	if err != nil {
 		return errors.New("error updating service")
 	}
 	return nil
 }
 
-// RestartService: Restart a service
 func (m Manager) RestartService(serviceName string) error {
 	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
 	if err != nil {
@@ -138,7 +142,6 @@ func (m Manager) RestartService(serviceName string) error {
 	return nil
 }
 
-// RollbackService a service
 func (m Manager) RollbackService(serviceName string) error {
 	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
 	if err != nil {
@@ -157,16 +160,14 @@ func (m Manager) RollbackService(serviceName string) error {
 	return nil
 }
 
-// Remove a service
-func (m Manager) RemoveService(servicename string) error {
-	err := m.client.ServiceRemove(m.ctx, servicename)
+func (m Manager) RemoveService(serviceName string) error {
+	err := m.client.ServiceRemove(m.ctx, serviceName)
 	if err != nil {
 		return errors.New("error removing service")
 	}
 	return nil
 }
 
-// Set Replicas of a service
 func (m Manager) SetServiceReplicaCount(serviceName string, replicas int) error {
 	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
 	if err != nil {
@@ -191,7 +192,6 @@ func (m Manager) SetServiceReplicaCount(serviceName string, replicas int) error 
 	return nil
 }
 
-// Fetch Realtime Info of a services in bulk
 func (m Manager) RealtimeInfoRunningServices() (map[string]ServiceRealtimeInfo, error) {
 	// fetch all nodes and store in map > nodeID:nodeDetails
 	nodes, err := m.client.NodeList(m.ctx, types.NodeListOptions{})
@@ -263,7 +263,6 @@ func (m Manager) RealtimeInfoRunningServices() (map[string]ServiceRealtimeInfo, 
 	return serviceRealtimeInfoMap, nil
 }
 
-// Fetch realtime info of a service
 func (m Manager) RealtimeInfoService(serviceName string, ignoreNodeDetails bool) (ServiceRealtimeInfo, error) {
 	runningCount := 0
 	serviceRealtimeInfo := ServiceRealtimeInfo{}
@@ -399,7 +398,7 @@ func (m Manager) LogsService(serviceName string) (io.ReadCloser, error) {
 // Private functions
 func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 	// Create swarm attachment config from network names array
-	networkAttachmentConfigs := []swarm.NetworkAttachmentConfig{}
+	var networkAttachmentConfigs []swarm.NetworkAttachmentConfig
 	for _, networkName := range service.Networks {
 		networkAttachmentConfigs = append(networkAttachmentConfigs, swarm.NetworkAttachmentConfig{
 			Target: networkName,
@@ -407,7 +406,7 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 	}
 
 	// Create volume mounts from volume mounts array
-	volumeMounts := []mount.Mount{}
+	var volumeMounts []mount.Mount
 	for _, volumeMount := range service.VolumeMounts {
 		volumeMounts = append(volumeMounts, mount.Mount{
 			Type:     mount.TypeVolume,
@@ -427,7 +426,7 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 	}
 
 	// Create `ENV_VAR=value` array from env map
-	env := []string{}
+	var env []string
 	for key, value := range service.Env {
 		env = append(env, key+"="+value)
 	}

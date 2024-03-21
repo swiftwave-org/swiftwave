@@ -103,7 +103,7 @@ func (m Manager) syncProxy() {
 					Target: "/home",
 				},
 			},
-		}, "", "")
+		}, "", "", true)
 		if err != nil {
 			logger.CronJobLoggerError.Println("Failed to create haproxy service", err.Error())
 		} else {
@@ -117,7 +117,7 @@ func (m Manager) syncProxy() {
 			haproxyService.Env = haProxyEnvironmentVariables
 			haproxyService.Image = m.Config.SystemConfig.HAProxyConfig.Image
 			haproxyService.PlacementConstraints = placementConstraints
-			err = dockerClient.UpdateService(haproxyService)
+			err = dockerClient.UpdateService(haproxyService, "", "", true)
 			if err != nil {
 				logger.CronJobLoggerError.Println("Failed to update haproxy service", err.Error())
 			} else {
@@ -152,7 +152,7 @@ func (m Manager) syncProxy() {
 					Target: "/var/lib/udpproxy",
 				},
 			},
-		}, "", "")
+		}, "", "", true)
 		if err != nil {
 			logger.CronJobLoggerError.Println("Failed to create udpproxy service", err.Error())
 		} else {
@@ -165,7 +165,7 @@ func (m Manager) syncProxy() {
 			udpproxyService.Env = udpProxyEnvironmentVariables
 			udpproxyService.Image = m.Config.SystemConfig.UDPProxyConfig.Image
 			udpproxyService.PlacementConstraints = placementConstraints
-			err = dockerClient.UpdateService(udpproxyService)
+			err = dockerClient.UpdateService(udpproxyService, "", "", true)
 			if err != nil {
 				logger.CronJobLoggerError.Println("Failed to update udpproxy service", err.Error())
 			} else {
