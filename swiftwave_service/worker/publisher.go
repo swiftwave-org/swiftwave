@@ -82,3 +82,9 @@ func (m Manager) EnqueueSetupAndEnableProxyRequest(serverId uint, logId uint) er
 		LogId:    logId,
 	})
 }
+
+func (m Manager) EnqueueDeletePersistentVolumeRequest(persistentVolumeId uint) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(deletePersistentVolumeQueueName, PersistentVolumeDeletionRequest{
+		Id: persistentVolumeId,
+	})
+}

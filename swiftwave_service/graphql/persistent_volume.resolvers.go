@@ -7,7 +7,6 @@ package graphql
 import (
 	"context"
 	"errors"
-
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
@@ -35,17 +34,14 @@ func (r *mutationResolver) DeletePersistentVolume(ctx context.Context, id uint) 
 	if err != nil {
 		return false, err
 	}
-	// fetch docker manager
-	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
+	// delete request
+	err = record.ValidateDeletion(ctx, r.ServiceManager.DbClient)
 	if err != nil {
 		return false, err
 	}
-	// delete record
-	err = record.Delete(ctx, r.ServiceManager.DbClient, *dockerManager)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
+	// enqueue deletion
+	err = r.WorkerManager.EnqueueDeletePersistentVolumeRequest(record.ID)
+	return err == nil, err
 }
 
 // PersistentVolumeBindings is the resolver for the persistentVolumeBindings field.

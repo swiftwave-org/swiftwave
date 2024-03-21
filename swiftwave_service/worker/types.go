@@ -26,6 +26,7 @@ const (
 	installDependenciesOnServerQueueName = "install_dependencies_on_server"
 	setupServerQueueName                 = "setup_server"
 	setupAndEnableProxyQueueName         = "setup_and_enable_proxy"
+	deletePersistentVolumeQueueName      = "delete_persistent_volume"
 )
 
 // Request Payload
@@ -98,4 +99,9 @@ type SetupServerRequest struct {
 type SetupAndEnableProxyRequest struct {
 	ServerId uint `json:"server_id"`
 	LogId    uint `json:"log_id"`
+}
+
+// PersistentVolumeDeletionRequest : request payload for delete persistent volume
+type PersistentVolumeDeletionRequest struct {
+	Id uint `json:"id"`
 }
