@@ -137,19 +137,6 @@ func persistentVolumeRestoreToGraphqlObject(record *core.PersistentVolumeRestore
 	}
 }
 
-// persistentVolumeRestoreInputToDatabaseObject : converts PersistentVolumeRestoreInput to PersistentVolumeRestoreDatabaseObject
-// nolint:unused
-func persistentVolumeRestoreInputToDatabaseObject(record *model.PersistentVolumeRestoreInput) *core.PersistentVolumeRestore {
-	return &core.PersistentVolumeRestore{
-		Type:               core.RestoreType(record.Type),
-		File:               "",
-		Status:             core.RestorePending,
-		PersistentVolumeID: record.PersistentVolumeID,
-		CreatedAt:          time.Now(),
-		CompletedAt:        time.Now(),
-	}
-}
-
 // environmentVariableInputToDatabaseObject : converts EnvironmentVariableInput to EnvironmentVariableDatabaseObject
 func environmentVariableInputToDatabaseObject(record *model.EnvironmentVariableInput) *core.EnvironmentVariable {
 	return &core.EnvironmentVariable{
@@ -477,5 +464,55 @@ func serverLogToGraphqlObject(record *core.ServerLog) *model.ServerLog {
 		Title:     record.Title,
 		CreatedAt: record.CreatedAt,
 		UpdatedAt: record.UpdatedAt,
+	}
+}
+
+// serverResourceStatToGraphqlObject : converts ServerResourceStat to ServerResourceStatGraphqlObject
+func serverResourceStatToGraphqlObject(record *core.ServerResourceStat) *model.ServerResourceAnalytics {
+	return &model.ServerResourceAnalytics{
+		CPUUsagePercent: int(record.CpuUsagePercent),
+		MemoryTotalGb:   float64(record.MemStat.TotalGB),
+		MemoryUsedGb:    float64(record.MemStat.UsedGB),
+		MemoryCachedGb:  float64(record.MemStat.CachedGB),
+		NetworkSentKbps: record.NetStat.SentKBPS,
+		NetworkRecvKbps: record.NetStat.RecvKBPS,
+		Timestamp:       record.RecordedAt,
+	}
+}
+
+// serverDiskStatToGraphqlObject : converts ServerDiskStat to ServerDiskStatGraphqlObject
+func serverDiskStatToGraphqlObject(record *core.ServerDiskStat, timestamp *time.Time) *model.ServerDiskUsage {
+	return &model.ServerDiskUsage{
+		Path:       record.Path,
+		MountPoint: record.MountPoint,
+		TotalGb:    float64(record.TotalGB),
+		UsedGb:     float64(record.UsedGB),
+		Timestamp:  *timestamp,
+	}
+}
+
+// severDisksStatToGraphqlObject : converts ServerDiskStat to ServerDiskStatGraphqlObject
+func severDisksStatToGraphqlObject(records *core.ServerDiskStats, timestamp *time.Time) *model.ServerDisksUsage {
+	disks := make([]*model.ServerDiskUsage, 0)
+	if records == nil {
+		recordsVal := *records
+		for _, disk := range recordsVal {
+			disks = append(disks, serverDiskStatToGraphqlObject(&disk, timestamp))
+		}
+	}
+	return &model.ServerDisksUsage{
+		Disks:     disks,
+		Timestamp: *timestamp,
+	}
+}
+
+// applicationServiceResourceStatToGraphqlObject : converts ApplicationServiceResourceStat to ApplicationServiceResourceStatGraphqlObject
+func applicationServiceResourceStatToGraphqlObject(record *core.ApplicationServiceResourceStat) *model.ApplicationResourceAnalytics {
+	return &model.ApplicationResourceAnalytics{
+		CPUUsagePercent: int(record.CpuUsagePercent),
+		MemoryUsedMb:    record.UsedMemoryMB,
+		NetworkRecvKbps: record.NetStat.RecvKBPS,
+		NetworkSentKbps: record.NetStat.SentKBPS,
+		Timestamp:       record.RecordedAt,
 	}
 }

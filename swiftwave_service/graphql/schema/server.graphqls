@@ -15,6 +15,13 @@ enum ServerStatus {
     offline
 }
 
+enum ServerResourceAnalyticsTimeframe {
+    last_1_hour
+    last_24_hours
+    last_7_days
+    last_30_days
+}
+
 input NewServerInput {
     ip: String!
     user: String!
@@ -45,9 +52,36 @@ type Dependency {
     available: Boolean!
 }
 
+type ServerResourceAnalytics {
+    cpu_usage_percent: Int!
+    memory_total_gb: Float!
+    memory_used_gb: Float!
+    memory_cached_gb: Float!
+    network_sent_kbps: Uint64!
+    network_recv_kbps: Uint64!
+    timestamp: Time!
+}
+
+type ServerDiskUsage {
+    path: String!
+    mount_point: String!
+    total_gb: Float!
+    used_gb: Float!
+    timestamp: Time!
+}
+
+type ServerDisksUsage {
+    disks: [ServerDiskUsage!]!
+    timestamp: Time!
+}
+
 extend type Query {
     servers: [Server!]
     publicSSHKey: String!
+    serverResourceAnalytics(id: Uint!, timeframe: ServerResourceAnalyticsTimeframe!): [ServerResourceAnalytics!]!
+    serverDiskUsage(id: Uint!): [ServerDisksUsage!]! # return last 100 records
+    serverLatestResourceAnalytics(id: Uint!): ServerResourceAnalytics!
+    serverLatestDiskUsage(id: Uint!): ServerDisksUsage!
 }
 
 extend type Mutation {

@@ -7,6 +7,7 @@ package graphql
 import (
 	"context"
 	"errors"
+	"time"
 
 	gitmanager "github.com/swiftwave-org/swiftwave/git_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
@@ -392,6 +393,33 @@ func (r *queryResolver) IsExistApplicationName(ctx context.Context, name string)
 		return false, err
 	}
 	return core.IsExistApplicationName(ctx, r.ServiceManager.DbClient, *dockerManager, name)
+}
+
+// ApplicationResourceAnalytics is the resolver for the applicationResourceAnalytics field.
+func (r *queryResolver) ApplicationResourceAnalytics(ctx context.Context, id string, timeframe model.ApplicationResourceAnalyticsTimeframe) ([]*model.ApplicationResourceAnalytics, error) {
+	var previousTime time.Time = time.Now()
+	switch timeframe {
+	case model.ApplicationResourceAnalyticsTimeframeLast1Hour:
+		previousTime = time.Now().Add(-1 * time.Hour)
+	case model.ApplicationResourceAnalyticsTimeframeLast24Hours:
+		previousTime = time.Now().Add(-24 * time.Hour)
+	case model.ApplicationResourceAnalyticsTimeframeLast7Days:
+		previousTime = time.Now().Add(-7 * 24 * time.Hour)
+	case model.ApplicationResourceAnalyticsTimeframeLast30Days:
+		previousTime = time.Now().Add(-30 * 24 * time.Hour)
+	}
+	previousTimeUnix := previousTime.Unix()
+	// fetch record
+	records, err := core.FetchApplicationServiceResourceAnalytics(ctx, r.ServiceManager.DbClient, id, uint(previousTimeUnix))
+	if err != nil {
+		return nil, err
+	}
+	// convert to graphql object
+	var result = make([]*model.ApplicationResourceAnalytics, 0)
+	for _, record := range records {
+		result = append(result, applicationServiceResourceStatToGraphqlObject(record))
+	}
+	return result, nil
 }
 
 // Application returns ApplicationResolver implementation.

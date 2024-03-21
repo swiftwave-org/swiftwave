@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"gorm.io/gorm"
+	"time"
 )
 
 func (s *ServerResourceStat) Create(_ context.Context, db gorm.DB) error {
@@ -32,6 +33,7 @@ func CreateApplicationServiceResourceStat(_ context.Context, db gorm.DB, appStat
 				RecvKBPS: (appStat.NetStat.RecvKB + existingAppStat.NetStat.RecvKB) / 60,
 				SentKBPS: (appStat.NetStat.SentKB + existingAppStat.NetStat.SentKB) / 60,
 			}
+			// TODO check if this is correct
 			err = db.Save(&existingAppStat).Error
 			if err != nil {
 				return err
@@ -40,4 +42,47 @@ func CreateApplicationServiceResourceStat(_ context.Context, db gorm.DB, appStat
 	}
 
 	return db.Create(appStats).Error
+}
+
+// FetchLatestServerResourceAnalytics fetches the latest server resource analytics
+func FetchLatestServerResourceAnalytics(_ context.Context, db gorm.DB, serverId uint) (*ServerResourceStat, error) {
+	var serverStat *ServerResourceStat
+	err := db.Select("id", "server_id", "cpu_used_percent",
+		"memory_total_gb", "memory_used_gb", "memory_cached_gb",
+		"network_sent_kbps", "network_recv_kbps", "recorded_at").Where("server_id = ?", serverId).Order("recorded_at desc").First(&serverStat).Error
+	return serverStat, err
+}
+
+// FetchLatestServerDiskUsage fetches the latest server disk usage
+func FetchLatestServerDiskUsage(_ context.Context, db gorm.DB, serverId uint) (*ServerDiskStats, *time.Time, error) {
+	var serverStat *ServerResourceStat
+	err := db.Select("id", "server_id", "disk_stats", "recorded_at").Where("server_id = ?", serverId).Order("recorded_at desc").First(&serverStat).Error
+	if err != nil {
+		return nil, nil, err
+	}
+	return &serverStat.DiskStats, &serverStat.RecordedAt, err
+}
+
+// FetchServerDiskUsage fetches the server disk usage of last 24 hours
+func FetchServerDiskUsage(_ context.Context, db gorm.DB, serverId uint) ([]*ServerResourceStat, error) {
+	previousUnixTime := time.Now().Unix() - 86400
+	var serverResourceStat []*ServerResourceStat
+	err := db.Select("id", "server_id", "disk_stats", "recorded_at").Where("server_id = ?", serverId).Where("recorded_at > ?", previousUnixTime).Find(&serverResourceStat).Error
+	return serverResourceStat, err
+}
+
+// FetchServerResourceAnalytics fetches the server resource analytics
+func FetchServerResourceAnalytics(_ context.Context, db gorm.DB, serverId uint, tillTime uint) ([]*ServerResourceStat, error) {
+	var serverStats []*ServerResourceStat
+	err := db.Select("id", "server_id", "cpu_used_percent",
+		"memory_total_gb", "memory_used_gb", "memory_cached_gb",
+		"network_sent_kbps", "network_recv_kbps", "recorded_at").Where("server_id = ?", serverId).Where("recorded_at > ?", tillTime).Order("recorded_at desc").Find(&serverStats).Error
+	return serverStats, err
+}
+
+// FetchApplicationServiceResourceAnalytics fetches the application service resource analytics
+func FetchApplicationServiceResourceAnalytics(_ context.Context, db gorm.DB, applicationId string, tillTime uint) ([]*ApplicationServiceResourceStat, error) {
+	var appStats []*ApplicationServiceResourceStat
+	err := db.Where("application_id = ?", applicationId).Where("recorded_at > ?", tillTime).Order("recorded_at desc").Find(&appStats).Error
+	return appStats, err
 }

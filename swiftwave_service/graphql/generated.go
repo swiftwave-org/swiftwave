@@ -85,6 +85,14 @@ type ComplexityRoot struct {
 		Success     func(childComplexity int) int
 	}
 
+	ApplicationResourceAnalytics struct {
+		CPUUsagePercent func(childComplexity int) int
+		MemoryUsedMb    func(childComplexity int) int
+		NetworkRecvKbps func(childComplexity int) int
+		NetworkSentKbps func(childComplexity int) int
+		Timestamp       func(childComplexity int) int
+	}
+
 	BuildArg struct {
 		Key   func(childComplexity int) int
 		Value func(childComplexity int) int
@@ -288,6 +296,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Application                        func(childComplexity int, id string) int
+		ApplicationResourceAnalytics       func(childComplexity int, id string, timeframe model.ApplicationResourceAnalyticsTimeframe) int
 		Applications                       func(childComplexity int) int
 		CheckGitCredentialRepositoryAccess func(childComplexity int, input model.GitCredentialRepositoryAccessInput) int
 		CurrentUser                        func(childComplexity int) int
@@ -310,6 +319,10 @@ type ComplexityRoot struct {
 		PublicSSHKey                       func(childComplexity int) int
 		RedirectRule                       func(childComplexity int, id uint) int
 		RedirectRules                      func(childComplexity int) int
+		ServerDiskUsage                    func(childComplexity int, id uint) int
+		ServerLatestDiskUsage              func(childComplexity int, id uint) int
+		ServerLatestResourceAnalytics      func(childComplexity int, id uint) int
+		ServerResourceAnalytics            func(childComplexity int, id uint, timeframe model.ServerResourceAnalyticsTimeframe) int
 		Servers                            func(childComplexity int) int
 		User                               func(childComplexity int, id uint) int
 		Users                              func(childComplexity int) int
@@ -353,11 +366,34 @@ type ComplexityRoot struct {
 		User                 func(childComplexity int) int
 	}
 
+	ServerDiskUsage struct {
+		MountPoint func(childComplexity int) int
+		Path       func(childComplexity int) int
+		Timestamp  func(childComplexity int) int
+		TotalGb    func(childComplexity int) int
+		UsedGb     func(childComplexity int) int
+	}
+
+	ServerDisksUsage struct {
+		Disks     func(childComplexity int) int
+		Timestamp func(childComplexity int) int
+	}
+
 	ServerLog struct {
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Title     func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
+	}
+
+	ServerResourceAnalytics struct {
+		CPUUsagePercent func(childComplexity int) int
+		MemoryCachedGb  func(childComplexity int) int
+		MemoryTotalGb   func(childComplexity int) int
+		MemoryUsedGb    func(childComplexity int) int
+		NetworkRecvKbps func(childComplexity int) int
+		NetworkSentKbps func(childComplexity int) int
+		Timestamp       func(childComplexity int) int
 	}
 
 	StackVerifyResult struct {
@@ -478,6 +514,7 @@ type QueryResolver interface {
 	Application(ctx context.Context, id string) (*model.Application, error)
 	Applications(ctx context.Context) ([]*model.Application, error)
 	IsExistApplicationName(ctx context.Context, name string) (bool, error)
+	ApplicationResourceAnalytics(ctx context.Context, id string, timeframe model.ApplicationResourceAnalyticsTimeframe) ([]*model.ApplicationResourceAnalytics, error)
 	Deployment(ctx context.Context, id string) (*model.Deployment, error)
 	DockerConfigGenerator(ctx context.Context, input model.DockerConfigGeneratorInput) (*model.DockerConfigGeneratorOutput, error)
 	Domains(ctx context.Context) ([]*model.Domain, error)
@@ -498,6 +535,10 @@ type QueryResolver interface {
 	RedirectRules(ctx context.Context) ([]*model.RedirectRule, error)
 	Servers(ctx context.Context) ([]*model.Server, error)
 	PublicSSHKey(ctx context.Context) (string, error)
+	ServerResourceAnalytics(ctx context.Context, id uint, timeframe model.ServerResourceAnalyticsTimeframe) ([]*model.ServerResourceAnalytics, error)
+	ServerDiskUsage(ctx context.Context, id uint) ([]*model.ServerDisksUsage, error)
+	ServerLatestResourceAnalytics(ctx context.Context, id uint) (*model.ServerResourceAnalytics, error)
+	ServerLatestDiskUsage(ctx context.Context, id uint) (*model.ServerDisksUsage, error)
 	FetchServerLogContent(ctx context.Context, id uint) (string, error)
 	Users(ctx context.Context) ([]*model.User, error)
 	User(ctx context.Context, id uint) (*model.User, error)
@@ -665,6 +706,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ApplicationDeployResult.Success(childComplexity), true
+
+	case "ApplicationResourceAnalytics.cpu_usage_percent":
+		if e.complexity.ApplicationResourceAnalytics.CPUUsagePercent == nil {
+			break
+		}
+
+		return e.complexity.ApplicationResourceAnalytics.CPUUsagePercent(childComplexity), true
+
+	case "ApplicationResourceAnalytics.memory_used_mb":
+		if e.complexity.ApplicationResourceAnalytics.MemoryUsedMb == nil {
+			break
+		}
+
+		return e.complexity.ApplicationResourceAnalytics.MemoryUsedMb(childComplexity), true
+
+	case "ApplicationResourceAnalytics.network_recv_kbps":
+		if e.complexity.ApplicationResourceAnalytics.NetworkRecvKbps == nil {
+			break
+		}
+
+		return e.complexity.ApplicationResourceAnalytics.NetworkRecvKbps(childComplexity), true
+
+	case "ApplicationResourceAnalytics.network_sent_kbps":
+		if e.complexity.ApplicationResourceAnalytics.NetworkSentKbps == nil {
+			break
+		}
+
+		return e.complexity.ApplicationResourceAnalytics.NetworkSentKbps(childComplexity), true
+
+	case "ApplicationResourceAnalytics.timestamp":
+		if e.complexity.ApplicationResourceAnalytics.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.ApplicationResourceAnalytics.Timestamp(childComplexity), true
 
 	case "BuildArg.key":
 		if e.complexity.BuildArg.Key == nil {
@@ -1947,6 +2023,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Application(childComplexity, args["id"].(string)), true
 
+	case "Query.applicationResourceAnalytics":
+		if e.complexity.Query.ApplicationResourceAnalytics == nil {
+			break
+		}
+
+		args, err := ec.field_Query_applicationResourceAnalytics_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ApplicationResourceAnalytics(childComplexity, args["id"].(string), args["timeframe"].(model.ApplicationResourceAnalyticsTimeframe)), true
+
 	case "Query.applications":
 		if e.complexity.Query.Applications == nil {
 			break
@@ -2166,6 +2254,54 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.RedirectRules(childComplexity), true
 
+	case "Query.serverDiskUsage":
+		if e.complexity.Query.ServerDiskUsage == nil {
+			break
+		}
+
+		args, err := ec.field_Query_serverDiskUsage_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ServerDiskUsage(childComplexity, args["id"].(uint)), true
+
+	case "Query.serverLatestDiskUsage":
+		if e.complexity.Query.ServerLatestDiskUsage == nil {
+			break
+		}
+
+		args, err := ec.field_Query_serverLatestDiskUsage_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ServerLatestDiskUsage(childComplexity, args["id"].(uint)), true
+
+	case "Query.serverLatestResourceAnalytics":
+		if e.complexity.Query.ServerLatestResourceAnalytics == nil {
+			break
+		}
+
+		args, err := ec.field_Query_serverLatestResourceAnalytics_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ServerLatestResourceAnalytics(childComplexity, args["id"].(uint)), true
+
+	case "Query.serverResourceAnalytics":
+		if e.complexity.Query.ServerResourceAnalytics == nil {
+			break
+		}
+
+		args, err := ec.field_Query_serverResourceAnalytics_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ServerResourceAnalytics(childComplexity, args["id"].(uint), args["timeframe"].(model.ServerResourceAnalyticsTimeframe)), true
+
 	case "Query.servers":
 		if e.complexity.Query.Servers == nil {
 			break
@@ -2379,6 +2515,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Server.User(childComplexity), true
 
+	case "ServerDiskUsage.mount_point":
+		if e.complexity.ServerDiskUsage.MountPoint == nil {
+			break
+		}
+
+		return e.complexity.ServerDiskUsage.MountPoint(childComplexity), true
+
+	case "ServerDiskUsage.path":
+		if e.complexity.ServerDiskUsage.Path == nil {
+			break
+		}
+
+		return e.complexity.ServerDiskUsage.Path(childComplexity), true
+
+	case "ServerDiskUsage.timestamp":
+		if e.complexity.ServerDiskUsage.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.ServerDiskUsage.Timestamp(childComplexity), true
+
+	case "ServerDiskUsage.total_gb":
+		if e.complexity.ServerDiskUsage.TotalGb == nil {
+			break
+		}
+
+		return e.complexity.ServerDiskUsage.TotalGb(childComplexity), true
+
+	case "ServerDiskUsage.used_gb":
+		if e.complexity.ServerDiskUsage.UsedGb == nil {
+			break
+		}
+
+		return e.complexity.ServerDiskUsage.UsedGb(childComplexity), true
+
+	case "ServerDisksUsage.disks":
+		if e.complexity.ServerDisksUsage.Disks == nil {
+			break
+		}
+
+		return e.complexity.ServerDisksUsage.Disks(childComplexity), true
+
+	case "ServerDisksUsage.timestamp":
+		if e.complexity.ServerDisksUsage.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.ServerDisksUsage.Timestamp(childComplexity), true
+
 	case "ServerLog.createdAt":
 		if e.complexity.ServerLog.CreatedAt == nil {
 			break
@@ -2406,6 +2591,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ServerLog.UpdatedAt(childComplexity), true
+
+	case "ServerResourceAnalytics.cpu_usage_percent":
+		if e.complexity.ServerResourceAnalytics.CPUUsagePercent == nil {
+			break
+		}
+
+		return e.complexity.ServerResourceAnalytics.CPUUsagePercent(childComplexity), true
+
+	case "ServerResourceAnalytics.memory_cached_gb":
+		if e.complexity.ServerResourceAnalytics.MemoryCachedGb == nil {
+			break
+		}
+
+		return e.complexity.ServerResourceAnalytics.MemoryCachedGb(childComplexity), true
+
+	case "ServerResourceAnalytics.memory_total_gb":
+		if e.complexity.ServerResourceAnalytics.MemoryTotalGb == nil {
+			break
+		}
+
+		return e.complexity.ServerResourceAnalytics.MemoryTotalGb(childComplexity), true
+
+	case "ServerResourceAnalytics.memory_used_gb":
+		if e.complexity.ServerResourceAnalytics.MemoryUsedGb == nil {
+			break
+		}
+
+		return e.complexity.ServerResourceAnalytics.MemoryUsedGb(childComplexity), true
+
+	case "ServerResourceAnalytics.network_recv_kbps":
+		if e.complexity.ServerResourceAnalytics.NetworkRecvKbps == nil {
+			break
+		}
+
+		return e.complexity.ServerResourceAnalytics.NetworkRecvKbps(childComplexity), true
+
+	case "ServerResourceAnalytics.network_sent_kbps":
+		if e.complexity.ServerResourceAnalytics.NetworkSentKbps == nil {
+			break
+		}
+
+		return e.complexity.ServerResourceAnalytics.NetworkSentKbps(childComplexity), true
+
+	case "ServerResourceAnalytics.timestamp":
+		if e.complexity.ServerResourceAnalytics.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.ServerResourceAnalytics.Timestamp(childComplexity), true
 
 	case "StackVerifyResult.error":
 		if e.complexity.StackVerifyResult.Error == nil {
@@ -3449,6 +3683,30 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_applicationResourceAnalytics_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 model.ApplicationResourceAnalyticsTimeframe
+	if tmp, ok := rawArgs["timeframe"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeframe"))
+		arg1, err = ec.unmarshalNApplicationResourceAnalyticsTimeframe2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationResourceAnalyticsTimeframe(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["timeframe"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_application_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3656,6 +3914,75 @@ func (ec *executionContext) field_Query_redirectRule_args(ctx context.Context, r
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_serverDiskUsage_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_serverLatestDiskUsage_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_serverLatestResourceAnalytics_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_serverResourceAnalytics_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 model.ServerResourceAnalyticsTimeframe
+	if tmp, ok := rawArgs["timeframe"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeframe"))
+		arg1, err = ec.unmarshalNServerResourceAnalyticsTimeframe2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerResourceAnalyticsTimeframe(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["timeframe"] = arg1
 	return args, nil
 }
 
@@ -4757,6 +5084,226 @@ func (ec *executionContext) fieldContext_ApplicationDeployResult_application(ctx
 				return ec.fieldContext_Application_command(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationResourceAnalytics_cpu_usage_percent(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationResourceAnalytics_cpu_usage_percent(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CPUUsagePercent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationResourceAnalytics_cpu_usage_percent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationResourceAnalytics_memory_used_mb(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationResourceAnalytics_memory_used_mb(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MemoryUsedMb, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationResourceAnalytics_memory_used_mb(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationResourceAnalytics_network_sent_kbps(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationResourceAnalytics_network_sent_kbps(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NetworkSentKbps, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationResourceAnalytics_network_sent_kbps(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationResourceAnalytics_network_recv_kbps(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationResourceAnalytics_network_recv_kbps(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NetworkRecvKbps, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationResourceAnalytics_network_recv_kbps(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationResourceAnalytics_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationResourceAnalytics_timestamp(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationResourceAnalytics_timestamp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -12633,6 +13180,73 @@ func (ec *executionContext) fieldContext_Query_isExistApplicationName(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_applicationResourceAnalytics(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_applicationResourceAnalytics(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ApplicationResourceAnalytics(rctx, fc.Args["id"].(string), fc.Args["timeframe"].(model.ApplicationResourceAnalyticsTimeframe))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ApplicationResourceAnalytics)
+	fc.Result = res
+	return ec.marshalNApplicationResourceAnalytics2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationResourceAnalyticsᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_applicationResourceAnalytics(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "cpu_usage_percent":
+				return ec.fieldContext_ApplicationResourceAnalytics_cpu_usage_percent(ctx, field)
+			case "memory_used_mb":
+				return ec.fieldContext_ApplicationResourceAnalytics_memory_used_mb(ctx, field)
+			case "network_sent_kbps":
+				return ec.fieldContext_ApplicationResourceAnalytics_network_sent_kbps(ctx, field)
+			case "network_recv_kbps":
+				return ec.fieldContext_ApplicationResourceAnalytics_network_recv_kbps(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ApplicationResourceAnalytics_timestamp(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ApplicationResourceAnalytics", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_applicationResourceAnalytics_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_deployment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_deployment(ctx, field)
 	if err != nil {
@@ -13925,6 +14539,270 @@ func (ec *executionContext) fieldContext_Query_publicSSHKey(ctx context.Context,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_serverResourceAnalytics(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_serverResourceAnalytics(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ServerResourceAnalytics(rctx, fc.Args["id"].(uint), fc.Args["timeframe"].(model.ServerResourceAnalyticsTimeframe))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ServerResourceAnalytics)
+	fc.Result = res
+	return ec.marshalNServerResourceAnalytics2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerResourceAnalyticsᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_serverResourceAnalytics(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "cpu_usage_percent":
+				return ec.fieldContext_ServerResourceAnalytics_cpu_usage_percent(ctx, field)
+			case "memory_total_gb":
+				return ec.fieldContext_ServerResourceAnalytics_memory_total_gb(ctx, field)
+			case "memory_used_gb":
+				return ec.fieldContext_ServerResourceAnalytics_memory_used_gb(ctx, field)
+			case "memory_cached_gb":
+				return ec.fieldContext_ServerResourceAnalytics_memory_cached_gb(ctx, field)
+			case "network_sent_kbps":
+				return ec.fieldContext_ServerResourceAnalytics_network_sent_kbps(ctx, field)
+			case "network_recv_kbps":
+				return ec.fieldContext_ServerResourceAnalytics_network_recv_kbps(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ServerResourceAnalytics_timestamp(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServerResourceAnalytics", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_serverResourceAnalytics_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_serverDiskUsage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_serverDiskUsage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ServerDiskUsage(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ServerDisksUsage)
+	fc.Result = res
+	return ec.marshalNServerDisksUsage2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerDisksUsageᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_serverDiskUsage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "disks":
+				return ec.fieldContext_ServerDisksUsage_disks(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ServerDisksUsage_timestamp(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServerDisksUsage", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_serverDiskUsage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_serverLatestResourceAnalytics(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_serverLatestResourceAnalytics(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ServerLatestResourceAnalytics(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ServerResourceAnalytics)
+	fc.Result = res
+	return ec.marshalNServerResourceAnalytics2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerResourceAnalytics(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_serverLatestResourceAnalytics(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "cpu_usage_percent":
+				return ec.fieldContext_ServerResourceAnalytics_cpu_usage_percent(ctx, field)
+			case "memory_total_gb":
+				return ec.fieldContext_ServerResourceAnalytics_memory_total_gb(ctx, field)
+			case "memory_used_gb":
+				return ec.fieldContext_ServerResourceAnalytics_memory_used_gb(ctx, field)
+			case "memory_cached_gb":
+				return ec.fieldContext_ServerResourceAnalytics_memory_cached_gb(ctx, field)
+			case "network_sent_kbps":
+				return ec.fieldContext_ServerResourceAnalytics_network_sent_kbps(ctx, field)
+			case "network_recv_kbps":
+				return ec.fieldContext_ServerResourceAnalytics_network_recv_kbps(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ServerResourceAnalytics_timestamp(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServerResourceAnalytics", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_serverLatestResourceAnalytics_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_serverLatestDiskUsage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_serverLatestDiskUsage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ServerLatestDiskUsage(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ServerDisksUsage)
+	fc.Result = res
+	return ec.marshalNServerDisksUsage2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerDisksUsage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_serverLatestDiskUsage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "disks":
+				return ec.fieldContext_ServerDisksUsage_disks(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ServerDisksUsage_timestamp(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServerDisksUsage", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_serverLatestDiskUsage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -15403,6 +16281,326 @@ func (ec *executionContext) fieldContext_Server_logs(ctx context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _ServerDiskUsage_path(ctx context.Context, field graphql.CollectedField, obj *model.ServerDiskUsage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerDiskUsage_path(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Path, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerDiskUsage_path(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerDiskUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServerDiskUsage_mount_point(ctx context.Context, field graphql.CollectedField, obj *model.ServerDiskUsage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerDiskUsage_mount_point(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MountPoint, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerDiskUsage_mount_point(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerDiskUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServerDiskUsage_total_gb(ctx context.Context, field graphql.CollectedField, obj *model.ServerDiskUsage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerDiskUsage_total_gb(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalGb, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerDiskUsage_total_gb(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerDiskUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServerDiskUsage_used_gb(ctx context.Context, field graphql.CollectedField, obj *model.ServerDiskUsage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerDiskUsage_used_gb(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UsedGb, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerDiskUsage_used_gb(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerDiskUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServerDiskUsage_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.ServerDiskUsage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerDiskUsage_timestamp(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerDiskUsage_timestamp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerDiskUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServerDisksUsage_disks(ctx context.Context, field graphql.CollectedField, obj *model.ServerDisksUsage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerDisksUsage_disks(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Disks, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ServerDiskUsage)
+	fc.Result = res
+	return ec.marshalNServerDiskUsage2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerDiskUsageᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerDisksUsage_disks(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerDisksUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "path":
+				return ec.fieldContext_ServerDiskUsage_path(ctx, field)
+			case "mount_point":
+				return ec.fieldContext_ServerDiskUsage_mount_point(ctx, field)
+			case "total_gb":
+				return ec.fieldContext_ServerDiskUsage_total_gb(ctx, field)
+			case "used_gb":
+				return ec.fieldContext_ServerDiskUsage_used_gb(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ServerDiskUsage_timestamp(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServerDiskUsage", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServerDisksUsage_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.ServerDisksUsage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerDisksUsage_timestamp(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerDisksUsage_timestamp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerDisksUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ServerLog_id(ctx context.Context, field graphql.CollectedField, obj *model.ServerLog) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ServerLog_id(ctx, field)
 	if err != nil {
@@ -15569,6 +16767,314 @@ func (ec *executionContext) _ServerLog_updatedAt(ctx context.Context, field grap
 func (ec *executionContext) fieldContext_ServerLog_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServerLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServerResourceAnalytics_cpu_usage_percent(ctx context.Context, field graphql.CollectedField, obj *model.ServerResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerResourceAnalytics_cpu_usage_percent(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CPUUsagePercent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerResourceAnalytics_cpu_usage_percent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServerResourceAnalytics_memory_total_gb(ctx context.Context, field graphql.CollectedField, obj *model.ServerResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerResourceAnalytics_memory_total_gb(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MemoryTotalGb, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerResourceAnalytics_memory_total_gb(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServerResourceAnalytics_memory_used_gb(ctx context.Context, field graphql.CollectedField, obj *model.ServerResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerResourceAnalytics_memory_used_gb(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MemoryUsedGb, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerResourceAnalytics_memory_used_gb(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServerResourceAnalytics_memory_cached_gb(ctx context.Context, field graphql.CollectedField, obj *model.ServerResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerResourceAnalytics_memory_cached_gb(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MemoryCachedGb, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerResourceAnalytics_memory_cached_gb(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServerResourceAnalytics_network_sent_kbps(ctx context.Context, field graphql.CollectedField, obj *model.ServerResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerResourceAnalytics_network_sent_kbps(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NetworkSentKbps, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerResourceAnalytics_network_sent_kbps(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServerResourceAnalytics_network_recv_kbps(ctx context.Context, field graphql.CollectedField, obj *model.ServerResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerResourceAnalytics_network_recv_kbps(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NetworkRecvKbps, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerResourceAnalytics_network_recv_kbps(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServerResourceAnalytics_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.ServerResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerResourceAnalytics_timestamp(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerResourceAnalytics_timestamp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerResourceAnalytics",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -19245,6 +20751,65 @@ func (ec *executionContext) _ApplicationDeployResult(ctx context.Context, sel as
 	return out
 }
 
+var applicationResourceAnalyticsImplementors = []string{"ApplicationResourceAnalytics"}
+
+func (ec *executionContext) _ApplicationResourceAnalytics(ctx context.Context, sel ast.SelectionSet, obj *model.ApplicationResourceAnalytics) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, applicationResourceAnalyticsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ApplicationResourceAnalytics")
+		case "cpu_usage_percent":
+			out.Values[i] = ec._ApplicationResourceAnalytics_cpu_usage_percent(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "memory_used_mb":
+			out.Values[i] = ec._ApplicationResourceAnalytics_memory_used_mb(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "network_sent_kbps":
+			out.Values[i] = ec._ApplicationResourceAnalytics_network_sent_kbps(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "network_recv_kbps":
+			out.Values[i] = ec._ApplicationResourceAnalytics_network_recv_kbps(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "timestamp":
+			out.Values[i] = ec._ApplicationResourceAnalytics_timestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var buildArgImplementors = []string{"BuildArg"}
 
 func (ec *executionContext) _BuildArg(ctx context.Context, sel ast.SelectionSet, obj *model.BuildArg) graphql.Marshaler {
@@ -21219,6 +22784,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "applicationResourceAnalytics":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_applicationResourceAnalytics(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "deployment":
 			field := field
 
@@ -21635,6 +23222,94 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_publicSSHKey(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "serverResourceAnalytics":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_serverResourceAnalytics(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "serverDiskUsage":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_serverDiskUsage(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "serverLatestResourceAnalytics":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_serverLatestResourceAnalytics(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "serverLatestDiskUsage":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_serverLatestDiskUsage(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -22086,6 +23761,109 @@ func (ec *executionContext) _Server(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
+var serverDiskUsageImplementors = []string{"ServerDiskUsage"}
+
+func (ec *executionContext) _ServerDiskUsage(ctx context.Context, sel ast.SelectionSet, obj *model.ServerDiskUsage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, serverDiskUsageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServerDiskUsage")
+		case "path":
+			out.Values[i] = ec._ServerDiskUsage_path(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mount_point":
+			out.Values[i] = ec._ServerDiskUsage_mount_point(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "total_gb":
+			out.Values[i] = ec._ServerDiskUsage_total_gb(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "used_gb":
+			out.Values[i] = ec._ServerDiskUsage_used_gb(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "timestamp":
+			out.Values[i] = ec._ServerDiskUsage_timestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var serverDisksUsageImplementors = []string{"ServerDisksUsage"}
+
+func (ec *executionContext) _ServerDisksUsage(ctx context.Context, sel ast.SelectionSet, obj *model.ServerDisksUsage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, serverDisksUsageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServerDisksUsage")
+		case "disks":
+			out.Values[i] = ec._ServerDisksUsage_disks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "timestamp":
+			out.Values[i] = ec._ServerDisksUsage_timestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var serverLogImplementors = []string{"ServerLog"}
 
 func (ec *executionContext) _ServerLog(ctx context.Context, sel ast.SelectionSet, obj *model.ServerLog) graphql.Marshaler {
@@ -22114,6 +23892,75 @@ func (ec *executionContext) _ServerLog(ctx context.Context, sel ast.SelectionSet
 			}
 		case "updatedAt":
 			out.Values[i] = ec._ServerLog_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var serverResourceAnalyticsImplementors = []string{"ServerResourceAnalytics"}
+
+func (ec *executionContext) _ServerResourceAnalytics(ctx context.Context, sel ast.SelectionSet, obj *model.ServerResourceAnalytics) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, serverResourceAnalyticsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServerResourceAnalytics")
+		case "cpu_usage_percent":
+			out.Values[i] = ec._ServerResourceAnalytics_cpu_usage_percent(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "memory_total_gb":
+			out.Values[i] = ec._ServerResourceAnalytics_memory_total_gb(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "memory_used_gb":
+			out.Values[i] = ec._ServerResourceAnalytics_memory_used_gb(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "memory_cached_gb":
+			out.Values[i] = ec._ServerResourceAnalytics_memory_cached_gb(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "network_sent_kbps":
+			out.Values[i] = ec._ServerResourceAnalytics_network_sent_kbps(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "network_recv_kbps":
+			out.Values[i] = ec._ServerResourceAnalytics_network_recv_kbps(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "timestamp":
+			out.Values[i] = ec._ServerResourceAnalytics_timestamp(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -22716,6 +24563,70 @@ func (ec *executionContext) marshalNApplicationDeployResult2ᚖgithubᚗcomᚋsw
 func (ec *executionContext) unmarshalNApplicationInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationInput(ctx context.Context, v interface{}) (model.ApplicationInput, error) {
 	res, err := ec.unmarshalInputApplicationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNApplicationResourceAnalytics2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationResourceAnalyticsᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ApplicationResourceAnalytics) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNApplicationResourceAnalytics2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationResourceAnalytics(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNApplicationResourceAnalytics2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationResourceAnalytics(ctx context.Context, sel ast.SelectionSet, v *model.ApplicationResourceAnalytics) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ApplicationResourceAnalytics(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNApplicationResourceAnalyticsTimeframe2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationResourceAnalyticsTimeframe(ctx context.Context, v interface{}) (model.ApplicationResourceAnalyticsTimeframe, error) {
+	var res model.ApplicationResourceAnalyticsTimeframe
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNApplicationResourceAnalyticsTimeframe2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationResourceAnalyticsTimeframe(ctx context.Context, sel ast.SelectionSet, v model.ApplicationResourceAnalyticsTimeframe) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
@@ -23751,6 +25662,118 @@ func (ec *executionContext) marshalNServer2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋs
 	return ec._Server(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNServerDiskUsage2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerDiskUsageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ServerDiskUsage) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNServerDiskUsage2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerDiskUsage(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNServerDiskUsage2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerDiskUsage(ctx context.Context, sel ast.SelectionSet, v *model.ServerDiskUsage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ServerDiskUsage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNServerDisksUsage2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerDisksUsage(ctx context.Context, sel ast.SelectionSet, v model.ServerDisksUsage) graphql.Marshaler {
+	return ec._ServerDisksUsage(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNServerDisksUsage2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerDisksUsageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ServerDisksUsage) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNServerDisksUsage2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerDisksUsage(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNServerDisksUsage2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerDisksUsage(ctx context.Context, sel ast.SelectionSet, v *model.ServerDisksUsage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ServerDisksUsage(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNServerLog2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerLogᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ServerLog) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -23803,6 +25826,74 @@ func (ec *executionContext) marshalNServerLog2ᚖgithubᚗcomᚋswiftwaveᚑorg�
 		return graphql.Null
 	}
 	return ec._ServerLog(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNServerResourceAnalytics2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerResourceAnalytics(ctx context.Context, sel ast.SelectionSet, v model.ServerResourceAnalytics) graphql.Marshaler {
+	return ec._ServerResourceAnalytics(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNServerResourceAnalytics2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerResourceAnalyticsᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ServerResourceAnalytics) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNServerResourceAnalytics2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerResourceAnalytics(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNServerResourceAnalytics2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerResourceAnalytics(ctx context.Context, sel ast.SelectionSet, v *model.ServerResourceAnalytics) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ServerResourceAnalytics(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNServerResourceAnalyticsTimeframe2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerResourceAnalyticsTimeframe(ctx context.Context, v interface{}) (model.ServerResourceAnalyticsTimeframe, error) {
+	var res model.ServerResourceAnalyticsTimeframe
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNServerResourceAnalyticsTimeframe2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerResourceAnalyticsTimeframe(ctx context.Context, sel ast.SelectionSet, v model.ServerResourceAnalyticsTimeframe) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNServerSetupInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServerSetupInput(ctx context.Context, v interface{}) (model.ServerSetupInput, error) {
@@ -23940,6 +26031,21 @@ func (ec *executionContext) unmarshalNUint2uint(ctx context.Context, v interface
 
 func (ec *executionContext) marshalNUint2uint(ctx context.Context, sel ast.SelectionSet, v uint) graphql.Marshaler {
 	res := graphql.MarshalUint(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNUint642uint64(ctx context.Context, v interface{}) (uint64, error) {
+	res, err := graphql.UnmarshalUint64(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUint642uint64(ctx context.Context, sel ast.SelectionSet, v uint64) graphql.Marshaler {
+	res := graphql.MarshalUint64(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

@@ -10,6 +10,7 @@ import (
 	"errors"
 	"net"
 	"strings"
+	"time"
 
 	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
@@ -19,7 +20,7 @@ import (
 )
 
 // CreateServer is the resolver for the createServer field.
-func (r *mutationResolver) CreateServer(ctx context.Context, input model.NewServerInput) (*model.Server, error) {
+func (r *mutationResolver) CreateServer(_ context.Context, input model.NewServerInput) (*model.Server, error) {
 	server := newServerInputToDatabaseObject(&input)
 	err := core.CreateServer(&r.ServiceManager.DbClient, server)
 	if err != nil {
@@ -41,7 +42,7 @@ func (r *mutationResolver) CreateServer(ctx context.Context, input model.NewServ
 }
 
 // TestSSHAccessToServer is the resolver for the testSSHAccessToServer field.
-func (r *mutationResolver) TestSSHAccessToServer(ctx context.Context, id uint) (bool, error) {
+func (r *mutationResolver) TestSSHAccessToServer(_ context.Context, id uint) (bool, error) {
 	command := "echo 'Hi'"
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
@@ -55,7 +56,7 @@ func (r *mutationResolver) TestSSHAccessToServer(ctx context.Context, id uint) (
 }
 
 // CheckDependenciesOnServer is the resolver for the checkDependenciesOnServer field.
-func (r *mutationResolver) CheckDependenciesOnServer(ctx context.Context, id uint) ([]*model.Dependency, error) {
+func (r *mutationResolver) CheckDependenciesOnServer(_ context.Context, id uint) ([]*model.Dependency, error) {
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
 		return nil, err
@@ -85,7 +86,7 @@ func (r *mutationResolver) CheckDependenciesOnServer(ctx context.Context, id uin
 }
 
 // InstallDependenciesOnServer is the resolver for the installDependenciesOnServer field.
-func (r *mutationResolver) InstallDependenciesOnServer(ctx context.Context, id uint) (bool, error) {
+func (r *mutationResolver) InstallDependenciesOnServer(_ context.Context, id uint) (bool, error) {
 	_, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
 		return false, err
@@ -409,7 +410,7 @@ func (r *mutationResolver) RemoveServerFromSwarmCluster(ctx context.Context, id 
 }
 
 // EnableProxyOnServer is the resolver for the enableProxyOnServer field.
-func (r *mutationResolver) EnableProxyOnServer(ctx context.Context, id uint) (bool, error) {
+func (r *mutationResolver) EnableProxyOnServer(_ context.Context, id uint) (bool, error) {
 	// Fetch the server
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
@@ -439,7 +440,7 @@ func (r *mutationResolver) EnableProxyOnServer(ctx context.Context, id uint) (bo
 }
 
 // DisableProxyOnServer is the resolver for the disableProxyOnServer field.
-func (r *mutationResolver) DisableProxyOnServer(ctx context.Context, id uint) (bool, error) {
+func (r *mutationResolver) DisableProxyOnServer(_ context.Context, id uint) (bool, error) {
 	// Fetch the server
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
@@ -453,7 +454,7 @@ func (r *mutationResolver) DisableProxyOnServer(ctx context.Context, id uint) (b
 }
 
 // Servers is the resolver for the servers field.
-func (r *queryResolver) Servers(ctx context.Context) ([]*model.Server, error) {
+func (r *queryResolver) Servers(_ context.Context) ([]*model.Server, error) {
 	servers, err := core.FetchAllServers(&r.ServiceManager.DbClient)
 	if err != nil {
 		return nil, err
@@ -466,12 +467,76 @@ func (r *queryResolver) Servers(ctx context.Context) ([]*model.Server, error) {
 }
 
 // PublicSSHKey is the resolver for the publicSSHKey field.
-func (r *queryResolver) PublicSSHKey(ctx context.Context) (string, error) {
+func (r *queryResolver) PublicSSHKey(_ context.Context) (string, error) {
 	return r.Config.SystemConfig.PublicSSHKey()
 }
 
+// ServerResourceAnalytics is the resolver for the serverResourceAnalytics field.
+func (r *queryResolver) ServerResourceAnalytics(ctx context.Context, id uint, timeframe model.ServerResourceAnalyticsTimeframe) ([]*model.ServerResourceAnalytics, error) {
+	var previousTime time.Time = time.Now()
+	switch timeframe {
+	case model.ServerResourceAnalyticsTimeframeLast1Hour:
+		previousTime = time.Now().Add(-1 * time.Hour)
+	case model.ServerResourceAnalyticsTimeframeLast24Hours:
+		previousTime = time.Now().Add(-24 * time.Hour)
+	case model.ServerResourceAnalyticsTimeframeLast7Days:
+		previousTime = time.Now().Add(-7 * 24 * time.Hour)
+	case model.ServerResourceAnalyticsTimeframeLast30Days:
+		previousTime = time.Now().Add(-30 * 24 * time.Hour)
+	}
+	previousTimeUnix := previousTime.Unix()
+
+	// fetch the server resource analytics
+	serverResourceStat, err := core.FetchServerResourceAnalytics(ctx, r.ServiceManager.DbClient, id, uint(previousTimeUnix))
+	if err != nil {
+		return nil, err
+	}
+	// convert the server resource analytics to graphql object
+	serverResourceStatList := make([]*model.ServerResourceAnalytics, 0)
+	for _, record := range serverResourceStat {
+		serverResourceStatList = append(serverResourceStatList, serverResourceStatToGraphqlObject(record))
+	}
+	return serverResourceStatList, nil
+}
+
+// ServerDiskUsage is the resolver for the serverDiskUsage field.
+func (r *queryResolver) ServerDiskUsage(ctx context.Context, id uint) ([]*model.ServerDisksUsage, error) {
+	// fetch the server disk usage
+	serverResourceUsageRecords, err := core.FetchServerDiskUsage(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	serverDiskStatsList := make([]*model.ServerDisksUsage, 0)
+	for _, record := range serverResourceUsageRecords {
+		serverDiskStatsList = append(serverDiskStatsList, severDisksStatToGraphqlObject(&record.DiskStats, &record.RecordedAt))
+	}
+	return serverDiskStatsList, nil
+}
+
+// ServerLatestResourceAnalytics is the resolver for the serverLatestResourceAnalytics field.
+func (r *queryResolver) ServerLatestResourceAnalytics(ctx context.Context, id uint) (*model.ServerResourceAnalytics, error) {
+	// fetch the latest server resource analytics
+	serverResourceStat, err := core.FetchLatestServerResourceAnalytics(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	// convert the server resource analytics to graphql object
+	return serverResourceStatToGraphqlObject(serverResourceStat), nil
+}
+
+// ServerLatestDiskUsage is the resolver for the serverLatestDiskUsage field.
+func (r *queryResolver) ServerLatestDiskUsage(ctx context.Context, id uint) (*model.ServerDisksUsage, error) {
+	// fetch the latest server disk usage
+	serverDiskStats, timestamp, err := core.FetchLatestServerDiskUsage(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	// convert the server disk usage to graphql object
+	return severDisksStatToGraphqlObject(serverDiskStats, timestamp), nil
+}
+
 // Logs is the resolver for the logs field.
-func (r *serverResolver) Logs(ctx context.Context, obj *model.Server) ([]*model.ServerLog, error) {
+func (r *serverResolver) Logs(_ context.Context, obj *model.Server) ([]*model.ServerLog, error) {
 	serverLogs, err := core.FetchServerLogByServerID(&r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
 		return nil, err

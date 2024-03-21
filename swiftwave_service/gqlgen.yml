@@ -39,6 +39,9 @@ models:
       - github.com/99designs/gqlgen/graphql.Uint
       - github.com/99designs/gqlgen/graphql.Uint64
       - github.com/99designs/gqlgen/graphql.Uint32
+  Uint64:
+    model:
+      - github.com/99designs/gqlgen/graphql.Uint64
   Application:
     fields:
       environmentVariables:

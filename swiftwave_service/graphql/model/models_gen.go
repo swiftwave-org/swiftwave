@@ -57,6 +57,14 @@ type ApplicationInput struct {
 	ImageRegistryCredentialID    *uint                           `json:"imageRegistryCredentialID,omitempty"`
 }
 
+type ApplicationResourceAnalytics struct {
+	CPUUsagePercent int       `json:"cpu_usage_percent"`
+	MemoryUsedMb    uint64    `json:"memory_used_mb"`
+	NetworkSentKbps uint64    `json:"network_sent_kbps"`
+	NetworkRecvKbps uint64    `json:"network_recv_kbps"`
+	Timestamp       time.Time `json:"timestamp"`
+}
+
 type BuildArg struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
@@ -351,11 +359,34 @@ type Server struct {
 	Logs                 []*ServerLog `json:"logs"`
 }
 
+type ServerDiskUsage struct {
+	Path       string    `json:"path"`
+	MountPoint string    `json:"mount_point"`
+	TotalGb    float64   `json:"total_gb"`
+	UsedGb     float64   `json:"used_gb"`
+	Timestamp  time.Time `json:"timestamp"`
+}
+
+type ServerDisksUsage struct {
+	Disks     []*ServerDiskUsage `json:"disks"`
+	Timestamp time.Time          `json:"timestamp"`
+}
+
 type ServerLog struct {
 	ID        uint      `json:"id"`
 	Title     string    `json:"title"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type ServerResourceAnalytics struct {
+	CPUUsagePercent int       `json:"cpu_usage_percent"`
+	MemoryTotalGb   float64   `json:"memory_total_gb"`
+	MemoryUsedGb    float64   `json:"memory_used_gb"`
+	MemoryCachedGb  float64   `json:"memory_cached_gb"`
+	NetworkSentKbps uint64    `json:"network_sent_kbps"`
+	NetworkRecvKbps uint64    `json:"network_recv_kbps"`
+	Timestamp       time.Time `json:"timestamp"`
 }
 
 type ServerSetupInput struct {
@@ -395,6 +426,51 @@ type User struct {
 type UserInput struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+type ApplicationResourceAnalyticsTimeframe string
+
+const (
+	ApplicationResourceAnalyticsTimeframeLast1Hour   ApplicationResourceAnalyticsTimeframe = "last_1_hour"
+	ApplicationResourceAnalyticsTimeframeLast24Hours ApplicationResourceAnalyticsTimeframe = "last_24_hours"
+	ApplicationResourceAnalyticsTimeframeLast7Days   ApplicationResourceAnalyticsTimeframe = "last_7_days"
+	ApplicationResourceAnalyticsTimeframeLast30Days  ApplicationResourceAnalyticsTimeframe = "last_30_days"
+)
+
+var AllApplicationResourceAnalyticsTimeframe = []ApplicationResourceAnalyticsTimeframe{
+	ApplicationResourceAnalyticsTimeframeLast1Hour,
+	ApplicationResourceAnalyticsTimeframeLast24Hours,
+	ApplicationResourceAnalyticsTimeframeLast7Days,
+	ApplicationResourceAnalyticsTimeframeLast30Days,
+}
+
+func (e ApplicationResourceAnalyticsTimeframe) IsValid() bool {
+	switch e {
+	case ApplicationResourceAnalyticsTimeframeLast1Hour, ApplicationResourceAnalyticsTimeframeLast24Hours, ApplicationResourceAnalyticsTimeframeLast7Days, ApplicationResourceAnalyticsTimeframeLast30Days:
+		return true
+	}
+	return false
+}
+
+func (e ApplicationResourceAnalyticsTimeframe) String() string {
+	return string(e)
+}
+
+func (e *ApplicationResourceAnalyticsTimeframe) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ApplicationResourceAnalyticsTimeframe(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ApplicationResourceAnalyticsTimeframe", str)
+	}
+	return nil
+}
+
+func (e ApplicationResourceAnalyticsTimeframe) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type DeploymentMode string
@@ -1000,6 +1076,51 @@ func (e *RedirectRuleStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e RedirectRuleStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ServerResourceAnalyticsTimeframe string
+
+const (
+	ServerResourceAnalyticsTimeframeLast1Hour   ServerResourceAnalyticsTimeframe = "last_1_hour"
+	ServerResourceAnalyticsTimeframeLast24Hours ServerResourceAnalyticsTimeframe = "last_24_hours"
+	ServerResourceAnalyticsTimeframeLast7Days   ServerResourceAnalyticsTimeframe = "last_7_days"
+	ServerResourceAnalyticsTimeframeLast30Days  ServerResourceAnalyticsTimeframe = "last_30_days"
+)
+
+var AllServerResourceAnalyticsTimeframe = []ServerResourceAnalyticsTimeframe{
+	ServerResourceAnalyticsTimeframeLast1Hour,
+	ServerResourceAnalyticsTimeframeLast24Hours,
+	ServerResourceAnalyticsTimeframeLast7Days,
+	ServerResourceAnalyticsTimeframeLast30Days,
+}
+
+func (e ServerResourceAnalyticsTimeframe) IsValid() bool {
+	switch e {
+	case ServerResourceAnalyticsTimeframeLast1Hour, ServerResourceAnalyticsTimeframeLast24Hours, ServerResourceAnalyticsTimeframeLast7Days, ServerResourceAnalyticsTimeframeLast30Days:
+		return true
+	}
+	return false
+}
+
+func (e ServerResourceAnalyticsTimeframe) String() string {
+	return string(e)
+}
+
+func (e *ServerResourceAnalyticsTimeframe) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ServerResourceAnalyticsTimeframe(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ServerResourceAnalyticsTimeframe", str)
+	}
+	return nil
+}
+
+func (e ServerResourceAnalyticsTimeframe) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
