@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
@@ -173,7 +173,7 @@ func (m Manager) volumeToolkitRunner(volumeName string, command string, predefin
 
 	// pull image if not exists
 	if !m.ExistsImage(volumeToolkitImage) {
-		resReader, err := m.client.ImagePull(m.ctx, volumeToolkitImage, types.ImagePullOptions{})
+		resReader, err := m.client.ImagePull(m.ctx, volumeToolkitImage, image.PullOptions{})
 		if err != nil {
 			return "", errors.New("failed to pull image " + err.Error())
 		}
