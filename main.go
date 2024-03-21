@@ -1,64 +1,53 @@
 package main
 
 import (
+	"github.com/fatih/color"
+	"github.com/moby/sys/user"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/cmd"
 	"os"
 	"os/exec"
 	"strings"
-
-	"github.com/fatih/color"
-	"github.com/swiftwave-org/swiftwave/cmd"
-	"github.com/swiftwave-org/swiftwave/system_config"
 )
 
 func main() {
+	isNonRoot := false
+	// check for ALLOW_NON_ROOT environment variable
+	if _, ok := os.LookupEnv("ALLOW_NON_ROOT"); ok {
+		if strings.Compare(os.Getenv("ALLOW_NON_ROOT"), "1") == 0 {
+			// Prerequisites for using non-root and non-sudo user :
+			// Access required for the following:
+			// - Docker daemon access (append the user in docker group)
+			// - /var/run/swiftwave (need to be created beforehand)
+			// - /var/log/swiftwave (need to be created beforehand)
+			// - /var/lib/swiftwave (need to be created beforehand)
+			// Allow swiftwave binary to access non-root ports
+			// sudo setcap CAP_NET_BIND_SERVICE=+eip /usr/bin/swiftwave
+			// Need to run haproxy, udp proxy service as non-root
+			isNonRoot = true
+			username, err := user.CurrentUser()
+			if err != nil {
+				color.Red("Error getting current user. Aborting.")
+				os.Exit(1)
+			}
+			color.Yellow("[EXPERIMENTAL] Running as non-root user. Please ensure that the user has the required permissions.")
+			color.Blue("Running as non-root user.")
+			color.Blue("Current user: " + username.Name)
+		}
+	}
+
 	// ensure program is run as root
-	if os.Geteuid() != 0 {
+	if !isNonRoot && os.Geteuid() != 0 {
 		color.Red("This program must be run as root. Aborting.")
 		os.Exit(1)
 	}
 	var err error
 	// ensure docker is installed
+	// management node also needs docker for running postgres or registry at-least
 	_, err = exec.LookPath("docker")
 	if err != nil {
 		color.Red("Docker is not installed. Aborting.")
 		os.Exit(1)
 	}
-	// ensure docker swarm is initialized
-	if !isSwarmInitialized() {
-		color.Red("Docker swarm is not initialized. Aborting.")
-		color.Blue("Please run 'docker swarm init' to initialize docker swarm node.")
-		color.Blue("If you are setting up cluster, you can join the cluster by `docker swarm join` command.")
-		os.Exit(1)
-	}
-	var config *system_config.Config
-	// Check whether first argument is "install" or no arguments
-	if (len(os.Args) > 1 && (os.Args[1] == "init" || os.Args[1] == "completion" || os.Args[1] == "--help")) ||
-		len(os.Args) == 1 {
-		config = nil
-	} else {
-		// Load config path from environment variable
-		systemConfigPath := "/etc/swiftwave/config.yml"
-		// Load the config
-		config, err = system_config.ReadFromFile(systemConfigPath)
-		if err != nil {
-			color.Red(err.Error())
-			color.Blue("Please run 'swiftwave init' to initialize a configuration file.")
-			os.Exit(1)
-		}
-		// Set the development mode to false
-		config.IsDevelopmentMode = false
-	}
-
 	// Start the command line interface
-	cmd.Execute(config)
-}
-
-// private function
-func isSwarmInitialized() bool {
-	command := exec.Command("docker", "info", "--format", "{{.Swarm.LocalNodeState}}")
-	output, err := command.Output()
-	if err != nil {
-		return false
-	}
-	return strings.TrimSpace(string(output)) == "active"
+	cmd.Execute()
 }

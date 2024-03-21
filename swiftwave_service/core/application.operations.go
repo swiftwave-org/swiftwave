@@ -50,6 +50,14 @@ func (application *Application) FindById(ctx context.Context, db gorm.DB, id str
 	return nil
 }
 
+func (application *Application) FindByName(ctx context.Context, db gorm.DB, name string) error {
+	tx := db.Where("name = ?", name).First(&application)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	return nil
+}
+
 func (application *Application) Create(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager, codeTarballDir string) error {
 	// TODO: split this function into smaller functions
 	// verify if there is no application with same name

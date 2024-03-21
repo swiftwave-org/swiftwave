@@ -137,18 +137,6 @@ func persistentVolumeRestoreToGraphqlObject(record *core.PersistentVolumeRestore
 	}
 }
 
-// persistentVolumeRestoreInputToDatabaseObject : converts PersistentVolumeRestoreInput to PersistentVolumeRestoreDatabaseObject
-func persistentVolumeRestoreInputToDatabaseObject(record *model.PersistentVolumeRestoreInput) *core.PersistentVolumeRestore {
-	return &core.PersistentVolumeRestore{
-		Type:               core.RestoreType(record.Type),
-		File:               "",
-		Status:             core.RestorePending,
-		PersistentVolumeID: record.PersistentVolumeID,
-		CreatedAt:          time.Now(),
-		CompletedAt:        time.Now(),
-	}
-}
-
 // environmentVariableInputToDatabaseObject : converts EnvironmentVariableInput to EnvironmentVariableDatabaseObject
 func environmentVariableInputToDatabaseObject(record *model.EnvironmentVariableInput) *core.EnvironmentVariable {
 	return &core.EnvironmentVariable{
@@ -434,4 +422,94 @@ func stackToApplicationsInput(record *stack_parser.Stack, db gorm.DB) ([]model.A
 	}
 
 	return applications, nil
+}
+
+// newServerInputToDatabaseObject : converts NewServerInput to ServerDatabaseObject
+func newServerInputToDatabaseObject(record *model.NewServerInput) *core.Server {
+	return &core.Server{
+		IP:                   record.IP,
+		HostName:             "",
+		User:                 record.User,
+		ScheduleDeployments:  false,
+		DockerUnixSocketPath: "",
+		SwarmMode:            core.SwarmMode(model.SwarmModeWorker),
+		ProxyConfig: core.ProxyConfig{
+			Enabled: false,
+			Type:    core.ProxyType(model.ProxyTypeActive),
+		},
+		Status: core.ServerStatus(model.ServerStatusNeedsSetup),
+	}
+}
+
+// serverToGraphqlObject : converts Server to ServerGraphqlObject
+func serverToGraphqlObject(record *core.Server) *model.Server {
+	return &model.Server{
+		ID:                   record.ID,
+		IP:                   record.IP,
+		Hostname:             record.HostName,
+		User:                 record.User,
+		ScheduleDeployments:  record.ScheduleDeployments,
+		DockerUnixSocketPath: record.DockerUnixSocketPath,
+		SwarmMode:            model.SwarmMode(record.SwarmMode),
+		ProxyType:            model.ProxyType(record.ProxyConfig.Type),
+		ProxyEnabled:         record.ProxyConfig.Enabled,
+		Status:               model.ServerStatus(record.Status),
+	}
+}
+
+// serverLogToGraphqlObject : converts ServerLog to ServerLogGraphqlObject
+func serverLogToGraphqlObject(record *core.ServerLog) *model.ServerLog {
+	return &model.ServerLog{
+		ID:        record.ID,
+		Title:     record.Title,
+		CreatedAt: record.CreatedAt,
+		UpdatedAt: record.UpdatedAt,
+	}
+}
+
+// serverResourceStatToGraphqlObject : converts ServerResourceStat to ServerResourceStatGraphqlObject
+func serverResourceStatToGraphqlObject(record *core.ServerResourceStat) *model.ServerResourceAnalytics {
+	return &model.ServerResourceAnalytics{
+		CPUUsagePercent: int(record.CpuUsagePercent),
+		MemoryTotalGb:   float64(record.MemStat.TotalGB),
+		MemoryUsedGb:    float64(record.MemStat.UsedGB),
+		MemoryCachedGb:  float64(record.MemStat.CachedGB),
+		NetworkSentKbps: record.NetStat.SentKBPS,
+		NetworkRecvKbps: record.NetStat.RecvKBPS,
+		Timestamp:       record.RecordedAt,
+	}
+}
+
+// serverDiskStatToGraphqlObject : converts ServerDiskStat to ServerDiskStatGraphqlObject
+func serverDiskStatToGraphqlObject(record core.ServerDiskStat, timestamp time.Time) *model.ServerDiskUsage {
+	return &model.ServerDiskUsage{
+		Path:       record.Path,
+		MountPoint: record.MountPoint,
+		TotalGb:    float64(record.TotalGB),
+		UsedGb:     float64(record.UsedGB),
+		Timestamp:  timestamp,
+	}
+}
+
+// severDisksStatToGraphqlObject : converts ServerDiskStat to ServerDiskStatGraphqlObject
+func severDisksStatToGraphqlObject(records core.ServerDiskStats, timestamp time.Time) model.ServerDisksUsage {
+	disks := make([]*model.ServerDiskUsage, 0)
+	for _, disk := range records {
+		disks = append(disks, serverDiskStatToGraphqlObject(disk, timestamp))
+	}
+	return model.ServerDisksUsage{
+		Disks:     disks,
+		Timestamp: timestamp,
+	}
+}
+
+// applicationServiceResourceStatToGraphqlObject : converts ApplicationServiceResourceStat to ApplicationServiceResourceStatGraphqlObject
+func applicationServiceResourceStatToGraphqlObject(record *core.ApplicationServiceResourceStat) *model.ApplicationResourceAnalytics {
+	return &model.ApplicationResourceAnalytics{
+		CPUUsagePercent: int(record.CpuUsagePercent),
+		MemoryUsedMb:    record.UsedMemoryMB,
+		NetworkRecvKbps: record.NetStat.RecvKBPS,
+		NetworkSentKbps: record.NetStat.SentKBPS,
+		Timestamp:       record.RecordedAt,
+	}
 }

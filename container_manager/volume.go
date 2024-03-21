@@ -1,12 +1,14 @@
 package containermanger
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
+	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
 	"io"
 	"log"
 	"os"
@@ -65,32 +67,31 @@ func (m Manager) FetchVolumes() ([]string, error) {
 	if err != nil {
 		return nil, errors.New("error fetching volumes " + err.Error())
 	}
-	var volumeNames []string = make([]string, len(volumes.Volumes))
+	var volumeNames = make([]string, len(volumes.Volumes))
 	for i, v := range volumes.Volumes {
 		volumeNames[i] = v.Name
 	}
 	return volumeNames, nil
 }
 
-// SizeVolume : Get the size of a volume in MB
-func (m Manager) SizeVolume(volumeName string) (sizeMB float64, err error) {
+// SizeVolume : Return a file which will contain the size of the volume in bytes
+func (m Manager) SizeVolume(volumeName string, host string, port int, user string, privateKey string) (sizeMB float64, err error) {
 	path, err := m.volumeToolkitRunner(volumeName, "size", nil, false)
 	if err != nil {
 		return 0, err
 	}
 	defer func(path string) {
-		err := os.RemoveAll(path)
-		if err != nil {
-			log.Println("failed to remove temp directory " + err.Error())
-		}
+		_ = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("rm -rf %s", path), nil, nil, 10, host, port, user, privateKey, 20)
 	}(path)
 	resultPath := filepath.Join(path, "size.txt")
-	size, err := os.ReadFile(resultPath)
+	// fetch the size
+	stdoutBuf := &bytes.Buffer{}
+	err = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("cat %s", resultPath), stdoutBuf, nil, 10, host, port, user, privateKey, 20)
 	if err != nil {
 		return 0, errors.New("failed to read size file " + err.Error())
 	}
 	sizeBytes := 0
-	_, err = fmt.Sscanf(string(size), "%d", &sizeBytes)
+	_, err = fmt.Sscanf(stdoutBuf.String(), "%d", &sizeBytes)
 	if err != nil {
 		return 0, errors.New("failed to parse size " + err.Error())
 	}
@@ -99,7 +100,7 @@ func (m Manager) SizeVolume(volumeName string) (sizeMB float64, err error) {
 }
 
 // BackupVolume : Backup a volume to a file
-func (m Manager) BackupVolume(volumeName string, backupFilePath string) error {
+func (m Manager) BackupVolume(volumeName string, backupFilePath string, host string, port int, user string, privateKey string) error {
 	if !strings.HasSuffix(backupFilePath, ".tar.gz") {
 		return errors.New("backupFilePath should have .tar.gz extension")
 	}
@@ -108,22 +109,19 @@ func (m Manager) BackupVolume(volumeName string, backupFilePath string) error {
 		return err
 	}
 	defer func(path string) {
-		err := os.RemoveAll(path)
-		if err != nil {
-			log.Println("failed to remove temp directory " + err.Error())
-		}
+		_ = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("rm -rf %s", path), nil, nil, 10, host, port, user, privateKey, 20)
 	}(path)
 	dumpFilePath := filepath.Join(path, "dump.tar.gz")
 	if err != nil {
 		return errors.New("failed to change permission of dump file " + err.Error())
 	}
 	// copy the backup file to the backupFilePath
-	err = copyFile(dumpFilePath, backupFilePath)
+	err = ssh_toolkit.CopyFileFromRemoteServer(dumpFilePath, backupFilePath, host, port, user, privateKey)
 	if err != nil {
-		return errors.New("failed to move backup file " + err.Error())
+		return errors.New("failed to copy backup file " + err.Error())
 	}
 	// make the backup file read only
-	err = os.Chmod(backupFilePath, 0666)
+	err = os.Chmod(backupFilePath, 0660)
 	if err != nil {
 		// delete the backup file
 		_ = os.Remove(backupFilePath)
@@ -133,32 +131,35 @@ func (m Manager) BackupVolume(volumeName string, backupFilePath string) error {
 }
 
 // RestoreVolume : Restore a volume from a backup file
-func (m Manager) RestoreVolume(volumeName string, backupFilePath string) error {
+func (m Manager) RestoreVolume(volumeName string, backupFilePath string, host string, port int, user string, privateKey string) error {
 	if !strings.HasSuffix(backupFilePath, ".tar.gz") {
 		return errors.New("backupFilePath should have .tar.gz extension")
 	}
-	// copy the backup file to a temp directory
-	outputPath, err := os.MkdirTemp("", "swiftwave-volume-toolkit-restore-*")
+	// fetch file name
+	_, fileName := filepath.Split(backupFilePath)
+	// remove extension
+	fileName = strings.TrimSuffix(fileName, ".tar.gz")
+	// prepare paths
+	outputPath := filepath.Join("/tmp", fileName)
+	// create temp directory
+	err := ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("mkdir -p %s", outputPath), nil, nil, 10, host, port, user, privateKey, 20)
 	if err != nil {
-		return errors.New("failed to create temp directory " + err.Error())
+		return errors.New("failed to create directory for moving backup file to server  " + err.Error())
 	}
+	// remove temp directory
+	defer func(outputPath string) {
+		_ = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("rm -rf %s", outputPath), nil, nil, 10, host, port, user, privateKey, 20)
+	}(outputPath)
+	// file path
 	dumpFilePath := filepath.Join(outputPath, "dump.tar.gz")
-	err = copyFile(backupFilePath, dumpFilePath)
+	// copy the backup file to the server
+	err = ssh_toolkit.CopyFileToRemoteServer(backupFilePath, dumpFilePath, host, port, user, privateKey)
 	if err != nil {
-		return errors.New("failed to move backup file " + err.Error())
+		return errors.New("failed to copy backup file to server " + err.Error())
 	}
 	// run the volume toolkit
-	path, err := m.volumeToolkitRunner(volumeName, "import", &outputPath, true)
-	if err != nil {
-		return err
-	}
-	defer func(path string) {
-		err := os.RemoveAll(path)
-		if err != nil {
-			log.Println("failed to remove temp directory " + err.Error())
-		}
-	}(path)
-	return nil
+	_, err = m.volumeToolkitRunner(volumeName, "import", &outputPath, true)
+	return err
 }
 
 // private  function
@@ -172,7 +173,7 @@ func (m Manager) volumeToolkitRunner(volumeName string, command string, predefin
 
 	// pull image if not exists
 	if !m.ExistsImage(volumeToolkitImage) {
-		resReader, err := m.client.ImagePull(m.ctx, volumeToolkitImage, types.ImagePullOptions{})
+		resReader, err := m.client.ImagePull(m.ctx, volumeToolkitImage, image.PullOptions{})
 		if err != nil {
 			return "", errors.New("failed to pull image " + err.Error())
 		}
@@ -225,7 +226,13 @@ func (m Manager) volumeToolkitRunner(volumeName string, command string, predefin
 	for {
 		select {
 		case err := <-waitErr:
+			// if the container does not exist, then it means the operation was successful and exited before the wait
+			if strings.Contains(err.Error(), "No such container") {
+				return *predefinedOutputPath, nil
+			}
+			log.Println("failed to wait for container " + err.Error())
 			return "", errors.New("failed to wait for container " + err.Error())
+			//return *predefinedOutputPath, nil
 		case res := <-waitRes:
 			if res.Error != nil {
 				return "", errors.New("container error " + res.Error.Message)

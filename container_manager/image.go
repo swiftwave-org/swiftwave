@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/image"
 	"os"
 	"strconv"
 	"strings"
@@ -52,6 +53,7 @@ func (m Manager) CreateImageWithContext(ctx context.Context, dockerfile string, 
 	response, err := m.client.ImageBuild(ctx, tar, types.ImageBuildOptions{
 		Dockerfile: "Dockerfile",
 		Remove:     true,
+		NoCache:    true,
 		Tags:       []string{imagename},
 		BuildArgs:  final_buildargs,
 	})
@@ -63,14 +65,30 @@ func (m Manager) CreateImageWithContext(ctx context.Context, dockerfile string, 
 	return scanner, nil
 }
 
+// PushImage pushes a Docker image to a remote registry and returns a scanner to read the push logs.
+func (m Manager) PushImage(ctx context.Context, imageTag string, username string, password string) (*bufio.Scanner, error) {
+	authHeader, err := generateAuthHeader(username, password)
+	if err != nil {
+		return nil, errors.New("failed to generate auth header")
+	}
+	// Push the image
+	scanner, err := m.client.ImagePush(ctx, imageTag, image.PushOptions{
+		RegistryAuth: authHeader,
+	})
+	if err != nil {
+		return nil, errors.New("failed to push the image")
+	}
+	return bufio.NewScanner(scanner), nil
+}
+
 // PullImage pulls a Docker image from a remote registry and returns a scanner to read the pull logs.
-func (m Manager) PullImage(image string, username string, password string) (*bufio.Scanner, error) {
+func (m Manager) PullImage(imageTag string, username string, password string) (*bufio.Scanner, error) {
 	authHeader, err := generateAuthHeader(username, password)
 	if err != nil {
 		return nil, errors.New("failed to generate auth header")
 	}
 	// Pull the image
-	scanner, err := m.client.ImagePull(m.ctx, image, types.ImagePullOptions{
+	scanner, err := m.client.ImagePull(m.ctx, imageTag, image.PullOptions{
 		RegistryAuth: authHeader,
 	})
 	if err != nil {
@@ -87,9 +105,9 @@ func (m Manager) ExistsImage(image string) bool {
 }
 
 // RemoveImage removes a Docker image from the local registry.
-func (m Manager) RemoveImage(image string) error {
+func (m Manager) RemoveImage(imageTag string) error {
 	// Remove the image
-	_, err := m.client.ImageRemove(m.ctx, image, types.ImageRemoveOptions{})
+	_, err := m.client.ImageRemove(m.ctx, imageTag, image.RemoveOptions{})
 	if err != nil {
 		return errors.New("failed to remove the image")
 	}

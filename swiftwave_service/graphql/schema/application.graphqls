@@ -3,6 +3,13 @@ enum DeploymentMode {
     global
 }
 
+enum ApplicationResourceAnalyticsTimeframe {
+    last_1_hour
+    last_24_hours
+    last_7_days
+    last_30_days
+}
+
 type RealtimeInfo {
     InfoFound: Boolean!
     DesiredReplicas: Int!
@@ -27,6 +34,14 @@ type Application {
     webhookToken: String!
     isSleeping: Boolean!
     command: String!
+}
+
+type ApplicationResourceAnalytics {
+    cpu_usage_percent: Int!
+    memory_used_mb: Uint64!
+    network_sent_kbps: Uint64!
+    network_recv_kbps: Uint64!
+    timestamp: Time!
 }
 
 input ApplicationInput {
@@ -59,6 +74,7 @@ extend type Query {
     application(id: String!): Application!
     applications: [Application!]!
     isExistApplicationName(name: String!): Boolean!
+    applicationResourceAnalytics(id: String!, timeframe: ApplicationResourceAnalyticsTimeframe!): [ApplicationResourceAnalytics!]!
 }
 
 extend type Mutation {

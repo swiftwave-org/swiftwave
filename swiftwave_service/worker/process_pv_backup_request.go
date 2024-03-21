@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/uploader"
 	"gorm.io/gorm"
 	"log"
@@ -11,7 +13,7 @@ import (
 	"path/filepath"
 )
 
-func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, ctx context.Context, _ context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
 	// fetch persistent volume backup
 	var persistentVolumeBackup core.PersistentVolumeBackup
@@ -29,35 +31,37 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 	if err != nil {
 		return nil
 	}
-	dockerManager := m.ServiceManager.DockerManager
-	// generate a random filename
-	backupFileName := "backup_" + persistentVolume.Name + "_" + uuid.NewString() + ".tar.gz"
-	var backupFilePath string
-	if persistentVolumeBackup.Type == core.LocalBackup {
-		backupFilePath = filepath.Join(m.SystemConfig.ServiceConfig.DataDir, backupFileName)
-	} else if persistentVolumeBackup.Type == core.S3Backup {
-		// fetch tmp dir
-		tmpDir := os.TempDir()
-		backupFilePath = filepath.Join(tmpDir, backupFileName)
-		defer func() {
-			err := os.Remove(backupFilePath)
-			if err != nil {
-				log.Println("failed to remove backup file " + err.Error())
-			}
-		}()
-	} else {
-		return nil
-	}
-	// create backup
-	err = dockerManager.BackupVolume(persistentVolume.Name, backupFilePath)
+	// fetch swarm server
+	server, err := core.FetchSwarmManager(&dbWithoutTx)
 	if err != nil {
+		return err
+	}
+	dockerManager, err := manager.DockerClient(ctx, server)
+	if err != nil {
+		return err
+	}
+	// generate a random filename
+	backupFileName := persistentVolume.Name + "_" + uuid.NewString() + ".tar.gz"
+	backupFilePath := filepath.Join(m.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath, backupFileName)
+	// create backup
+	err = dockerManager.BackupVolume(persistentVolume.Name, backupFilePath, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
+	if err != nil {
+		logger.CronJobLoggerError.Println("error while creating backup > " + err.Error())
 		markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
 		return nil
 	}
-	// upload to s3
+	// fetch size
+	size, err := sizeOfFileInMB(backupFilePath)
+	if err != nil {
+		logger.CronJobLoggerError.Println("error while getting backup file size > " + err.Error())
+		markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
+		return nil
+	}
 	if persistentVolumeBackup.Type == core.S3Backup {
+		// upload to s3
 		backupFileReader, err := os.Open(backupFilePath)
 		if err != nil {
+			logger.CronJobLoggerError.Println("error while opening backup file > " + err.Error())
 			markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
 			return nil
 		}
@@ -67,22 +71,22 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 				log.Println("failed to close backup file reader " + err.Error())
 			}
 		}()
-		s3Config := m.SystemConfig.PersistentVolumeBackupConfig.S3Config
+		s3Config := m.Config.SystemConfig.PersistentVolumeBackupConfig.S3BackupConfig
 		err = uploader.UploadFileToS3(backupFileReader, backupFileName, s3Config.Bucket, s3Config)
 		if err != nil {
 			log.Println("error while uploading backup to s3 > " + err.Error())
 			markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
 			return nil
 		}
+		// remove the backup file
+		err = os.Remove(backupFilePath)
+		if err != nil {
+			log.Println("failed to remove backup file " + err.Error())
+		}
 	}
 	// update status
 	persistentVolumeBackup.Status = core.BackupSuccess
 	persistentVolumeBackup.File = backupFileName
-	size, err := sizeOfFileInMB(backupFilePath)
-	if err != nil {
-		markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)
-		return nil
-	}
 	persistentVolumeBackup.FileSizeMB = size
 	err = persistentVolumeBackup.Update(ctx, dbWithoutTx)
 	if err != nil {

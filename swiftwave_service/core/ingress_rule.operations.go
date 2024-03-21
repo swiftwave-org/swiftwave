@@ -111,11 +111,13 @@ func (ingressRule *IngressRule) Update(ctx context.Context, db gorm.DB) error {
 	return errors.New("update of ingress rule is not allowed")
 }
 
+var IngressRuleDeletingError = errors.New("ingress rule is deleting")
+
 func (ingressRule *IngressRule) Delete(ctx context.Context, db gorm.DB, force bool) error {
 	if !force {
 		// verify if ingress rule is not deleting
 		if ingressRule.isDeleting() {
-			return errors.New("ingress rule is deleting")
+			return IngressRuleDeletingError
 		}
 		// update status to deleting
 		tx := db.Model(&ingressRule).Update("status", IngressRuleStatusDeleting)
@@ -135,4 +137,30 @@ func (ingressRule *IngressRule) isDeleting() bool {
 func (ingressRule *IngressRule) UpdateStatus(ctx context.Context, db gorm.DB, status IngressRuleStatus) error {
 	tx := db.Model(&ingressRule).Update("status", status)
 	return tx.Error
+}
+
+func FetchAllExposedTCPPorts(ctx context.Context, db gorm.DB) ([]int, error) {
+	var ingressRules []*IngressRule
+	tx := db.Select("port").Where("port IS NOT NULL").Not("protocol = ?", "udp").Find(&ingressRules)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	var ports []int
+	for _, ingressRule := range ingressRules {
+		ports = append(ports, int(ingressRule.Port))
+	}
+	return ports, nil
+}
+
+func FetchAllExposedUDPPorts(ctx context.Context, db gorm.DB) ([]int, error) {
+	var ingressRules []*IngressRule
+	tx := db.Select("port").Where("port IS NOT NULL").Where("protocol = ?", "udp").Find(&ingressRules)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	var ports []int
+	for _, ingressRule := range ingressRules {
+		ports = append(ports, int(ingressRule.Port))
+	}
+	return ports, nil
 }

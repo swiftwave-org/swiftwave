@@ -61,3 +61,30 @@ func (m Manager) EnqueuePersistentVolumeRestoreRequest(persistentVolumeRestoreId
 		Id: persistentVolumeRestoreId,
 	})
 }
+
+func (m Manager) EnqueueInstallDependenciesOnServerRequest(serverId uint, logId uint) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(installDependenciesOnServerQueueName, InstallDependenciesOnServerRequest{
+		ServerId: serverId,
+		LogId:    logId,
+	})
+}
+
+func (m Manager) EnqueueSetupServerRequest(serverId uint, logId uint) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(setupServerQueueName, SetupServerRequest{
+		ServerId: serverId,
+		LogId:    logId,
+	})
+}
+
+func (m Manager) EnqueueSetupAndEnableProxyRequest(serverId uint, logId uint) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(setupAndEnableProxyQueueName, SetupAndEnableProxyRequest{
+		ServerId: serverId,
+		LogId:    logId,
+	})
+}
+
+func (m Manager) EnqueueDeletePersistentVolumeRequest(persistentVolumeId uint) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(deletePersistentVolumeQueueName, PersistentVolumeDeletionRequest{
+		Id: persistentVolumeId,
+	})
+}

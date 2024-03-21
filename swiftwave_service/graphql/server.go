@@ -19,7 +19,7 @@ func (server *Server) Initialize() {
 	graphqlHandler := handler.New(
 		NewExecutableSchema(
 			Config{Resolvers: &Resolver{
-				ServiceConfig:  *server.SystemConfig,
+				Config:         *server.Config,
 				ServiceManager: *server.ServiceManager,
 				WorkerManager:  *server.WorkerManager,
 			}},
@@ -40,10 +40,11 @@ func (server *Server) Initialize() {
 			if jwtToken == "" {
 				return ctx, nil, errors.New("missing jwt token")
 			}
+			//nolint:staticcheck
 			ctx = context.WithValue(ctx, "jwt_data", jwtToken)
 			// decode jwt token
 			token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
-				return []byte(server.SystemConfig.ServiceConfig.JwtSecretKey), nil
+				return []byte(server.Config.SystemConfig.JWTSecretKey), nil
 			})
 			if err != nil {
 				return ctx, nil, errors.New("invalid jwt token")
@@ -58,13 +59,15 @@ func (server *Server) Initialize() {
 			}
 			// Data in context is available in all resolvers
 			username := claims["username"].(string)
+			//nolint:staticcheck
 			ctx = context.WithValue(ctx, "authorized", true)
+			//nolint:staticcheck
 			ctx = context.WithValue(ctx, "username", username)
 			return ctx, nil, nil
 		},
 	})
 
-	if server.SystemConfig.IsDevelopmentMode {
+	if server.Config.LocalConfig.IsDevelopmentMode {
 		graphqlHandler.Use(extension.Introspection{})
 	}
 
@@ -78,7 +81,7 @@ func (server *Server) Initialize() {
 		return nil
 	})
 
-	if server.SystemConfig.IsDevelopmentMode {
+	if server.Config.LocalConfig.IsDevelopmentMode {
 		// Create GraphQL Playground
 		playgroundHandler := playground.Handler("GraphQL", "/graphql")
 		server.EchoServer.GET("/playground", func(c echo.Context) error {

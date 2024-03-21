@@ -5,11 +5,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/swiftwave-org/swiftwave/system_config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config"
 	"io"
 )
 
-func UploadFileToS3(reader io.ReadSeeker, filename, bucket string, config system_config.S3Config) error {
+func UploadFileToS3(reader io.ReadSeeker, filename, bucket string, config system_config.S3BackupConfig) error {
 	s3Client, err := GenerateS3Client(config)
 	if err != nil {
 		return err
@@ -23,7 +23,7 @@ func UploadFileToS3(reader io.ReadSeeker, filename, bucket string, config system
 	return err
 }
 
-func DeleteFileFromS3(filename, bucket string, config system_config.S3Config) error {
+func DeleteFileFromS3(filename, bucket string, config system_config.S3BackupConfig) error {
 	s3Client, err := GenerateS3Client(config)
 	if err != nil {
 		return err
@@ -35,7 +35,7 @@ func DeleteFileFromS3(filename, bucket string, config system_config.S3Config) er
 	return err
 }
 
-func GenerateS3Client(config system_config.S3Config) (*s3.S3, error) {
+func GenerateS3Client(config system_config.S3BackupConfig) (*s3.S3, error) {
 	s3Config := &aws.Config{
 		Credentials:      credentials.NewStaticCredentials(config.AccessKeyID, config.SecretAccessKey, ""),
 		Endpoint:         aws.String(config.Endpoint),

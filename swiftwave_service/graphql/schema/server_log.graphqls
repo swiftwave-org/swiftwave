@@ -1,0 +1,10 @@
+type ServerLog {
+    id: Uint!
+    title: String!
+    createdAt: Time!
+    updatedAt: Time!
+}
+
+extend type Query {
+    fetchServerLogContent(id: Uint!): String!
+}

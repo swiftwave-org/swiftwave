@@ -5,41 +5,11 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"os"
 )
 
-// Store the private key to a file
-func storePrivateKeyToFile(keyFile string, key *rsa.PrivateKey) error {
-	// Encode the private key to PEM format
-	keyBytes := x509.MarshalPKCS1PrivateKey(key)
-
-	pemKey := pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: keyBytes,
-	}
-
-	// Create the PEM file
-	file, err := os.Create(keyFile)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Write the PEM-encoded key to the file
-	err = pem.Encode(file, &pemKey)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// Read the private key from a file
-func readPrivateKeyFromFile(keyFile string) (*rsa.PrivateKey, error) {
-	keyData, err := os.ReadFile(keyFile)
-	if err != nil {
-		return nil, errors.New("unable to read account private key file")
-	}
-
+// Decode the private key from a private key string
+func decodePrivateKey(key string) (*rsa.PrivateKey, error) {
+	keyData := []byte(key)
 	// Parse the PEM-encoded data
 	block, _ := pem.Decode(keyData)
 	if block == nil || block.Type != "RSA PRIVATE KEY" {

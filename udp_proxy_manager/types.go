@@ -1,7 +1,11 @@
 package udp_proxy_manager
 
+import (
+	"net/http"
+)
+
 type Manager struct {
-	unixSocketPath string
+	httpClient *http.Client
 }
 
 type Proxy struct {

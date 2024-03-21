@@ -1,9 +1,13 @@
 package haproxymanager
 
+import (
+	"net/http"
+)
+
 type Manager struct {
-	unixSocketPath string
-	username       string
-	password       string
+	httpClient *http.Client
+	username   string
+	password   string
 }
 
 type QueryParameter struct {

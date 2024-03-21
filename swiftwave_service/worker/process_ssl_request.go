@@ -7,12 +7,15 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	haproxymanager "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"gorm.io/gorm"
+	"log"
 	"time"
 )
 
-func (m Manager) SSLGenerate(request SSLGenerateRequest, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) SSLGenerate(request SSLGenerateRequest, ctx context.Context, _ context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
 	// fetch domain
 	var domain core.Domain
@@ -67,20 +70,48 @@ func (m Manager) SSLGenerate(request SSLGenerateRequest, ctx context.Context, ca
 	if err != nil {
 		return err
 	}
-	// generate a new transaction id for haproxy
-	transactionId, err := m.ServiceManager.HaproxyManager.FetchNewTransactionId()
+	// fetch all proxy servers
+	proxyServers, err := core.FetchProxyActiveServers(&m.ServiceManager.DbClient)
 	if err != nil {
 		return err
 	}
-	// upload certificate to haproxy
-	err = m.ServiceManager.HaproxyManager.UpdateSSL(transactionId, domain.Name, []byte(domain.SSLPrivateKey), []byte(domain.SSLFullChain))
+	// fetch all haproxy managers
+	haproxyManagers, err := manager.HAProxyClients(context.Background(), proxyServers)
 	if err != nil {
 		return err
 	}
-	// commit transaction
-	err = m.ServiceManager.HaproxyManager.CommitTransaction(transactionId)
-	if err != nil {
-		return err
+	// map of server ip and transaction id
+	transactionIdMap := make(map[*haproxymanager.Manager]string)
+	isFailed := false
+
+	for _, haproxyManager := range haproxyManagers {
+		// generate a new transaction id for haproxy
+		transactionId, err := haproxyManager.FetchNewTransactionId()
+		if err != nil {
+			return err
+		}
+		// add to map
+		transactionIdMap[haproxyManager] = transactionId
+		// upload certificate to haproxy
+		err = haproxyManager.UpdateSSL(transactionId, domain.Name, []byte(domain.SSLPrivateKey), []byte(domain.SSLFullChain))
+		if err != nil {
+			//nolint:ineffassign
+			isFailed = true
+			return err
+		}
+	}
+	for haproxyManager, haproxyTransactionId := range transactionIdMap {
+		if !isFailed {
+			// commit the haproxy transaction
+			err = haproxyManager.CommitTransaction(haproxyTransactionId)
+		}
+		if isFailed || err != nil {
+			log.Println("failed to commit haproxy transaction", err)
+			err := haproxyManager.DeleteTransaction(haproxyTransactionId)
+			if err != nil {
+				log.Println("failed to rollback haproxy transaction", err)
+			}
+		}
 	}
 	return nil
 }

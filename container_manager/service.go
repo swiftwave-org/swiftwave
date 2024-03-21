@@ -8,9 +8,9 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/swarm"
 	"io"
+	"strings"
 )
 
-// Get Service
 func (m Manager) GetService(serviceName string) (Service, error) {
 	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
 	if err != nil {
@@ -27,15 +27,33 @@ func (m Manager) GetService(serviceName string) (Service, error) {
 	}
 	// Set env
 	for _, env := range serviceData.Spec.TaskTemplate.ContainerSpec.Env {
-		service.Env[env] = ""
+		// try to split env at first occurrence of '='
+		envSplit := strings.SplitN(env, "=", 2)
+		if len(envSplit) == 2 {
+			service.Env[envSplit[0]] = envSplit[1]
+		} else {
+			service.Env[env] = ""
+		}
 	}
-	// Set volume mounts
+	// Set volume mounts and binds
 	for _, volumeMount := range serviceData.Spec.TaskTemplate.ContainerSpec.Mounts {
-		service.VolumeMounts = append(service.VolumeMounts, VolumeMount{
-			Source:   volumeMount.Source,
-			Target:   volumeMount.Target,
-			ReadOnly: volumeMount.ReadOnly,
-		})
+		if volumeMount.Type == mount.TypeVolume {
+			service.VolumeMounts = append(service.VolumeMounts, VolumeMount{
+				Source:   volumeMount.Source,
+				Target:   volumeMount.Target,
+				ReadOnly: volumeMount.ReadOnly,
+			})
+		}
+		if volumeMount.Type == mount.TypeBind {
+			service.VolumeBinds = append(service.VolumeBinds, VolumeBind{
+				Source: volumeMount.Source,
+				Target: volumeMount.Target,
+			})
+		}
+	}
+	// set placement constraints
+	if serviceData.Spec.TaskTemplate.Placement != nil {
+		service.PlacementConstraints = serviceData.Spec.TaskTemplate.Placement.Constraints
 	}
 	// Set networks
 	for _, network := range serviceData.Spec.TaskTemplate.Networks {
@@ -45,17 +63,33 @@ func (m Manager) GetService(serviceName string) (Service, error) {
 	if serviceData.Spec.Mode.Replicated != nil {
 		service.Replicas = *serviceData.Spec.Mode.Replicated.Replicas
 	}
+	// Set deployment mode
+	if serviceData.Spec.Mode.Replicated != nil {
+		service.DeploymentMode = DeploymentModeReplicated
+	} else {
+		service.DeploymentMode = DeploymentModeGlobal
+	}
 	return service, nil
 }
 
-// Create a new service
-func (m Manager) CreateService(service Service, username string, password string) error {
+func (m Manager) CreateService(service Service, username string, password string, queryRegistry bool) error {
 	authHeader, err := generateAuthHeader(username, password)
 	if err != nil {
 		return errors.New("failed to generate auth header")
 	}
+	// check if required networks exist
+	for _, network := range service.Networks {
+		if !m.ExistsNetwork(network) {
+			// try to create network
+			err := m.CreateNetwork(network)
+			if err != nil {
+				return errors.New("as network does not exist, while creating network" + network + " error occurred")
+			}
+		}
+	}
 	_, err = m.client.ServiceCreate(m.ctx, m.serviceToServiceSpec(service), types.ServiceCreateOptions{
 		EncodedRegistryAuth: authHeader,
+		QueryRegistry:       queryRegistry,
 	})
 	if err != nil {
 		return errors.New("error creating service")
@@ -63,8 +97,11 @@ func (m Manager) CreateService(service Service, username string, password string
 	return nil
 }
 
-// Update a service
-func (m Manager) UpdateService(service Service) error {
+func (m Manager) UpdateService(service Service, username string, password string, queryRegistry bool) error {
+	authHeader, err := generateAuthHeader(username, password)
+	if err != nil {
+		return errors.New("failed to generate auth header")
+	}
 	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, service.Name, types.ServiceInspectOptions{})
 	if err != nil {
 		return errors.New("error getting swarm server version")
@@ -75,14 +112,16 @@ func (m Manager) UpdateService(service Service) error {
 	if err != nil {
 		return errors.New("error getting swarm server version")
 	}
-	_, err = m.client.ServiceUpdate(m.ctx, service.Name, version, m.serviceToServiceSpec(service), types.ServiceUpdateOptions{})
+	_, err = m.client.ServiceUpdate(m.ctx, service.Name, version, m.serviceToServiceSpec(service), types.ServiceUpdateOptions{
+		EncodedRegistryAuth: authHeader,
+		QueryRegistry:       queryRegistry,
+	})
 	if err != nil {
 		return errors.New("error updating service")
 	}
 	return nil
 }
 
-// RestartService: Restart a service
 func (m Manager) RestartService(serviceName string) error {
 	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
 	if err != nil {
@@ -103,7 +142,6 @@ func (m Manager) RestartService(serviceName string) error {
 	return nil
 }
 
-// RollbackService a service
 func (m Manager) RollbackService(serviceName string) error {
 	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
 	if err != nil {
@@ -122,16 +160,14 @@ func (m Manager) RollbackService(serviceName string) error {
 	return nil
 }
 
-// Remove a service
-func (m Manager) RemoveService(servicename string) error {
-	err := m.client.ServiceRemove(m.ctx, servicename)
+func (m Manager) RemoveService(serviceName string) error {
+	err := m.client.ServiceRemove(m.ctx, serviceName)
 	if err != nil {
 		return errors.New("error removing service")
 	}
 	return nil
 }
 
-// Set Replicas of a service
 func (m Manager) SetServiceReplicaCount(serviceName string, replicas int) error {
 	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
 	if err != nil {
@@ -156,7 +192,6 @@ func (m Manager) SetServiceReplicaCount(serviceName string, replicas int) error 
 	return nil
 }
 
-// Fetch Realtime Info of a services in bulk
 func (m Manager) RealtimeInfoRunningServices() (map[string]ServiceRealtimeInfo, error) {
 	// fetch all nodes and store in map > nodeID:nodeDetails
 	nodes, err := m.client.NodeList(m.ctx, types.NodeListOptions{})
@@ -228,7 +263,6 @@ func (m Manager) RealtimeInfoRunningServices() (map[string]ServiceRealtimeInfo, 
 	return serviceRealtimeInfoMap, nil
 }
 
-// Fetch realtime info of a service
 func (m Manager) RealtimeInfoService(serviceName string, ignoreNodeDetails bool) (ServiceRealtimeInfo, error) {
 	runningCount := 0
 	serviceRealtimeInfo := ServiceRealtimeInfo{}
@@ -292,7 +326,63 @@ func (m Manager) RealtimeInfoService(serviceName string, ignoreNodeDetails bool)
 	return serviceRealtimeInfo, nil
 }
 
-// Get service logs
+// ServiceRunningServers Fetch the servers where a service is running
+func (m Manager) ServiceRunningServers(serviceName string) ([]string, error) {
+	// fetch all nodes and store in map > nodeID:nodeDetails
+	nodes, err := m.client.NodeList(m.ctx, types.NodeListOptions{})
+	if err != nil {
+		return nil, errors.New("error getting node list")
+	}
+	nodeMap := make(map[string]swarm.Node)
+	for _, node := range nodes {
+		nodeMap[node.ID] = node
+	}
+	// fetch all services and store in map > serviceName:serviceDetails
+	services, err := m.client.ServiceList(m.ctx, types.ServiceListOptions{})
+	if err != nil {
+		return nil, errors.New("error getting service list")
+	}
+	// analyze each service
+	for _, service := range services {
+		if service.Spec.Name == serviceName {
+			// query task list
+			tasks, err := m.client.TaskList(m.ctx, types.TaskListOptions{
+				Filters: filters.NewArgs(
+					filters.Arg("desired-state", "running"),
+					filters.Arg("service", service.Spec.Name),
+				),
+			})
+			if err != nil {
+				return nil, errors.New("error getting task list")
+			}
+			var runningServers []string
+			for _, task := range tasks {
+				runningServers = append(runningServers, nodeMap[task.NodeID].Description.Hostname)
+			}
+			return runningServers, nil
+		}
+	}
+	return nil, errors.New("service not found")
+}
+
+// RandomServiceContainerID returns a random container id of a service
+func (m Manager) RandomServiceContainerID(serviceName string) (string, error) {
+	containers, err := m.client.ContainerList(m.ctx, container.ListOptions{
+		All: false,
+		Filters: filters.NewArgs(
+			filters.Arg("label", "com.docker.swarm.service.name="+serviceName),
+		),
+	})
+	if err != nil {
+		return "", errors.New("Failed to list containers for service " + serviceName + " " + err.Error())
+	}
+	if len(containers) == 0 {
+		return "", errors.New("No containers found for service " + serviceName)
+	}
+	return containers[0].ID, nil
+}
+
+// LogsService Get service logs
 func (m Manager) LogsService(serviceName string) (io.ReadCloser, error) {
 	logs, err := m.client.ServiceLogs(m.ctx, serviceName, container.LogsOptions{
 		ShowStdout: true,
@@ -308,7 +398,7 @@ func (m Manager) LogsService(serviceName string) (io.ReadCloser, error) {
 // Private functions
 func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 	// Create swarm attachment config from network names array
-	networkAttachmentConfigs := []swarm.NetworkAttachmentConfig{}
+	var networkAttachmentConfigs []swarm.NetworkAttachmentConfig
 	for _, networkName := range service.Networks {
 		networkAttachmentConfigs = append(networkAttachmentConfigs, swarm.NetworkAttachmentConfig{
 			Target: networkName,
@@ -316,7 +406,7 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 	}
 
 	// Create volume mounts from volume mounts array
-	volumeMounts := []mount.Mount{}
+	var volumeMounts []mount.Mount
 	for _, volumeMount := range service.VolumeMounts {
 		volumeMounts = append(volumeMounts, mount.Mount{
 			Type:     mount.TypeVolume,
@@ -326,8 +416,17 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 		})
 	}
 
+	for _, volumeBind := range service.VolumeBinds {
+		volumeMounts = append(volumeMounts, mount.Mount{
+			Type:     mount.TypeBind,
+			Source:   volumeBind.Source,
+			Target:   volumeBind.Target,
+			ReadOnly: false,
+		})
+	}
+
 	// Create `ENV_VAR=value` array from env map
-	env := []string{}
+	var env []string
 	for key, value := range service.Env {
 		env = append(env, key+"="+value)
 	}
@@ -347,7 +446,8 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 			Global: &swarm.GlobalService{},
 		}
 	} else {
-		panic("invalid deployment mode")
+		print(service.DeploymentMode)
+		panic("invalid deployment mode > ")
 	}
 
 	// Build service spec
@@ -375,6 +475,9 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 				},
 				CapabilityAdd: service.Capabilities,
 				Sysctls:       service.Sysctls,
+			},
+			Placement: &swarm.Placement{
+				Constraints: service.PlacementConstraints,
 			},
 			// Set network name
 			Networks: networkAttachmentConfigs,

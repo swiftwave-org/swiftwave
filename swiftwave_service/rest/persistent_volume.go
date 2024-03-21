@@ -38,13 +38,13 @@ func (server *Server) downloadPersistentVolumeBackup(c echo.Context) error {
 	}
 	if persistentVolumeBackup.Type == core.LocalBackup {
 		// send file
-		filePath := filepath.Join(server.SystemConfig.ServiceConfig.DataDir, persistentVolumeBackup.File)
+		filePath := filepath.Join(server.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath, persistentVolumeBackup.File)
 		// file name
 		fileName := persistentVolumeBackup.File
 		c.Request().Header.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
 		return c.Attachment(filePath, fileName)
 	} else if persistentVolumeBackup.Type == core.S3Backup {
-		s3config := server.SystemConfig.PersistentVolumeBackupConfig.S3Config
+		s3config := server.Config.SystemConfig.PersistentVolumeBackupConfig.S3BackupConfig
 		if !s3config.Enabled {
 			return c.String(400, "S3 backup is not enabled")
 		}
@@ -165,7 +165,7 @@ func (server *Server) uploadPersistentVolumeRestoreFile(c echo.Context) error {
 	}
 	// Destination
 	fileName := fmt.Sprintf("restore-%s-%d.tar.gz", uuid.NewString(), persistentVolumeRestore.ID)
-	filePath := filepath.Join(server.SystemConfig.ServiceConfig.DataDir, fileName)
+	filePath := filepath.Join(server.Config.LocalConfig.ServiceConfig.PVRestoreDirectoryPath, fileName)
 	// Write file
 	dst, err := os.Create(filePath)
 	if err != nil {
@@ -188,7 +188,7 @@ func (server *Server) uploadPersistentVolumeRestoreFile(c echo.Context) error {
 	}
 	// update persistent volume restore
 	persistentVolumeRestore.File = fileName
-	err = persistentVolumeRestore.Update(c.Request().Context(), *dbTx, server.SystemConfig.ServiceConfig.DataDir)
+	err = persistentVolumeRestore.Update(c.Request().Context(), *dbTx, server.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath)
 	if err != nil {
 		return c.JSON(500, map[string]string{
 			"message": "failed to update restore",
@@ -205,7 +205,7 @@ func (server *Server) uploadPersistentVolumeRestoreFile(c echo.Context) error {
 	if err != nil {
 		// mark restore as failed
 		persistentVolumeRestore.Status = core.RestoreFailed
-		err = persistentVolumeRestore.Update(c.Request().Context(), server.ServiceManager.DbClient, server.SystemConfig.ServiceConfig.DataDir)
+		err = persistentVolumeRestore.Update(c.Request().Context(), server.ServiceManager.DbClient, server.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath)
 		if err != nil {
 			log.Println(err)
 		}

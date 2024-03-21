@@ -57,6 +57,14 @@ type ApplicationInput struct {
 	ImageRegistryCredentialID    *uint                           `json:"imageRegistryCredentialID,omitempty"`
 }
 
+type ApplicationResourceAnalytics struct {
+	CPUUsagePercent int       `json:"cpu_usage_percent"`
+	MemoryUsedMb    uint64    `json:"memory_used_mb"`
+	NetworkSentKbps uint64    `json:"network_sent_kbps"`
+	NetworkRecvKbps uint64    `json:"network_recv_kbps"`
+	Timestamp       time.Time `json:"timestamp"`
+}
+
 type BuildArg struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
@@ -71,6 +79,11 @@ type CustomSSLInput struct {
 	FullChain  string `json:"fullChain"`
 	PrivateKey string `json:"privateKey"`
 	SslIssuer  string `json:"sslIssuer"`
+}
+
+type Dependency struct {
+	Name      string `json:"name"`
+	Available bool   `json:"available"`
 }
 
 type Deployment struct {
@@ -233,6 +246,11 @@ type NFSConfigInput struct {
 	Version int    `json:"version"`
 }
 
+type NewServerInput struct {
+	IP   string `json:"ip"`
+	User string `json:"user"`
+}
+
 type PasswordUpdateInput struct {
 	OldPassword string `json:"oldPassword"`
 	NewPassword string `json:"newPassword"`
@@ -327,6 +345,56 @@ type RuntimeLog struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
+type Server struct {
+	ID                   uint         `json:"id"`
+	IP                   string       `json:"ip"`
+	Hostname             string       `json:"hostname"`
+	User                 string       `json:"user"`
+	SwarmMode            SwarmMode    `json:"swarmMode"`
+	ScheduleDeployments  bool         `json:"scheduleDeployments"`
+	DockerUnixSocketPath string       `json:"dockerUnixSocketPath"`
+	ProxyEnabled         bool         `json:"proxyEnabled"`
+	ProxyType            ProxyType    `json:"proxyType"`
+	Status               ServerStatus `json:"status"`
+	Logs                 []*ServerLog `json:"logs"`
+}
+
+type ServerDiskUsage struct {
+	Path       string    `json:"path"`
+	MountPoint string    `json:"mount_point"`
+	TotalGb    float64   `json:"total_gb"`
+	UsedGb     float64   `json:"used_gb"`
+	Timestamp  time.Time `json:"timestamp"`
+}
+
+type ServerDisksUsage struct {
+	Disks     []*ServerDiskUsage `json:"disks"`
+	Timestamp time.Time          `json:"timestamp"`
+}
+
+type ServerLog struct {
+	ID        uint      `json:"id"`
+	Title     string    `json:"title"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type ServerResourceAnalytics struct {
+	CPUUsagePercent int       `json:"cpu_usage_percent"`
+	MemoryTotalGb   float64   `json:"memory_total_gb"`
+	MemoryUsedGb    float64   `json:"memory_used_gb"`
+	MemoryCachedGb  float64   `json:"memory_cached_gb"`
+	NetworkSentKbps uint64    `json:"network_sent_kbps"`
+	NetworkRecvKbps uint64    `json:"network_recv_kbps"`
+	Timestamp       time.Time `json:"timestamp"`
+}
+
+type ServerSetupInput struct {
+	ID                   uint      `json:"id"`
+	DockerUnixSocketPath string    `json:"dockerUnixSocketPath"`
+	SwarmMode            SwarmMode `json:"swarmMode"`
+}
+
 type StackInput struct {
 	Content   string               `json:"content"`
 	Variables []*StackVariableType `json:"variables"`
@@ -358,6 +426,51 @@ type User struct {
 type UserInput struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+type ApplicationResourceAnalyticsTimeframe string
+
+const (
+	ApplicationResourceAnalyticsTimeframeLast1Hour   ApplicationResourceAnalyticsTimeframe = "last_1_hour"
+	ApplicationResourceAnalyticsTimeframeLast24Hours ApplicationResourceAnalyticsTimeframe = "last_24_hours"
+	ApplicationResourceAnalyticsTimeframeLast7Days   ApplicationResourceAnalyticsTimeframe = "last_7_days"
+	ApplicationResourceAnalyticsTimeframeLast30Days  ApplicationResourceAnalyticsTimeframe = "last_30_days"
+)
+
+var AllApplicationResourceAnalyticsTimeframe = []ApplicationResourceAnalyticsTimeframe{
+	ApplicationResourceAnalyticsTimeframeLast1Hour,
+	ApplicationResourceAnalyticsTimeframeLast24Hours,
+	ApplicationResourceAnalyticsTimeframeLast7Days,
+	ApplicationResourceAnalyticsTimeframeLast30Days,
+}
+
+func (e ApplicationResourceAnalyticsTimeframe) IsValid() bool {
+	switch e {
+	case ApplicationResourceAnalyticsTimeframeLast1Hour, ApplicationResourceAnalyticsTimeframeLast24Hours, ApplicationResourceAnalyticsTimeframeLast7Days, ApplicationResourceAnalyticsTimeframeLast30Days:
+		return true
+	}
+	return false
+}
+
+func (e ApplicationResourceAnalyticsTimeframe) String() string {
+	return string(e)
+}
+
+func (e *ApplicationResourceAnalyticsTimeframe) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ApplicationResourceAnalyticsTimeframe(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ApplicationResourceAnalyticsTimeframe", str)
+	}
+	return nil
+}
+
+func (e ApplicationResourceAnalyticsTimeframe) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type DeploymentMode string
@@ -880,6 +993,47 @@ func (e ProtocolType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type ProxyType string
+
+const (
+	ProxyTypeBackup ProxyType = "backup"
+	ProxyTypeActive ProxyType = "active"
+)
+
+var AllProxyType = []ProxyType{
+	ProxyTypeBackup,
+	ProxyTypeActive,
+}
+
+func (e ProxyType) IsValid() bool {
+	switch e {
+	case ProxyTypeBackup, ProxyTypeActive:
+		return true
+	}
+	return false
+}
+
+func (e ProxyType) String() string {
+	return string(e)
+}
+
+func (e *ProxyType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ProxyType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ProxyType", str)
+	}
+	return nil
+}
+
+func (e ProxyType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type RedirectRuleStatus string
 
 const (
@@ -922,6 +1076,137 @@ func (e *RedirectRuleStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e RedirectRuleStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ServerResourceAnalyticsTimeframe string
+
+const (
+	ServerResourceAnalyticsTimeframeLast1Hour   ServerResourceAnalyticsTimeframe = "last_1_hour"
+	ServerResourceAnalyticsTimeframeLast24Hours ServerResourceAnalyticsTimeframe = "last_24_hours"
+	ServerResourceAnalyticsTimeframeLast7Days   ServerResourceAnalyticsTimeframe = "last_7_days"
+	ServerResourceAnalyticsTimeframeLast30Days  ServerResourceAnalyticsTimeframe = "last_30_days"
+)
+
+var AllServerResourceAnalyticsTimeframe = []ServerResourceAnalyticsTimeframe{
+	ServerResourceAnalyticsTimeframeLast1Hour,
+	ServerResourceAnalyticsTimeframeLast24Hours,
+	ServerResourceAnalyticsTimeframeLast7Days,
+	ServerResourceAnalyticsTimeframeLast30Days,
+}
+
+func (e ServerResourceAnalyticsTimeframe) IsValid() bool {
+	switch e {
+	case ServerResourceAnalyticsTimeframeLast1Hour, ServerResourceAnalyticsTimeframeLast24Hours, ServerResourceAnalyticsTimeframeLast7Days, ServerResourceAnalyticsTimeframeLast30Days:
+		return true
+	}
+	return false
+}
+
+func (e ServerResourceAnalyticsTimeframe) String() string {
+	return string(e)
+}
+
+func (e *ServerResourceAnalyticsTimeframe) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ServerResourceAnalyticsTimeframe(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ServerResourceAnalyticsTimeframe", str)
+	}
+	return nil
+}
+
+func (e ServerResourceAnalyticsTimeframe) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ServerStatus string
+
+const (
+	ServerStatusNeedsSetup ServerStatus = "needs_setup"
+	ServerStatusPreparing  ServerStatus = "preparing"
+	ServerStatusOnline     ServerStatus = "online"
+	ServerStatusOffline    ServerStatus = "offline"
+)
+
+var AllServerStatus = []ServerStatus{
+	ServerStatusNeedsSetup,
+	ServerStatusPreparing,
+	ServerStatusOnline,
+	ServerStatusOffline,
+}
+
+func (e ServerStatus) IsValid() bool {
+	switch e {
+	case ServerStatusNeedsSetup, ServerStatusPreparing, ServerStatusOnline, ServerStatusOffline:
+		return true
+	}
+	return false
+}
+
+func (e ServerStatus) String() string {
+	return string(e)
+}
+
+func (e *ServerStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ServerStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ServerStatus", str)
+	}
+	return nil
+}
+
+func (e ServerStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SwarmMode string
+
+const (
+	SwarmModeManager SwarmMode = "manager"
+	SwarmModeWorker  SwarmMode = "worker"
+)
+
+var AllSwarmMode = []SwarmMode{
+	SwarmModeManager,
+	SwarmModeWorker,
+}
+
+func (e SwarmMode) IsValid() bool {
+	switch e {
+	case SwarmModeManager, SwarmModeWorker:
+		return true
+	}
+	return false
+}
+
+func (e SwarmMode) String() string {
+	return string(e)
+}
+
+func (e *SwarmMode) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SwarmMode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SwarmMode", str)
+	}
+	return nil
+}
+
+func (e SwarmMode) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

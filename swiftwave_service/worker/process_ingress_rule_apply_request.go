@@ -5,13 +5,19 @@ import (
 	"errors"
 	haproxymanager "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
-	UDP_PROXY "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
+	udpproxymanager "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
 	"gorm.io/gorm"
 	"log"
 )
 
-func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.Context, _ context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
+	// restricted ports
+	restrictedPorts := make([]int, 0)
+	for _, port := range m.Config.SystemConfig.RestrictedPorts {
+		restrictedPorts = append(restrictedPorts, int(port))
+	}
 	// fetch ingress rule
 	ingressRule := &core.IngressRule{}
 	err := ingressRule.FindById(ctx, dbWithoutTx, request.Id)
@@ -42,89 +48,143 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 	if err != nil {
 		return err
 	}
-	// create new haproxy transaction
-	haproxyTransactionId, err := m.ServiceManager.HaproxyManager.FetchNewTransactionId()
+
+	// fetch all proxy servers
+	proxyServers, err := core.FetchProxyActiveServers(&m.ServiceManager.DbClient)
 	if err != nil {
 		return err
 	}
-	// generate backend name
-	backendName := m.ServiceManager.HaproxyManager.GenerateBackendName(application.Name, int(ingressRule.TargetPort))
-	// add backend
-	_, err = m.ServiceManager.HaproxyManager.AddBackend(haproxyTransactionId, application.Name, int(ingressRule.TargetPort), int(application.Replicas))
-	if err != nil {
-		// set status as failed and exit
-		_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-		deleteHaProxyTransaction(m, haproxyTransactionId)
-		// no requeue
-		return nil
+	// don't attempt if no proxy servers are active
+	if len(proxyServers) == 0 {
+		return errors.New("no proxy servers are active")
 	}
-	// add frontend
-	if ingressRule.Protocol == core.HTTPSProtocol {
-		err = m.ServiceManager.HaproxyManager.AddHTTPSLink(haproxyTransactionId, backendName, domain.Name)
+	// fetch all haproxy managers
+	haproxyManagers, err := manager.HAProxyClients(context.Background(), proxyServers)
+	if err != nil {
+		return err
+	}
+	// fetch all udp proxy managers
+	udpProxyManagers, err := manager.UDPProxyClients(context.Background(), proxyServers)
+	if err != nil {
+		return err
+	}
+	// map of server ip and transaction id
+	transactionIdMap := make(map[*haproxymanager.Manager]string)
+	var isFailed bool
+
+	for _, haproxyManager := range haproxyManagers {
+		// create new haproxy transaction
+		haproxyTransactionId, err := haproxyManager.FetchNewTransactionId()
 		if err != nil {
+			isFailed = true
+			break
+		}
+		// add to map
+		transactionIdMap[haproxyManager] = haproxyTransactionId
+		// generate backend name
+		backendName := haproxyManager.GenerateBackendName(application.Name, int(ingressRule.TargetPort))
+		// add backend
+		_, err = haproxyManager.AddBackend(haproxyTransactionId, application.Name, int(ingressRule.TargetPort), int(application.Replicas))
+		if err != nil {
+			//nolint:ineffassign
+			isFailed = true
 			// set status as failed and exit
 			_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-			deleteHaProxyTransaction(m, haproxyTransactionId)
 			// no requeue
 			return nil
 		}
-	} else if ingressRule.Protocol == core.HTTPProtocol {
-		// for default port 80, should use fe_http frontend due to some binding restrictions
-		if ingressRule.Port == 80 {
-			err = m.ServiceManager.HaproxyManager.AddHTTPLink(haproxyTransactionId, backendName, domain.Name)
+		// add frontend
+		if ingressRule.Protocol == core.HTTPSProtocol {
+			err = haproxyManager.AddHTTPSLink(haproxyTransactionId, backendName, domain.Name)
 			if err != nil {
+				//nolint:ineffassign
+				isFailed = true
 				// set status as failed and exit
 				_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-				deleteHaProxyTransaction(m, haproxyTransactionId)
 				// no requeue
 				return nil
 			}
+		} else if ingressRule.Protocol == core.HTTPProtocol {
+			// for default port 80, should use fe_http frontend due to some binding restrictions
+			if ingressRule.Port == 80 {
+				err = haproxyManager.AddHTTPLink(haproxyTransactionId, backendName, domain.Name)
+				if err != nil {
+					//nolint:ineffassign
+					isFailed = true
+					// set status as failed and exit
+					_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
+					// no requeue
+					return nil
+				}
+			} else {
+				// for other ports, use custom frontend
+				err = haproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, haproxymanager.HTTPMode, restrictedPorts)
+				if err != nil {
+					//nolint:ineffassign
+					isFailed = true
+					// set status as failed and exit
+					_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
+					// no requeue
+					return nil
+				}
+			}
+		} else if ingressRule.Protocol == core.TCPProtocol {
+			err = haproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), "", haproxymanager.TCPMode, restrictedPorts)
+			if err != nil {
+				//nolint:ineffassign
+				isFailed = true
+				// set status as failed and exit
+				_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
+				// no requeue
+				return nil
+			}
+		} else if ingressRule.Protocol == core.UDPProtocol {
+			// will be handled by udp proxy
 		} else {
-			// for other ports, use custom frontend
-			err = m.ServiceManager.HaproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, haproxymanager.HTTPMode, m.SystemConfig.ServiceConfig.RestrictedPorts)
-			if err != nil {
-				// set status as failed and exit
-				_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-				deleteHaProxyTransaction(m, haproxyTransactionId)
-				// no requeue
-				return nil
-			}
-		}
-	} else if ingressRule.Protocol == core.TCPProtocol {
-		err = m.ServiceManager.HaproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), "", haproxymanager.TCPMode, m.SystemConfig.ServiceConfig.RestrictedPorts)
-		if err != nil {
-			// set status as failed and exit
-			_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-			deleteHaProxyTransaction(m, haproxyTransactionId)
-			// no requeue
-			return nil
-		}
-	} else if ingressRule.Protocol == core.UDPProtocol {
-		err = m.ServiceManager.UDPProxyManager.Add(UDP_PROXY.Proxy{
-			Port:       int(ingressRule.Port),
-			TargetPort: int(ingressRule.TargetPort),
-			Service:    application.Name,
-		}, m.SystemConfig.ServiceConfig.RestrictedPorts)
-		if err != nil {
+			//nolint:ineffassign
+			isFailed = true
 			// set status as failed and exit
 			_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
 			// no requeue
 			return nil
 		}
-	} else {
-		// set status as failed and exit
-		_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-		deleteHaProxyTransaction(m, haproxyTransactionId)
-		// no requeue
-		return nil
 	}
 
-	// commit haproxy transaction
-	err = m.ServiceManager.HaproxyManager.CommitTransaction(haproxyTransactionId)
-	if err != nil {
+	for _, udpProxyManager := range udpProxyManagers {
+		if ingressRule.Protocol == core.UDPProtocol {
+			err = udpProxyManager.Add(udpproxymanager.Proxy{
+				Port:       int(ingressRule.Port),
+				TargetPort: int(ingressRule.TargetPort),
+				Service:    application.Name,
+			}, restrictedPorts)
+			if err != nil {
+				//nolint:ineffassign
+				isFailed = true
+				// set status as failed and exit
+				_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
+				// no requeue
+				return nil
+			}
+		}
+	}
+
+	for haproxyManager, haproxyTransactionId := range transactionIdMap {
+		if !isFailed {
+			// commit the haproxy transaction
+			err = haproxyManager.CommitTransaction(haproxyTransactionId)
+		}
+		if isFailed || err != nil {
+			log.Println("failed to commit haproxy transaction", err)
+			err := haproxyManager.DeleteTransaction(haproxyTransactionId)
+			if err != nil {
+				log.Println("failed to rollback haproxy transaction", err)
+			}
+		}
+	}
+
+	if isFailed {
 		// set status as failed and exit
 		_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-		deleteHaProxyTransaction(m, haproxyTransactionId)
 		// no requeue
 		return nil
 	}
@@ -138,12 +198,4 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 
 	// success
 	return nil
-}
-
-// private functions
-func deleteHaProxyTransaction(m Manager, haproxyTransactionId string) {
-	err := m.ServiceManager.HaproxyManager.DeleteTransaction(haproxyTransactionId)
-	if err != nil {
-		log.Println("error while deleting haproxy transaction")
-	}
 }

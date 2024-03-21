@@ -1,12 +1,12 @@
 package cronjob
 
 import (
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
-	"github.com/swiftwave-org/swiftwave/system_config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
 	"sync"
 )
 
-func NewManager(config *system_config.Config, manager *core.ServiceManager) CronJob {
+func NewManager(config *config.Config, manager *service_manager.ServiceManager) CronJob {
 	if config == nil {
 		panic("config cannot be nil")
 	}
@@ -14,7 +14,7 @@ func NewManager(config *system_config.Config, manager *core.ServiceManager) Cron
 		panic("manager cannot be nil")
 	}
 	return Manager{
-		SystemConfig:   config,
+		Config:         config,
 		ServiceManager: manager,
 		wg:             &sync.WaitGroup{},
 	}
@@ -23,11 +23,11 @@ func NewManager(config *system_config.Config, manager *core.ServiceManager) Cron
 func (m Manager) Start(nowait bool) {
 	// Start cron jobs
 	m.wg.Add(1)
-	go m.HaProxyPortExposer()
-	m.wg.Add(1)
-	go m.UDPProxyPortExposer()
-	m.wg.Add(1)
 	go m.CleanupUnusedImages()
+	m.wg.Add(1)
+	go m.SyncProxy()
+	m.wg.Add(1)
+	go m.SyncBackupProxyServer()
 	if !nowait {
 		m.wg.Wait()
 	}

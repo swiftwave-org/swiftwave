@@ -2,13 +2,15 @@ package worker
 
 import (
 	"errors"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
-	"github.com/swiftwave-org/swiftwave/system_config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
 	"log"
 )
 
-func CancelPendingTasksLocalQueue(config system_config.Config, manager core.ServiceManager) error {
-	if config.TaskQueueConfig.Mode != system_config.LocalTaskQueue {
+func CancelPendingTasksLocalQueue(config config.Config, manager service_manager.ServiceManager) error {
+	if config.SystemConfig.TaskQueueConfig.Mode != system_config.LocalTaskQueue {
 		return nil
 	}
 	tx := manager.DbClient.Begin()

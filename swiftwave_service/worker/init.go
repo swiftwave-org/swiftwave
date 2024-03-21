@@ -1,11 +1,11 @@
 package worker
 
 import (
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
-	"github.com/swiftwave-org/swiftwave/system_config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
 )
 
-func NewManager(config *system_config.Config, manager *core.ServiceManager) *Manager {
+func NewManager(config *config.Config, manager *service_manager.ServiceManager) *Manager {
 	if config == nil {
 		panic("config cannot be nil")
 	}
@@ -13,10 +13,11 @@ func NewManager(config *system_config.Config, manager *core.ServiceManager) *Man
 		panic("manager cannot be nil")
 	}
 	workerManager := Manager{
-		SystemConfig:   config,
+		Config:         config,
 		ServiceManager: manager,
 	}
 	workerManager.registerWorkerFunctions()
+	go bulkInsertDeploymentLogs(manager.DbClient)
 	return &workerManager
 }
 
@@ -42,6 +43,9 @@ func (m Manager) registerWorkerFunctions() {
 	panicOnError(taskQueueClient.RegisterFunction(sslGenerateQueueName, m.SSLGenerate))
 	panicOnError(taskQueueClient.RegisterFunction(persistentVolumeBackupQueueName, m.PersistentVolumeBackup))
 	panicOnError(taskQueueClient.RegisterFunction(persistentVolumeRestoreQueueName, m.PersistentVolumeRestore))
+	panicOnError(taskQueueClient.RegisterFunction(installDependenciesOnServerQueueName, m.InstallDependenciesOnServer))
+	panicOnError(taskQueueClient.RegisterFunction(setupServerQueueName, m.SetupServer))
+	panicOnError(taskQueueClient.RegisterFunction(setupAndEnableProxyQueueName, m.SetupAndEnableProxy))
 }
 
 func panicOnError(err error) {

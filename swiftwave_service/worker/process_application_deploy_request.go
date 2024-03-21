@@ -2,9 +2,9 @@ package worker
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
+	haproxymanager "github.com/swiftwave-org/swiftwave/haproxy_manager"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"log"
 	"strings"
 
@@ -13,8 +13,28 @@ import (
 	"gorm.io/gorm"
 )
 
-func (m Manager) DeployApplication(request DeployApplicationRequest, ctx context.Context, cancelContext context.CancelFunc) error {
-	err := m.deployApplicationHelper(request)
+func (m Manager) DeployApplication(request DeployApplicationRequest, _ context.Context, _ context.CancelFunc) error {
+	// fetch the swarm server
+	swarmManager, err := core.FetchSwarmManager(&m.ServiceManager.DbClient)
+	if err != nil {
+		return err
+	}
+	// create docker manager
+	dockerManager, err := manager.DockerClient(context.Background(), swarmManager)
+	if err != nil {
+		return err
+	}
+	// fetch all proxy servers
+	proxyServers, err := core.FetchProxyActiveServers(&m.ServiceManager.DbClient)
+	if err != nil {
+		return err
+	}
+	// fetch all haproxy managers
+	haproxyManagers, err := manager.HAProxyClients(context.Background(), proxyServers)
+	if err != nil {
+		return err
+	}
+	err = m.deployApplicationHelper(request, dockerManager, haproxyManagers)
 	if err != nil {
 		// mark as failed
 		ctx := context.Background()
@@ -29,7 +49,7 @@ func (m Manager) DeployApplication(request DeployApplicationRequest, ctx context
 	return nil
 }
 
-func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error {
+func (m Manager) deployApplicationHelper(request DeployApplicationRequest, dockerManager *containermanger.Manager, haproxyManagers []*haproxymanager.Manager) error {
 	// context
 	ctx := context.Background()
 	dbWithoutTx := m.ServiceManager.DbClient
@@ -95,65 +115,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 			ReadOnly: false,
 		})
 	}
-	// docker pull image
-	dockerImageUri := deployment.DeployableDockerImageURI()
-	// check if image exists
-	isImageExists := m.ServiceManager.DockerManager.ExistsImage(dockerImageUri)
-	if isImageExists {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image already exists\n", false)
-	} else {
-		registryUsername := ""
-		registryPassword := ""
-
-		if deployment.ImageRegistryCredentialID != nil && *deployment.ImageRegistryCredentialID != 0 {
-			// fetch image registry credential
-			var imageRegistryCredential core.ImageRegistryCredential
-			err := imageRegistryCredential.FindById(ctx, dbWithoutTx, *deployment.ImageRegistryCredentialID)
-			if err != nil {
-				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch image registry credential\n", false)
-				return err
-			}
-			registryUsername = imageRegistryCredential.Username
-			registryPassword = imageRegistryCredential.Password
-		}
-
-		scanner, err := m.ServiceManager.DockerManager.PullImage(deployment.DeployableDockerImageURI(), registryUsername, registryPassword)
-		if err != nil {
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to pull docker image\n", false)
-			return err
-		}
-		// read the logs
-		if scanner != nil {
-			var data map[string]interface{}
-			for scanner.Scan() {
-				err = json.Unmarshal(scanner.Bytes(), &data)
-				if err != nil {
-					continue
-				}
-				if data["status"] != nil {
-					status := data["status"].(string)
-					id := ""
-					if data["id"] != nil {
-						id = data["id"].(string)
-					}
-					if strings.HasPrefix(status, "Pulling from") ||
-						strings.Compare(status, "Pulling fs layer") == 0 ||
-						strings.Compare(status, "Verifying Checksum") == 0 ||
-						strings.Compare(status, "Download complete") == 0 ||
-						strings.Compare(status, "Pull complete") == 0 ||
-						strings.HasPrefix(status, "Digest:") ||
-						strings.HasPrefix(status, "Status:") {
-						logContent := fmt.Sprintf("%s %s\n", status, id)
-						addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, logContent, false)
-					}
-
-				}
-			}
-		}
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image pulled successfully\n", false)
-	}
-
-	sysctls := make(map[string]string, 0)
+	sysctls := make(map[string]string)
 	for _, sysctl := range application.Sysctls {
 		sysctlPart := strings.SplitN(sysctl, "=", 2)
 		if len(sysctlPart) == 2 {
@@ -164,13 +126,53 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 	if application.Command != "" {
 		command = strings.Split(application.Command, " ")
 	}
+	// docker image info
+	dockerImageUri := deployment.DeployableDockerImageURI(m.Config.SystemConfig.ImageRegistryConfig.URI())
+	refetchImage := false
+	imageRegistryUsername := ""
+	imageRegistryPassword := ""
+
+	if deployment.UpstreamType == core.UpstreamTypeImage {
+		// fetch image registry credential
+		if deployment.ImageRegistryCredentialID != nil && *deployment.ImageRegistryCredentialID != 0 {
+			var imageRegistryCredential core.ImageRegistryCredential
+			err := imageRegistryCredential.FindById(ctx, dbWithoutTx, *deployment.ImageRegistryCredentialID)
+			if err != nil {
+				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch image registry credential\n", false)
+				return err
+			}
+			imageRegistryUsername = imageRegistryCredential.Username
+			imageRegistryPassword = imageRegistryCredential.Password
+		}
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image will be fetched from upstream at the time of deployment\n", false)
+		refetchImage = true
+	} else {
+		// set the image uri only if remote private registry is used
+		if m.Config.SystemConfig.ImageRegistryConfig.IsConfigured() {
+			refetchImage = true
+			imageRegistryUsername = m.Config.SystemConfig.ImageRegistryConfig.Username
+			imageRegistryPassword = m.Config.SystemConfig.ImageRegistryConfig.Password
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image will be fetched from the configured private registry\n", false)
+		} else {
+			refetchImage = false
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image will be fetched from the local (If exists)\n", false)
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "[Notice] If you have connected remote server and not using any image registry, then the deployment can failed due to accessible image\n", false)
+		}
+	}
+
+	if refetchImage {
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "[Notice] Image will be fetched during deployment\n", false)
+	} else {
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "[Notice] Image will not be fetched from the upstream\n", false)
+	}
+
 	// create service
 	service := containermanger.Service{
 		Name:           application.Name,
 		Image:          dockerImageUri,
 		Command:        command,
 		Env:            environmentVariablesMap,
-		Networks:       []string{m.SystemConfig.ServiceConfig.NetworkName},
+		Networks:       []string{m.Config.SystemConfig.NetworkName},
 		DeploymentMode: containermanger.DeploymentMode(application.DeploymentMode),
 		Replicas:       uint64(application.ReplicaCount()),
 		VolumeMounts:   volumeMounts,
@@ -197,25 +199,10 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 	}
 
 	// check if the service already exists
-	_, err = m.ServiceManager.DockerManager.GetService(service.Name)
+	_, err = dockerManager.GetService(service.Name)
 	if err != nil {
-		registryUsername := ""
-		registryPassword := ""
-
-		if deployment.ImageRegistryCredentialID != nil && *deployment.ImageRegistryCredentialID != 0 {
-			// fetch image registry credential
-			var imageRegistryCredential core.ImageRegistryCredential
-			err := imageRegistryCredential.FindById(ctx, dbWithoutTx, *deployment.ImageRegistryCredentialID)
-			if err != nil {
-				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch image registry credential\n", false)
-				return err
-			}
-			registryUsername = imageRegistryCredential.Username
-			registryPassword = imageRegistryCredential.Password
-		}
-
 		// create service
-		err = m.ServiceManager.DockerManager.CreateService(service, registryUsername, registryPassword)
+		err = dockerManager.CreateService(service, imageRegistryUsername, imageRegistryPassword, refetchImage)
 		if err != nil {
 			return err
 		}
@@ -223,7 +210,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 	} else {
 		// update service
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application already exists, updating the application\n", false)
-		err = m.ServiceManager.DockerManager.UpdateService(service)
+		err = dockerManager.UpdateService(service, imageRegistryUsername, imageRegistryPassword, refetchImage)
 		if err != nil {
 			return err
 		}
@@ -234,42 +221,53 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 	// if error occurs rollback the service
 	if err != nil {
 		// rollback the service
-		err = m.ServiceManager.DockerManager.RollbackService(service.Name)
+		err = dockerManager.RollbackService(service.Name)
 		if err != nil {
 			// don't throw error as it will create an un-recoverable state
 			log.Println("failed to rollback service > "+service.Name, err)
 			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to rollback service\n", false)
 		}
-	} else {
-		// update replicas count in proxy (don't throw error if it fails, only log the error)
-		targetPorts, err := core.FetchIngressTargetPorts(ctx, dbWithoutTx, application.ID)
-		if err == nil {
+	}
+	// update replicas count in proxy (don't throw error if it fails, only log the error)
+	targetPorts, err := core.FetchIngressTargetPorts(ctx, dbWithoutTx, application.ID)
+	if err == nil {
+		// map of server ip and transaction id
+		transactionIdMap := make(map[*haproxymanager.Manager]string)
+		isFailed := false
+
+		for _, haproxyManager := range haproxyManagers {
 			// create new haproxy transaction
-			haproxyTransactionId, err := m.ServiceManager.HaproxyManager.FetchNewTransactionId()
+			haproxyTransactionId, err := haproxyManager.FetchNewTransactionId()
 			if err != nil {
+				isFailed = true
 				log.Println("failed to create new haproxy transaction", err)
 				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to create new haproxy transaction\n", false)
+				break
 			} else {
+				transactionIdMap[haproxyManager] = haproxyTransactionId
 				for _, targetPort := range targetPorts {
-					backendName := m.ServiceManager.HaproxyManager.GenerateBackendName(application.Name, targetPort)
-					isBackendExist, err := m.ServiceManager.HaproxyManager.IsBackendExist(backendName)
+					backendName := haproxyManager.GenerateBackendName(application.Name, targetPort)
+					isBackendExist, err := haproxyManager.IsBackendExist(backendName)
 					if err != nil {
+						isFailed = true
 						log.Println("failed to check if backend exist", err)
 						addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to check if backend exist\n", false)
 						continue
 					}
 					if isBackendExist {
 						// fetch current replicas
-						currentReplicaCount, err := m.ServiceManager.HaproxyManager.GetReplicaCount(haproxyTransactionId, application.Name, targetPort)
+						currentReplicaCount, err := haproxyManager.GetReplicaCount(haproxyTransactionId, application.Name, targetPort)
 						if err != nil {
+							isFailed = true
 							log.Println("failed to fetch current replica count", err)
 							addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch current replica count\n", false)
 							continue
 						}
 						// check if replica count changed
 						if currentReplicaCount != int(application.ReplicaCount()) {
-							err = m.ServiceManager.HaproxyManager.UpdateBackendReplicas(haproxyTransactionId, application.Name, targetPort, int(application.ReplicaCount()))
+							err = haproxyManager.UpdateBackendReplicas(haproxyTransactionId, application.Name, targetPort, int(application.ReplicaCount()))
 							if err != nil {
+								isFailed = true
 								log.Println("failed to update replica count", err)
 								addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update replica count\n", false)
 							}
@@ -277,22 +275,26 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest) error
 					}
 				}
 			}
-			// commit the haproxy transaction
-			err = m.ServiceManager.HaproxyManager.CommitTransaction(haproxyTransactionId)
-			if err != nil {
+		}
+
+		for haproxyManager, haproxyTransactionId := range transactionIdMap {
+			if !isFailed {
+				// commit the haproxy transaction
+				err = haproxyManager.CommitTransaction(haproxyTransactionId)
+			}
+			if isFailed || err != nil {
 				log.Println("failed to commit haproxy transaction", err)
 				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to commit haproxy transaction\n", false)
-				err := m.ServiceManager.HaproxyManager.DeleteTransaction(haproxyTransactionId)
+				err := haproxyManager.DeleteTransaction(haproxyTransactionId)
 				if err != nil {
 					log.Println("failed to rollback haproxy transaction", err)
 					addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to rollback haproxy transaction\n", false)
 				}
 			}
-		} else {
-			log.Println("failed to update replica count", err)
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update replica count\n", false)
 		}
-
+	} else {
+		log.Println("failed to update replica count", err)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update replica count\n", false)
 	}
 	return nil
 }

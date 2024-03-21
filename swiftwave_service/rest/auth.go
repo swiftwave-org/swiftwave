@@ -27,7 +27,7 @@ func (server *Server) login(c echo.Context) error {
 	}
 
 	// Generate jwt token
-	token, err := user.GenerateJWT(server.SystemConfig.ServiceConfig.JwtSecretKey)
+	token, err := user.GenerateJWT(server.Config.SystemConfig.JWTSecretKey)
 	if err != nil {
 		return c.JSON(500, map[string]string{
 			"message": "failed to generate jwt token",

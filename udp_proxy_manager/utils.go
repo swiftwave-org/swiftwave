@@ -1,14 +1,12 @@
 package udp_proxy_manager
 
 import (
-	"context"
 	"io"
-	"net"
 	"net/http"
 	"strings"
 )
 
-// Generate Base URI for HAProxy Server
+// URI Generate Base URI for HAProxy Server
 func (m Manager) URI() string {
 	return "http://unix/v1"
 }
@@ -23,14 +21,8 @@ func (m Manager) getRequest(route string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	client := &http.Client{
-		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", m.unixSocketPath)
-			},
-		},
-	}
-	return client.Do(req)
+	req.Close = true
+	return m.httpClient.Do(req)
 }
 
 // Wrapper to send request to HAProxy Server
@@ -44,19 +36,14 @@ func (m Manager) postRequest(route string, body io.Reader) (*http.Response, erro
 		return nil, err
 	}
 	req.Header.Add("Content-Type", "application/json")
-	client := &http.Client{
-		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", m.unixSocketPath)
-			},
-		},
-	}
-	return client.Do(req)
+	req.Close = true
+	return m.httpClient.Do(req)
 }
 
 /*
-This function is used to check if a port is restricted or not for application.
+IsPortRestrictedForManualConfig
 
+This function is used to check if a port is restricted or not for application.
 There are some ports that are restricted.
 because those port are pre-occupied by Swarm services or other required services.
 So, binding to those ports will cause errors.

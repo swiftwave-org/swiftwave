@@ -4,16 +4,26 @@ import (
 	"context"
 	"errors"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"gorm.io/gorm"
 	"log"
 )
 
-func (m Manager) DeleteApplication(request DeleteApplicationRequest, ctx context.Context, cancelContext context.CancelFunc) error {
+func (m Manager) DeleteApplication(request DeleteApplicationRequest, ctx context.Context, _ context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
-	dockerManager := m.ServiceManager.DockerManager
+	// fetch the swarm server
+	swarmManager, err := core.FetchSwarmManager(&dbWithoutTx)
+	if err != nil {
+		return err
+	}
+	// create docker manager
+	dockerManager, err := manager.DockerClient(context.Background(), swarmManager)
+	if err != nil {
+		return err
+	}
 	// find application
 	var application core.Application
-	err := application.FindById(ctx, m.ServiceManager.DbClient, request.Id)
+	err = application.FindById(ctx, m.ServiceManager.DbClient, request.Id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// return nil as don't want to requeue the job
@@ -25,7 +35,7 @@ func (m Manager) DeleteApplication(request DeleteApplicationRequest, ctx context
 	// start a db transaction
 	tx := dbWithoutTx.Begin()
 	// delete application
-	err = application.HardDelete(ctx, *tx, dockerManager)
+	err = application.HardDelete(ctx, *tx, *dockerManager)
 	if err != nil {
 		tx.Rollback()
 		return err

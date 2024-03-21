@@ -2,11 +2,9 @@ package haproxymanager
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"io"
 	"mime/multipart"
-	"net"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -28,14 +26,8 @@ func (s Manager) getRequest(route string, queryParams QueryParameters) (*http.Re
 		return nil, err
 	}
 	req.SetBasicAuth(s.username, s.password)
-	client := &http.Client{
-		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", s.unixSocketPath)
-			},
-		},
-	}
-	return client.Do(req)
+	req.Close = true
+	return s.httpClient.Do(req)
 }
 
 // deleteRequest : Wrapper to send request to HAProxy Server
@@ -49,14 +41,8 @@ func (s Manager) deleteRequest(route string, queryParams QueryParameters) (*http
 		return nil, err
 	}
 	req.SetBasicAuth(s.username, s.password)
-	client := &http.Client{
-		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", s.unixSocketPath)
-			},
-		},
-	}
-	return client.Do(req)
+	req.Close = true
+	return s.httpClient.Do(req)
 }
 
 // postRequest : Wrapper to send request to HAProxy Server
@@ -70,15 +56,9 @@ func (s Manager) postRequest(route string, queryParams QueryParameters, body io.
 		return nil, err
 	}
 	req.SetBasicAuth(s.username, s.password)
+	req.Close = true
 	req.Header.Add("Content-Type", "application/json")
-	client := &http.Client{
-		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", s.unixSocketPath)
-			},
-		},
-	}
-	return client.Do(req)
+	return s.httpClient.Do(req)
 }
 
 // putRequest : Wrapper to send request to HAProxy Server
@@ -92,15 +72,9 @@ func (s Manager) putRequest(route string, queryParams QueryParameters, body io.R
 		return nil, err
 	}
 	req.SetBasicAuth(s.username, s.password)
+	req.Close = true
 	req.Header.Add("Content-Type", "application/json")
-	client := &http.Client{
-		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", s.unixSocketPath)
-			},
-		},
-	}
-	return client.Do(req)
+	return s.httpClient.Do(req)
 }
 
 // uploadSSL : Upload SSL certificate to HAProxy Server
@@ -135,14 +109,8 @@ func (s Manager) uploadSSL(route string, domain string, file io.Reader) (*http.R
 	}
 	req.SetBasicAuth(s.username, s.password)
 	req.Header.Add("Content-Type", writer.FormDataContentType())
-	client := &http.Client{
-		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", s.unixSocketPath)
-			},
-		},
-	}
-	return client.Do(req)
+	req.Close = true
+	return s.httpClient.Do(req)
 }
 
 // replaceSSL : Replace SSL certificate to HAProxy Server
@@ -160,19 +128,12 @@ func (s Manager) replaceSSL(route string, domain string, file io.Reader) (*http.
 	if err != nil {
 		return nil, errors.New("error copying file to body")
 	}
-
 	req, err := http.NewRequest("PUT", url, &body)
 	if err != nil {
 		return nil, errors.New("error creating request")
 	}
 	req.SetBasicAuth(s.username, s.password)
 	req.Header.Add("Content-Type", "text/plain")
-	client := &http.Client{
-		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", s.unixSocketPath)
-			},
-		},
-	}
-	return client.Do(req)
+	req.Close = true
+	return s.httpClient.Do(req)
 }

@@ -1,32 +1,61 @@
 package core
 
 import (
-	DOCKER_CLIENT "github.com/docker/docker/client"
-	"github.com/go-redis/redis/v8"
-	DOCKER "github.com/swiftwave-org/swiftwave/container_manager"
-	DOCKER_CONFIG_GENERATOR "github.com/swiftwave-org/swiftwave/docker_config_generator"
-	HAPROXY "github.com/swiftwave-org/swiftwave/haproxy_manager"
-	"github.com/swiftwave-org/swiftwave/pubsub"
-	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
-	"github.com/swiftwave-org/swiftwave/task_queue"
-	UDP_PROXY "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
-	"gorm.io/gorm"
+	"database/sql/driver"
+	"encoding/json"
 )
 
-// ServiceManager : holds the instance of all the managers
-type ServiceManager struct {
-	SslManager            SSL.Manager
-	HaproxyManager        HAPROXY.Manager
-	UDPProxyManager       UDP_PROXY.Manager
-	DockerManager         DOCKER.Manager
-	DockerConfigGenerator DOCKER_CONFIG_GENERATOR.Manager
-	DockerClient          DOCKER_CLIENT.Client
-	DbClient              gorm.DB
-	RedisClient           redis.Client
-	PubSubClient          pubsub.Client
-	TaskQueueClient       task_queue.Client
-	CancelImageBuildTopic string
+// ************************************************************************************* //
+//                                Swiftwave System Configuration 		   			     //
+// ************************************************************************************* //
+
+// UserRole : role of the registered user
+type UserRole string
+
+const (
+	// AdministratorRole : admin user can perform any operation on the system
+	AdministratorRole UserRole = "admin"
+	// ManagerRole : manager user can perform any operation on the system
+	// except user management, system configuration and server management
+	ManagerRole UserRole = "manager"
+)
+
+// ServerStatus : status of the server
+type ServerStatus string
+
+const (
+	ServerNeedsSetup ServerStatus = "needs_setup"
+	ServerPreparing  ServerStatus = "preparing"
+	ServerOnline     ServerStatus = "online"
+	ServerOffline    ServerStatus = "offline"
+)
+
+// SwarmMode : mode of the swarm
+type SwarmMode string
+
+const (
+	SwarmManager SwarmMode = "manager"
+	SwarmWorker  SwarmMode = "worker"
+)
+
+// ProxyType : type of the proxy
+type ProxyType string
+
+const (
+	BackupProxy ProxyType = "backup"
+	ActiveProxy ProxyType = "active"
+)
+
+// ProxyConfig : hold information about proxy configuration
+type ProxyConfig struct {
+	Enabled      bool      `json:"enabled" gorm:"default:false"`
+	SetupRunning bool      `json:"setup_running" gorm:"default:false"` // just to show warning to user, that's it
+	Type         ProxyType `json:"type" gorm:"default:'active'"`
 }
+
+// ************************************************************************************* //
+//                                Application Level Table       		   			     //
+// ************************************************************************************* //
 
 // UpstreamType : type of source for the codebase of the application
 type UpstreamType string
@@ -165,4 +194,98 @@ type NFSConfig struct {
 	Host    string `json:"host,omitempty"`
 	Path    string `json:"path,omitempty"`
 	Version int    `json:"version,omitempty"`
+}
+
+var RequiredServerDependencies = []string{
+	"init",
+	"curl",
+	"unzip",
+	"git",
+	"tar",
+	"nfs",
+	"docker",
+}
+
+var DependencyCheckCommands = map[string]string{
+	"init":   "echo hi", // dummy command
+	"curl":   "which curl",
+	"unzip":  "which unzip",
+	"git":    "which git",
+	"tar":    "which tar",
+	"nfs":    "which nfsstat",
+	"docker": "which docker",
+}
+
+var DebianDependenciesInstallCommands = map[string]string{
+	"init":   "apt -y update",
+	"curl":   "apt install -y curl",
+	"unzip":  "apt install -y unzip",
+	"git":    "apt install -y git",
+	"tar":    "apt install -y tar",
+	"nfs":    "apt install -y nfs-common",
+	"docker": "curl -fsSL get.docker.com | sh -",
+}
+var FedoraDependenciesInstallCommands = map[string]string{
+	"init":   "dnf -y update",
+	"curl":   "dnf install -y curl",
+	"unzip":  "dnf install -y unzip",
+	"git":    "dnf install -y git",
+	"tar":    "dnf install -y tar",
+	"nfs":    "dnf install -y nfs-utils",
+	"docker": "curl -fsSL get.docker.com | sh -",
+}
+
+// ConsoleTarget : type of console target
+type ConsoleTarget string
+
+const (
+	ConsoleTargetTypeServer      ConsoleTarget = "server"
+	ConsoleTargetTypeApplication ConsoleTarget = "application"
+)
+
+// ************************************************************************************* //
+//                              	Server Related Stats       		   			         //
+// ************************************************************************************* //
+
+type ServerDiskStat struct {
+	Path       string  `json:"path"`
+	MountPoint string  `json:"mount_point"`
+	TotalGB    float32 `json:"total_gb"`
+	UsedGB     float32 `json:"used_gb"`
+}
+
+type ServerDiskStats []ServerDiskStat
+
+// Scan implement value scanner interface for gorm
+func (d *ServerDiskStats) Scan(value interface{}) error {
+	return json.Unmarshal(value.([]byte), d)
+}
+
+// Value implement driver.Valuer interface for gorm
+func (d ServerDiskStats) Value() (driver.Value, error) {
+	return json.Marshal(d)
+}
+
+type ServerMemoryStat struct {
+	TotalGB  float32 `json:"total_gb"`
+	UsedGB   float32 `json:"used_gb"`
+	CachedGB float32 `json:"cached_gb"`
+}
+
+type ServerNetStat struct {
+	SentKB   uint64 `json:"sent_kb"`
+	RecvKB   uint64 `json:"recv_kb"`
+	SentKBPS uint64 `json:"sent_kbps"`
+	RecvKBPS uint64 `json:"recv_kbps"`
+}
+
+// ************************************************************************************* //
+//                            	Application Related Stats       		   			     //
+// ************************************************************************************* //
+
+type ApplicationServiceNetStat struct {
+	SentKB   uint64 `json:"sent_kb"`
+	RecvKB   uint64 `json:"recv_kb"`
+	SentKBPS uint64 `json:"sent_kbps"`
+	RecvKBPS uint64 `json:"recv_kbps"`
 }
