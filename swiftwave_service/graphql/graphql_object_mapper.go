@@ -481,28 +481,25 @@ func serverResourceStatToGraphqlObject(record *core.ServerResourceStat) *model.S
 }
 
 // serverDiskStatToGraphqlObject : converts ServerDiskStat to ServerDiskStatGraphqlObject
-func serverDiskStatToGraphqlObject(record *core.ServerDiskStat, timestamp *time.Time) *model.ServerDiskUsage {
+func serverDiskStatToGraphqlObject(record core.ServerDiskStat, timestamp time.Time) *model.ServerDiskUsage {
 	return &model.ServerDiskUsage{
 		Path:       record.Path,
 		MountPoint: record.MountPoint,
 		TotalGb:    float64(record.TotalGB),
 		UsedGb:     float64(record.UsedGB),
-		Timestamp:  *timestamp,
+		Timestamp:  timestamp,
 	}
 }
 
 // severDisksStatToGraphqlObject : converts ServerDiskStat to ServerDiskStatGraphqlObject
-func severDisksStatToGraphqlObject(records *core.ServerDiskStats, timestamp *time.Time) *model.ServerDisksUsage {
+func severDisksStatToGraphqlObject(records core.ServerDiskStats, timestamp time.Time) model.ServerDisksUsage {
 	disks := make([]*model.ServerDiskUsage, 0)
-	if records == nil {
-		recordsVal := *records
-		for _, disk := range recordsVal {
-			disks = append(disks, serverDiskStatToGraphqlObject(&disk, timestamp))
-		}
+	for _, disk := range records {
+		disks = append(disks, serverDiskStatToGraphqlObject(disk, timestamp))
 	}
-	return &model.ServerDisksUsage{
+	return model.ServerDisksUsage{
 		Disks:     disks,
-		Timestamp: *timestamp,
+		Timestamp: timestamp,
 	}
 }
 

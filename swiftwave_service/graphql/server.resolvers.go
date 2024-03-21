@@ -508,7 +508,8 @@ func (r *queryResolver) ServerDiskUsage(ctx context.Context, id uint) ([]*model.
 	}
 	serverDiskStatsList := make([]*model.ServerDisksUsage, 0)
 	for _, record := range serverResourceUsageRecords {
-		serverDiskStatsList = append(serverDiskStatsList, severDisksStatToGraphqlObject(&record.DiskStats, &record.RecordedAt))
+		val := severDisksStatToGraphqlObject(record.DiskStats, record.RecordedAt)
+		serverDiskStatsList = append(serverDiskStatsList, &val)
 	}
 	return serverDiskStatsList, nil
 }
@@ -532,7 +533,8 @@ func (r *queryResolver) ServerLatestDiskUsage(ctx context.Context, id uint) (*mo
 		return nil, err
 	}
 	// convert the server disk usage to graphql object
-	return severDisksStatToGraphqlObject(serverDiskStats, timestamp), nil
+	res := severDisksStatToGraphqlObject(*serverDiskStats, *timestamp)
+	return &res, nil
 }
 
 // Logs is the resolver for the logs field.
