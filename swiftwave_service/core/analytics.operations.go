@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"errors"
 	"gorm.io/gorm"
 	"time"
 )
@@ -50,6 +51,20 @@ func FetchLatestServerResourceAnalytics(_ context.Context, db gorm.DB, serverId 
 	err := db.Select("id", "server_id", "cpu_usage_percent",
 		"memory_total_gb", "memory_used_gb", "memory_cached_gb",
 		"network_sent_kbps", "network_recv_kbps", "recorded_at").Where("server_id = ?", serverId).Order("recorded_at desc").First(&serverStat).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &ServerResourceStat{
+				ID:              0,
+				ServerID:        serverId,
+				CpuUsagePercent: 0,
+				DiskStats:       ServerDiskStats{},
+				MemStat:         ServerMemoryStat{},
+				NetStat:         ServerNetStat{},
+				RecordedAt:      time.Now(),
+			}, nil
+		}
+	}
 	return serverStat, err
 }
 
@@ -58,6 +73,10 @@ func FetchLatestServerDiskUsage(_ context.Context, db gorm.DB, serverId uint) (*
 	var serverStat *ServerResourceStat
 	err := db.Select("id", "server_id", "disk_stats", "recorded_at").Where("server_id = ?", serverId).Order("recorded_at desc").First(&serverStat).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			currentTime := time.Now()
+			return &ServerDiskStats{}, &currentTime, nil
+		}
 		return nil, nil, err
 	}
 	return &serverStat.DiskStats, &serverStat.RecordedAt, err
