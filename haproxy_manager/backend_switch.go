@@ -20,10 +20,26 @@ func (s Manager) AddBackendSwitch(transactionId string, listenerMode ListenerMod
 			"name":  backendName,
 		}
 	} else {
+		// check if backend switch already exists
+		index, err := s.FetchBackendSwitchIndex(transactionId, listenerMode, bindPort, backendName, domainName)
+		if err != nil {
+			return err
+		}
+		if index != -1 {
+			return nil
+		}
+		condTest := `{ hdr(host) -i ` + strings.TrimSpace(domainName) + `:` + strconv.Itoa(bindPort) + ` }`
+		if bindPort == 80 || bindPort == 443 {
+			condTest = `{ hdr(host) -i ` + strings.TrimSpace(domainName) + ` }`
+		}
+		aclIndex := 0
+		if listenerMode == HTTPMode && (bindPort == 80 || bindPort == 443) {
+			aclIndex = 1
+		}
 		reqBody = map[string]interface{}{
 			"cond":      "if",
-			"cond_test": `{ hdr(host) -i ` + strings.TrimSpace(domainName) + `:` + strconv.Itoa(bindPort) + ` }`,
-			"index":     0,
+			"cond_test": condTest,
+			"index":     aclIndex,
 			"name":      backendName,
 		}
 	}
@@ -43,10 +59,7 @@ func (s Manager) AddBackendSwitch(transactionId string, listenerMode ListenerMod
 }
 
 func (s Manager) FetchBackendSwitchIndex(transactionId string, listenerMode ListenerMode, bindPort int, backendName string, domainName string) (int, error) {
-	return s.FetchBackendSwitchIndexByName(transactionId, GenerateFrontendName(listenerMode, bindPort), bindPort, backendName, domainName)
-}
-
-func (s Manager) FetchBackendSwitchIndexByName(transactionId string, frontendName string, bindPort int, backendName string, domainName string) (int, error) {
+	frontendName := GenerateFrontendName(listenerMode, bindPort)
 	params := QueryParameters{}
 	params.add("transaction_id", transactionId)
 	params.add("frontend", frontendName)

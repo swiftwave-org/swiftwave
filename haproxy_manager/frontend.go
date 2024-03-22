@@ -11,6 +11,13 @@ import (
 var defaultBackend = "error_backend"
 
 func GenerateFrontendName(listenerMode ListenerMode, port int) string {
+	if listenerMode == HTTPMode {
+		if port == 80 {
+			return "fe_http"
+		} else if port == 443 {
+			return "fe_https"
+		}
+	}
 	return "fe_" + string(listenerMode) + "_" + strconv.Itoa(port)
 }
 
