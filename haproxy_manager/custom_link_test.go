@@ -29,7 +29,6 @@ func TestCustomLink(t *testing.T) {
 		}
 		// check now
 		config = fetchConfig(transactionId)
-		t.Log(config)
 		assert.Equal(t, strings.Contains(config, output), true, "tcp link should exist")
 	})
 
@@ -59,7 +58,6 @@ func TestCustomLink(t *testing.T) {
 		}
 		// ensure tcp link exists only once
 		config = fetchConfig(transactionId)
-		t.Log(config)
 		assert.Equal(t, strings.Count(config, output), 1, "tcp link should exist")
 	})
 
