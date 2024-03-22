@@ -15,6 +15,9 @@ func GenerateFrontendName(listenerMode ListenerMode, port int) string {
 }
 
 func (s Manager) AddFrontend(transactionId string, listenerMode ListenerMode, bindPort int, restrictedPorts []int) error {
+	if bindPort == 80 || bindPort == 443 {
+		return nil
+	}
 	frontendName := GenerateFrontendName(listenerMode, bindPort)
 	if IsPortRestrictedForManualConfig(bindPort, restrictedPorts) {
 		return errors.New("port is restricted for manual configuration")
@@ -118,6 +121,10 @@ func (s Manager) IsOtherSwitchingRuleExist(transactionId string, listenerMode Li
 }
 
 func (s Manager) DeleteFrontend(transactionId string, listenerMode ListenerMode, bindPort int) error {
+	// we should not delete frontend for port 80 and 443
+	if bindPort == 80 || bindPort == 443 {
+		return nil
+	}
 	// check if frontend exists
 	isFrontendExist, err := s.IsFrontendExist(transactionId, listenerMode, bindPort)
 	if err != nil {
@@ -126,13 +133,16 @@ func (s Manager) DeleteFrontend(transactionId string, listenerMode ListenerMode,
 	if !isFrontendExist {
 		return nil
 	}
-	// don't delete frontend if there are switching rules
-	isSwitchingRuleExist, err := s.IsOtherSwitchingRuleExist(transactionId, listenerMode, bindPort)
-	if err != nil {
-		return err
-	}
-	if isSwitchingRuleExist {
-		return nil
+	// ignore for tcp
+	if listenerMode == HTTPMode {
+		// don't delete frontend if there are switching rules
+		isSwitchingRuleExist, err := s.IsOtherSwitchingRuleExist(transactionId, listenerMode, bindPort)
+		if err != nil {
+			return err
+		}
+		if isSwitchingRuleExist {
+			return nil
+		}
 	}
 	// delete frontend
 	frontendName := GenerateFrontendName(listenerMode, bindPort)

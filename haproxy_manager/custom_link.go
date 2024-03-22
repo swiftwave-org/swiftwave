@@ -15,7 +15,7 @@ func (s Manager) AddTCPLink(transactionId string, backendName string, port int, 
 		return err
 	}
 	// Add Backend Switch
-	err = s.CreateBackendSwitch(transactionId, listenerMode, port, backendName, domainName)
+	err = s.AddBackendSwitch(transactionId, listenerMode, port, backendName, domainName)
 	return err
 }
 

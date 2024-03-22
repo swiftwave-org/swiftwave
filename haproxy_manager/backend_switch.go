@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func (s Manager) CreateBackendSwitch(transactionId string, listenerMode ListenerMode, bindPort int, backendName string, domainName string) error {
+func (s Manager) AddBackendSwitch(transactionId string, listenerMode ListenerMode, bindPort int, backendName string, domainName string) error {
 	params := QueryParameters{}
 	params.add("transaction_id", transactionId)
 	params.add("frontend", GenerateFrontendName(listenerMode, bindPort))
@@ -55,12 +55,14 @@ func (s Manager) FetchBackendSwitchIndex(transactionId string, listenerMode List
 		_ = body.Close()
 	}(getBackendSwitchRes.Body)
 	// Parse response
-	var backendSwitchRules []map[string]interface{}
-	err := json.NewDecoder(getBackendSwitchRes.Body).Decode(&backendSwitchRules)
+	var backendSwitchRulesData map[string]interface{}
+	err := json.NewDecoder(getBackendSwitchRes.Body).Decode(&backendSwitchRulesData)
 	if err != nil {
 		return -1, err
 	}
-	for _, rule := range backendSwitchRules {
+	backendSwitchRules := backendSwitchRulesData["data"].([]interface{})
+	for _, r := range backendSwitchRules {
+		rule := r.(map[string]interface{})
 		if rule["name"] == backendName &&
 			rule["cond"] == "if" &&
 			rule["cond_test"] == `{ hdr(host) -i `+strings.TrimSpace(domainName)+`:`+strconv.Itoa(bindPort)+` }` {

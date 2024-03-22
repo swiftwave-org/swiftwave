@@ -22,7 +22,7 @@ func TestBackend(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Check(t, isExists == false, "backend already exists [api]")
+		assert.Check(t, isExists == false, "backend should not exist [api]")
 		// add backend
 		_, err = haproxyTestManager.AddBackend(transactionId, serviceName, servicePort, serviceReplicas)
 		if err != nil {
@@ -33,8 +33,8 @@ func TestBackend(t *testing.T) {
 			t.Fatal(err)
 		}
 		config := fetchConfig(transactionId)
-		assert.Check(t, strings.Contains(config, fmt.Sprintf("backend %s", backendName)), "backend not found in config")
-		assert.Check(t, strings.Contains(config, fmt.Sprintf("server-template %s_container- %d %s:%d no-check init-addr none resolvers docker", serviceName, serviceReplicas, serviceName, servicePort)), "server template not found in config")
+		assert.Check(t, strings.Contains(config, fmt.Sprintf("backend %s", backendName)), "backend name should be in config")
+		assert.Check(t, strings.Contains(config, fmt.Sprintf("server-template %s_container- %d %s:%d no-check init-addr none resolvers docker", serviceName, serviceReplicas, serviceName, servicePort)), "server template should be in config")
 		assert.Check(t, isExists == true, "backend does not exist [api]")
 	})
 
@@ -45,11 +45,11 @@ func TestBackend(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Check(t, strings.Compare(backendName, haproxyTestManager.GenerateBackendName(serviceName, servicePort)) == 0, "created backend name is not correct")
-		assert.Check(t, strings.Contains(fetchConfig(transactionId), backendName), "backend not found in config")
+		assert.Check(t, strings.Compare(backendName, haproxyTestManager.GenerateBackendName(serviceName, servicePort)) == 0, "created backend name should match with generated backend name")
+		assert.Check(t, strings.Contains(fetchConfig(transactionId), backendName), "backend name should be in config")
 	})
 
-	t.Run("add backend with existing backend", func(t *testing.T) {})
+	t.Run("add backend with same pre-existing backend", func(t *testing.T) {})
 
 	t.Run("delete backend", func(t *testing.T) {
 		transactionId := newTransaction()
@@ -73,7 +73,7 @@ func TestBackend(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Check(t, isExists == false, "backend has not been deleted")
+		assert.Check(t, isExists == false, "backend should not exist after deletion")
 	})
 
 	t.Run("delete backend with non-existing backend name", func(t *testing.T) {
@@ -94,7 +94,7 @@ func TestBackend(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Check(t, replicas == serviceReplicas, "replicas count does not match")
+		assert.Check(t, replicas == serviceReplicas, "replicas count should match with expected replicas count")
 	})
 
 	t.Run("update replica count", func(t *testing.T) {
@@ -108,8 +108,8 @@ func TestBackend(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Check(t, replicas == 1, "replicas count does not match")
-		err = haproxyTestManager.UpdateBackendReplicas(transactionId, serviceName, servicePort, 1)
+		assert.Check(t, replicas == 1, "replicas count should be 1 initially")
+		err = haproxyTestManager.UpdateBackendReplicas(transactionId, serviceName, servicePort, 4)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -117,7 +117,7 @@ func TestBackend(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Check(t, replicas == 1, "replicas count does not match")
+		assert.Check(t, replicas == 4, "replicas count should be 4 after update")
 	})
 
 }
