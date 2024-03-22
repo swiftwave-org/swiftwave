@@ -164,6 +164,59 @@ func TestFrontend(t *testing.T) {
 		assert.Check(t, isExists == true, "frontend should exist [api]")
 	})
 
+	t.Run("delete http frontend with all switching rules delete should delete frontend", func(t *testing.T) {
+		transactionId := newTransaction()
+		defer deleteTransaction(transactionId)
+		err := haproxyTestManager.AddFrontend(transactionId, HTTPMode, 8080, []int{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		backend1Name, err := haproxyTestManager.AddBackend(transactionId, "service", 8080, 1)
+		if err != nil {
+			t.Fatal(err)
+		}
+		backend2Name, err := haproxyTestManager.AddBackend(transactionId, "service", 8081, 1)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = haproxyTestManager.AddBackendSwitch(transactionId, HTTPMode, 8080, backend1Name, "example.com")
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = haproxyTestManager.AddBackendSwitch(transactionId, HTTPMode, 8080, backend2Name, "example.com")
+		if err != nil {
+			t.Fatal(err)
+		}
+		// delete first backend switch
+		err = haproxyTestManager.DeleteBackendSwitch(transactionId, HTTPMode, 8080, backend1Name, "example.com")
+		if err != nil {
+			t.Fatal(err)
+		}
+		// try to delete frontend
+		err = haproxyTestManager.DeleteFrontend(transactionId, HTTPMode, 8080)
+		assert.Equal(t, err, nil, "delete http frontend with switching rules should not return error")
+		// check if frontend exists
+		isExists, err := haproxyTestManager.IsFrontendExist(transactionId, HTTPMode, 8080)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Check(t, isExists == true, "frontend should exist as it has one backend switch [api]")
+		// delete second backend switch
+		err = haproxyTestManager.DeleteBackendSwitch(transactionId, HTTPMode, 8080, backend2Name, "example.com")
+		if err != nil {
+			t.Fatal(err)
+		}
+		// try to delete frontend
+		err = haproxyTestManager.DeleteFrontend(transactionId, HTTPMode, 8080)
+		assert.Equal(t, err, nil, "delete http frontend with switching rules should not return error")
+		// check if frontend exists
+		isExists, err = haproxyTestManager.IsFrontendExist(transactionId, HTTPMode, 8080)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Check(t, isExists == false, "frontend should not exist as it has no backend switch [api]")
+	})
+
 	t.Run("is switching rule exist", func(t *testing.T) {
 		transactionId := newTransaction()
 		defer deleteTransaction(transactionId)
