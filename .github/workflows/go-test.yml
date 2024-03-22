@@ -1,0 +1,16 @@
+name: Go Test
+on:
+  [push, pull_request, workflow_dispatch]
+jobs:
+  haproxy_manager:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.22
+      - name: Run tests
+        run: sudo go test ./haproxy_manager -v

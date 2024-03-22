@@ -15,9 +15,10 @@ func (s Manager) GenerateBackendName(serviceName string, port int) string {
 }
 
 // IsBackendExist : Check backend exist in HAProxy configuration
-func (s Manager) IsBackendExist(backendName string) (bool, error) {
+func (s Manager) IsBackendExist(transactionId string, backendName string) (bool, error) {
 	// Build query parameters
 	isBackendExistRequestQueryParams := QueryParameters{}
+	isBackendExistRequestQueryParams.add("transaction_id", transactionId)
 	// Send request to check if backend exist
 	isBackendExistRes, isBackendExistErr := s.getRequest("/services/haproxy/configuration/backends/"+backendName, isBackendExistRequestQueryParams)
 	if isBackendExistErr != nil {
@@ -34,6 +35,7 @@ func (s Manager) IsBackendExist(backendName string) (bool, error) {
 	} else if isBackendExistRes.StatusCode == 200 {
 		return true, nil
 	}
+
 	return false, errors.New("failed to check if backend exist")
 }
 
@@ -42,7 +44,7 @@ func (s Manager) IsBackendExist(backendName string) (bool, error) {
 func (s Manager) AddBackend(transactionId string, serviceName string, port int, replicas int) (string, error) {
 	backendName := s.GenerateBackendName(serviceName, port)
 	// Check if backend exist
-	isBackendExist, err := s.IsBackendExist(backendName)
+	isBackendExist, err := s.IsBackendExist(transactionId, backendName)
 	if err != nil {
 		log.Println(err)
 		return "", err
@@ -119,9 +121,8 @@ func (s Manager) AddBackend(transactionId string, serviceName string, port int, 
 func (s Manager) GetReplicaCount(transactionId string, serviceName string, port int) (int, error) {
 	backendName := s.GenerateBackendName(serviceName, port)
 	// Check if backend exist
-	isBackendExist, err := s.IsBackendExist(backendName)
+	isBackendExist, err := s.IsBackendExist(transactionId, backendName)
 	if err != nil {
-		log.Println(err)
 		return 0, err
 	}
 
@@ -173,9 +174,8 @@ func (s Manager) GetReplicaCount(transactionId string, serviceName string, port 
 func (s Manager) UpdateBackendReplicas(transactionId string, serviceName string, port int, replicas int) error {
 	backendName := s.GenerateBackendName(serviceName, port)
 	// Check if backend exist
-	isBackendExist, err := s.IsBackendExist(backendName)
+	isBackendExist, err := s.IsBackendExist(transactionId, backendName)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 
