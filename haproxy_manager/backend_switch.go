@@ -9,9 +9,17 @@ import (
 )
 
 func (s Manager) AddBackendSwitch(transactionId string, listenerMode ListenerMode, bindPort int, backendName string, domainName string) error {
+	// check if backend switch already exists
+	index, err := s.FetchBackendSwitchIndex(transactionId, listenerMode, bindPort, backendName, domainName)
+	if err != nil {
+		return err
+	}
+	if index != -1 {
+		return nil
+	}
 	params := QueryParameters{}
 	params.add("transaction_id", transactionId)
-	params.add("frontend", GenerateFrontendName(listenerMode, bindPort))
+	params.add("frontend", s.GenerateFrontendName(listenerMode, bindPort))
 	var reqBody map[string]interface{}
 	// for tcp mode, just add use_backend rule without ACL
 	if listenerMode == TCPMode {
@@ -20,14 +28,6 @@ func (s Manager) AddBackendSwitch(transactionId string, listenerMode ListenerMod
 			"name":  backendName,
 		}
 	} else {
-		// check if backend switch already exists
-		index, err := s.FetchBackendSwitchIndex(transactionId, listenerMode, bindPort, backendName, domainName)
-		if err != nil {
-			return err
-		}
-		if index != -1 {
-			return nil
-		}
 		condTest := `{ hdr(host) -i ` + strings.TrimSpace(domainName) + `:` + strconv.Itoa(bindPort) + ` }`
 		if bindPort == 80 || bindPort == 443 {
 			condTest = `{ hdr(host) -i ` + strings.TrimSpace(domainName) + ` }`
@@ -59,7 +59,7 @@ func (s Manager) AddBackendSwitch(transactionId string, listenerMode ListenerMod
 }
 
 func (s Manager) FetchBackendSwitchIndex(transactionId string, listenerMode ListenerMode, bindPort int, backendName string, domainName string) (int, error) {
-	frontendName := GenerateFrontendName(listenerMode, bindPort)
+	frontendName := s.GenerateFrontendName(listenerMode, bindPort)
 	params := QueryParameters{}
 	params.add("transaction_id", transactionId)
 	params.add("frontend", frontendName)
@@ -84,10 +84,17 @@ func (s Manager) FetchBackendSwitchIndex(transactionId string, listenerMode List
 	}
 	for _, r := range backendSwitchRules {
 		rule := r.(map[string]interface{})
-		if rule["name"] == backendName &&
-			rule["cond"] == "if" &&
-			rule["cond_test"] == condTest {
-			return int(rule["index"].(float64)), nil
+
+		if listenerMode == HTTPMode {
+			if rule["name"] == backendName &&
+				rule["cond"] == "if" &&
+				rule["cond_test"] == condTest {
+				return int(rule["index"].(float64)), nil
+			}
+		} else {
+			if rule["name"] == backendName {
+				return int(rule["index"].(float64)), nil
+			}
 		}
 	}
 	return -1, nil
@@ -111,7 +118,7 @@ func (s Manager) DeleteBackendSwitch(transactionId string, listenerMode Listener
 	// Build query parameters
 	params := QueryParameters{}
 	params.add("transaction_id", transactionId)
-	params.add("frontend", GenerateFrontendName(listenerMode, bindPort))
+	params.add("frontend", s.GenerateFrontendName(listenerMode, bindPort))
 	deleteReq, err := s.deleteRequest("/services/haproxy/configuration/backend_switching_rules/"+strconv.Itoa(index), params)
 	if err != nil || !isValidStatusCode(deleteReq.StatusCode) {
 		return err

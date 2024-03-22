@@ -1,14 +1,9 @@
 package haproxymanager
 
-import "errors"
-
 // AddTCPLink Add TCP Frontend to HAProxy configuration
 // -- Manage ACLs with frontend [port{required} and domain_name{optional}]
 // -- Manage rules with frontend and backend switch
 func (s Manager) AddTCPLink(transactionId string, backendName string, port int, domainName string, listenerMode ListenerMode, restrictedPorts []int) error {
-	if IsPortRestrictedForManualConfig(port, restrictedPorts) {
-		return errors.New("port is restricted for manual configuration")
-	}
 	// Add Frontend
 	err := s.AddFrontend(transactionId, listenerMode, port, restrictedPorts)
 	if err != nil {

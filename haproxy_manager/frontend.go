@@ -10,7 +10,7 @@ import (
 
 var defaultBackend = "error_backend"
 
-func GenerateFrontendName(listenerMode ListenerMode, port int) string {
+func (s Manager) GenerateFrontendName(listenerMode ListenerMode, port int) string {
 	if listenerMode == HTTPMode {
 		if port == 80 {
 			return "fe_http"
@@ -25,7 +25,7 @@ func (s Manager) AddFrontend(transactionId string, listenerMode ListenerMode, bi
 	if bindPort == 80 || bindPort == 443 {
 		return nil
 	}
-	frontendName := GenerateFrontendName(listenerMode, bindPort)
+	frontendName := s.GenerateFrontendName(listenerMode, bindPort)
 	if IsPortRestrictedForManualConfig(bindPort, restrictedPorts) {
 		return errors.New("port is restricted for manual configuration")
 	}
@@ -83,7 +83,7 @@ func (s Manager) AddFrontend(transactionId string, listenerMode ListenerMode, bi
 }
 
 func (s Manager) IsFrontendExist(transactionId string, listenerMode ListenerMode, bindPort int) (bool, error) {
-	frontendName := GenerateFrontendName(listenerMode, bindPort)
+	frontendName := s.GenerateFrontendName(listenerMode, bindPort)
 	params := QueryParameters{}
 	params.add("transaction_id", transactionId)
 	// Send request to check if frontend exist
@@ -104,7 +104,7 @@ func (s Manager) IsFrontendExist(transactionId string, listenerMode ListenerMode
 }
 
 func (s Manager) IsOtherSwitchingRuleExist(transactionId string, listenerMode ListenerMode, bindPort int) (bool, error) {
-	frontendName := GenerateFrontendName(listenerMode, bindPort)
+	frontendName := s.GenerateFrontendName(listenerMode, bindPort)
 	params := QueryParameters{}
 	params.add("transaction_id", transactionId)
 	params.add("frontend", frontendName)
@@ -152,7 +152,7 @@ func (s Manager) DeleteFrontend(transactionId string, listenerMode ListenerMode,
 		}
 	}
 	// delete frontend
-	frontendName := GenerateFrontendName(listenerMode, bindPort)
+	frontendName := s.GenerateFrontendName(listenerMode, bindPort)
 	params := QueryParameters{}
 	params.add("transaction_id", transactionId)
 	// Send request

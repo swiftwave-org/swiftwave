@@ -247,7 +247,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 				transactionIdMap[haproxyManager] = haproxyTransactionId
 				for _, targetPort := range targetPorts {
 					backendName := haproxyManager.GenerateBackendName(application.Name, targetPort)
-					isBackendExist, err := haproxyManager.IsBackendExist(backendName)
+					isBackendExist, err := haproxyManager.IsBackendExist(haproxyTransactionId, backendName)
 					if err != nil {
 						isFailed = true
 						log.Println("failed to check if backend exist", err)

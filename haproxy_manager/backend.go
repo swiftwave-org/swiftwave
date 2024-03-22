@@ -123,7 +123,6 @@ func (s Manager) GetReplicaCount(transactionId string, serviceName string, port 
 	// Check if backend exist
 	isBackendExist, err := s.IsBackendExist(transactionId, backendName)
 	if err != nil {
-		log.Println(err)
 		return 0, err
 	}
 
@@ -177,7 +176,6 @@ func (s Manager) UpdateBackendReplicas(transactionId string, serviceName string,
 	// Check if backend exist
 	isBackendExist, err := s.IsBackendExist(transactionId, backendName)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 

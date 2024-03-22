@@ -22,7 +22,7 @@ func TestFrontend(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Check(t, isExists == true, "frontend should exist [api]")
-		assert.Check(t, strings.Compare(GenerateFrontendName(TCPMode, 8080), "fe_tcp_8080") == 0, "frontend name should be fe_tcp_8080")
+		assert.Check(t, strings.Compare(haproxyTestManager.GenerateFrontendName(TCPMode, 8080), "fe_tcp_8080") == 0, "frontend name should be fe_tcp_8080")
 	})
 
 	t.Run("add http frontend", func(t *testing.T) {
@@ -39,7 +39,7 @@ func TestFrontend(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Check(t, isExists == true, "frontend should exist [api]")
-		assert.Check(t, strings.Compare(GenerateFrontendName(HTTPMode, 8080), "fe_http_8080") == 0, "frontend name should be fe_http_8080")
+		assert.Check(t, strings.Compare(haproxyTestManager.GenerateFrontendName(HTTPMode, 8080), "fe_http_8080") == 0, "frontend name should be fe_http_8080")
 	})
 
 	t.Run("add duplicate frontend", func(t *testing.T) {
