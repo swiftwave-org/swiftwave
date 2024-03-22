@@ -43,9 +43,13 @@ func (s Manager) AddBackendSwitch(transactionId string, listenerMode ListenerMod
 }
 
 func (s Manager) FetchBackendSwitchIndex(transactionId string, listenerMode ListenerMode, bindPort int, backendName string, domainName string) (int, error) {
+	return s.FetchBackendSwitchIndexByName(transactionId, GenerateFrontendName(listenerMode, bindPort), bindPort, backendName, domainName)
+}
+
+func (s Manager) FetchBackendSwitchIndexByName(transactionId string, frontendName string, bindPort int, backendName string, domainName string) (int, error) {
 	params := QueryParameters{}
 	params.add("transaction_id", transactionId)
-	params.add("frontend", GenerateFrontendName(listenerMode, bindPort))
+	params.add("frontend", frontendName)
 	// Send request
 	getBackendSwitchRes, getBackendSwitchErr := s.getRequest("/services/haproxy/configuration/backend_switching_rules", params)
 	if getBackendSwitchErr != nil || !isValidStatusCode(getBackendSwitchRes.StatusCode) {
@@ -61,11 +65,15 @@ func (s Manager) FetchBackendSwitchIndex(transactionId string, listenerMode List
 		return -1, err
 	}
 	backendSwitchRules := backendSwitchRulesData["data"].([]interface{})
+	condTest := `{ hdr(host) -i ` + strings.TrimSpace(domainName) + `:` + strconv.Itoa(bindPort) + ` }`
+	if bindPort == 80 || bindPort == 443 {
+		condTest = `{ hdr(host) -i ` + strings.TrimSpace(domainName) + ` }`
+	}
 	for _, r := range backendSwitchRules {
 		rule := r.(map[string]interface{})
 		if rule["name"] == backendName &&
 			rule["cond"] == "if" &&
-			rule["cond_test"] == `{ hdr(host) -i `+strings.TrimSpace(domainName)+`:`+strconv.Itoa(bindPort)+` }` {
+			rule["cond_test"] == condTest {
 			return int(rule["index"].(float64)), nil
 		}
 	}
