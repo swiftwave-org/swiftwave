@@ -23,6 +23,9 @@ func (s Manager) GenerateFrontendName(listenerMode ListenerMode, port int) strin
 
 func (s Manager) AddFrontend(transactionId string, listenerMode ListenerMode, bindPort int, restrictedPorts []int) error {
 	if bindPort == 80 || bindPort == 443 {
+		if listenerMode == TCPMode {
+			return errors.New("frontend with tcp mode cannot be created for port 80 or 443")
+		}
 		return nil
 	}
 	frontendName := s.GenerateFrontendName(listenerMode, bindPort)
@@ -33,6 +36,24 @@ func (s Manager) AddFrontend(transactionId string, listenerMode ListenerMode, bi
 	isFrontendExist, _ := s.IsFrontendExist(transactionId, listenerMode, bindPort)
 	if isFrontendExist {
 		return nil
+	}
+	// if frontend with tcp/http mode already exists, then raise error
+	if listenerMode == TCPMode {
+		isConflictingFrontendExist, err := s.IsFrontendExist(transactionId, HTTPMode, bindPort)
+		if err != nil {
+			return err
+		}
+		if isConflictingFrontendExist {
+			return errors.New("frontend with http mode already exists")
+		}
+	} else if listenerMode == HTTPMode {
+		isConflictingFrontendExist, err := s.IsFrontendExist(transactionId, TCPMode, bindPort)
+		if err != nil {
+			return err
+		}
+		if isConflictingFrontendExist {
+			return errors.New("frontend with tcp mode already exists")
+		}
 	}
 	// create frontend
 	params := QueryParameters{}

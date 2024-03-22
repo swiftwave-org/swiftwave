@@ -250,4 +250,41 @@ func TestFrontend(t *testing.T) {
 		err := haproxyTestManager.AddFrontend(transactionId, HTTPMode, 8080, []int{8080})
 		assert.Check(t, err != nil, "frontend creation should fail for restricted port")
 	})
+
+	t.Run("if http frontend exists can't create tcp frontend at same port", func(t *testing.T) {
+		transactionId := newTransaction()
+		defer deleteTransaction(transactionId)
+		err := haproxyTestManager.AddFrontend(transactionId, HTTPMode, 8080, []int{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = haproxyTestManager.AddFrontend(transactionId, TCPMode, 8080, []int{})
+		assert.Check(t, err != nil, "tcp frontend creation should fail if http frontend exists")
+	})
+
+	t.Run("if tcp frontend exists can't create http frontend at same port", func(t *testing.T) {
+		transactionId := newTransaction()
+		defer deleteTransaction(transactionId)
+		err := haproxyTestManager.AddFrontend(transactionId, TCPMode, 8080, []int{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = haproxyTestManager.AddFrontend(transactionId, HTTPMode, 8080, []int{})
+		assert.Check(t, err != nil, "http frontend creation should fail if tcp frontend exists")
+	})
+
+	t.Run("add tcp frontend at port 80 should raise error", func(t *testing.T) {
+		transactionId := newTransaction()
+		defer deleteTransaction(transactionId)
+		err := haproxyTestManager.AddFrontend(transactionId, TCPMode, 80, []int{})
+		assert.Check(t, err != nil, "tcp frontend creation should fail for port 80")
+	})
+
+	t.Run("add tcp frontend at port 443 should raise error", func(t *testing.T) {
+		transactionId := newTransaction()
+		defer deleteTransaction(transactionId)
+		err := haproxyTestManager.AddFrontend(transactionId, TCPMode, 443, []int{})
+		assert.Check(t, err != nil, "tcp frontend creation should fail for port 443")
+	})
+
 }
