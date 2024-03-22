@@ -286,5 +286,4 @@ func TestFrontend(t *testing.T) {
 		err := haproxyTestManager.AddFrontend(transactionId, TCPMode, 443, []int{})
 		assert.Check(t, err != nil, "tcp frontend creation should fail for port 443")
 	})
-
 }
