@@ -28,6 +28,8 @@ func (m Manager) Start(nowait bool) {
 	go m.SyncProxy()
 	m.wg.Add(1)
 	go m.SyncBackupProxyServer()
+	m.wg.Add(1)
+	go m.MonitorServerStatus()
 	if !nowait {
 		m.wg.Wait()
 	}
