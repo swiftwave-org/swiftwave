@@ -28,6 +28,7 @@ type SystemConfigurationPayload struct {
 	PvBackupConfig       PvBackupConfig      `json:"pv_backup_config"`
 	PubsubConfig         PubsubConfig        `json:"pubsub_config"`
 	TaskQueueConfig      TaskQueueConfig     `json:"task_queue_config"`
+	NewAdminCredential   NewAdminCredential  `json:"new_admin_credential"`
 }
 
 type LetsEncryptConfig struct {
@@ -95,4 +96,9 @@ type AmqpConfig struct {
 	Username string                 `json:"username"`
 	Password string                 `json:"password"`
 	Vhost    string                 `json:"vhost"`
+}
+
+type NewAdminCredential struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
