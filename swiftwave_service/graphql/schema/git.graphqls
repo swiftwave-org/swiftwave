@@ -1,0 +1,8 @@
+input GitBranchesQueryInput {
+    gitCredentialId: Uint!
+    repositoryUrl: String!
+}
+
+extend type Query {
+    gitBranches(input: GitBranchesQueryInput!): [String!]!
+}
