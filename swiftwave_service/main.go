@@ -248,7 +248,7 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 	// Initialize GraphQL Server
 	graphqlServer.Initialize()
 
-	// StartSwiftwave the server
+	// Start the server
 	address := fmt.Sprintf("%s:%d", config.LocalConfig.ServiceConfig.BindAddress, config.LocalConfig.ServiceConfig.BindPort)
 	if config.LocalConfig.ServiceConfig.UseTLS {
 		println("TLS Server Started on " + address)

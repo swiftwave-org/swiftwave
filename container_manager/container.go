@@ -63,3 +63,20 @@ func (m Manager) RunCommandInServiceContainers(serviceName string, command []str
 	}
 	return nil
 }
+
+// IsContainerRunning checks if a container is running
+func (m Manager) IsContainerRunning(containerName string) (bool, error) {
+	containers, err := m.client.ContainerList(m.ctx, container.ListOptions{
+		All: true,
+		Filters: filters.NewArgs(
+			filters.Arg("name", containerName),
+		),
+	})
+	if err != nil {
+		return false, errors.New("Failed to list containers " + err.Error())
+	}
+	if len(containers) == 0 {
+		return false, nil
+	}
+	return containers[0].State == "running", nil
+}

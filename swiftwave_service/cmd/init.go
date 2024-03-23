@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"github.com/spf13/cobra"
+	config2 "github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"io"
 	"log"
@@ -15,8 +16,10 @@ import (
 
 func init() {
 	initCmd.Flags().SortFlags = false
+	initCmd.Flags().String("domain", "", "Domain name to use")
 	initCmd.Flags().Bool("auto-domain", false, "Resolve domain name automatically")
 	initCmd.Flags().Bool("remote-postgres", false, "Opt for remote postgres server")
+	initCmd.Flags().Bool("overwrite", false, "Overwrite existing config")
 }
 
 var initCmd = &cobra.Command{
@@ -25,37 +28,84 @@ var initCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		isAutoDomainResolve := cmd.Flag("auto-domain").Value.String() == "true"
 		isLocalPostgres := cmd.Flag("remote-postgres").Value.String() == "false"
-		// Try to fetch local config
-		_, err := local_config.Fetch()
-		if err == nil {
-			printError("Config already exists at " + local_config.LocalConfigPath)
-			printInfo("Run `swiftwave config` to edit the config file")
-			os.Exit(1)
-		}
-
-		// Get Domain Name
-		domainName, err := resolveQuickDNSDomain()
-		if err != nil {
-			printError(err.Error())
-			if isAutoDomainResolve {
+		isOverWrite := cmd.Flag("overwrite").Value.String() == "true"
+		predefinedDomain := cmd.Flag("domain").Value.String()
+		if isOverWrite {
+			printWarning("Overwriting existing config! Restart the service to apply changes")
+			// try to fetch local config
+			val, err := local_config.Fetch()
+			if err == nil {
+				config = &config2.Config{
+					LocalConfig:  val,
+					SystemConfig: nil,
+				}
+			}
+		} else {
+			// Try to fetch local config
+			_, err := local_config.Fetch()
+			if err == nil {
+				printError("Config already exists at " + local_config.LocalConfigPath)
+				printInfo("Run `swiftwave config` to edit the config file")
 				os.Exit(1)
 			}
 		}
 
-		if !isAutoDomainResolve {
-			// Ask user to enter domain name with default value as resolved domain name
-			fmt.Print("Domain Name [default: " + domainName + "]: ")
+		var domainName string
 
-			var inputDomainName string
-			_, err = fmt.Scanln(&inputDomainName)
+		if strings.Compare(predefinedDomain, "") == 0 {
+			// Get Domain Name
+			domainName, err := resolveQuickDNSDomain()
 			if err != nil {
-				inputDomainName = ""
+				printError(err.Error())
+				if isAutoDomainResolve {
+					os.Exit(1)
+				}
 			}
-			if strings.TrimSpace(inputDomainName) != "" {
-				domainName = inputDomainName
-				printInfo("Domain name set to " + domainName)
+
+			if !isAutoDomainResolve {
+				// Ask user to enter domain name with default value as resolved domain name
+				fmt.Print("Domain Name [default: " + domainName + "]: ")
+
+				var inputDomainName string
+				_, err = fmt.Scanln(&inputDomainName)
+				if err != nil {
+					inputDomainName = ""
+				}
+				if strings.TrimSpace(inputDomainName) != "" {
+					domainName = inputDomainName
+					printInfo("Domain name set to " + domainName)
+				}
 			}
+		} else {
+			printWarning("Using predefined domain name: " + predefinedDomain)
+			domainName = predefinedDomain
 		}
+
+		currentPostgresHost := ""
+		currentPostgresPort := 0
+		currentPostgresUser := ""
+		currentPostgresPassword := ""
+		currentPostgresDatabase := ""
+		currentPostgresTimeZone := ""
+		currentPostgresSSLMode := ""
+
+		currentLocalImageRegistryPort := 0
+		currentLocalImageRegistryUser := ""
+		currentLocalImageRegistryPassword := ""
+
+		if config != nil && config.LocalConfig != nil {
+			currentPostgresHost = config.LocalConfig.PostgresqlConfig.Host
+			currentPostgresPort = config.LocalConfig.PostgresqlConfig.Port
+			currentPostgresUser = config.LocalConfig.PostgresqlConfig.User
+			currentPostgresPassword = config.LocalConfig.PostgresqlConfig.Password
+			currentPostgresDatabase = config.LocalConfig.PostgresqlConfig.Database
+			currentPostgresTimeZone = config.LocalConfig.PostgresqlConfig.TimeZone
+			currentPostgresSSLMode = config.LocalConfig.PostgresqlConfig.SSLMode
+			currentLocalImageRegistryPort = config.LocalConfig.LocalImageRegistryConfig.Port
+			currentLocalImageRegistryUser = config.LocalConfig.LocalImageRegistryConfig.Username
+			currentLocalImageRegistryPassword = config.LocalConfig.LocalImageRegistryConfig.Password
+		}
+
 		// Create config
 		newConfig := &local_config.Config{
 			IsDevelopmentMode: false,
@@ -64,17 +114,22 @@ var initCmd = &cobra.Command{
 				ManagementNodeAddress: domainName,
 			},
 			PostgresqlConfig: local_config.PostgresqlConfig{
-				Host:             "127.0.0.1",
-				Port:             5432,
-				User:             generateRandomString(8),
-				Password:         generateRandomString(20),
-				Database:         "db_" + generateRandomString(8),
-				TimeZone:         "Asia/Kolkata",
-				SSLMode:          "disable",
+				Host:             defaultString(currentPostgresHost, "127.0.0.1"),
+				Port:             defaultInt(currentPostgresPort, 5432),
+				User:             defaultString(currentPostgresUser, "user_"+generateRandomString(8)),
+				Password:         defaultString(currentPostgresPassword, generateRandomString(20)),
+				Database:         defaultString(currentPostgresDatabase, "db_"+generateRandomString(8)),
+				TimeZone:         defaultString(currentPostgresTimeZone, "Asia/Kolkata"),
+				SSLMode:          defaultString(currentPostgresSSLMode, "disable"),
 				RunLocalPostgres: isLocalPostgres,
 			},
+			LocalImageRegistryConfig: local_config.LocalImageRegistryConfig{
+				Port:     defaultInt(currentLocalImageRegistryPort, 3334),
+				Username: defaultString(currentLocalImageRegistryUser, "user_"+generateRandomString(8)),
+				Password: defaultString(currentLocalImageRegistryPassword, generateRandomString(20)),
+			},
 		}
-		err = local_config.FillDefaults(newConfig)
+		err := local_config.FillDefaults(newConfig)
 		if err != nil {
 			printError(err.Error())
 			os.Exit(1)
@@ -88,6 +143,10 @@ var initCmd = &cobra.Command{
 			newConfig.ServiceConfig.PVBackupDirectoryPath,
 			newConfig.ServiceConfig.PVRestoreDirectoryPath,
 			newConfig.ServiceConfig.SSLCertDirectoryPath,
+			newConfig.ServiceConfig.LocalImageRegistryDirectoryPath,
+			newConfig.LocalImageRegistryConfig.CertPath,
+			newConfig.LocalImageRegistryConfig.AuthPath,
+			newConfig.LocalImageRegistryConfig.DataPath,
 			newConfig.ServiceConfig.HAProxyDataDirectoryPath,
 			newConfig.ServiceConfig.HAProxyUnixSocketDirectory,
 			newConfig.ServiceConfig.UDPProxyDataDirectoryPath,
@@ -96,7 +155,7 @@ var initCmd = &cobra.Command{
 		}
 		// create folders
 		for _, folder := range requiredFolders {
-			err = createFolder(folder)
+			err := createFolder(folder)
 			if err != nil {
 				printError("Failed to create folder " + folder)
 				os.Exit(1)
@@ -111,10 +170,19 @@ var initCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		printSuccess("Config created at " + local_config.LocalConfigPath)
+		config = &config2.Config{
+			LocalConfig:  newConfig,
+			SystemConfig: nil,
+		}
 		if !isLocalPostgres {
 			printInfo("You have opted to use your own postgres server")
 			printInfo("Configure postgresql credentials to connect to your own postgres server")
 			printInfo("Run `swiftwave config` to edit the config file")
+		}
+		if isOverWrite {
+			printInfo("Config has been overwritten")
+			printInfo("Try to restarting the service to apply changes [as overwriting config]")
+			restartServiceCmd.Run(serviceCmd, []string{})
 		}
 	},
 }
@@ -162,4 +230,18 @@ func generateRandomString(length int) string {
 		result[i] = chars[rand.Intn(len(chars))]
 	}
 	return string(result)
+}
+
+func defaultString(value, defaultValue string) string {
+	if strings.Compare(value, "") == 0 {
+		return defaultValue
+	}
+	return value
+}
+
+func defaultInt(value, defaultValue int) int {
+	if value == 0 {
+		return defaultValue
+	}
+	return value
 }

@@ -34,3 +34,24 @@ func Fetch() (*Config, error) {
 		SystemConfig: systemConfig,
 	}, nil
 }
+
+func ImageRegistryEndpoint(config *Config) (string, error) {
+	if config.SystemConfig.ImageRegistryConfig.IsConfigured() {
+		return config.SystemConfig.ImageRegistryConfig.Endpoint, nil
+	}
+	return config.LocalConfig.GetRegistryURL(), nil
+}
+
+func ImageRegistryUsername(config *Config) (string, error) {
+	if config.SystemConfig.ImageRegistryConfig.IsConfigured() {
+		return config.SystemConfig.ImageRegistryConfig.Username, nil
+	}
+	return config.LocalConfig.LocalImageRegistryConfig.Username, nil
+}
+
+func ImageRegistryPassword(config *Config) (string, error) {
+	if config.SystemConfig.ImageRegistryConfig.IsConfigured() {
+		return config.SystemConfig.ImageRegistryConfig.Password, nil
+	}
+	return config.LocalConfig.LocalImageRegistryConfig.Password, nil
+}
