@@ -20,3 +20,4 @@ graphql-docs
 .build_docs_tmp
 swiftwave_service/dashboard/www
 *.dot
+swiftwave_snapshot_*.tar.gz

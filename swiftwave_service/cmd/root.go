@@ -27,6 +27,7 @@ func init() {
 	rootCmd.AddCommand(localRegistryCmd)
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(autoUpdaterCmd)
+	rootCmd.AddCommand(snapshotCmd)
 }
 
 var rootCmd = &cobra.Command{
@@ -46,7 +47,7 @@ func Execute() {
 	// set config and manager
 	cobra.EnableCommandSorting = false
 	// Check whether first argument is "install" or no arguments
-	if (len(os.Args) > 1 && (os.Args[1] == "init" || os.Args[1] == "completion" || os.Args[1] == "--help" || os.Args[1] == "help")) || len(os.Args) == 1 {
+	if (len(os.Args) > 1 && (os.Args[1] == "init" || os.Args[1] == "completion" || os.Args[1] == "--help" || os.Args[1] == "help" || os.Args[1] == "snapshot")) || len(os.Args) == 1 {
 		// if first argument is "init" or no arguments, do not load config
 	} else if len(os.Args) >= 1 && (os.Args[1] == "postgres" || os.Args[1] == "db-migrate" || os.Args[1] == "config" || os.Args[1] == "auto-updater" || os.Args[1] == "update" || os.Args[1] == "service") {
 		// load only local config
