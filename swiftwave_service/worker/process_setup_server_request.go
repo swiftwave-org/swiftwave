@@ -89,6 +89,7 @@ func (m Manager) setupServerHelper(request SetupServerRequest, ctx context.Conte
 		m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath,
 		m.Config.LocalConfig.ServiceConfig.UDPProxyUnixSocketDirectory,
 		m.Config.LocalConfig.ServiceConfig.SSLCertDirectoryPath,
+		m.Config.LocalConfig.ServiceConfig.LocalImageRegistryDirectoryPath,
 	}
 
 	for _, dir := range directories {

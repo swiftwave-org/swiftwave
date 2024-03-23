@@ -13,11 +13,6 @@ import (
 
 func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context.Context, _ context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
-	// restricted ports
-	restrictedPorts := make([]int, 0)
-	for _, port := range m.Config.SystemConfig.RestrictedPorts {
-		restrictedPorts = append(restrictedPorts, int(port))
-	}
 	// fetch ingress rule
 	var ingressRule core.IngressRule
 	err := ingressRule.FindById(ctx, dbWithoutTx, request.Id)

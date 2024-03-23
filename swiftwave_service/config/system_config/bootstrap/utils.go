@@ -53,8 +53,6 @@ func portsStringToArray(ports string) []int64 {
 	}
 	// add default ports
 	portsMap[22] = true
-	portsMap[80] = true
-	portsMap[443] = true
 	portsMap[2376] = true
 	portsMap[2377] = true
 	portsMap[4789] = true
@@ -65,6 +63,7 @@ func portsStringToArray(ports string) []int64 {
 	}
 	bindPort := localConfig.ServiceConfig.BindPort
 	portsMap[int64(bindPort)] = true
+	portsMap[int64(localConfig.LocalImageRegistryConfig.Port)] = true
 	// convert map to array
 	portsArr := pq.Int64Array{}
 	for k := range portsMap {

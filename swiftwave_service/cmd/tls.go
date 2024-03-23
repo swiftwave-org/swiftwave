@@ -67,6 +67,8 @@ var tlsEnableCmd = &cobra.Command{
 		}
 		printSuccess("TLS has been enabled")
 		restartSysctlService("swiftwave")
+		// Restart local registry if required
+		restartLocalRegistryIfRequired(cmd.Context())
 	},
 }
 
@@ -89,6 +91,8 @@ var tlsDisableCmd = &cobra.Command{
 		}
 		printSuccess("TLS has been disabled")
 		restartSysctlService("swiftwave")
+		// Restart local registry if required
+		restartLocalRegistryIfRequired(cmd.Context())
 	},
 }
 
@@ -170,25 +174,17 @@ var generateCertificateCommand = &cobra.Command{
 				return
 			}
 		}
-		// Store private key and certificate in the service.ssl_certificate_dir/<domain> folder
-		dir := filepath.Join(config.LocalConfig.ServiceConfig.SSLCertDirectoryPath, domain)
-		if !checkIfFolderExists(dir) {
-			err = createFolder(dir)
-			if err != nil {
-				printError("Failed to create folder " + dir)
-				os.Exit(1)
-				return
-			}
-		}
+		// Store private key and certificate in the service.ssl_certificate_dir folder
+		certDir := config.LocalConfig.ServiceConfig.SSLCertDirectoryPath
 		// Store private key
-		err = os.WriteFile(filepath.Join(dir, "private.key"), []byte(privateKey), 0644)
+		err = os.WriteFile(filepath.Join(certDir, "private.key"), []byte(privateKey), 0600)
 		if err != nil {
 			printError("Failed to store private key")
 			os.Exit(1)
 			return
 		}
 		// Store certificate
-		err = os.WriteFile(filepath.Join(dir, "certificate.crt"), []byte(certificate), 0644)
+		err = os.WriteFile(filepath.Join(certDir, "certificate.crt"), []byte(certificate), 0600)
 		if err != nil {
 			printError("Failed to store certificate")
 			os.Exit(1)
@@ -209,6 +205,8 @@ var generateCertificateCommand = &cobra.Command{
 		}
 		// Restart swiftwave service
 		restartSysctlService("swiftwave")
+		// Restart local registry if required
+		restartLocalRegistryIfRequired(cmd.Context())
 	},
 }
 
@@ -218,7 +216,7 @@ var renewCertificateCommand = &cobra.Command{
 	Long: `This command renews TLS certificates for swiftwave endpoints.
 	It's not for renewing certificates for domain of hosted applications`,
 	Run: func(cmd *cobra.Command, args []string) {
-		sslCertificatePath := filepath.Join(config.LocalConfig.ServiceConfig.SSLCertDirectoryPath, config.LocalConfig.ServiceConfig.ManagementNodeAddress, "certificate.crt")
+		sslCertificatePath := filepath.Join(config.LocalConfig.ServiceConfig.SSLCertDirectoryPath, "certificate.crt")
 		if _, err := os.Stat(sslCertificatePath); os.IsNotExist(err) {
 			printError("No TLS certificate found")
 			printInfo("Use `swiftwave tls generate` to generate a new certificate")
@@ -306,4 +304,32 @@ func isRenewalImminent(certPath string) (bool, error) {
 	}
 
 	return daysRemaining <= 30, nil
+}
+
+func restartLocalRegistryIfRequired(ctx context.Context) {
+	if config == nil || config.LocalConfig == nil || config.SystemConfig == nil {
+		return
+	}
+	isRequired, err := isLocalRegistryRequired()
+	if err != nil {
+		printError("Failed to check if local registry is required")
+		printError(err.Error())
+		return
+	}
+	if isRequired {
+		isRunning, err := isLocalRegistryRunning(ctx)
+		if err != nil {
+			printError("Failed to check if local registry is running")
+			printError(err.Error())
+			return
+		}
+		if !isRunning {
+			err := restartLocalRegistry(ctx)
+			if err != nil {
+				printError("Failed to restart local registry")
+				printError(err.Error())
+				return
+			}
+		}
+	}
 }

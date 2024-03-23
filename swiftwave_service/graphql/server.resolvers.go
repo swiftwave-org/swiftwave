@@ -421,6 +421,16 @@ func (r *mutationResolver) EnableProxyOnServer(_ context.Context, id uint) (bool
 	}
 	// Enable the proxy
 	server.ProxyConfig.SetupRunning = true
+	// For backup proxy, atleast 1 active proxy is required
+	if server.ProxyConfig.Type == core.BackupProxy {
+		activeProxies, err := core.FetchProxyActiveServers(&r.ServiceManager.DbClient)
+		if err != nil {
+			return false, err
+		}
+		if len(activeProxies) == 0 {
+			return false, errors.New("for adding backup proxy, atleast 1 active proxy is required")
+		}
+	}
 	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
 	if err != nil {
 		return false, err

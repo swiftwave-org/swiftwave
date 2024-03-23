@@ -2,7 +2,6 @@ package swiftwave
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"github.com/fatih/color"
 	"github.com/golang-jwt/jwt/v5"
@@ -11,10 +10,10 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/console"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/dashboard"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -73,7 +72,7 @@ func StartSwiftwave(config *config.Config) {
 
 func echoLogger(_ echo.Context, err error, stack []byte) error {
 	color.Red("Recovered from panic: %s\n", err)
-	fmt.Println(string(stack))
+	logger.HTTPLoggerError.Println("Swiftwave server is facing error : ", err.Error(), "\n", string(stack))
 	return nil
 }
 
@@ -249,44 +248,19 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 	// Initialize GraphQL Server
 	graphqlServer.Initialize()
 
-	// StartSwiftwave the server
+	// Start the server
 	address := fmt.Sprintf("%s:%d", config.LocalConfig.ServiceConfig.BindAddress, config.LocalConfig.ServiceConfig.BindPort)
 	if config.LocalConfig.ServiceConfig.UseTLS {
 		println("TLS Server Started on " + address)
-
-		tlsCfg := &tls.Config{
-			Certificates: fetchCertificates(config.LocalConfig.ServiceConfig.SSLCertDirectoryPath),
-		}
-
 		s := http.Server{
-			Addr:      address,
-			Handler:   echoServer,
-			TLSConfig: tlsCfg,
+			Addr:    address,
+			Handler: echoServer,
 		}
-		echoServer.Logger.Fatal(s.ListenAndServeTLS("", ""))
+		certFilePath := fmt.Sprintf("%s/certificate.crt", config.LocalConfig.ServiceConfig.SSLCertDirectoryPath)
+		keyFilePath := fmt.Sprintf("%s/private.key", config.LocalConfig.ServiceConfig.SSLCertDirectoryPath)
+		echoServer.Logger.Fatal(s.ListenAndServeTLS(certFilePath, keyFilePath))
 	} else {
+		println("Server Started on " + address)
 		echoServer.Logger.Fatal(echoServer.Start(address))
 	}
-}
-
-// private functions
-func fetchCertificates(certFolderPath string) []tls.Certificate {
-	var certificates []tls.Certificate
-	// fetch all folders in the cert folder
-	files, err := os.ReadDir(certFolderPath)
-	if err != nil {
-		return certificates
-	}
-	for _, file := range files {
-		if file.IsDir() {
-			// fetch the certificate
-			cert, err := tls.LoadX509KeyPair(fmt.Sprintf("%s/%s/certificate.crt", certFolderPath, file.Name()), fmt.Sprintf("%s/%s/private.key", certFolderPath, file.Name()))
-			if err != nil {
-				log.Println("Error loading certificate: ", err)
-				continue
-			}
-			certificates = append(certificates, cert)
-		}
-	}
-	return certificates
 }

@@ -24,6 +24,7 @@ func init() {
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(serviceCmd)
 	rootCmd.AddCommand(postgresCmd)
+	rootCmd.AddCommand(localRegistryCmd)
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(autoUpdaterCmd)
 }
@@ -90,7 +91,7 @@ func Execute() {
 		loadSystemConfig := false
 
 		// if it's start command, and system setup is required, don't load complete config
-		if len(os.Args) > 1 && os.Args[1] == "start" {
+		if len(os.Args) > 1 && (os.Args[1] == "start" || os.Args[1] == "localregistry") {
 			setupRequired, err := bootstrap.IsSystemSetupRequired()
 			if err != nil {
 				printError("Failed to check if system setup is required: " + err.Error())

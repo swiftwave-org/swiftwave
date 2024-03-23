@@ -2,6 +2,7 @@ package containermanger
 
 import (
 	"errors"
+	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
@@ -9,7 +10,10 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"io"
 	"strings"
+	"time"
 )
+
+const maxRetriesForVersionConflict = 5
 
 func (m Manager) GetService(serviceName string) (Service, error) {
 	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
@@ -102,62 +106,96 @@ func (m Manager) UpdateService(service Service, username string, password string
 	if err != nil {
 		return errors.New("failed to generate auth header")
 	}
-	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, service.Name, types.ServiceInspectOptions{})
-	if err != nil {
-		return errors.New("error getting swarm server version")
+
+	maxRetries := maxRetriesForVersionConflict
+	for {
+		serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, service.Name, types.ServiceInspectOptions{})
+		if err != nil {
+			return errors.New("error getting swarm server version")
+		}
+		version := swarm.Version{
+			Index: serviceData.Version.Index,
+		}
+		_, err = m.client.ServiceUpdate(m.ctx, service.Name, version, m.serviceToServiceSpec(service), types.ServiceUpdateOptions{
+			EncodedRegistryAuth: authHeader,
+			QueryRegistry:       queryRegistry,
+		})
+		if err != nil {
+			if strings.Contains(err.Error(), "update out of sequence") {
+				if maxRetries == 0 {
+					return fmt.Errorf("error updating service due to version out of sync [retried %d times]", maxRetriesForVersionConflict)
+				}
+				<-time.After(3 * time.Second)
+				maxRetries--
+				continue
+			}
+			return errors.New("error updating service")
+		} else {
+			return nil
+		}
 	}
-	version := swarm.Version{
-		Index: serviceData.Version.Index,
-	}
-	if err != nil {
-		return errors.New("error getting swarm server version")
-	}
-	_, err = m.client.ServiceUpdate(m.ctx, service.Name, version, m.serviceToServiceSpec(service), types.ServiceUpdateOptions{
-		EncodedRegistryAuth: authHeader,
-		QueryRegistry:       queryRegistry,
-	})
-	if err != nil {
-		return errors.New("error updating service")
-	}
-	return nil
 }
 
 func (m Manager) RestartService(serviceName string) error {
-	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
-	if err != nil {
-		return errors.New("error getting swarm server version")
+	maxRetries := 5
+	for {
+		serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
+		if err != nil {
+			return errors.New("error getting swarm server version")
+		}
+		version := swarm.Version{
+			Index: serviceData.Version.Index,
+		}
+		if err != nil {
+			return errors.New("error getting swarm server version")
+		}
+		spec := serviceData.Spec
+		spec.TaskTemplate.ForceUpdate++
+		_, err = m.client.ServiceUpdate(m.ctx, serviceName, version, spec, types.ServiceUpdateOptions{})
+		if err != nil {
+			if strings.Contains(err.Error(), "update out of sequence") {
+				if maxRetries == 0 {
+					return fmt.Errorf("error updating service due to version out of sync [retried %d times]", maxRetriesForVersionConflict)
+				}
+				<-time.After(3 * time.Second)
+				maxRetries--
+				continue
+			}
+			return errors.New("error updating service")
+		} else {
+			return nil
+		}
 	}
-	version := swarm.Version{
-		Index: serviceData.Version.Index,
-	}
-	if err != nil {
-		return errors.New("error getting swarm server version")
-	}
-	spec := serviceData.Spec
-	spec.TaskTemplate.ForceUpdate++
-	_, err = m.client.ServiceUpdate(m.ctx, serviceName, version, spec, types.ServiceUpdateOptions{})
-	if err != nil {
-		return errors.New("error updating service")
-	}
-	return nil
 }
 
 func (m Manager) RollbackService(serviceName string) error {
-	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
-	if err != nil {
-		return errors.New("error getting swarm server version")
+	maxRetries := 5
+	for {
+		serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
+		if err != nil {
+			return errors.New("error getting swarm server version")
+		}
+		version := swarm.Version{
+			Index: serviceData.Version.Index,
+		}
+		if err != nil {
+			return errors.New("error getting swarm server version")
+		}
+		_, err = m.client.ServiceUpdate(m.ctx, serviceName, version, *serviceData.PreviousSpec, types.ServiceUpdateOptions{})
+		if err != nil {
+			if strings.Contains(err.Error(), "update out of sequence") {
+				if maxRetries == 0 {
+					return fmt.Errorf("error updating service due to version out of sync [retried %d times]", maxRetriesForVersionConflict)
+				}
+				<-time.After(3 * time.Second)
+				maxRetries--
+				continue
+			}
+			return errors.New("error updating service")
+		} else {
+			return nil
+		}
 	}
-	version := swarm.Version{
-		Index: serviceData.Version.Index,
-	}
-	if err != nil {
-		return errors.New("error getting swarm server version")
-	}
-	_, err = m.client.ServiceUpdate(m.ctx, serviceName, version, *serviceData.PreviousSpec, types.ServiceUpdateOptions{})
-	if err != nil {
-		return errors.New("error updating service")
-	}
-	return nil
 }
 
 func (m Manager) RemoveService(serviceName string) error {
@@ -169,27 +207,39 @@ func (m Manager) RemoveService(serviceName string) error {
 }
 
 func (m Manager) SetServiceReplicaCount(serviceName string, replicas int) error {
-	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
-	if err != nil {
-		return errors.New("error getting swarm server version")
+	maxRetries := 5
+	for {
+		serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
+		if err != nil {
+			return errors.New("error getting swarm server version")
+		}
+		version := swarm.Version{
+			Index: serviceData.Version.Index,
+		}
+		if err != nil {
+			return errors.New("error getting swarm server version")
+		}
+		spec := serviceData.Spec
+		if spec.Mode.Replicated == nil {
+			return errors.New("service is not a replicated service")
+		}
+		replicaCount := uint64(replicas)
+		spec.Mode.Replicated.Replicas = &replicaCount
+		_, err = m.client.ServiceUpdate(m.ctx, serviceName, version, spec, types.ServiceUpdateOptions{})
+		if err != nil {
+			if strings.Contains(err.Error(), "update out of sequence") {
+				if maxRetries == 0 {
+					return fmt.Errorf("error updating service due to version out of sync [retried %d times]", maxRetriesForVersionConflict)
+				}
+				<-time.After(3 * time.Second)
+				maxRetries--
+				continue
+			}
+			return errors.New("error updating service")
+		} else {
+			return nil
+		}
 	}
-	version := swarm.Version{
-		Index: serviceData.Version.Index,
-	}
-	if err != nil {
-		return errors.New("error getting swarm server version")
-	}
-	spec := serviceData.Spec
-	if spec.Mode.Replicated == nil {
-		return errors.New("service is not a replicated service")
-	}
-	replicaCount := uint64(replicas)
-	spec.Mode.Replicated.Replicas = &replicaCount
-	_, err = m.client.ServiceUpdate(m.ctx, serviceName, version, spec, types.ServiceUpdateOptions{})
-	if err != nil {
-		return errors.New("error updating service")
-	}
-	return nil
 }
 
 func (m Manager) RealtimeInfoRunningServices() (map[string]ServiceRealtimeInfo, error) {

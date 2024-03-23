@@ -3,6 +3,7 @@ package local_config
 import (
 	"errors"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/yaml.v3"
 	"io"
 	"os"
@@ -93,6 +94,9 @@ func FillDefaults(config *Config) error {
 	if config.ServiceConfig.ManagementNodeAddress == "" {
 		return errors.New("management_node_address is required in config")
 	}
+	if config.LocalImageRegistryConfig.Port == 0 {
+		config.LocalImageRegistryConfig.Port = defaultImageRegistryPort
+	}
 	config.ServiceConfig.SocketPathDirectory = defaultSocketPathDirectory
 	config.ServiceConfig.DataDirectory = defaultDataDirectory
 	config.ServiceConfig.LocalPostgresDataDirectory = defaultLocalPostgresDataDirectory
@@ -107,11 +111,15 @@ func FillDefaults(config *Config) error {
 	config.ServiceConfig.UDPProxyUnixSocketPath = defaultUDPProxyUnixSocketPath
 	config.ServiceConfig.UDPProxyDataDirectoryPath = defaultUDPProxyDataDirectoryPath
 	config.ServiceConfig.SSLCertDirectoryPath = defaultSSLCertDirectoryPath
+	config.ServiceConfig.LocalImageRegistryDirectoryPath = defaultLocalImageRegistryDirectoryPath
 	config.ServiceConfig.LogDirectoryPath = LogDirectoryPath
 	config.ServiceConfig.InfoLogFilePath = InfoLogFilePath
 	config.ServiceConfig.ErrorLogFilePath = ErrorLogFilePath
 	config.ServiceConfig.PVBackupDirectoryPath = defaultPVBackupDirectoryPath
 	config.ServiceConfig.PVRestoreDirectoryPath = defaultPVRestoreDirectoryPath
+	config.LocalImageRegistryConfig.CertPath = defaultLocalImageRegistryCertDirectoryPath
+	config.LocalImageRegistryConfig.AuthPath = defaultLocalImageRegistryAuthDirectoryPath
+	config.LocalImageRegistryConfig.DataPath = defaultLocalImageRegistryDataDirectoryPath
 	return nil
 }
 
@@ -126,4 +134,16 @@ func (config *Config) String() (string, error) {
 		return "", err
 	}
 	return string(out), nil
+}
+
+func (config *Config) GetRegistryURL() string {
+	return fmt.Sprintf("%s:%d", config.ServiceConfig.ManagementNodeAddress, config.LocalImageRegistryConfig.Port)
+}
+
+func (l *LocalImageRegistryConfig) Htpasswd() (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(l.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s:%s", l.Username, string(hashedPassword)), nil
 }

@@ -9,12 +9,6 @@ import (
 	"time"
 )
 
-func checkIfFolderExists(folder string) bool {
-	cmd := exec.Command("ls", folder)
-	err := cmd.Run()
-	return err == nil
-}
-
 func createFolder(folder string) error {
 	return os.MkdirAll(folder, 0711)
 }
@@ -106,4 +100,8 @@ func printError(message string) {
 
 func printInfo(message string) {
 	color.Blue(InfoSymbol + " " + message)
+}
+
+func printWarning(message string) {
+	color.Yellow(WarningSymbol + " " + message)
 }

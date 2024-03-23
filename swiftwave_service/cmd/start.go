@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	swiftwave "github.com/swiftwave-org/swiftwave/swiftwave_service"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config/bootstrap"
+	"os"
 )
 
 var startCmd = &cobra.Command{
@@ -25,6 +26,7 @@ var startCmd = &cobra.Command{
 		if err != nil {
 			printError("Failed to check if system setup is required")
 			printError(err.Error())
+			os.Exit(1)
 			return
 		}
 		if setupRequired {
@@ -35,6 +37,33 @@ var startCmd = &cobra.Command{
 				printError(err.Error())
 			}
 		} else {
+			isRequired, err := isLocalRegistryRequired()
+			if err != nil {
+				printError("Failed to check if local registry is required")
+				printError(err.Error())
+				os.Exit(1)
+				return
+			}
+			if isRequired {
+				color.Yellow("Local registry will be used for image storage")
+				isRunning, err := isLocalRegistryRunning(cmd.Context())
+				if err != nil {
+					printError("Failed to check if local registry is running")
+					printError(err.Error())
+					os.Exit(1)
+					return
+				}
+				if !isRunning {
+					color.Yellow("Starting local registry")
+					err := startLocalRegistry(cmd.Context())
+					if err != nil {
+						printError("Failed to start local registry")
+						printError(err.Error())
+						os.Exit(1)
+						return
+					}
+				}
+			}
 			swiftwave.StartSwiftwave(config)
 		}
 	},

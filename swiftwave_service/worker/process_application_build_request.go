@@ -108,7 +108,7 @@ func (m Manager) buildApplicationHelper(request BuildApplicationRequest, ctx con
 		}
 	}
 	// Push image to registry
-	if m.Config.SystemConfig.ImageRegistryConfig.IsConfigured() && (deployment.UpstreamType == core.UpstreamTypeGit || deployment.UpstreamType == core.UpstreamTypeSourceCode) {
+	if deployment.UpstreamType == core.UpstreamTypeGit || deployment.UpstreamType == core.UpstreamTypeSourceCode {
 		err = m.pushImageToRegistry(deployment, *db, dbWithoutTx, pubSubClient, ctx, cancelContext, dockerManager)
 		if err != nil {
 			return err
@@ -134,7 +134,7 @@ func (m Manager) buildApplicationHelper(request BuildApplicationRequest, ctx con
 	return err
 }
 
-func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, _ context.CancelFunc, _ *containermanger.Manager) error {
+func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, _ gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, _ context.Context, _ context.CancelFunc, _ *containermanger.Manager) error {
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "As the upstream type is image, no build is required\n", false)
 	return nil
 }
@@ -203,7 +203,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 	}
 
 	// start building docker image
-	scanner, err := dockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.CodePath, deployment.DeployableDockerImageURI(m.Config.SystemConfig.ImageRegistryConfig.URI()))
+	scanner, err := dockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.CodePath, deployment.DeployableDockerImageURI(m.Config.ImageRegistryURI()))
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image\n", true)
 		return err
@@ -278,7 +278,7 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm
 	}
 
 	// start building docker image
-	scanner, err := dockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.CodePath, deployment.DeployableDockerImageURI(m.Config.SystemConfig.ImageRegistryConfig.URI()))
+	scanner, err := dockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.CodePath, deployment.DeployableDockerImageURI(m.Config.ImageRegistryURI()))
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image\n", true)
 		return err
@@ -318,8 +318,8 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm
 }
 
 func (m Manager) pushImageToRegistry(deployment *core.Deployment, _ gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, _ context.CancelFunc, dockerManager *containermanger.Manager) error {
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image : "+deployment.DeployableDockerImageURI(m.Config.SystemConfig.ImageRegistryConfig.URI())+"\n", false)
-	scanner, err := dockerManager.PushImage(ctx, deployment.DeployableDockerImageURI(m.Config.SystemConfig.ImageRegistryConfig.URI()), m.Config.SystemConfig.ImageRegistryConfig.Username, m.Config.SystemConfig.ImageRegistryConfig.Password)
+	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image : "+deployment.DeployableDockerImageURI(m.Config.ImageRegistryURI())+"\n", false)
+	scanner, err := dockerManager.PushImage(ctx, deployment.DeployableDockerImageURI(m.Config.ImageRegistryURI()), m.Config.ImageRegistryUsername(), m.Config.ImageRegistryPassword())
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to push image to registry\n", true)
 		return err
