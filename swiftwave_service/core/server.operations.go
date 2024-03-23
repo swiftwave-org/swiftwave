@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"gorm.io/gorm"
+	"time"
 )
 
 // CreateServer creates a new server in the database
@@ -13,6 +14,7 @@ func CreateServer(db *gorm.DB, server *Server) error {
 	if server.User == "" {
 		return errors.New("user is required")
 	}
+	server.LastPing = time.Now()
 	return db.Create(server).Error
 }
 
@@ -108,4 +110,14 @@ func FetchAllProxyServersIrrespectiveOfStatus(db *gorm.DB) ([]Server, error) {
 	var servers []Server
 	err := db.Where("proxy_enabled = ?", true).Find(&servers).Error
 	return servers, err
+}
+
+// MarkServerAsOnline marks a server as online in the database
+func MarkServerAsOnline(db *gorm.DB, server *Server) error {
+	return db.Model(server).Updates(map[string]interface{}{"status": ServerOnline, "last_ping": time.Now()}).Error
+}
+
+// MarkServerAsOffline marks a server as offline in the database
+func MarkServerAsOffline(db *gorm.DB, server *Server) error {
+	return db.Model(server).Update("status", ServerOffline).Error
 }
