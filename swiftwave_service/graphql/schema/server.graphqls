@@ -97,4 +97,5 @@ extend type Mutation {
     removeServerFromSwarmCluster(id: Uint!): Boolean!
     enableProxyOnServer(id: Uint!): Boolean!
     disableProxyOnServer(id: Uint!): Boolean!
+    fetchAnalyticsServiceToken(id: Uint!, rotate:Boolean!): String!
 }

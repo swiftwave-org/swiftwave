@@ -70,7 +70,9 @@ func RotateAnalyticsServiceToken(ctx context.Context, db gorm.DB, serverId uint)
 	// delete existing token
 	err := DeleteAnalyticsServiceToken(ctx, db, serverId)
 	if err != nil {
-		return nil, err
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
 	}
 	// create a new token
 	return FetchAnalyticsServiceToken(ctx, db, serverId)
