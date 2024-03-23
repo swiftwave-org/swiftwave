@@ -463,6 +463,22 @@ func (r *mutationResolver) DisableProxyOnServer(ctx context.Context, id uint) (b
 	return err == nil, err
 }
 
+// FetchAnalyticsServiceToken is the resolver for the fetchAnalyticsServiceToken field.
+func (r *mutationResolver) FetchAnalyticsServiceToken(ctx context.Context, id uint, rotate bool) (string, error) {
+	var tokenRecord *core.AnalyticsServiceToken
+	var err error
+	if !rotate {
+		tokenRecord, err = core.FetchAnalyticsServiceToken(ctx, r.ServiceManager.DbClient, id)
+	} else {
+		tokenRecord, err = core.RotateAnalyticsServiceToken(ctx, r.ServiceManager.DbClient, id)
+	}
+	if err != nil {
+		return "", err
+	} else {
+		return tokenRecord.IDToken()
+	}
+}
+
 // Servers is the resolver for the servers field.
 func (r *queryResolver) Servers(ctx context.Context) ([]*model.Server, error) {
 	servers, err := core.FetchAllServers(&r.ServiceManager.DbClient)
