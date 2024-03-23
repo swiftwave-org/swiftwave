@@ -123,7 +123,7 @@ func (m Manager) UpdateService(service Service, username string, password string
 		if err != nil {
 			if strings.Contains(err.Error(), "update out of sequence") {
 				if maxRetries == 0 {
-					return errors.New(fmt.Sprintf("error updating service due to version out of sync [retried %d times]", maxRetriesForVersionConflict))
+					return fmt.Errorf("error updating service due to version out of sync [retried %d times]", maxRetriesForVersionConflict)
 				}
 				<-time.After(3 * time.Second)
 				maxRetries--
@@ -155,7 +155,7 @@ func (m Manager) RestartService(serviceName string) error {
 		if err != nil {
 			if strings.Contains(err.Error(), "update out of sequence") {
 				if maxRetries == 0 {
-					return errors.New(fmt.Sprintf("error updating service due to version out of sync [retried %d times]", maxRetriesForVersionConflict))
+					return fmt.Errorf("error updating service due to version out of sync [retried %d times]", maxRetriesForVersionConflict)
 				}
 				<-time.After(3 * time.Second)
 				maxRetries--
@@ -185,7 +185,7 @@ func (m Manager) RollbackService(serviceName string) error {
 		if err != nil {
 			if strings.Contains(err.Error(), "update out of sequence") {
 				if maxRetries == 0 {
-					return errors.New(fmt.Sprintf("error updating service due to version out of sync [retried %d times]", maxRetriesForVersionConflict))
+					return fmt.Errorf("error updating service due to version out of sync [retried %d times]", maxRetriesForVersionConflict)
 				}
 				<-time.After(3 * time.Second)
 				maxRetries--
@@ -229,7 +229,7 @@ func (m Manager) SetServiceReplicaCount(serviceName string, replicas int) error 
 		if err != nil {
 			if strings.Contains(err.Error(), "update out of sequence") {
 				if maxRetries == 0 {
-					return errors.New(fmt.Sprintf("error updating service due to version out of sync [retried %d times]", maxRetriesForVersionConflict))
+					return fmt.Errorf("error updating service due to version out of sync [retried %d times]", maxRetriesForVersionConflict)
 				}
 				<-time.After(3 * time.Second)
 				maxRetries--
