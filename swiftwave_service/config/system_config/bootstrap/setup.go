@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"errors"
 	"fmt"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"net/http"
 	"os"
 	"os/exec"
@@ -70,13 +71,6 @@ func SystemSetupHandler(c echo.Context) error {
 			"message": "System setup already completed",
 		})
 	}
-	// Create DB client
-	dbClient, err := db.GetClient(localConfig, 1)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"message": "Failed to connect to database",
-		})
-	}
 	// Create system configuration
 	systemConfigReq := new(SystemConfigurationPayload)
 	if err := c.Bind(systemConfigReq); err != nil {
@@ -84,17 +78,56 @@ func SystemSetupHandler(c echo.Context) error {
 			"message": err.Error(),
 		})
 	}
-	// Convert to DB record
+	// If provided admin username and password are empty, return an error
+	if systemConfigReq.NewAdminCredential.Username == "" || systemConfigReq.NewAdminCredential.Password == "" {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "Admin username and password are required",
+		})
+	}
+
+	// Create DB client
+	dbClient, err := db.GetClient(localConfig, 2)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "Failed to connect to database",
+		})
+	}
+	// Create transaction
+	tx := dbClient.Begin()
+	defer tx.Rollback()
+	// Convert system config to DB record
 	systemConfig, err := payloadToDBRecord(*systemConfigReq)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": err.Error(),
 		})
 	}
-	// Save to DB
-	if err := dbClient.Create(&systemConfig).Error; err != nil {
+	// Save system config to DB
+	if err := tx.Create(&systemConfig).Error; err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"message": "Failed to save system configuration",
+		})
+	}
+	// Create the initial user
+	user := core.User{
+		Username: systemConfigReq.NewAdminCredential.Username,
+	}
+	err = user.SetPassword(systemConfigReq.NewAdminCredential.Password)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "Failed to set password",
+		})
+	}
+	if _, err := core.CreateUser(c.Request().Context(), *tx, user); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "Failed to create user",
+		})
+	}
+	// Commit transaction
+	res := tx.Commit()
+	if res.Error != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "Failed to commit transaction",
 		})
 	}
 	// Restart swiftwave service
@@ -161,6 +194,9 @@ func UpdateSystemConfigHandler(c echo.Context) error {
 			"message": "Invalid request payload",
 		})
 	}
+	// Remove some fields for safety
+	systemConfigReq.NewAdminCredential.Username = ""
+	systemConfigReq.NewAdminCredential.Password = ""
 	// Inject some fields
 	systemConfigReq.JWTSecretKey = sysConfig.JWTSecretKey
 	systemConfigReq.HAProxyConfig.Username = sysConfig.HAProxyConfig.Username

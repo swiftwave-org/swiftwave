@@ -285,6 +285,10 @@ func dbRecordToPayload(record *system_config.SystemConfig) SystemConfigurationPa
 		},
 		PubsubConfig:    pubsubConfig,
 		TaskQueueConfig: taskQueueConfig,
+		NewAdminCredential: NewAdminCredential{
+			Username: "hidden",
+			Password: "hidden",
+		},
 	}
 }
 
