@@ -127,10 +127,10 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 		command = strings.Split(application.Command, " ")
 	}
 	// docker image info
-	dockerImageUri := deployment.DeployableDockerImageURI(m.Config.SystemConfig.ImageRegistryConfig.URI())
+	dockerImageUri := deployment.DeployableDockerImageURI(m.Config.ImageRegistryURI())
 	refetchImage := false
-	imageRegistryUsername := ""
-	imageRegistryPassword := ""
+	imageRegistryUsername := m.Config.ImageRegistryUsername()
+	imageRegistryPassword := m.Config.ImageRegistryPassword()
 
 	if deployment.UpstreamType == core.UpstreamTypeImage {
 		// fetch image registry credential
@@ -146,26 +146,11 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 		}
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image will be fetched from upstream at the time of deployment\n", false)
 		refetchImage = true
-	} else {
-		// set the image uri only if remote private registry is used
-		if m.Config.SystemConfig.ImageRegistryConfig.IsConfigured() {
-			refetchImage = true
-			imageRegistryUsername = m.Config.SystemConfig.ImageRegistryConfig.Username
-			imageRegistryPassword = m.Config.SystemConfig.ImageRegistryConfig.Password
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image will be fetched from the configured private registry\n", false)
-		} else {
-			refetchImage = false
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image will be fetched from the local (If exists)\n", false)
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "[Notice] If you have connected remote server and not using any image registry, then the deployment can failed due to accessible image\n", false)
-		}
 	}
 
 	if refetchImage {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "[Notice] Image will be fetched during deployment\n", false)
-	} else {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "[Notice] Image will not be fetched from the upstream\n", false)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "[Notice] Image will be fetched from remote during deployment\n", false)
 	}
-
 	// create service
 	service := containermanger.Service{
 		Name:           application.Name,

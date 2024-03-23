@@ -67,6 +67,8 @@ var tlsEnableCmd = &cobra.Command{
 		}
 		printSuccess("TLS has been enabled")
 		restartSysctlService("swiftwave")
+		// Restart local registry if required
+		restartLocalRegistryIfRequired(cmd.Context())
 	},
 }
 
@@ -89,6 +91,8 @@ var tlsDisableCmd = &cobra.Command{
 		}
 		printSuccess("TLS has been disabled")
 		restartSysctlService("swiftwave")
+		// Restart local registry if required
+		restartLocalRegistryIfRequired(cmd.Context())
 	},
 }
 
@@ -201,6 +205,8 @@ var generateCertificateCommand = &cobra.Command{
 		}
 		// Restart swiftwave service
 		restartSysctlService("swiftwave")
+		// Restart local registry if required
+		restartLocalRegistryIfRequired(cmd.Context())
 	},
 }
 
@@ -298,4 +304,32 @@ func isRenewalImminent(certPath string) (bool, error) {
 	}
 
 	return daysRemaining <= 30, nil
+}
+
+func restartLocalRegistryIfRequired(ctx context.Context) {
+	if config == nil || config.LocalConfig == nil || config.SystemConfig == nil {
+		return
+	}
+	isRequired, err := isLocalRegistryRequired()
+	if err != nil {
+		printError("Failed to check if local registry is required")
+		printError(err.Error())
+		return
+	}
+	if isRequired {
+		isRunning, err := isLocalRegistryRunning(ctx)
+		if err != nil {
+			printError("Failed to check if local registry is running")
+			printError(err.Error())
+			return
+		}
+		if !isRunning {
+			err := restartLocalRegistry(ctx)
+			if err != nil {
+				printError("Failed to restart local registry")
+				printError(err.Error())
+				return
+			}
+		}
+	}
 }

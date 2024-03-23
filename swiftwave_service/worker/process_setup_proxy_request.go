@@ -93,11 +93,6 @@ func (m Manager) setupAndEnableProxy(request SetupAndEnableProxyRequest, ctx con
 		logText += "Failed to fetch all proxy servers: " + err.Error() + "\n"
 		return err
 	}
-	// don't attempt if no proxy servers are active
-	if len(servers) == 0 {
-		logText += "No proxy servers are active\n"
-		return errors.New("no proxy servers are active")
-	}
 
 	if len(servers) > 0 {
 		var chosenServer core.Server

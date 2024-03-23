@@ -119,6 +119,7 @@ func startLocalRegistry(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		htpasswdString = htpasswdString + "\n"
 		// write htpasswd file
 		err = os.WriteFile(config.LocalConfig.LocalImageRegistryConfig.AuthPath+"/htpasswd", []byte(htpasswdString), 0611)
 		if err != nil {
@@ -139,7 +140,7 @@ func startLocalRegistry(ctx context.Context) error {
 				"-v", fmt.Sprintf("%s:/cert", config.LocalConfig.LocalImageRegistryConfig.CertPath),
 				"-v", fmt.Sprintf("%s:/auth", config.LocalConfig.LocalImageRegistryConfig.AuthPath),
 				"-v", fmt.Sprintf("%s:/var/lib/registry", config.LocalConfig.LocalImageRegistryConfig.DataPath),
-				"--name", localRegistryContainerName, "registry:2")
+				"--name", localRegistryContainerName, "registry:2.8")
 		} else {
 			printInfo("Using Non-TLS for local image registry")
 			dockerCmd = exec.Command("docker", "run", "-d",
@@ -150,7 +151,7 @@ func startLocalRegistry(ctx context.Context) error {
 				"-e", "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm",
 				"-v", fmt.Sprintf("%s:/auth", config.LocalConfig.LocalImageRegistryConfig.AuthPath),
 				"-v", fmt.Sprintf("%s:/var/lib/registry", config.LocalConfig.LocalImageRegistryConfig.DataPath),
-				"--name", localRegistryContainerName, "registry:2")
+				"--name", localRegistryContainerName, "registry:2.8")
 		}
 		dockerCmd.Stdout = os.Stdout
 		dockerCmd.Stderr = os.Stderr

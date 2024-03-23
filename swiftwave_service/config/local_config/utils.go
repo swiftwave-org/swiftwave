@@ -141,7 +141,7 @@ func (config *Config) GetRegistryURL() string {
 }
 
 func (l *LocalImageRegistryConfig) Htpasswd() (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(l.Password), 20)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(l.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
 	}
