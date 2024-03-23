@@ -2,17 +2,16 @@ package gitmanager
 
 import (
 	"errors"
-	"log"
-	"os"
-
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/storage/memory"
+	"os"
+	"sort"
 )
 
-// Fetch latest commit hash for a repository.
-func FetchLatestCommitHash(git_url string, branch string, username string, password string) (string, error) {
+func FetchLatestCommitHash(gitUrl string, branch string, username string, password string) (string, error) {
 	var httpAuth *http.BasicAuth
 	// If username and password both are provided, then use only http auth
 	if username != "" && password != "" {
@@ -23,33 +22,65 @@ func FetchLatestCommitHash(git_url string, branch string, username string, passw
 	} else {
 		httpAuth = nil
 	}
-	// clone the repo
-	r, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
-		URL:               git_url,
-		SingleBranch:      true,
-		Progress:          nil,
-		ReferenceName:     plumbing.NewBranchReferenceName(branch),
-		Auth:              httpAuth,
-		Depth:             1,
-		RecurseSubmodules: git.NoRecurseSubmodules, // No submodules for fetch commit hash
-		ShallowSubmodules: true,
+	// ls-remote the repo
+	remote := git.NewRemote(memory.NewStorage(), &config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{gitUrl},
+	})
+	refs, err := remote.List(&git.ListOptions{
+		Auth:            httpAuth,
+		InsecureSkipTLS: true,
+		PeelingOption:   git.IgnorePeeled,
 	})
 	if err != nil {
-		return "", errors.New("failed to clone repository")
+		return "", err
 	}
-	// get the head of the repo
-	ref, err := r.Head()
-	if err != nil {
-		return "", errors.New("failed to get head")
+	for _, ref := range refs {
+		if ref.Name().IsBranch() && ref.Name().Short() == branch {
+			return ref.Hash().String(), nil
+		}
 	}
-	// return the hash
-	return ref.Hash().String(), nil
+	return "", errors.New("branch not found")
 }
 
-// Clone repository to local folder
-func CloneRepository(git_url string, branch string, username string, password string, dest_folder string) error {
+func FetchBranches(gitUrl string, username string, password string) ([]string, error) {
+	var httpAuth *http.BasicAuth
+	// If username and password both are provided, then use only http auth
+	if username != "" && password != "" {
+		httpAuth = &http.BasicAuth{
+			Username: username,
+			Password: password,
+		}
+	} else {
+		httpAuth = nil
+	}
+	// ls-remote the repo
+	remote := git.NewRemote(memory.NewStorage(), &config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{gitUrl},
+	})
+	refs, err := remote.List(&git.ListOptions{
+		Auth:            httpAuth,
+		InsecureSkipTLS: true,
+		PeelingOption:   git.IgnorePeeled,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var branches []string
+	for _, ref := range refs {
+		if ref.Name().IsBranch() {
+			branches = append(branches, ref.Name().Short())
+		}
+	}
+	// sort the branches
+	sort.Strings(branches)
+	return branches, nil
+}
+
+func CloneRepository(gitUrl string, branch string, username string, password string, destFolder string) error {
 	// check if folder exists
-	if _, err := os.Stat(dest_folder); os.IsNotExist(err) {
+	if _, err := os.Stat(destFolder); os.IsNotExist(err) {
 		return errors.New("destination folder does not exist")
 	}
 	var httpAuth *http.BasicAuth
@@ -63,8 +94,8 @@ func CloneRepository(git_url string, branch string, username string, password st
 		httpAuth = nil
 	}
 	// clone the repo
-	_, err := git.PlainClone(dest_folder, false, &git.CloneOptions{
-		URL:               git_url,
+	_, err := git.PlainClone(destFolder, false, &git.CloneOptions{
+		URL:               gitUrl,
 		Progress:          nil,
 		ReferenceName:     plumbing.NewBranchReferenceName(branch),
 		Auth:              httpAuth,
@@ -73,7 +104,6 @@ func CloneRepository(git_url string, branch string, username string, password st
 		ShallowSubmodules: true,
 	})
 	if err != nil {
-		log.Println(err)
 		return errors.New("failed to clone repository")
 	}
 	return nil
