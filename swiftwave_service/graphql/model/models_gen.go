@@ -166,6 +166,11 @@ type EnvironmentVariableInput struct {
 	Value string `json:"value"`
 }
 
+type GitBranchesQueryInput struct {
+	GitCredentialID uint   `json:"gitCredentialId"`
+	RepositoryURL   string `json:"repositoryUrl"`
+}
+
 type GitCredential struct {
 	ID          uint          `json:"id"`
 	Name        string        `json:"name"`
@@ -181,18 +186,8 @@ type GitCredentialInput struct {
 }
 
 type GitCredentialRepositoryAccessInput struct {
-	GitCredentialID  uint   `json:"gitCredentialId"`
-	RepositoryURL    string `json:"repositoryUrl"`
-	RepositoryBranch string `json:"repositoryBranch"`
-}
-
-type GitCredentialRepositoryAccessResult struct {
-	GitCredentialID  uint           `json:"gitCredentialId"`
-	GitCredential    *GitCredential `json:"gitCredential"`
-	RepositoryURL    string         `json:"repositoryUrl"`
-	RepositoryBranch string         `json:"repositoryBranch"`
-	Success          bool           `json:"success"`
-	Error            string         `json:"error"`
+	GitCredentialID uint   `json:"gitCredentialId"`
+	RepositoryURL   string `json:"repositoryUrl"`
 }
 
 type ImageRegistryCredential struct {

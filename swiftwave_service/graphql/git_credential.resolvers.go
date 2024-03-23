@@ -110,30 +110,18 @@ func (r *queryResolver) GitCredential(ctx context.Context, id uint) (*model.GitC
 }
 
 // CheckGitCredentialRepositoryAccess is the resolver for the checkGitCredentialRepositoryAccess field.
-func (r *queryResolver) CheckGitCredentialRepositoryAccess(ctx context.Context, input model.GitCredentialRepositoryAccessInput) (*model.GitCredentialRepositoryAccessResult, error) {
+func (r *queryResolver) CheckGitCredentialRepositoryAccess(_ context.Context, input model.GitCredentialRepositoryAccessInput) (bool, error) {
 	// Fetch git credential
 	var gitCredential = &core.GitCredential{}
-	tx := r.ServiceManager.DbClient.First(&gitCredential, input.GitCredentialID)
-	if tx.Error != nil {
-		return nil, tx.Error
+
+	if input.GitCredentialID > 0 {
+		tx := r.ServiceManager.DbClient.First(&gitCredential, input.GitCredentialID)
+		if tx.Error != nil {
+			return false, errors.New("git credential not found")
+		}
 	}
-	// Prepare result object
-	gitCredentialTestResult := &model.GitCredentialRepositoryAccessResult{
-		GitCredentialID:  input.GitCredentialID,
-		RepositoryURL:    input.RepositoryURL,
-		RepositoryBranch: input.RepositoryBranch,
-		GitCredential:    gitCredentialToGraphqlObject(gitCredential),
-	}
-	// Test git credential
-	_, err := GIT.FetchLatestCommitHash(input.RepositoryURL, input.RepositoryBranch, gitCredential.Username, gitCredential.Password)
-	if err != nil {
-		gitCredentialTestResult.Success = false
-		gitCredentialTestResult.Error = "Git credential does not have access to the repository"
-	} else {
-		gitCredentialTestResult.Success = true
-		gitCredentialTestResult.Error = ""
-	}
-	return gitCredentialTestResult, nil
+	_, err := GIT.FetchBranches(input.RepositoryURL, gitCredential.Username, gitCredential.Password)
+	return err == nil, nil
 }
 
 // GitCredential returns GitCredentialResolver implementation.
