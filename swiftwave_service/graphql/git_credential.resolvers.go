@@ -110,7 +110,7 @@ func (r *queryResolver) GitCredential(ctx context.Context, id uint) (*model.GitC
 }
 
 // CheckGitCredentialRepositoryAccess is the resolver for the checkGitCredentialRepositoryAccess field.
-func (r *queryResolver) CheckGitCredentialRepositoryAccess(_ context.Context, input model.GitCredentialRepositoryAccessInput) (bool, error) {
+func (r *queryResolver) CheckGitCredentialRepositoryAccess(ctx context.Context, input model.GitCredentialRepositoryAccessInput) (bool, error) {
 	// Fetch git credential
 	var gitCredential = &core.GitCredential{}
 

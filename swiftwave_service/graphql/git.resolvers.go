@@ -13,7 +13,7 @@ import (
 )
 
 // GitBranches is the resolver for the gitBranches field.
-func (r *queryResolver) GitBranches(_ context.Context, input model.GitBranchesQueryInput) ([]string, error) {
+func (r *queryResolver) GitBranches(ctx context.Context, input model.GitBranchesQueryInput) ([]string, error) {
 	// Fetch git credential
 	var gitCredential = &core.GitCredential{}
 	if input.GitCredentialID > 0 {
