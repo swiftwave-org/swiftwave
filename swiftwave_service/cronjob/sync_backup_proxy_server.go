@@ -10,6 +10,7 @@ import (
 )
 
 func (m Manager) SyncBackupProxyServer() {
+	logger.CronJobLogger.Println("Starting sync backup proxy server [cronjob]")
 	for {
 		m.syncBackupProxyServer()
 		time.Sleep(30 * time.Minute)

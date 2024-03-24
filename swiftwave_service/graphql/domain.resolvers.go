@@ -7,11 +7,9 @@ package graphql
 import (
 	"context"
 	"errors"
-	"strings"
-	"time"
-
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
+	"strings"
 )
 
 // IngressRules is the resolver for the ingressRules field.
@@ -81,7 +79,6 @@ func (r *mutationResolver) IssueSsl(ctx context.Context, id uint) (*model.Domain
 		return nil, err
 	}
 	// verify domain configuration
-	// TODO: sanitize domain name
 	configured := r.ServiceManager.SslManager.VerifyDomain(record.Name)
 	if !configured {
 		return nil, errors.New("domain not configured")
@@ -109,7 +106,6 @@ func (r *mutationResolver) IssueSsl(ctx context.Context, id uint) (*model.Domain
 
 // AddCustomSsl is the resolver for the addCustomSSL field.
 func (r *mutationResolver) AddCustomSsl(ctx context.Context, id uint, input model.CustomSSLInput) (*model.Domain, error) {
-	// TODO: add support for custom ssl
 	// fetch record
 	record := core.Domain{}
 	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
@@ -119,9 +115,6 @@ func (r *mutationResolver) AddCustomSsl(ctx context.Context, id uint, input mode
 	// update record
 	record.SSLPrivateKey = input.PrivateKey
 	record.SSLFullChain = input.FullChain
-	record.SSLIssuedAt = time.Now()
-	// TODO: resolve date from the certificate itself
-	record.SSLIssuer = input.SslIssuer
 	record.SSLStatus = core.DomainSSLStatusIssued
 	record.SSLAutoRenew = false
 	err = record.Update(ctx, r.ServiceManager.DbClient)
@@ -129,7 +122,6 @@ func (r *mutationResolver) AddCustomSsl(ctx context.Context, id uint, input mode
 		return nil, err
 	}
 	return domainToGraphqlObject(&record), nil
-	// TODO: push to queue
 }
 
 // Domains is the resolver for the domains field.

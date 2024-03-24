@@ -13,6 +13,7 @@ import (
 )
 
 func (m Manager) SyncProxy() {
+	logger.CronJobLogger.Println("Starting sync proxy [cronjob]")
 	for {
 		m.syncProxy()
 		time.Sleep(1 * time.Minute)
