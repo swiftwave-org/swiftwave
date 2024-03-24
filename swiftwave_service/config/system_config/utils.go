@@ -46,6 +46,9 @@ func (config *SystemConfig) Create(db *gorm.DB) error {
 	if count > 0 {
 		return fmt.Errorf("system config already exists! consider updating it instead")
 	}
+	if config.TaskQueueConfig.Mode == LocalTaskQueue {
+		config.TaskQueueConfig.RemoteTaskQueueType = NoneRemoteQueue
+	}
 	tx = db.Create(config)
 	return tx.Error
 }
@@ -60,6 +63,9 @@ func (config *SystemConfig) Update(db *gorm.DB) error {
 	// update the id
 	config.ID = record.ID
 	config.ConfigVersion++
+	if config.TaskQueueConfig.Mode == LocalTaskQueue {
+		config.TaskQueueConfig.RemoteTaskQueueType = NoneRemoteQueue
+	}
 	tx = db.Updates(config)
 	if tx.Error != nil {
 		return tx.Error

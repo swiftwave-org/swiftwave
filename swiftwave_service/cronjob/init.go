@@ -41,6 +41,8 @@ func (m Manager) Start(nowait bool) {
 	} else {
 		logger.CronJobLogger.Println("[IGNORE JOB] Management node SSL auto renew is disabled")
 	}
+	m.wg.Add(1)
+	go m.EnqueueTimedoutTasks()
 	if !nowait {
 		m.wg.Wait()
 	}

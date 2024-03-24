@@ -7,7 +7,9 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
 	"reflect"
+	"strings"
 	"sync"
+	"time"
 )
 
 func (r *remoteTaskQueue) RegisterFunction(queueName string, function WorkerFunctionType) error {
@@ -61,32 +63,43 @@ func (r *remoteTaskQueue) EnqueueTask(queueName string, argument ArgumentType) e
 	}
 
 	// push to queue
-	dConfirmation, err := r.amqpChannel.PublishWithDeferredConfirmWithContext(
-		context.Background(),
-		"",
-		queueName,
-		true,
-		false,
-		amqp.Publishing{
-			Headers:         amqp.Table{},
-			ContentType:     "text/plain",
-			ContentEncoding: "",
-			DeliveryMode:    amqp.Persistent,
-			Priority:        0,
-			Body:            jsonBytes,
-		},
-	)
-	if err != nil {
-		log.Println("error while publishing message to queue [" + queueName + "]")
-		log.Println(err.Error())
-		return errors.New("error while publishing message to queue")
+	if r.queueType == AmqpQueue {
+		dConfirmation, err := r.amqpChannel.PublishWithDeferredConfirmWithContext(
+			context.Background(),
+			"",
+			queueName,
+			true,
+			false,
+			amqp.Publishing{
+				Headers:         amqp.Table{},
+				ContentType:     "text/plain",
+				ContentEncoding: "",
+				DeliveryMode:    amqp.Persistent,
+				Priority:        0,
+				Body:            jsonBytes,
+			},
+		)
+		if err != nil {
+			log.Println("error while publishing message to queue [" + queueName + "]")
+			log.Println(err.Error())
+			return errors.New("error while publishing message to queue")
+		}
+		// Check acknowledgement
+		ack := dConfirmation.Wait()
+		if !ack {
+			log.Println("error while publishing message to queue [" + queueName + "] publish ack > false")
+			return errors.New("error while publishing message to queue")
+		}
+	} else if r.queueType == RedisQueue {
+		// push to redis
+		_, err := r.redisClient.RPush(context.Background(), queueName, jsonBytes).Result()
+		if err != nil {
+			log.Println("error while pushing message to queue [" + queueName + "]")
+			log.Println(err.Error())
+			return errors.New("error while pushing message to queue")
+		}
 	}
-	// Check acknowledgement
-	ack := dConfirmation.Wait()
-	if !ack {
-		log.Println("error while publishing message to queue [" + queueName + "] publish ack > false")
-		return errors.New("error while publishing message to queue")
-	}
+
 	return nil
 }
 
@@ -135,6 +148,17 @@ func (r *remoteTaskQueue) WaitForConsumers() {
 	r.consumersWaitGroup.Wait()
 }
 
+func (r *remoteTaskQueue) EnqueueProcessingQueueExpiredTask() error {
+	if r.queueType == AmqpQueue {
+		return nil
+	}
+	for queueName := range r.queueToFunctionMapping {
+		// move from processing queue to original queue
+		_ = r.redisClient.LMove(context.Background(), queueName+"_processing", queueName, "right", "left")
+	}
+	return nil
+}
+
 // private functions
 // getFunction: getFunction returns the function registered for a queue
 func (r *remoteTaskQueue) getFunction(queueName string) (functionMetadata, error) {
@@ -154,6 +178,9 @@ func (r *remoteTaskQueue) getFunction(queueName string) (functionMetadata, error
 
 // establishConnection: connect connects to the AMQP server
 func (r *remoteTaskQueue) establishConnection() error {
+	if r.queueType == RedisQueue {
+		return nil
+	}
 	// if there is already a connection, return
 	if r.amqpConnection != nil && !r.amqpConnection.IsClosed() {
 		return nil
@@ -181,6 +208,9 @@ func (r *remoteTaskQueue) establishConnection() error {
 
 // declareQueue: create a queue
 func (r *remoteTaskQueue) declareQueue(queueName string) error {
+	if r.queueType == RedisQueue {
+		return nil
+	}
 	if r.amqpConnection == nil || r.amqpChannel == nil {
 		return errors.New("connection not established")
 	}
@@ -198,6 +228,14 @@ func (r *remoteTaskQueue) declareQueue(queueName string) error {
 
 // listenForTasks: listen for tasks on a queue
 func (r *remoteTaskQueue) listenForTasks(queueName string, wg *sync.WaitGroup) {
+	if r.queueType == RedisQueue {
+		r.listenForTasksUsingRQ(queueName, wg)
+	} else if r.queueType == AmqpQueue {
+		r.listenForTasksUsingAMQP(queueName, wg)
+	}
+}
+
+func (r *remoteTaskQueue) listenForTasksUsingRQ(queueName string, _ *sync.WaitGroup) {
 	// fetch function by queue name
 	functionMetadata, err := r.getFunction(queueName)
 	if err != nil {
@@ -206,7 +244,64 @@ func (r *remoteTaskQueue) listenForTasks(queueName string, wg *sync.WaitGroup) {
 	}
 
 	// log message
-	log.Println("starting consumer for queue [" + queueName + "]")
+	log.Println("starting consumer for redis queue [" + queueName + "]")
+
+	for {
+		stringCmd := r.redisClient.BLMove(context.Background(), queueName, queueName+"_processing", "right", "left", 1*time.Minute)
+		if stringCmd.Err() != nil {
+			if strings.Contains(stringCmd.Err().Error(), "redis: nil") {
+				continue
+			}
+			log.Println("error while fetching message from queue [" + queueName + "]")
+			continue
+		}
+		content, err := stringCmd.Bytes()
+		if err != nil {
+			continue
+		}
+
+		// create a new object of an argument type
+		argument := reflect.New(functionMetadata.argumentType).Interface()
+
+		// string to json unmarshal
+		err = json.Unmarshal(content, &argument)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		// argument is a pointer, dereference it
+		argument = reflect.ValueOf(argument).Elem().Interface()
+
+		// type cast to an argument type
+		if err != nil {
+			log.Println("error while de-referencing argument from pointer for queue [" + queueName + "]")
+			log.Println("error: " + err.Error())
+			continue
+		}
+		// execute function
+		err = invokeFunction(functionMetadata.function, argument, functionMetadata.argumentType)
+		// remove from processing queue
+		r.redisClient.LRem(context.Background(), queueName+"_processing", 0, content)
+		if err != nil {
+			log.Println("error while executing function for queue [" + queueName + "]")
+			log.Println("error: " + err.Error())
+			// enqueue to original queue
+			r.redisClient.LPush(context.Background(), queueName, content)
+		}
+	}
+}
+
+func (r *remoteTaskQueue) listenForTasksUsingAMQP(queueName string, wg *sync.WaitGroup) {
+	// fetch function by queue name
+	functionMetadata, err := r.getFunction(queueName)
+	if err != nil {
+		log.Println("error while fetching function for queue [" + queueName + "]")
+		log.Println("error: " + err.Error())
+	}
+
+	// log message
+	log.Println("starting consumer for amqp queue [" + queueName + "]")
 
 	// consumer tag
 	consumerTag := r.amqpClientName + "_" + queueName
@@ -224,6 +319,7 @@ func (r *remoteTaskQueue) listenForTasks(queueName string, wg *sync.WaitGroup) {
 		println(err.Error())
 		panic("error while listening for queue [" + queueName + "], maybe some connection error")
 	}
+
 	for {
 		delivery, ok := <-deliveries
 		if !ok {
@@ -234,7 +330,7 @@ func (r *remoteTaskQueue) listenForTasks(queueName string, wg *sync.WaitGroup) {
 		// fetch the content
 		content := delivery.Body
 
-		// create new object of argument type
+		// create a new object of an argument type
 		argument := reflect.New(functionMetadata.argumentType).Interface()
 
 		// string to json unmarshal
@@ -248,7 +344,7 @@ func (r *remoteTaskQueue) listenForTasks(queueName string, wg *sync.WaitGroup) {
 		// argument is a pointer, dereference it
 		argument = reflect.ValueOf(argument).Elem().Interface()
 
-		// type cast to argument type
+		// type cast to an argument type
 		if err != nil {
 			log.Println("error while de-referencing argument from pointer for queue [" + queueName + "]")
 			log.Println("error: " + err.Error())

@@ -4,6 +4,7 @@ import (
 	"errors"
 	SSL "github.com/swiftwave-org/swiftwave/ssl_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config"
+	"github.com/swiftwave-org/swiftwave/task_queue"
 	"gorm.io/gorm"
 	"log"
 )
@@ -35,6 +36,7 @@ func MigrateDatabase(dbClient *gorm.DB) error {
 		&AnalyticsServiceToken{},
 		&ServerResourceStat{},
 		&ApplicationServiceResourceStat{},
+		&task_queue.EnqueuedTask{},
 	)
 	if err != nil {
 		log.Println(err)

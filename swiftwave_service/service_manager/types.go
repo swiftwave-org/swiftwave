@@ -9,13 +9,13 @@ import (
 	"gorm.io/gorm"
 )
 
-// ServiceManager : holds the instance of all the managers
 type ServiceManager struct {
 	SslManager            SSL.Manager
 	DockerConfigGenerator dockerConfigGenerator.Manager
 	DbClient              gorm.DB
-	RedisClient           redis.Client
+	PubSubRedisClient     redis.Client
 	PubSubClient          pubsub.Client
 	TaskQueueClient       task_queue.Client
+	TaskQueueRedisClient  redis.Client
 	CancelImageBuildTopic string
 }

@@ -4,6 +4,7 @@ type ImageRegistryType string
 type PubsubType string
 type TaskQueueType string
 type TaskQueueQueueProtocol string
+type RemoteTaskQueueType string
 
 const (
 	LocalRegistry   ImageRegistryType      = "local"
@@ -14,6 +15,9 @@ const (
 	RemoteTaskQueue TaskQueueType          = "remote"
 	AMQP            TaskQueueQueueProtocol = "amqp"
 	AMQPS           TaskQueueQueueProtocol = "amqps"
+	AmqpQueue       RemoteTaskQueueType    = "amqp"
+	RedisQueue      RemoteTaskQueueType    = "redis"
+	NoneRemoteQueue RemoteTaskQueueType    = "none"
 )
 
 type SystemConfigurationPayload struct {
@@ -83,10 +87,12 @@ type RedisConfig struct {
 }
 
 type TaskQueueConfig struct {
-	Type                           TaskQueueType `json:"type"`
-	MaxOutstandingMessagesPerQueue uint          `json:"max_outstanding_messages_per_queue"`
-	NoOfWorkersPerQueue            uint          `json:"no_of_workers_per_queue"`
-	AmqpConfig                     AmqpConfig    `json:"amqp_config"`
+	Type                           TaskQueueType       `json:"type"`
+	RemoteTaskQueueType            RemoteTaskQueueType `json:"remote_task_queue_type" gorm:"default:'none'"`
+	MaxOutstandingMessagesPerQueue uint                `json:"max_outstanding_messages_per_queue"`
+	NoOfWorkersPerQueue            uint                `json:"no_of_workers_per_queue"`
+	AmqpConfig                     AmqpConfig          `json:"amqp_config"`
+	RedisConfig                    RedisConfig         `json:"redis_config"`
 }
 
 type AmqpConfig struct {

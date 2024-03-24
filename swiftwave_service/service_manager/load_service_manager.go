@@ -30,8 +30,6 @@ func (manager *ServiceManager) Load(config config.Config) {
 		panic(err.Error())
 	}
 	manager.DbClient = *dbClient
-
-	fmt.Println(config.SystemConfig.LetsEncryptConfig)
 	// Initiating ssl manager
 	options := ssl.ManagerOptions{
 		IsStaging:         config.SystemConfig.LetsEncryptConfig.Staging,
@@ -98,6 +96,7 @@ func (manager *ServiceManager) Load(config config.Config) {
 			Type:                task_queue.Local,
 			MaxMessagesPerQueue: int(config.SystemConfig.TaskQueueConfig.MaxOutstandingMessagesPerQueue),
 			NoOfWorkersPerQueue: int(config.SystemConfig.TaskQueueConfig.NoOfWorkersPerQueue),
+			DbClient:            dbClient,
 		})
 		if err != nil {
 			logger.InternalLogger.Println("Failed to initiate TaskQueue Client")
@@ -106,13 +105,23 @@ func (manager *ServiceManager) Load(config config.Config) {
 		}
 		manager.TaskQueueClient = taskQueueClient
 	} else if config.SystemConfig.TaskQueueConfig.Mode == system_config.RemoteTaskQueue {
+		var redisClient *redis.Client
+		if config.SystemConfig.TaskQueueConfig.RemoteTaskQueueType == system_config.RedisQueue {
+			redisClient = redis.NewClient(&redis.Options{
+				Addr:     fmt.Sprintf("%s:%d", config.SystemConfig.TaskQueueConfig.RedisConfig.Host, config.SystemConfig.TaskQueueConfig.RedisConfig.Port),
+				Password: config.SystemConfig.TaskQueueConfig.RedisConfig.Password,
+				DB:       int(config.SystemConfig.TaskQueueConfig.RedisConfig.DatabaseID),
+			})
+		}
 		taskQueueClient, err := task_queue.NewClient(task_queue.Options{
 			Type:                task_queue.Remote,
+			RemoteQueueType:     task_queue.RemoteQueueType(config.SystemConfig.TaskQueueConfig.RemoteTaskQueueType),
 			NoOfWorkersPerQueue: int(config.SystemConfig.TaskQueueConfig.NoOfWorkersPerQueue),
 			MaxMessagesPerQueue: int(config.SystemConfig.TaskQueueConfig.MaxOutstandingMessagesPerQueue),
 			AMQPUri:             config.SystemConfig.TaskQueueConfig.AMQPConfig.URI(),
 			AMQPVhost:           config.SystemConfig.TaskQueueConfig.AMQPConfig.VHost,
 			AMQPClientName:      hostname,
+			RedisClient:         redisClient,
 		})
 		if err != nil {
 			logger.InternalLogger.Println("Failed to initiate TaskQueue Client")
