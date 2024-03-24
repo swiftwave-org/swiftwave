@@ -92,10 +92,8 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			if err != nil {
 				// set status as failed and exit
 				// because `DeleteHTTPSLink` can fail only if haproxy not working
-				//nolint:ineffassign
 				isFailed = true
-				// requeue required as it fault of haproxy and may be resolved in next try
-				return err
+				break
 			}
 		} else if ingressRule.Protocol == core.HTTPProtocol {
 			if ingressRule.Port == 80 {
@@ -103,20 +101,16 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 				if err != nil {
 					// set status as failed and exit
 					// because `DeleteHTTPLink` can fail only if haproxy not working
-					//nolint:ineffassign
 					isFailed = true
-					// requeue required as it fault of haproxy and may be resolved in next try
-					return err
+					break
 				}
 			} else {
 				err = haproxyManager.DeleteTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, haproxymanager.HTTPMode)
 				if err != nil {
 					// set status as failed and exit
 					// because `DeleteTCPLink` can fail only if haproxy not working
-					//nolint:ineffassign
 					isFailed = true
-					// requeue required as it fault of haproxy and may be resolved in next try
-					return err
+					break
 				}
 			}
 		} else if ingressRule.Protocol == core.TCPProtocol {
@@ -125,17 +119,13 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			if err != nil {
 				// set status as failed and exit
 				// because `DeleteTCPLink` can fail only if haproxy not working
-				//nolint:ineffassign
 				isFailed = true
-				// requeue required as it fault of haproxy and may be resolved in next try
-				return err
+				break
 			}
 		} else if ingressRule.Protocol == core.UDPProtocol {
 			// leave it for udp proxy
 		} else {
 			// unknown protocol
-			//nolint:ineffassign
-			isFailed = true
 			return nil
 		}
 
@@ -153,10 +143,8 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			if err != nil {
 				// set status as failed and exit
 				// because `DeleteBackend` can fail only if haproxy not working
-				//nolint:ineffassign
 				isFailed = true
-				// requeue required as it fault of haproxy and may be resolved in next try
-				return err
+				break
 			}
 		}
 	}
@@ -171,10 +159,8 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			})
 			if err != nil {
 				// set status as failed and exit
-				//nolint:ineffassign
 				isFailed = true
-				// requeue required as it fault of udp proxy and may be resolved in next try
-				return err
+				break
 			}
 		}
 	}
@@ -188,6 +174,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			}
 		}
 		if isFailed || err != nil {
+			isFailed = true
 			log.Println("failed to commit haproxy transaction", err)
 			err := haproxyManager.DeleteTransaction(haproxyTransactionId)
 			if err != nil {
@@ -196,11 +183,11 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 		}
 	}
 
-	// delete ingress rule from database
-	err = ingressRule.Delete(ctx, dbWithoutTx, true)
-	if err != nil {
-		return err
+	if isFailed {
+		_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
+		return nil
+	} else {
+		// delete ingress rule from database
+		return ingressRule.Delete(ctx, dbWithoutTx, true)
 	}
-
-	return nil
 }
