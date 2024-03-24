@@ -110,8 +110,9 @@ var initCmd = &cobra.Command{
 		newConfig := &local_config.Config{
 			IsDevelopmentMode: false,
 			ServiceConfig: local_config.ServiceConfig{
-				UseTLS:                false,
-				ManagementNodeAddress: domainName,
+				UseTLS:                      false,
+				ManagementNodeAddress:       domainName,
+				AutoRenewManagementNodeCert: false,
 			},
 			PostgresqlConfig: local_config.PostgresqlConfig{
 				Host:             defaultString(currentPostgresHost, "127.0.0.1"),

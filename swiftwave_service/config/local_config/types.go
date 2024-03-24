@@ -16,6 +16,7 @@ type Config struct {
 type ServiceConfig struct {
 	UseTLS                          bool   `yaml:"use_tls"`
 	ManagementNodeAddress           string `yaml:"management_node_address"`
+	AutoRenewManagementNodeCert     bool   `yaml:"auto_renew_management_node_cert"`
 	BindAddress                     string `yaml:"bind_address"`
 	BindPort                        int    `yaml:"bind_port"`
 	SocketPathDirectory             string `yaml:"-"`

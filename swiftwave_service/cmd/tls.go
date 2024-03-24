@@ -58,6 +58,7 @@ var tlsEnableCmd = &cobra.Command{
 			return
 		}
 		config.LocalConfig.ServiceConfig.UseTLS = true
+		config.LocalConfig.ServiceConfig.AutoRenewManagementNodeCert = true
 		err := local_config.Update(config.LocalConfig)
 		if err != nil {
 			printError("Failed to update config")
@@ -82,6 +83,7 @@ var tlsDisableCmd = &cobra.Command{
 			return
 		}
 		lConfig.ServiceConfig.UseTLS = false
+		config.LocalConfig.ServiceConfig.AutoRenewManagementNodeCert = false
 		err := local_config.Update(lConfig)
 		if err != nil {
 			printError("Failed to update config")
@@ -193,6 +195,7 @@ var generateCertificateCommand = &cobra.Command{
 		printSuccess("Successfully generated TLS certificate for " + domain)
 		// Enable TLS for swiftwave service
 		config.LocalConfig.ServiceConfig.UseTLS = true
+		config.LocalConfig.ServiceConfig.AutoRenewManagementNodeCert = true
 		err = local_config.Update(config.LocalConfig)
 		if err != nil {
 			printError("Failed to update config")
