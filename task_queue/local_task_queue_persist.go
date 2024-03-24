@@ -74,12 +74,22 @@ func removeTaskFromDb(db *gorm.DB, queueName string, content string) error {
 	return nil
 }
 
-func getTasksFromDb(db *gorm.DB, queueName string) (*[]EnqueuedTask, error) {
+func remoteTasksFromDb(db *gorm.DB, queueName string) error {
+	result := db.Where("queue_name = ?", queueName).Delete(&EnqueuedTask{})
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+func getTasksFromDb(db *gorm.DB, queueName string, removeTasks bool) (*[]EnqueuedTask, error) {
 	var tasks []EnqueuedTask
 	result := db.Where("queue_name = ?", queueName).Find(&tasks)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	_ = db.Where("queue_name = ?", queueName).Delete(&tasks)
+	if removeTasks {
+		_ = remoteTasksFromDb(db, queueName)
+	}
 	return &tasks, nil
 }

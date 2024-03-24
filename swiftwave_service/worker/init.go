@@ -44,6 +44,25 @@ func (m Manager) registerWorkerFunctions() {
 	panicOnError(taskQueueClient.RegisterFunction(installDependenciesOnServerQueueName, m.InstallDependenciesOnServer))
 	panicOnError(taskQueueClient.RegisterFunction(setupServerQueueName, m.SetupServer))
 	panicOnError(taskQueueClient.RegisterFunction(setupAndEnableProxyQueueName, m.SetupAndEnableProxy))
+	// When adding a new function, add it to the list of Queues() as well
+}
+
+func Queues() []string {
+	return []string{
+		buildApplicationQueueName,
+		deployApplicationQueueName,
+		deleteApplicationQueueName,
+		ingressRuleApplyQueueName,
+		ingressRuleDeleteQueueName,
+		redirectRuleApplyQueueName,
+		redirectRuleDeleteQueueName,
+		sslGenerateQueueName,
+		persistentVolumeBackupQueueName,
+		persistentVolumeRestoreQueueName,
+		installDependenciesOnServerQueueName,
+		setupServerQueueName,
+		setupAndEnableProxyQueueName,
+	}
 }
 
 func panicOnError(err error) {

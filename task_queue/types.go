@@ -22,6 +22,11 @@ type Client interface {
 	WaitForConsumers()
 	// EnqueueProcessingQueueExpiredTask enqueues tasks from processing queue to the original queue
 	EnqueueProcessingQueueExpiredTask() error
+	// PurgeQueue purges all the messages from a queue
+	PurgeQueue(queueName string) error
+	// ListMessages returns the messages of a queue
+	// Note: Should be called when no consumers are running
+	ListMessages(queueName string) ([]string, error)
 }
 
 type localTaskQueue struct {

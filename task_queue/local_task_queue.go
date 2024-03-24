@@ -107,7 +107,7 @@ func (l *localTaskQueue) WaitForConsumers() {
 
 func (l *localTaskQueue) EnqueueProcessingQueueExpiredTask() error {
 	for queueName := range l.queueToChannelMapping {
-		tasks, err := getTasksFromDb(l.db, queueName)
+		tasks, err := getTasksFromDb(l.db, queueName, true)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -136,6 +136,22 @@ func (l *localTaskQueue) EnqueueProcessingQueueExpiredTask() error {
 		}
 	}
 	return nil
+}
+
+func (l *localTaskQueue) PurgeQueue(queueName string) error {
+	return remoteTasksFromDb(l.db, queueName)
+}
+
+func (l *localTaskQueue) ListMessages(queueName string) ([]string, error) {
+	tasks, err := getTasksFromDb(l.db, queueName, false)
+	if err != nil {
+		return nil, err
+	}
+	var result []string
+	for _, task := range *tasks {
+		result = append(result, task.Body)
+	}
+	return result, nil
 }
 
 // private function
