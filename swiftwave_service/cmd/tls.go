@@ -28,7 +28,6 @@ func init() {
 	tlsCmd.AddCommand(tlsDisableCmd)
 	tlsCmd.AddCommand(generateCertificateCommand)
 	tlsCmd.AddCommand(renewCertificateCommand)
-	tlsCmd.AddCommand(autoServiceTLSRenewCmd)
 }
 
 var tlsCmd = &cobra.Command{
@@ -220,13 +219,13 @@ var renewCertificateCommand = &cobra.Command{
 		if _, err := os.Stat(sslCertificatePath); os.IsNotExist(err) {
 			printError("No TLS certificate found")
 			printInfo("Use `swiftwave tls generate` to generate a new certificate")
-			return
+			os.Exit(1)
 		}
 		isRenewalRequired, err := isRenewalImminent(sslCertificatePath)
 		if err != nil {
 			printError("Failed to check if renewal is required")
 			printError(err.Error())
-			return
+			os.Exit(1)
 		}
 		if isRenewalRequired {
 			printSuccess("Renewal is required")

@@ -6,6 +6,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"gorm.io/gorm"
+	"time"
 )
 
 // This file contains the operations for the Domain model.
@@ -17,6 +18,12 @@ import (
 func FindAllDomains(_ context.Context, db gorm.DB) ([]*Domain, error) {
 	var domains []*Domain
 	tx := db.Find(&domains)
+	return domains, tx.Error
+}
+
+func FetchDomainsThoseWillExpire(_ context.Context, db gorm.DB, daysToExpire int) ([]*Domain, error) {
+	var domains []*Domain
+	tx := db.Where("ssl_expired_at < ?", time.Now().AddDate(0, 0, daysToExpire)).Find(&domains)
 	return domains, tx.Error
 }
 

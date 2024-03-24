@@ -3,10 +3,11 @@ package cronjob
 import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/worker"
 	"sync"
 )
 
-func NewManager(config *config.Config, manager *service_manager.ServiceManager) CronJob {
+func NewManager(config *config.Config, manager *service_manager.ServiceManager, workerManager *worker.Manager) CronJob {
 	if config == nil {
 		panic("config cannot be nil")
 	}
@@ -17,6 +18,7 @@ func NewManager(config *config.Config, manager *service_manager.ServiceManager) 
 		Config:         config,
 		ServiceManager: manager,
 		wg:             &sync.WaitGroup{},
+		WorkerManager:  workerManager,
 	}
 }
 
@@ -31,7 +33,9 @@ func (m Manager) Start(nowait bool) {
 	m.wg.Add(1)
 	go m.MonitorServerStatus()
 	m.wg.Add(1)
-	go m.RenewApplicationDomains()
+	go m.RenewApplicationDomainsSSL()
+	m.wg.Add(1)
+	go m.RenewManagementNodeSSL()
 	if !nowait {
 		m.wg.Wait()
 	}
