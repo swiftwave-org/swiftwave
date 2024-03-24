@@ -86,67 +86,43 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 		// add backend
 		_, err = haproxyManager.AddBackend(haproxyTransactionId, application.Name, int(ingressRule.TargetPort), int(application.Replicas))
 		if err != nil {
-			//nolint:ineffassign
 			isFailed = true
-			// set status as failed and exit
-			_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-			// no requeue
-			return nil
+			break
 		}
 		// add frontend
 		if ingressRule.Protocol == core.HTTPSProtocol {
 			err = haproxyManager.AddHTTPSLink(haproxyTransactionId, backendName, domain.Name)
 			if err != nil {
-				//nolint:ineffassign
 				isFailed = true
-				// set status as failed and exit
-				_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-				// no requeue
-				return nil
+				break
 			}
 		} else if ingressRule.Protocol == core.HTTPProtocol {
 			// for default port 80, should use fe_http frontend due to some binding restrictions
 			if ingressRule.Port == 80 {
 				err = haproxyManager.AddHTTPLink(haproxyTransactionId, backendName, domain.Name)
 				if err != nil {
-					//nolint:ineffassign
 					isFailed = true
-					// set status as failed and exit
-					_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-					// no requeue
-					return nil
+					break
 				}
 			} else {
 				// for other ports, use custom frontend
 				err = haproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), domain.Name, haproxymanager.HTTPMode, restrictedPorts)
 				if err != nil {
-					//nolint:ineffassign
 					isFailed = true
-					// set status as failed and exit
-					_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-					// no requeue
-					return nil
+					break
 				}
 			}
 		} else if ingressRule.Protocol == core.TCPProtocol {
 			err = haproxyManager.AddTCPLink(haproxyTransactionId, backendName, int(ingressRule.Port), "", haproxymanager.TCPMode, restrictedPorts)
 			if err != nil {
-				//nolint:ineffassign
 				isFailed = true
-				// set status as failed and exit
-				_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-				// no requeue
-				return nil
+				break
 			}
 		} else if ingressRule.Protocol == core.UDPProtocol {
 			// will be handled by udp proxy
 		} else {
-			//nolint:ineffassign
 			isFailed = true
-			// set status as failed and exit
-			_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-			// no requeue
-			return nil
+			break
 		}
 	}
 
@@ -158,12 +134,8 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 				Service:    application.Name,
 			}, restrictedPorts)
 			if err != nil {
-				//nolint:ineffassign
 				isFailed = true
-				// set status as failed and exit
-				_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-				// no requeue
-				return nil
+				break
 			}
 		}
 	}
@@ -174,6 +146,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 			err = haproxyManager.CommitTransaction(haproxyTransactionId)
 		}
 		if isFailed || err != nil {
+			isFailed = true
 			log.Println("failed to commit haproxy transaction", err)
 			err := haproxyManager.DeleteTransaction(haproxyTransactionId)
 			if err != nil {
@@ -183,19 +156,9 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 	}
 
 	if isFailed {
-		// set status as failed and exit
-		_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-		// no requeue
-		return nil
+		return ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
+	} else {
+		// update status as applied
+		return ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusApplied)
 	}
-
-	// update status as applied
-	err = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusApplied)
-	if err != nil {
-		// requeue because this error can lead to block stage of application
-		return err
-	}
-
-	// success
-	return nil
 }

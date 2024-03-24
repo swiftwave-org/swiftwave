@@ -184,8 +184,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 	}
 
 	if isFailed {
-		_ = ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
-		return nil
+		return ingressRule.UpdateStatus(ctx, dbWithoutTx, core.IngressRuleStatusFailed)
 	} else {
 		// delete ingress rule from database
 		return ingressRule.Delete(ctx, dbWithoutTx, true)
