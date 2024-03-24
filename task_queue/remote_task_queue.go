@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
 	"reflect"
@@ -379,5 +380,93 @@ func nackMessage(delivery amqp.Delivery) {
 	err := delivery.Nack(false, true)
 	if err != nil {
 		log.Println("error while nacknowledging message for queue [" + delivery.RoutingKey + "]")
+	}
+}
+
+func (r *remoteTaskQueue) PurgeQueue(queueName string) error {
+	if r.queueType == RedisQueue {
+		err := r.redisClient.Del(context.Background(), queueName).Err()
+		if err != nil {
+			return err
+		}
+		return r.redisClient.Del(context.Background(), queueName+"_processing").Err()
+	}
+	if r.queueType == AmqpQueue {
+		if r.amqpChannel == nil {
+			err := r.establishConnection()
+			if err != nil {
+				return fmt.Errorf("error while establishing connection to AMQP server: %s", err.Error())
+			}
+		}
+		_, err := r.amqpChannel.QueuePurge(queueName, true)
+		return err
+	}
+	return errors.New("invalid queue type")
+}
+
+func (r *remoteTaskQueue) ListMessages(queueName string) ([]string, error) {
+	if r.queueType == RedisQueue {
+		return r.inspectQueueUsingRQ(queueName)
+	}
+	if r.queueType == AmqpQueue {
+		return r.inspectQueueUsingAMQP(queueName)
+	}
+	return nil, errors.New("invalid queue type")
+}
+
+func (r *remoteTaskQueue) inspectQueueUsingRQ(queueName string) ([]string, error) {
+	// fetch all the messages from the queue
+	result, err := r.redisClient.LRange(context.Background(), queueName, 0, -1).Result()
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *remoteTaskQueue) inspectQueueUsingAMQP(queueName string) ([]string, error) {
+	if r.amqpChannel == nil {
+		err := r.establishConnection()
+		if err != nil {
+			return nil, fmt.Errorf("error while establishing connection to AMQP server: %s", err.Error())
+		}
+	}
+	// fetch all the messages from the queue, by consuming all the messages and then nack them
+	consumerTag := r.amqpClientName + "_" + queueName
+	deliveries, err := r.amqpChannel.Consume(
+		queueName,   // name
+		consumerTag, // consumerTag,
+		false,       // autoAck
+		false,       // exclusive
+		false,       // noLocal
+		true,        // noWait
+		nil,         // arguments
+	)
+	if err != nil {
+		return nil, err
+	}
+	var result []string
+	var lastDelivery *amqp.Delivery
+	var lastMessageTime = time.Now()
+	var ticker = time.NewTicker(1 * time.Second)
+	for {
+		select {
+		case delivery, ok := <-deliveries:
+			if !ok {
+				// Channel is closed, exit the loop
+				break
+			}
+			// fetch the content
+			content := delivery.Body
+			result = append(result, string(content))
+			lastDelivery = &delivery
+			lastMessageTime = time.Now()
+		case <-ticker.C:
+			if time.Since(lastMessageTime) > 10*time.Second {
+				if lastDelivery != nil {
+					_ = lastDelivery.Nack(false, true)
+				}
+				return result, nil
+			}
+		}
 	}
 }
