@@ -66,22 +66,8 @@ func (m Manager) RedirectRuleApply(request RedirectRuleApplyRequest, ctx context
 			err = haproxyManager.AddHTTPSRedirectRule(haproxyTransactionId, domain.Name, redirectRule.RedirectURL)
 		}
 		if err != nil {
-			// set status as failed and exit
-			_ = redirectRule.UpdateStatus(ctx, dbWithoutTx, core.RedirectRuleStatusFailed)
-			//nolint:ineffassign
 			isFailed = true
-			// no requeue
-			return nil
-		}
-		// commit haproxy transaction
-		err = haproxyManager.CommitTransaction(haproxyTransactionId)
-		if err != nil {
-			// set status as failed and exit
-			_ = redirectRule.UpdateStatus(ctx, dbWithoutTx, core.RedirectRuleStatusFailed)
-			//nolint:ineffassign
-			isFailed = true
-			// no requeue
-			return nil
+			break
 		}
 	}
 
@@ -91,6 +77,7 @@ func (m Manager) RedirectRuleApply(request RedirectRuleApplyRequest, ctx context
 			err = haproxyManager.CommitTransaction(haproxyTransactionId)
 		}
 		if isFailed || err != nil {
+			isFailed = true
 			log.Println("failed to commit haproxy transaction", err)
 			err := haproxyManager.DeleteTransaction(haproxyTransactionId)
 			if err != nil {
@@ -99,11 +86,10 @@ func (m Manager) RedirectRuleApply(request RedirectRuleApplyRequest, ctx context
 		}
 	}
 
-	// set status as applied
-	err = redirectRule.UpdateStatus(ctx, dbWithoutTx, core.RedirectRuleStatusApplied)
-	if err != nil {
-		return err
+	// set status
+	if isFailed {
+		return redirectRule.UpdateStatus(ctx, dbWithoutTx, core.RedirectRuleStatusFailed)
+	} else {
+		return redirectRule.UpdateStatus(ctx, dbWithoutTx, core.RedirectRuleStatusApplied)
 	}
-
-	return nil
 }

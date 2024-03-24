@@ -71,12 +71,8 @@ func (m Manager) RedirectRuleDelete(request RedirectRuleDeleteRequest, ctx conte
 			return nil
 		}
 		if err != nil {
-			// set status as failed and exit
-			// because `DeleteHTTPRedirectRule` can fail only if haproxy not working
-			//nolint:ineffassign
 			isFailed = true
-			// requeue required as it fault of haproxy and may be resolved in next try
-			return err
+			break
 		}
 	}
 
@@ -86,6 +82,7 @@ func (m Manager) RedirectRuleDelete(request RedirectRuleDeleteRequest, ctx conte
 			err = haproxyManager.CommitTransaction(haproxyTransactionId)
 		}
 		if isFailed || err != nil {
+			isFailed = true
 			log.Println("failed to commit haproxy transaction", err)
 			err := haproxyManager.DeleteTransaction(haproxyTransactionId)
 			if err != nil {
@@ -94,10 +91,12 @@ func (m Manager) RedirectRuleDelete(request RedirectRuleDeleteRequest, ctx conte
 		}
 	}
 
-	// delete redirect rule from database
-	err = redirectRule.Delete(ctx, dbWithoutTx, true)
-	if err != nil {
-		return err
+	if !isFailed {
+		// delete redirect rule from database
+		_ = redirectRule.Delete(ctx, dbWithoutTx, true)
+		return nil
+	} else {
+		// update status
+		return redirectRule.UpdateStatus(ctx, dbWithoutTx, core.RedirectRuleStatusFailed)
 	}
-	return nil
 }
