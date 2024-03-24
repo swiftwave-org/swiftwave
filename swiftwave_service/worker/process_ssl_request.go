@@ -12,7 +12,6 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"gorm.io/gorm"
 	"log"
-	"time"
 )
 
 func (m Manager) SSLGenerate(request SSLGenerateRequest, ctx context.Context, _ context.CancelFunc) error {
@@ -63,8 +62,8 @@ func (m Manager) SSLGenerate(request SSLGenerateRequest, ctx context.Context, _ 
 	domain.SSLFullChain = fullChain
 	// update status
 	domain.SSLStatus = core.DomainSSLStatusIssued
-	domain.SSLIssuedAt = time.Now()
-	domain.SSLIssuer = m.ServiceManager.SslManager.FetchIssuerName()
+	// enable auto renew
+	domain.SSLAutoRenew = true
 	// update domain
 	err = domain.Update(ctx, dbWithoutTx)
 	if err != nil {

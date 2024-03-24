@@ -53,7 +53,7 @@ func StartSwiftwave(config *config.Config) {
 	}
 
 	// Create the cronjob manager
-	cronjobManager := cronjob.NewManager(config, manager)
+	cronjobManager := cronjob.NewManager(config, manager, workerManager)
 	cronjobManager.Start(true)
 
 	// create a channel to block the main thread

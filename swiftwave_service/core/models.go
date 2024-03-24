@@ -79,6 +79,7 @@ type Domain struct {
 	SSLPrivateKey string          `json:"ssl_private_key"`
 	SSLFullChain  string          `json:"ssl_full_chain"`
 	SSLIssuedAt   time.Time       `json:"ssl_issued_at"`
+	SSLExpiredAt  time.Time       `json:"ssl_expired_at"`
 	SSLIssuer     string          `json:"ssl_issuer"`
 	SSLAutoRenew  bool            `json:"ssl_auto_renew" gorm:"default:false"`
 	IngressRules  []IngressRule   `json:"ingress_rules" gorm:"foreignKey:DomainID"`

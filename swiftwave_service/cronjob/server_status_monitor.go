@@ -10,6 +10,7 @@ import (
 )
 
 func (m Manager) MonitorServerStatus() {
+	logger.CronJobLogger.Println("Starting server status monitor [cronjob]")
 	for {
 		m.monitorServerStatus()
 		time.Sleep(5 * time.Minute)

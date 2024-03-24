@@ -9,6 +9,7 @@ import (
 )
 
 func (m Manager) CleanupUnusedImages() {
+	logger.CronJobLogger.Println("Starting cleanup of unused images [cronjob]")
 	for {
 		time.Sleep(1 * time.Hour)
 		// Fetch all servers

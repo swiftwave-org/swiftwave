@@ -2,11 +2,13 @@ package cronjob
 
 import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/worker"
 	"sync"
 )
 
-func NewManager(config *config.Config, manager *service_manager.ServiceManager) CronJob {
+func NewManager(config *config.Config, manager *service_manager.ServiceManager, workerManager *worker.Manager) CronJob {
 	if config == nil {
 		panic("config cannot be nil")
 	}
@@ -17,6 +19,7 @@ func NewManager(config *config.Config, manager *service_manager.ServiceManager) 
 		Config:         config,
 		ServiceManager: manager,
 		wg:             &sync.WaitGroup{},
+		WorkerManager:  workerManager,
 	}
 }
 
@@ -30,6 +33,14 @@ func (m Manager) Start(nowait bool) {
 	go m.SyncBackupProxyServer()
 	m.wg.Add(1)
 	go m.MonitorServerStatus()
+	m.wg.Add(1)
+	go m.RenewApplicationDomainsSSL()
+	if m.Config.LocalConfig.ServiceConfig.UseTLS && m.Config.LocalConfig.ServiceConfig.AutoRenewManagementNodeCert {
+		m.wg.Add(1)
+		go m.RenewManagementNodeSSL()
+	} else {
+		logger.CronJobLogger.Println("[IGNORE JOB] Management node SSL auto renew is disabled")
+	}
 	if !nowait {
 		m.wg.Wait()
 	}
