@@ -58,6 +58,7 @@ type LocalImageRegistryConfig struct {
 	Port     int    `yaml:"port"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
+	Image    string `yaml:"image"`
 	DataPath string `yaml:"-"`
 	CertPath string `yaml:"-"`
 	AuthPath string `yaml:"-"`

@@ -7,6 +7,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"io"
 	"os"
+	"strings"
 )
 
 var config *Config
@@ -85,13 +86,13 @@ func readConfigFile(path string) (*Config, error) {
 }
 
 func FillDefaults(config *Config) error {
-	if config.ServiceConfig.BindAddress == "" {
+	if strings.Compare(config.ServiceConfig.BindAddress, "") == 0 {
 		config.ServiceConfig.BindAddress = defaultBindAddress
 	}
 	if config.ServiceConfig.BindPort == 0 {
 		config.ServiceConfig.BindPort = defaultBindPort
 	}
-	if config.ServiceConfig.ManagementNodeAddress == "" {
+	if strings.Compare(config.ServiceConfig.ManagementNodeAddress, "") == 0 {
 		return errors.New("management_node_address is required in config")
 	}
 	if config.LocalImageRegistryConfig.Port == 0 {

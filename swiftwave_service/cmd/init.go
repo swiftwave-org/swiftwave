@@ -89,6 +89,7 @@ var initCmd = &cobra.Command{
 		currentPostgresTimeZone := ""
 		currentPostgresSSLMode := ""
 
+		currentLocalImageRegistryImage := ""
 		currentLocalImageRegistryPort := 0
 		currentLocalImageRegistryUser := ""
 		currentLocalImageRegistryPassword := ""
@@ -101,6 +102,7 @@ var initCmd = &cobra.Command{
 			currentPostgresDatabase = config.LocalConfig.PostgresqlConfig.Database
 			currentPostgresTimeZone = config.LocalConfig.PostgresqlConfig.TimeZone
 			currentPostgresSSLMode = config.LocalConfig.PostgresqlConfig.SSLMode
+			currentLocalImageRegistryImage = config.LocalConfig.LocalImageRegistryConfig.Image
 			currentLocalImageRegistryPort = config.LocalConfig.LocalImageRegistryConfig.Port
 			currentLocalImageRegistryUser = config.LocalConfig.LocalImageRegistryConfig.Username
 			currentLocalImageRegistryPassword = config.LocalConfig.LocalImageRegistryConfig.Password
@@ -125,6 +127,7 @@ var initCmd = &cobra.Command{
 				RunLocalPostgres: isLocalPostgres,
 			},
 			LocalImageRegistryConfig: local_config.LocalImageRegistryConfig{
+				Image:    defaultString(currentLocalImageRegistryImage, "registry:2.8"),
 				Port:     defaultInt(currentLocalImageRegistryPort, 3334),
 				Username: defaultString(currentLocalImageRegistryUser, "user_"+generateRandomString(8)),
 				Password: defaultString(currentLocalImageRegistryPassword, generateRandomString(20)),
