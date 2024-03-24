@@ -7,7 +7,6 @@ import (
 	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"gorm.io/gorm"
-	"strings"
 	"time"
 )
 
@@ -60,20 +59,15 @@ func (m Manager) InstallDependenciesOnServer(request InstallDependenciesOnServer
 
 	// command
 	var command string
-	var isExists bool
 	for _, dependency := range core.RequiredServerDependencies {
-		isExists = false
+		isExists := false
 		// check if dependency is already installed [ignore init]
 		if dependency != "init" {
 			stdoutBuffer := new(bytes.Buffer)
 			err = ssh_toolkit.ExecCommandOverSSH(core.DependencyCheckCommands[dependency], stdoutBuffer, nil, 5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey, 30)
-			if err != nil {
-				if strings.Contains(err.Error(), "exited with status 1") {
-					//nolint:ineffassign
-					isExists = false
-				}
+			if err == nil {
+				isExists = stdoutBuffer.String() != ""
 			}
-			isExists = stdoutBuffer.String() != ""
 		}
 		// install dependency
 		if isExists {
