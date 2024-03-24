@@ -95,7 +95,7 @@ func (m Manager) SSLGenerate(request SSLGenerateRequest, ctx context.Context, _ 
 		err = haproxyManager.UpdateSSL(transactionId, domain.Name, []byte(domain.SSLPrivateKey), []byte(domain.SSLFullChain))
 		if err != nil {
 			isFailed = true
-			continue
+			break
 		}
 	}
 	for haproxyManager, haproxyTransactionId := range transactionIdMap {
@@ -104,6 +104,7 @@ func (m Manager) SSLGenerate(request SSLGenerateRequest, ctx context.Context, _ 
 			err = haproxyManager.CommitTransaction(haproxyTransactionId)
 		}
 		if isFailed || err != nil {
+			isFailed = true
 			log.Println("failed to commit haproxy transaction", err)
 			err := haproxyManager.DeleteTransaction(haproxyTransactionId)
 			if err != nil {
@@ -111,6 +112,11 @@ func (m Manager) SSLGenerate(request SSLGenerateRequest, ctx context.Context, _ 
 			}
 		}
 	}
+
+	if isFailed {
+		return domain.UpdateSSLStatus(ctx, dbWithoutTx, core.DomainSSLStatusFailed)
+	}
+
 	return nil
 }
 
