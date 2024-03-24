@@ -25,7 +25,6 @@ type localTaskQueue struct {
 	mutexQueueToChannelMapping  *sync.RWMutex
 	queueToFunctionMapping      map[string]functionMetadata // map between queue name <---> function
 	queueToChannelMapping       map[string]chan ArgumentType
-	operationMode               Mode
 	maxMessagesPerQueue         int
 	NoOfWorkersPerQueue         int
 	consumersWaitGroup          *sync.WaitGroup
@@ -37,7 +36,6 @@ type remoteTaskQueue struct {
 	amqpConfig                  amqp.Config
 	amqpURI                     string
 	amqpClientName              string
-	operationMode               Mode
 	consumersWaitGroup          *sync.WaitGroup
 	NoOfWorkersPerQueue         int
 	// internal use
@@ -59,17 +57,8 @@ const (
 	Remote ServiceType = "remote"
 )
 
-type Mode string
-
-const (
-	ProducerOnly Mode = "producer_only"
-	ConsumerOnly Mode = "consumer_only"
-	Both         Mode = "both"
-)
-
 type Options struct {
 	Type                ServiceType
-	Mode                Mode
 	MaxMessagesPerQueue int // only applicable for local task queue
 	NoOfWorkersPerQueue int
 	// Extra options for remote task queue

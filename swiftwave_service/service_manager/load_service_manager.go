@@ -96,7 +96,6 @@ func (manager *ServiceManager) Load(config config.Config) {
 	if config.SystemConfig.TaskQueueConfig.Mode == system_config.LocalTaskQueue {
 		taskQueueClient, err := task_queue.NewClient(task_queue.Options{
 			Type:                task_queue.Local,
-			Mode:                task_queue.Both, // TODO: option to configure this
 			MaxMessagesPerQueue: int(config.SystemConfig.TaskQueueConfig.MaxOutstandingMessagesPerQueue),
 			NoOfWorkersPerQueue: int(config.SystemConfig.TaskQueueConfig.NoOfWorkersPerQueue),
 		})
@@ -109,7 +108,6 @@ func (manager *ServiceManager) Load(config config.Config) {
 	} else if config.SystemConfig.TaskQueueConfig.Mode == system_config.RemoteTaskQueue {
 		taskQueueClient, err := task_queue.NewClient(task_queue.Options{
 			Type:                task_queue.Remote,
-			Mode:                task_queue.Both, // TODO: option to configure this
 			NoOfWorkersPerQueue: int(config.SystemConfig.TaskQueueConfig.NoOfWorkersPerQueue),
 			MaxMessagesPerQueue: int(config.SystemConfig.TaskQueueConfig.MaxOutstandingMessagesPerQueue),
 			AMQPUri:             config.SystemConfig.TaskQueueConfig.AMQPConfig.URI(),
