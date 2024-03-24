@@ -41,10 +41,6 @@ func (r *remoteTaskQueue) RegisterFunction(queueName string, function WorkerFunc
 }
 
 func (r *remoteTaskQueue) EnqueueTask(queueName string, argument ArgumentType) error {
-	// checks
-	if r.operationMode == ConsumerOnly {
-		return errors.New("cannot enqueue task in consumer only mode")
-	}
 	// marshal argument to json
 	jsonBytes, err := json.Marshal(argument)
 	if err != nil {
@@ -95,10 +91,6 @@ func (r *remoteTaskQueue) EnqueueTask(queueName string, argument ArgumentType) e
 }
 
 func (r *remoteTaskQueue) StartConsumers(nowait bool) error {
-	if r.operationMode == ProducerOnly {
-		return errors.New("cannot start consumers in producer only mode")
-	}
-
 	// establish connection if not already established
 	err := r.establishConnection()
 	if err != nil {
@@ -180,12 +172,9 @@ func (r *remoteTaskQueue) establishConnection() error {
 	}
 	// set channel
 	r.amqpChannel = channel
-	// if it has responsibility to publish, set confirm mode
-	if r.operationMode == ProducerOnly || r.operationMode == Both {
-		err = r.amqpChannel.Confirm(false)
-		if err != nil {
-			return err
-		}
+	err = r.amqpChannel.Confirm(false)
+	if err != nil {
+		return err
 	}
 	return nil
 }

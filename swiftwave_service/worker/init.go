@@ -29,8 +29,6 @@ func (m Manager) WaitForConsumers() {
 	m.ServiceManager.TaskQueueClient.WaitForConsumers()
 }
 
-// private functions
-// registerWorkerFunctions : register all the functions to the task queue client
 func (m Manager) registerWorkerFunctions() {
 	taskQueueClient := m.ServiceManager.TaskQueueClient
 	panicOnError(taskQueueClient.RegisterFunction(buildApplicationQueueName, m.BuildApplication))

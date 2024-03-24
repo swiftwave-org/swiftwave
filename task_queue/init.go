@@ -26,16 +26,11 @@ func createLocalTaskQueueClient(options Options) (Client, error) {
 	mutex := &sync.RWMutex{}
 	mutex2 := &sync.RWMutex{}
 
-	if options.Type == Local && options.Mode != Both {
-		return nil, errors.New("for local task queue, mode should be both")
-	}
-
 	return &localTaskQueue{
 		mutexQueueToFunctionMapping: mutex,
 		mutexQueueToChannelMapping:  mutex2,
 		queueToFunctionMapping:      functionsMapping,
 		queueToChannelMapping:       channelsMapping,
-		operationMode:               options.Mode,
 		maxMessagesPerQueue:         options.MaxMessagesPerQueue,
 		NoOfWorkersPerQueue:         options.NoOfWorkersPerQueue,
 		consumersWaitGroup:          &sync.WaitGroup{},
@@ -59,7 +54,6 @@ func createRemoteTaskQueueClient(options Options) (Client, error) {
 		mutexQueueToFunctionMapping: mutex,
 		NoOfWorkersPerQueue:         options.NoOfWorkersPerQueue,
 		queueToFunctionMapping:      functionsMapping,
-		operationMode:               options.Mode,
 		amqpURI:                     options.AMQPUri,
 		amqpConfig:                  amqpConfig,
 		amqpClientName:              options.AMQPClientName,

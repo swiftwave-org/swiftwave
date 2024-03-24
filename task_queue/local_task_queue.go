@@ -12,12 +12,10 @@ func (l *localTaskQueue) RegisterFunction(queueName string, function WorkerFunct
 	// release lock when function returns
 	defer l.mutexQueueToFunctionMapping.Unlock()
 
-	if l.operationMode == ConsumerOnly || l.operationMode == Both {
-		// acquire lock for queue to channel mapping
-		l.mutexQueueToChannelMapping.Lock()
-		// release lock when function returns
-		defer l.mutexQueueToChannelMapping.Unlock()
-	}
+	// acquire lock for queue to channel mapping
+	l.mutexQueueToChannelMapping.Lock()
+	// release lock when function returns
+	defer l.mutexQueueToChannelMapping.Unlock()
 
 	// check if there is already a function registered for this queue
 	if _, ok := l.queueToFunctionMapping[queueName]; ok {
@@ -35,9 +33,7 @@ func (l *localTaskQueue) RegisterFunction(queueName string, function WorkerFunct
 	l.queueToFunctionMapping[queueName] = metadata
 
 	// add channel to mapping
-	if l.operationMode == ConsumerOnly || l.operationMode == Both {
-		l.queueToChannelMapping[queueName] = make(chan ArgumentType, l.maxMessagesPerQueue)
-	}
+	l.queueToChannelMapping[queueName] = make(chan ArgumentType, l.maxMessagesPerQueue)
 
 	return nil
 }
@@ -54,23 +50,15 @@ func (l *localTaskQueue) EnqueueTask(queueName string, argument ArgumentType) er
 	}
 
 	// enqueue task
-	if l.operationMode == ConsumerOnly || l.operationMode == Both {
-		// check if channel is full
-		if len(l.queueToChannelMapping[queueName]) == l.maxMessagesPerQueue {
-			return errors.New("queue is full, cannot enqueue task")
-		}
-		l.queueToChannelMapping[queueName] <- argument
-	} else {
-		return errors.New("cannot enqueue task in producer only mode")
+	// check if channel is full
+	if len(l.queueToChannelMapping[queueName]) == l.maxMessagesPerQueue {
+		return errors.New("queue is full, cannot enqueue task")
 	}
-
+	l.queueToChannelMapping[queueName] <- argument
 	return nil
 }
 
 func (l *localTaskQueue) StartConsumers(nowait bool) error {
-	if l.operationMode == ProducerOnly {
-		return errors.New("cannot start consumers in producer only mode")
-	}
 	// copy the queue names to a new slice
 	queueNames := make([]string, 0, len(l.queueToChannelMapping))
 
