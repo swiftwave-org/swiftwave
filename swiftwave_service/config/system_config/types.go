@@ -24,6 +24,14 @@ const (
 	RemoteTaskQueue TaskQueueMode = "remote"
 )
 
+type RemoteTaskQueueType string
+
+const (
+	AmqpQueue       RemoteTaskQueueType = "amqp"
+	RedisQueue      RemoteTaskQueueType = "redis"
+	NoneRemoteQueue RemoteTaskQueueType = "none"
+)
+
 // ImageRegistryConfig : configuration for image registry
 type ImageRegistryConfig struct {
 	Endpoint  string `json:"endpoint"`
@@ -72,10 +80,12 @@ type PubSubConfig struct {
 
 // TaskQueueConfig : configuration for task queue system
 type TaskQueueConfig struct {
-	Mode                           TaskQueueMode `json:"mode" gorm:"default:'local'"`
-	MaxOutstandingMessagesPerQueue uint          `json:"max_outstanding_messages_per_queue" gorm:"default:2"`
-	NoOfWorkersPerQueue            uint          `json:"no_of_workers_per_queue"`
-	AMQPConfig                     AMQPConfig    `json:"amqp_config" gorm:"embedded;embeddedPrefix:amqp_"`
+	Mode                           TaskQueueMode       `json:"mode" gorm:"default:'local'"`
+	RemoteTaskQueueType            RemoteTaskQueueType `json:"remote_task_queue_type" gorm:"default:'none'"`
+	MaxOutstandingMessagesPerQueue uint                `json:"max_outstanding_messages_per_queue" gorm:"default:2"`
+	NoOfWorkersPerQueue            uint                `json:"no_of_workers_per_queue"`
+	AMQPConfig                     AMQPConfig          `json:"amqp_config" gorm:"embedded;embeddedPrefix:amqp_"`
+	RedisConfig                    RedisConfig         `json:"redis_config" gorm:"embedded;embeddedPrefix:redis_"`
 }
 
 // RedisConfig : configuration for Redis

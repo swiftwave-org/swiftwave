@@ -27,6 +27,7 @@ func createLocalTaskQueueClient(options Options) (Client, error) {
 	mutex2 := &sync.RWMutex{}
 
 	return &localTaskQueue{
+		db:                          options.DbClient,
 		mutexQueueToFunctionMapping: mutex,
 		mutexQueueToChannelMapping:  mutex2,
 		queueToFunctionMapping:      functionsMapping,
@@ -41,22 +42,42 @@ func createRemoteTaskQueueClient(options Options) (Client, error) {
 	functionsMapping := make(map[string]functionMetadata)
 	mutex := &sync.RWMutex{}
 
-	// declare connection
-	amqpConfig := amqp.Config{
-		Vhost:      options.AMQPVhost,
-		Properties: amqp.NewConnectionProperties(),
+	if options.RemoteQueueType == NoneRemoteQueue {
+		return nil, errors.New("remote queue type is not provided")
 	}
 
-	// set client name
-	amqpConfig.Properties.SetClientConnectionName(options.AMQPClientName)
+	if options.RemoteQueueType == AmqpQueue {
+		// declare connection
+		amqpConfig := amqp.Config{
+			Vhost:      options.AMQPVhost,
+			Properties: amqp.NewConnectionProperties(),
+		}
+		// set client name
+		amqpConfig.Properties.SetClientConnectionName(options.AMQPClientName)
+		return &remoteTaskQueue{
+			queueType:                   AmqpQueue,
+			mutexQueueToFunctionMapping: mutex,
+			NoOfWorkersPerQueue:         options.NoOfWorkersPerQueue,
+			queueToFunctionMapping:      functionsMapping,
+			amqpURI:                     options.AMQPUri,
+			amqpConfig:                  amqpConfig,
+			amqpClientName:              options.AMQPClientName,
+			consumersWaitGroup:          &sync.WaitGroup{},
+		}, nil
+	} else if options.RemoteQueueType == RedisQueue {
+		if options.RedisClient == nil {
+			return nil, errors.New("redis client is nil")
+		}
+		return &remoteTaskQueue{
+			queueType:                   RedisQueue,
+			mutexQueueToFunctionMapping: mutex,
+			NoOfWorkersPerQueue:         options.NoOfWorkersPerQueue,
+			queueToFunctionMapping:      functionsMapping,
+			redisClient:                 options.RedisClient,
+			consumersWaitGroup:          &sync.WaitGroup{},
+		}, nil
 
-	return &remoteTaskQueue{
-		mutexQueueToFunctionMapping: mutex,
-		NoOfWorkersPerQueue:         options.NoOfWorkersPerQueue,
-		queueToFunctionMapping:      functionsMapping,
-		amqpURI:                     options.AMQPUri,
-		amqpConfig:                  amqpConfig,
-		amqpClientName:              options.AMQPClientName,
-		consumersWaitGroup:          &sync.WaitGroup{},
-	}, nil
+	} else {
+		return nil, errors.New("invalid remote queue type")
+	}
 }

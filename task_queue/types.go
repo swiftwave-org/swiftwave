@@ -1,7 +1,9 @@
 package task_queue
 
 import (
+	"github.com/go-redis/redis/v8"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"gorm.io/gorm"
 	"reflect"
 	"sync"
 )
@@ -18,6 +20,8 @@ type Client interface {
 	StartConsumers(nowait bool) error
 	// WaitForConsumers is a blocking function that waits for all the consumers to finish
 	WaitForConsumers()
+	// EnqueueProcessingQueueExpiredTask enqueues tasks from processing queue to the original queue
+	EnqueueProcessingQueueExpiredTask() error
 }
 
 type localTaskQueue struct {
@@ -28,17 +32,29 @@ type localTaskQueue struct {
 	maxMessagesPerQueue         int
 	NoOfWorkersPerQueue         int
 	consumersWaitGroup          *sync.WaitGroup
+	db                          *gorm.DB
 }
+
+type RemoteQueueType string
+
+const (
+	AmqpQueue       RemoteQueueType = "amqp"
+	RedisQueue      RemoteQueueType = "redis"
+	NoneRemoteQueue RemoteQueueType = "none"
+)
 
 type remoteTaskQueue struct {
 	mutexQueueToFunctionMapping *sync.RWMutex
 	queueToFunctionMapping      map[string]functionMetadata // map between queue name <---> function
-	amqpConfig                  amqp.Config
-	amqpURI                     string
-	amqpClientName              string
 	consumersWaitGroup          *sync.WaitGroup
 	NoOfWorkersPerQueue         int
-	// internal use
+	queueType                   RemoteQueueType
+	// redis specific
+	redisClient *redis.Client
+	// amqp specific
+	amqpConfig     amqp.Config
+	amqpURI        string
+	amqpClientName string
 	amqpConnection *amqp.Connection
 	amqpChannel    *amqp.Channel
 }
@@ -59,9 +75,14 @@ const (
 
 type Options struct {
 	Type                ServiceType
-	MaxMessagesPerQueue int // only applicable for local task queue
 	NoOfWorkersPerQueue int
+	MaxMessagesPerQueue int      // only applicable for local task queue
+	DbClient            *gorm.DB // only applicable for local task queue
 	// Extra options for remote task queue
+	RemoteQueueType RemoteQueueType
+	// Redis specific options
+	RedisClient *redis.Client
+	// AMQP specific options
 	AMQPUri        string
 	AMQPVhost      string
 	AMQPClientName string

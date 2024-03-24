@@ -152,6 +152,10 @@ func payloadToDBRecord(payload SystemConfigurationPayload) (system_config.System
 		letsEncryptPrivateKey = payload.LetsEncrypt.PrivateKey
 	}
 
+	if payload.TaskQueueConfig.Type == LocalTaskQueue {
+		payload.TaskQueueConfig.RemoteTaskQueueType = NoneRemoteQueue
+	}
+
 	return system_config.SystemConfig{
 		NetworkName:     payload.NetworkName,
 		ConfigVersion:   1,
@@ -194,6 +198,7 @@ func payloadToDBRecord(payload SystemConfigurationPayload) (system_config.System
 		},
 		TaskQueueConfig: system_config.TaskQueueConfig{
 			Mode:                           system_config.TaskQueueMode(payload.TaskQueueConfig.Type),
+			RemoteTaskQueueType:            system_config.RemoteTaskQueueType(payload.TaskQueueConfig.RemoteTaskQueueType),
 			MaxOutstandingMessagesPerQueue: payload.TaskQueueConfig.MaxOutstandingMessagesPerQueue,
 			NoOfWorkersPerQueue:            payload.TaskQueueConfig.NoOfWorkersPerQueue,
 			AMQPConfig: system_config.AMQPConfig{
@@ -203,6 +208,12 @@ func payloadToDBRecord(payload SystemConfigurationPayload) (system_config.System
 				User:     payload.TaskQueueConfig.AmqpConfig.Username,
 				Password: payload.TaskQueueConfig.AmqpConfig.Password,
 				VHost:    payload.TaskQueueConfig.AmqpConfig.Vhost,
+			},
+			RedisConfig: system_config.RedisConfig{
+				Host:       payload.TaskQueueConfig.RedisConfig.Host,
+				Port:       payload.TaskQueueConfig.RedisConfig.Port,
+				Password:   payload.TaskQueueConfig.RedisConfig.Password,
+				DatabaseID: payload.TaskQueueConfig.RedisConfig.Database,
 			},
 		},
 		ImageRegistryConfig: imageRegistryConfig,
@@ -240,12 +251,14 @@ func dbRecordToPayload(record *system_config.SystemConfig) SystemConfigurationPa
 	}
 	var taskQueueConfig = TaskQueueConfig{
 		Type:                           LocalTaskQueue,
+		RemoteTaskQueueType:            NoneRemoteQueue,
 		MaxOutstandingMessagesPerQueue: record.TaskQueueConfig.MaxOutstandingMessagesPerQueue,
 		NoOfWorkersPerQueue:            record.TaskQueueConfig.NoOfWorkersPerQueue,
 	}
 	if record.TaskQueueConfig.Mode == system_config.RemoteTaskQueue {
 		taskQueueConfig = TaskQueueConfig{
 			Type:                           RemoteTaskQueue,
+			RemoteTaskQueueType:            RemoteTaskQueueType(record.TaskQueueConfig.RemoteTaskQueueType),
 			MaxOutstandingMessagesPerQueue: record.TaskQueueConfig.MaxOutstandingMessagesPerQueue,
 			NoOfWorkersPerQueue:            record.TaskQueueConfig.NoOfWorkersPerQueue,
 			AmqpConfig: AmqpConfig{
@@ -255,6 +268,12 @@ func dbRecordToPayload(record *system_config.SystemConfig) SystemConfigurationPa
 				Username: record.TaskQueueConfig.AMQPConfig.User,
 				Password: record.TaskQueueConfig.AMQPConfig.Password,
 				Vhost:    record.TaskQueueConfig.AMQPConfig.VHost,
+			},
+			RedisConfig: RedisConfig{
+				Host:     record.TaskQueueConfig.RedisConfig.Host,
+				Port:     record.TaskQueueConfig.RedisConfig.Port,
+				Password: record.TaskQueueConfig.RedisConfig.Password,
+				Database: record.TaskQueueConfig.RedisConfig.DatabaseID,
 			},
 		}
 	}

@@ -1,8 +1,10 @@
 package task_queue
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
+	"reflect"
 	"sync"
 )
 
@@ -50,7 +52,15 @@ func (l *localTaskQueue) EnqueueTask(queueName string, argument ArgumentType) er
 	}
 
 	// enqueue task
-	// check if channel is full
+	jsonBytes, err := json.Marshal(argument)
+	if err != nil {
+		return err
+	}
+	err = addTaskToDb(l.db, queueName, string(jsonBytes))
+	if err != nil {
+		return err
+	}
+	// check if a channel is full
 	if len(l.queueToChannelMapping[queueName]) == l.maxMessagesPerQueue {
 		return errors.New("queue is full, cannot enqueue task")
 	}
@@ -93,6 +103,39 @@ func (l *localTaskQueue) StartConsumers(nowait bool) error {
 
 func (l *localTaskQueue) WaitForConsumers() {
 	l.consumersWaitGroup.Wait()
+}
+
+func (l *localTaskQueue) EnqueueProcessingQueueExpiredTask() error {
+	for queueName := range l.queueToChannelMapping {
+		tasks, err := getTasksFromDb(l.db, queueName)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		for _, task := range *tasks {
+			functionMetadata, err := l.getFunction(queueName)
+			if err != nil {
+				log.Println("error while fetching function for queue [" + queueName + "]")
+				log.Println("error: " + err.Error())
+				continue
+			}
+			// create a new object of an argument type
+			argument := reflect.New(functionMetadata.argumentType).Interface()
+			err = json.Unmarshal([]byte(task.Body), &argument)
+			if err != nil {
+				log.Println("error while unmarshalling argument for queue ["+queueName+"]", err)
+				continue
+			}
+			// argument is a pointer, dereference it
+			argument = reflect.ValueOf(argument).Elem().Interface()
+			// enqueue task
+			err = l.EnqueueTask(queueName, argument)
+			if err != nil {
+				log.Println("error while enqueueing task for queue ["+queueName+"]", err)
+			}
+		}
+	}
+	return nil
 }
 
 // private function
@@ -155,6 +198,15 @@ func (l *localTaskQueue) listenForTasks(queueName string, wg *sync.WaitGroup) {
 		err := invokeFunction(functionMetadata.function, argument, functionMetadata.argumentType)
 		if err != nil {
 			log.Println("error while invoking function for queue [" + queueName + "]")
+		} else {
+			jsonBytes, err := json.Marshal(argument)
+			if err != nil {
+				log.Println("error while marshalling argument for queue ["+queueName+"] to remove", err)
+			}
+			err = removeTaskFromDb(l.db, queueName, string(jsonBytes))
+			if err != nil {
+				log.Println("error while removing task from DbClient for queue ["+queueName+"]", err)
+			}
 		}
 	}
 
