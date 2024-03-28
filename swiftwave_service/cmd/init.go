@@ -26,9 +26,9 @@ var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize SwiftWave configuration on server",
 	Run: func(cmd *cobra.Command, args []string) {
-		isAutoDomainResolve := cmd.Flag("auto-domain").Value.String() == "true"
-		isLocalPostgres := cmd.Flag("remote-postgres").Value.String() == "false"
-		isOverWrite := cmd.Flag("overwrite").Value.String() == "true"
+		isAutoDomainResolve := strings.Compare(cmd.Flag("auto-domain").Value.String(), "true") == 0
+		isLocalPostgres := strings.Compare(cmd.Flag("remote-postgres").Value.String(), "false") == 0
+		isOverWrite := strings.Compare(cmd.Flag("overwrite").Value.String(), "true") == 0
 		predefinedDomain := cmd.Flag("domain").Value.String()
 		if isOverWrite {
 			printWarning("Overwriting existing config! Restart the service to apply changes")
@@ -71,7 +71,7 @@ var initCmd = &cobra.Command{
 				if err != nil {
 					inputDomainName = ""
 				}
-				if strings.TrimSpace(inputDomainName) != "" {
+				if strings.Compare(strings.TrimSpace(inputDomainName), "") != 0 {
 					domainName = inputDomainName
 					printInfo("Domain name set to " + domainName)
 				}

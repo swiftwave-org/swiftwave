@@ -4,6 +4,7 @@ import (
 	"errors"
 	"reflect"
 	"runtime"
+	"strings"
 )
 
 func inspectFunction(function WorkerFunctionType) (functionMetadata, error) {
@@ -80,7 +81,7 @@ func inspectFunction(function WorkerFunctionType) (functionMetadata, error) {
 
 	// validate that each field of the struct has a json tag
 	for i := 0; i < fnType.In(0).NumField(); i++ {
-		if fnType.In(0).Field(i).Tag.Get("json") == "" {
+		if strings.Compare(fnType.In(0).Field(i).Tag.Get("json"), "") == 0 {
 			return metadata, errors.New("field " + fnType.In(0).Field(i).Name + " of struct " + fnType.In(0).Name() + " is missing json tag")
 		}
 	}

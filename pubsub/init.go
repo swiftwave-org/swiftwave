@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/hashicorp/go-set"
+	"strings"
 	"sync"
 )
 
@@ -37,10 +38,10 @@ func createRemotePubSubClient(options Options) (Client, error) {
 	if options.RedisClient == nil {
 		return nil, errors.New("redis client is nil")
 	}
-	if options.TopicsChannelName == "" {
+	if strings.Compare(options.TopicsChannelName, "") == 0 {
 		return nil, errors.New("topics channel name is empty")
 	}
-	if options.EventsChannelName == "" {
+	if strings.Compare(options.EventsChannelName, "") == 0 {
 		return nil, errors.New("events channel name is empty")
 	}
 	if options.BufferLength <= 0 {

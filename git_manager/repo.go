@@ -9,6 +9,7 @@ import (
 	"github.com/go-git/go-git/v5/storage/memory"
 	"os"
 	"sort"
+	"strings"
 )
 
 func FetchLatestCommitHash(gitUrl string, branch string, username string, password string) (string, error) {
@@ -36,7 +37,7 @@ func FetchLatestCommitHash(gitUrl string, branch string, username string, passwo
 		return "", err
 	}
 	for _, ref := range refs {
-		if ref.Name().IsBranch() && ref.Name().Short() == branch {
+		if ref.Name().IsBranch() && strings.Compare(ref.Name().Short(), branch) == 0 {
 			return ref.Hash().String(), nil
 		}
 	}
