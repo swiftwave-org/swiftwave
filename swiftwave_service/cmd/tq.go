@@ -14,7 +14,6 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(taskQueueCmd)
 	taskQueueCmd.AddCommand(taskQueueListCmd)
 	taskQueueCmd.AddCommand(taskQueueInspectCmd)
 	taskQueueCmd.AddCommand(taskQueuePurgeCmd)

@@ -15,14 +15,13 @@ var swiftwaveUpdaterService string
 var swiftwaveUpdaterTimer string
 
 func init() {
-	autoUpdaterCmd.AddCommand(enableUpdaterServiceCmd)
-	autoUpdaterCmd.AddCommand(disableUpdaterServiceCmd)
+	autoUpdateCmd.AddCommand(enableUpdateServiceCmd)
+	autoUpdateCmd.AddCommand(disableUpdateServiceCmd)
 }
 
-var autoUpdaterCmd = &cobra.Command{
-	Use:   "auto-updater",
-	Short: "Auto update swiftwave for minor patcha and hotfix releases",
-	Long:  `Auto update swiftwave for minor patcha and hotfix releases`,
+var autoUpdateCmd = &cobra.Command{
+	Use:   "auto-update",
+	Short: "Check for updates each 20 min and update Swiftwave automatically",
 	Run: func(cmd *cobra.Command, args []string) {
 		// print help
 		err := cmd.Help()
@@ -32,10 +31,8 @@ var autoUpdaterCmd = &cobra.Command{
 	},
 }
 
-var enableUpdaterServiceCmd = &cobra.Command{
-	Use:   "enable",
-	Short: "Enable auto update service",
-	Long:  `Enable auto update service`,
+var enableUpdateServiceCmd = &cobra.Command{
+	Use: "enable",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Move swiftwave-updater.service to /etc/systemd/system/
 		err := os.WriteFile("/etc/systemd/system/swiftwave-updater.service", []byte(swiftwaveUpdaterService), 0644)
@@ -76,10 +73,8 @@ var enableUpdaterServiceCmd = &cobra.Command{
 	},
 }
 
-var disableUpdaterServiceCmd = &cobra.Command{
-	Use:   "disable",
-	Short: "Disable auto update service",
-	Long:  `Disable auto update service`,
+var disableUpdateServiceCmd = &cobra.Command{
+	Use: "disable",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Stop swiftwave service
 		runCommand := exec.Command("systemctl", "stop", "swiftwave-updater.timer")
