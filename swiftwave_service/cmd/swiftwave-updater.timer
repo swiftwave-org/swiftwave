@@ -2,7 +2,7 @@
 Description=Swiftwave Updater Timer
 
 [Timer]
-OnCalendar=*:0,20,40
+OnCalendar=*:0,15,30,45
 Unit=swiftwave-updater.service
 Persistent=true
 
