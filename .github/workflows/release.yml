@@ -94,7 +94,7 @@ jobs:
             for i in "${!architectures[@]}"; do
               mkdir -p ~/deb_builds/${package_name}_${release_tag}_${architectures[$i]}/usr/bin
               mkdir -p ~/deb_builds/${package_name}_${release_tag}_${architectures[$i]}/DEBIAN
-              GOOS=linux GOARCH=${go_archs[$i]} go build -o ${package_name} .
+              GOOS=linux GOARCH=${go_archs[$i]} go build -o ${package_name} -buildvcs=false .
               mv ${package_name} ~/deb_builds/${package_name}_${release_tag}_${architectures[$i]}/usr/bin
               control_content="${control_file//\$PACKAGE_NAME/${package_name}}"
               control_content="${control_content//\$RELEASE_VERSION/${release_version}}"
@@ -158,7 +158,7 @@ jobs:
               go_archs=(${go_archs//,/ })
               for i in "${!architectures[@]}"; do
                 mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-                GOOS=linux GOARCH=${go_archs[$i]} go build -o ${package_name} .
+                GOOS=linux GOARCH=${go_archs[$i]} go build -o ${package_name} -buildvcs=false .
                 chmod +x ${package_name}
                 mv ${package_name} ~/rpmbuild/SOURCES
                 spec_content="${spec_file//\$PACKAGE_NAME/${package_name}}"
