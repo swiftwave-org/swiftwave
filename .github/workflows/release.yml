@@ -125,6 +125,8 @@ jobs:
               echo "release_number=${version_parts[1]}" >> $GITHUB_ENV
               dnf install -y tree createrepo rpm-build rpm-sign wget gcc python3 yum-utils git-all
               curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+              export NVM_DIR="$HOME/.nvm"
+              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
               nvm install 20
               wget -q -O - $asset_builder_download_link | tar -xz -C /usr/bin/
           - name: Checkout code
