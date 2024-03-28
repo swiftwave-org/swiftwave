@@ -40,7 +40,7 @@ func (s Manager) VerifyDomain(domain string) bool {
 			return false
 		} else {
 			// Check if the response is "ok"
-			return strings.ToLower(string(respBody)) == "ok"
+			return strings.Compare(strings.ToLower(string(respBody)), "ok") == 0
 		}
 	}
 	return false
