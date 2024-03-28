@@ -83,8 +83,8 @@ jobs:
             cp -r dashboard/dist/* swiftwave_service/dashboard/www/
         - name: Set Version
           run: |
-            rm config/local_config/.version
-            echo "${{ github.event.release.tag_name }}" >> config/local_config/.version
+            rm swiftwave_service/config/local_config/.version
+            echo "${{ github.event.release.tag_name }}" >> swiftwave_service/config/local_config/.version
         - name: Create Directory to dump .deb
           run: mkdir -p ~/deb_builds
         - name: Build for all architectures
@@ -123,7 +123,9 @@ jobs:
               IFS='-' read -ra version_parts <<< "${{ env.release_tag }}"
               echo "release_version=${version_parts[0]}" >> $GITHUB_ENV
               echo "release_number=${version_parts[1]}" >> $GITHUB_ENV
-              dnf install -y tree createrepo rpm-build rpm-sign wget gcc python3 yum-utils nodejs
+              dnf install -y tree createrepo rpm-build rpm-sign wget gcc python3 yum-utils git-all
+              curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+              nvm install 20
               wget -q -O - $asset_builder_download_link | tar -xz -C /usr/bin/
           - name: Checkout code
             uses: actions/checkout@v3
@@ -144,8 +146,8 @@ jobs:
               cp -r dashboard/dist/* swiftwave_service/dashboard/www/
           - name: Set Version
             run: |
-              rm config/local_config/.version
-              echo "${{ github.event.release.tag_name }}" >> config/local_config/.version
+              rm swiftwave_service/config/local_config/.version
+              echo "${{ github.event.release.tag_name }}" >> swiftwave_service/config/local_config/.version
           - name: Build for all architectures
             run: |
               architectures=(${rpm_architectures//,/ })
