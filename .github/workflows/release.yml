@@ -83,8 +83,8 @@ jobs:
             cp -r dashboard/dist/* swiftwave_service/dashboard/www/
         - name: Set Version
           run: |
-            rm swiftwave_service/config/local_config/.version
-            echo "${{ github.event.release.tag_name }}" >> swiftwave_service/config/local_config/.version
+            rm cmd/.version
+            echo "${{ github.event.release.tag_name }}" >> cmd/.version
         - name: Create Directory to dump .deb
           run: mkdir -p ~/deb_builds
         - name: Build for all architectures
@@ -150,8 +150,8 @@ jobs:
               cp -r dashboard/dist/* swiftwave_service/dashboard/www/
           - name: Set Version
             run: |
-              rm swiftwave_service/config/local_config/.version
-              echo "${{ github.event.release.tag_name }}" >> swiftwave_service/config/local_config/.version
+              rm cmd/.version
+              echo "${{ github.event.release.tag_name }}" >> cmd/.version
           - name: Build for all architectures
             run: |
               architectures=(${rpm_architectures//,/ })
