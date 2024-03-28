@@ -139,6 +139,8 @@ jobs:
               go-version: 1.22.1
           - name: Build Dashboard
             run: |
+              export NVM_DIR="$HOME/.nvm"
+              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
               (rm -rf swiftwave_service/dashboard/www || true)
               mkdir -p swiftwave_service/dashboard/www
               cd dashboard
