@@ -1,51 +1,191 @@
-# .github/workflows/release.yaml
-
 on:
   release:
-    types: [created]
-  
+    types: [published]
 permissions:
   contents: write
   packages: write
+env:
+  github_token: ${{ secrets.GITHUB_TOKEN }}
+  github_repository: ${{ github.repository }}
+  release_tag: ${{ github.event.release.tag_name }}
+  package_name: swiftwave
+  homepage: https://swiftwave.org
+  license: Apache-2.0
+  summary: SwiftWave is a self-hosted lightweight PaaS solution to deploy and manage your applications on any VPS
+  maintainer: Tanmoy Sarkar <tanmoy@swiftwave.org>"
 
+  debian_architectures: "amd64,arm64,i386"
+  rpm_architectures: "x86_64,aarch64,i386"
+  go_archs: "amd64,arm64,386"
+  control_file: |
+    Package: $PACKAGE_NAME
+    Version: $RELEASE_VERSION
+    Architecture: $ARCH
+    Maintainer: $MAINTAINER
+    Description: $SUMMARY
+    Homepage: $HOMEPAGE
+  spec_file: |
+    Name: $PACKAGE_NAME
+    Version: $RELEASE_VERSION
+    Release: $RELEASE_NUMBER
+    Summary: $SUMMARY
+    Packager: $MAINTAINER
+
+    License: $LICENSE
+    URL: $HOMEPAGE
+
+    SOURCE0: $PACKAGE_NAME
+
+    %description
+    $SUMMARY
+
+    %install
+    mkdir -p %{buildroot}/usr/bin/
+    install -m 755 %{SOURCE0} %{buildroot}/usr/bin/$PACKAGE_NAME
+
+    %files
+    /usr/bin/$PACKAGE_NAME
+
+    %global __strip /bin/true
+  
+  asset_builder_download_link: https://github.com/wangyoucao577/assets-uploader/releases/download/v0.13.0/github-assets-uploader-v0.13.0-linux-amd64.tar.gz
 jobs:
-  releases-matrix:
-    name: Release Swiftwave Binary
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        goos: [linux]
-        goarch: ["386", amd64, arm64]
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-    - name: Prepare environment
-      run: |
-        cd dashboard
-        npm i
-        cd ..
-        (rm -rf swiftwave_service/dashboard/www || true)
-        mkdir -p swiftwave_service/dashboard/www
-    - name: Build Dashboard
-      run: |
-        cd dashboard
-        npm run build:prod
-        cd ..
-        cp -r dashboard/dist/* swiftwave_service/dashboard/www/
-    - name: Set Version
-      run: |
-        rm config/local_config/.version
-        echo "${{ github.event.release.tag_name }}" >> config/local_config/.version
-    - name: Build and publish
-      uses: wangyoucao577/go-release-action@v1
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        goos: ${{ matrix.goos }}
-        goarch: ${{ matrix.goarch }}
-        goversion: "https://dl.google.com/go/go1.21.6.linux-amd64.tar.gz"
-        project_path: "."
-        binary_name: "swiftwave"
+    debian-packager:
+        name: Package Debian Binary
+        runs-on: ubuntu-latest
+        steps:
+        - name: Setup Environment
+          run: |
+            release_tag="${{ env.release_tag }}"
+            release_version=$(echo "$release_tag" | cut -d'-' -f1)
+            release_number=$(echo "$release_tag" | cut -d'-' -f2)
+            echo "release_version=${release_version}" >> $GITHUB_ENV
+            echo "release_number=${release_number}" >> $GITHUB_ENV
+            wget -q -O - $asset_builder_download_link | sudo tar -xz -C /usr/bin/
+        - name: Checkout code
+          uses: actions/checkout@v3
+          with:
+            submodules: recursive
+        - name: Setup Go
+          uses: actions/setup-go@v4
+          with:
+            go-version: 1.22.1
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+        - name: Build Dashboard
+          run: |
+            (rm -rf swiftwave_service/dashboard/www || true)
+            mkdir -p swiftwave_service/dashboard/www
+            cd dashboard
+            npm i
+            npm run build:prod
+            cd ..
+            cp -r dashboard/dist/* swiftwave_service/dashboard/www/
+        - name: Set Version
+          run: |
+            rm config/local_config/.version
+            echo "${{ github.event.release.tag_name }}" >> config/local_config/.version
+        - name: Create Directory to dump .deb
+          run: mkdir -p ~/deb_builds
+        - name: Build for all architectures
+          run: |
+            architectures=(${debian_architectures//,/ })
+            go_archs=(${go_archs//,/ })
+            for i in "${!architectures[@]}"; do
+              mkdir -p ~/deb_builds/${package_name}_${release_tag}_${architectures[$i]}/usr/bin
+              mkdir -p ~/deb_builds/${package_name}_${release_tag}_${architectures[$i]}/DEBIAN
+              GOOS=linux GOARCH=${go_archs[$i]} go build -o ${package_name} .
+              mv ${package_name} ~/deb_builds/${package_name}_${release_tag}_${architectures[$i]}/usr/bin
+              control_content="${control_file//\$PACKAGE_NAME/${package_name}}"
+              control_content="${control_content//\$RELEASE_VERSION/${release_version}}"
+              control_content="${control_content//\$ARCH/${architectures[$i]}}"
+              control_content="${control_content//\$LICENSE/${license}}"
+              control_content="${control_content//\$SUMMARY/${summary}}"
+              control_content="${control_content//\$HOMEPAGE/${homepage}}"
+              control_content="${control_content//\$MAINTAINER/${maintainer}}"
+              echo "$control_content" > ~/deb_builds/${package_name}_${release_tag}_${architectures[$i]}/DEBIAN/control
+              dpkg --build ~/deb_builds/${package_name}_${release_tag}_${architectures[$i]}
+            done
+        - name: Upload debian packages
+          run: |
+            for i in ~/deb_builds/*.deb; do
+              echo "Built: $i"
+              echo "Uploading $i"
+              /usr/bin/github-assets-uploader -f $i -mediatype application/octet-stream -token $github_token -overwrite -repo $github_repository -tag $release_tag
+            done
+    rpm-packager:
+        name: Package RPM Binary
+        runs-on: ubuntu-latest
+        container: almalinux:latest
+        steps:
+          - name: Setup Environment
+            run: |
+              IFS='-' read -ra version_parts <<< "${{ env.release_tag }}"
+              echo "release_version=${version_parts[0]}" >> $GITHUB_ENV
+              echo "release_number=${version_parts[1]}" >> $GITHUB_ENV
+              dnf install -y tree createrepo rpm-build rpm-sign wget gcc python3 yum-utils nodejs
+              wget -q -O - $asset_builder_download_link | tar -xz -C /usr/bin/
+          - name: Checkout code
+            uses: actions/checkout@v3
+            with:
+              submodules: recursive
+          - name: Setup Go
+            uses: actions/setup-go@v4
+            with:
+              go-version: 1.22.1
+          - name: Build Dashboard
+            run: |
+              (rm -rf swiftwave_service/dashboard/www || true)
+              mkdir -p swiftwave_service/dashboard/www
+              cd dashboard
+              npm i
+              npm run build:prod
+              cd ..
+              cp -r dashboard/dist/* swiftwave_service/dashboard/www/
+          - name: Set Version
+            run: |
+              rm config/local_config/.version
+              echo "${{ github.event.release.tag_name }}" >> config/local_config/.version
+          - name: Build for all architectures
+            run: |
+              architectures=(${rpm_architectures//,/ })
+              go_archs=(${go_archs//,/ })
+              for i in "${!architectures[@]}"; do
+                mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+                GOOS=linux GOARCH=${go_archs[$i]} go build -o ${package_name} .
+                chmod +x ${package_name}
+                mv ${package_name} ~/rpmbuild/SOURCES
+                spec_content="${spec_file//\$PACKAGE_NAME/${package_name}}"
+                spec_content="${spec_content//\$RELEASE_VERSION/${release_version}}"
+                spec_content="${spec_content//\$RELEASE_NUMBER/${release_number}}"
+                spec_content="${spec_content//\$SUMMARY/${summary}}"
+                spec_content="${spec_content//\$LICENSE/${license}}"
+                spec_content="${spec_content//\$HOMEPAGE/${homepage}}"
+                spec_content="${spec_content//\$MAINTAINER/${maintainer}}"
+                echo "$spec_content" > ~/rpmbuild/SPECS/${package_name}.spec
+                rpmbuild -bb ~/rpmbuild/SPECS/${package_name}.spec --target ${architectures[$i]}
+                cp ~/rpmbuild/RPMS/*/*.rpm ~/
+                rm -rf ~/rpmbuild/*
+              done
+          - name: Print Build Info
+            run: |
+              for i in ~/*.rpm; do
+                echo "Built: $i"
+                rpm -qip $i
+              done
+          - name: Upload RPM packages
+            run: |
+              for i in  ~/*.rpm; do
+                echo "Built: $i"
+                echo "Uploading $i"
+                /usr/bin/github-assets-uploader -f $i -mediatype application/octet-stream -token $github_token -overwrite -repo $github_repository -tag $release_tag
+              done
+    trigger-package-repo:
+        name: Trigger package repo to update
+        runs-on: ubuntu-latest
+        needs: [debian-packager, rpm-packager]
+        steps:
+          - name: Setup environment
+            run: |
+              TRIGGER_URL="http://update.repo.swiftwave.org/?repo_name=${github_repository}&release_tag=${release_tag}"
+              curl --header 'Authorization: ${{ secrets.PACKAGE_REPO_TRIGGER_TOKEN }}' $TRIGGER_URL
