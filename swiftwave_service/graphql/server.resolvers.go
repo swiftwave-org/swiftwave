@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"gorm.io/gorm"
 	"net"
 	"strings"
 	"time"
@@ -18,6 +17,7 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
+	"gorm.io/gorm"
 )
 
 // CreateServer is the resolver for the createServer field.
@@ -418,7 +418,7 @@ func (r *mutationResolver) RemoveServerFromSwarmCluster(ctx context.Context, id 
 }
 
 // EnableProxyOnServer is the resolver for the enableProxyOnServer field.
-func (r *mutationResolver) EnableProxyOnServer(ctx context.Context, id uint) (bool, error) {
+func (r *mutationResolver) EnableProxyOnServer(ctx context.Context, id uint, typeArg model.ProxyType) (bool, error) {
 	// Fetch the server
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
@@ -426,6 +426,13 @@ func (r *mutationResolver) EnableProxyOnServer(ctx context.Context, id uint) (bo
 	}
 	if server.ProxyConfig.Enabled {
 		return false, errors.New("proxy is already enabled")
+	}
+	// Set the proxy type
+	server.ProxyConfig.Type = core.ProxyType(typeArg)
+	// update in db
+	err = core.ChangeProxyType(&r.ServiceManager.DbClient, server, server.ProxyConfig.Type)
+	if err != nil {
+		return false, err
 	}
 	// Enable the proxy
 	server.ProxyConfig.SetupRunning = true

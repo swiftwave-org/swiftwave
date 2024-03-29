@@ -223,7 +223,7 @@ type ComplexityRoot struct {
 		DemoteServerToWorker                               func(childComplexity int, id uint) int
 		DeployStack                                        func(childComplexity int, input model.StackInput) int
 		DisableProxyOnServer                               func(childComplexity int, id uint) int
-		EnableProxyOnServer                                func(childComplexity int, id uint) int
+		EnableProxyOnServer                                func(childComplexity int, id uint, typeArg model.ProxyType) int
 		FetchAnalyticsServiceToken                         func(childComplexity int, id uint, rotate bool) int
 		InstallDependenciesOnServer                        func(childComplexity int, id uint) int
 		IssueSsl                                           func(childComplexity int, id uint) int
@@ -485,7 +485,7 @@ type MutationResolver interface {
 	RestrictDeploymentOnServer(ctx context.Context, id uint) (bool, error)
 	AllowDeploymentOnServer(ctx context.Context, id uint) (bool, error)
 	RemoveServerFromSwarmCluster(ctx context.Context, id uint) (bool, error)
-	EnableProxyOnServer(ctx context.Context, id uint) (bool, error)
+	EnableProxyOnServer(ctx context.Context, id uint, typeArg model.ProxyType) (bool, error)
 	DisableProxyOnServer(ctx context.Context, id uint) (bool, error)
 	FetchAnalyticsServiceToken(ctx context.Context, id uint, rotate bool) (string, error)
 	CleanupStack(ctx context.Context, input model.StackInput) (string, error)
@@ -1571,7 +1571,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EnableProxyOnServer(childComplexity, args["id"].(uint)), true
+		return e.complexity.Mutation.EnableProxyOnServer(childComplexity, args["id"].(uint), args["type"].(model.ProxyType)), true
 
 	case "Mutation.fetchAnalyticsServiceToken":
 		if e.complexity.Mutation.FetchAnalyticsServiceToken == nil {
@@ -3376,6 +3376,15 @@ func (ec *executionContext) field_Mutation_enableProxyOnServer_args(ctx context.
 		}
 	}
 	args["id"] = arg0
+	var arg1 model.ProxyType
+	if tmp, ok := rawArgs["type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+		arg1, err = ec.unmarshalNProxyType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐProxyType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["type"] = arg1
 	return args, nil
 }
 
@@ -10990,7 +10999,7 @@ func (ec *executionContext) _Mutation_enableProxyOnServer(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EnableProxyOnServer(rctx, fc.Args["id"].(uint))
+		return ec.resolvers.Mutation().EnableProxyOnServer(rctx, fc.Args["id"].(uint), fc.Args["type"].(model.ProxyType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
