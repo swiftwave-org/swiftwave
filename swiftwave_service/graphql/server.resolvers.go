@@ -492,6 +492,15 @@ func (r *queryResolver) Servers(ctx context.Context) ([]*model.Server, error) {
 	return serverList, nil
 }
 
+// Server is the resolver for the server field.
+func (r *queryResolver) Server(ctx context.Context, id uint) (*model.Server, error) {
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	return serverToGraphqlObject(server), nil
+}
+
 // PublicSSHKey is the resolver for the publicSSHKey field.
 func (r *queryResolver) PublicSSHKey(ctx context.Context) (string, error) {
 	return r.Config.SystemConfig.PublicSSHKey()

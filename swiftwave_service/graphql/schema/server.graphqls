@@ -77,6 +77,7 @@ type ServerDisksUsage {
 
 extend type Query {
     servers: [Server!]
+    server(id: Uint!): Server!
     publicSSHKey: String!
     serverResourceAnalytics(id: Uint!, timeframe: ServerResourceAnalyticsTimeframe!): [ServerResourceAnalytics!]!
     serverDiskUsage(id: Uint!): [ServerDisksUsage!]! # return last 100 records
