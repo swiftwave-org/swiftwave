@@ -31,6 +31,9 @@ func (m Manager) monitorServerStatus() {
 		return
 	} else {
 		for _, server := range servers {
+			if server.Status == core.ServerNeedsSetup || server.Status == core.ServerPreparing {
+				continue
+			}
 			go func(server core.Server) {
 				if m.isServerOnline(server) {
 					err = core.MarkServerAsOnline(&m.ServiceManager.DbClient, &server)
