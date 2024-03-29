@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"gorm.io/gorm"
 	"net"
 	"strings"
 	"time"
@@ -145,7 +146,11 @@ func (r *mutationResolver) SetupServer(ctx context.Context, input model.ServerSe
 			// Try to find out if there is any manager online
 			r, err := core.FetchSwarmManager(&r.ServiceManager.DbClient)
 			if err != nil {
-				return false, err
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return false, errors.New("swarm manager not found")
+				} else {
+					return false, err
+				}
 			}
 			swarmManagerServer = &r
 		}
@@ -153,6 +158,9 @@ func (r *mutationResolver) SetupServer(ctx context.Context, input model.ServerSe
 		// Check if there is any manager
 		r, err := core.FetchSwarmManager(&r.ServiceManager.DbClient)
 		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return false, errors.New("can't setup as worker, no swarm manager found")
+			}
 			return false, err
 		}
 		swarmManagerServer = &r
