@@ -12,6 +12,9 @@ func (s *ServerResourceStat) Create(_ context.Context, db gorm.DB) error {
 }
 
 func CreateApplicationServiceResourceStat(_ context.Context, db gorm.DB, appStats []*ApplicationServiceResourceStat) error {
+	if len(appStats) == 0 {
+		return nil
+	}
 	// Try to merge the updates if there is same record for same service at same timestamp
 	for _, appStat := range appStats {
 		var existingAppStat ApplicationServiceResourceStat
