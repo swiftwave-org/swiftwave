@@ -223,7 +223,7 @@ type ComplexityRoot struct {
 		DemoteServerToWorker                               func(childComplexity int, id uint) int
 		DeployStack                                        func(childComplexity int, input model.StackInput) int
 		DisableProxyOnServer                               func(childComplexity int, id uint) int
-		EnableProxyOnServer                                func(childComplexity int, id uint) int
+		EnableProxyOnServer                                func(childComplexity int, id uint, typeArg model.ProxyType) int
 		FetchAnalyticsServiceToken                         func(childComplexity int, id uint, rotate bool) int
 		InstallDependenciesOnServer                        func(childComplexity int, id uint) int
 		IssueSsl                                           func(childComplexity int, id uint) int
@@ -312,6 +312,7 @@ type ComplexityRoot struct {
 		PublicSSHKey                       func(childComplexity int) int
 		RedirectRule                       func(childComplexity int, id uint) int
 		RedirectRules                      func(childComplexity int) int
+		Server                             func(childComplexity int, id uint) int
 		ServerDiskUsage                    func(childComplexity int, id uint) int
 		ServerLatestDiskUsage              func(childComplexity int, id uint) int
 		ServerLatestResourceAnalytics      func(childComplexity int, id uint) int
@@ -484,7 +485,7 @@ type MutationResolver interface {
 	RestrictDeploymentOnServer(ctx context.Context, id uint) (bool, error)
 	AllowDeploymentOnServer(ctx context.Context, id uint) (bool, error)
 	RemoveServerFromSwarmCluster(ctx context.Context, id uint) (bool, error)
-	EnableProxyOnServer(ctx context.Context, id uint) (bool, error)
+	EnableProxyOnServer(ctx context.Context, id uint, typeArg model.ProxyType) (bool, error)
 	DisableProxyOnServer(ctx context.Context, id uint) (bool, error)
 	FetchAnalyticsServiceToken(ctx context.Context, id uint, rotate bool) (string, error)
 	CleanupStack(ctx context.Context, input model.StackInput) (string, error)
@@ -529,6 +530,7 @@ type QueryResolver interface {
 	RedirectRule(ctx context.Context, id uint) (*model.RedirectRule, error)
 	RedirectRules(ctx context.Context) ([]*model.RedirectRule, error)
 	Servers(ctx context.Context) ([]*model.Server, error)
+	Server(ctx context.Context, id uint) (*model.Server, error)
 	PublicSSHKey(ctx context.Context) (string, error)
 	ServerResourceAnalytics(ctx context.Context, id uint, timeframe model.ServerResourceAnalyticsTimeframe) ([]*model.ServerResourceAnalytics, error)
 	ServerDiskUsage(ctx context.Context, id uint) ([]*model.ServerDisksUsage, error)
@@ -1569,7 +1571,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EnableProxyOnServer(childComplexity, args["id"].(uint)), true
+		return e.complexity.Mutation.EnableProxyOnServer(childComplexity, args["id"].(uint), args["type"].(model.ProxyType)), true
 
 	case "Mutation.fetchAnalyticsServiceToken":
 		if e.complexity.Mutation.FetchAnalyticsServiceToken == nil {
@@ -2230,6 +2232,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.RedirectRules(childComplexity), true
+
+	case "Query.server":
+		if e.complexity.Query.Server == nil {
+			break
+		}
+
+		args, err := ec.field_Query_server_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Server(childComplexity, args["id"].(uint)), true
 
 	case "Query.serverDiskUsage":
 		if e.complexity.Query.ServerDiskUsage == nil {
@@ -3362,6 +3376,15 @@ func (ec *executionContext) field_Mutation_enableProxyOnServer_args(ctx context.
 		}
 	}
 	args["id"] = arg0
+	var arg1 model.ProxyType
+	if tmp, ok := rawArgs["type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+		arg1, err = ec.unmarshalNProxyType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐProxyType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["type"] = arg1
 	return args, nil
 }
 
@@ -4001,6 +4024,21 @@ func (ec *executionContext) field_Query_serverResourceAnalytics_args(ctx context
 		}
 	}
 	args["timeframe"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_server_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -10961,7 +10999,7 @@ func (ec *executionContext) _Mutation_enableProxyOnServer(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EnableProxyOnServer(rctx, fc.Args["id"].(uint))
+		return ec.resolvers.Mutation().EnableProxyOnServer(rctx, fc.Args["id"].(uint), fc.Args["type"].(model.ProxyType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14333,6 +14371,85 @@ func (ec *executionContext) fieldContext_Query_servers(ctx context.Context, fiel
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Server", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_server(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_server(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Server(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Server)
+	fc.Result = res
+	return ec.marshalNServer2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServer(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_server(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Server_id(ctx, field)
+			case "ip":
+				return ec.fieldContext_Server_ip(ctx, field)
+			case "hostname":
+				return ec.fieldContext_Server_hostname(ctx, field)
+			case "user":
+				return ec.fieldContext_Server_user(ctx, field)
+			case "swarmMode":
+				return ec.fieldContext_Server_swarmMode(ctx, field)
+			case "scheduleDeployments":
+				return ec.fieldContext_Server_scheduleDeployments(ctx, field)
+			case "dockerUnixSocketPath":
+				return ec.fieldContext_Server_dockerUnixSocketPath(ctx, field)
+			case "proxyEnabled":
+				return ec.fieldContext_Server_proxyEnabled(ctx, field)
+			case "proxyType":
+				return ec.fieldContext_Server_proxyType(ctx, field)
+			case "status":
+				return ec.fieldContext_Server_status(ctx, field)
+			case "logs":
+				return ec.fieldContext_Server_logs(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Server", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_server_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -23033,6 +23150,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_servers(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "server":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_server(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 

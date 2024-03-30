@@ -39,6 +39,7 @@ func (m Manager) registerWorkerFunctions() {
 	panicOnError(taskQueueClient.RegisterFunction(redirectRuleApplyQueueName, m.RedirectRuleApply))
 	panicOnError(taskQueueClient.RegisterFunction(redirectRuleDeleteQueueName, m.RedirectRuleDelete))
 	panicOnError(taskQueueClient.RegisterFunction(sslGenerateQueueName, m.SSLGenerate))
+	panicOnError(taskQueueClient.RegisterFunction(deletePersistentVolumeQueueName, m.PersistentVolumeDeletion))
 	panicOnError(taskQueueClient.RegisterFunction(persistentVolumeBackupQueueName, m.PersistentVolumeBackup))
 	panicOnError(taskQueueClient.RegisterFunction(persistentVolumeRestoreQueueName, m.PersistentVolumeRestore))
 	panicOnError(taskQueueClient.RegisterFunction(installDependenciesOnServerQueueName, m.InstallDependenciesOnServer))
@@ -57,6 +58,7 @@ func Queues() []string {
 		redirectRuleApplyQueueName,
 		redirectRuleDeleteQueueName,
 		sslGenerateQueueName,
+		deletePersistentVolumeQueueName,
 		persistentVolumeBackupQueueName,
 		persistentVolumeRestoreQueueName,
 		installDependenciesOnServerQueueName,

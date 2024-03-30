@@ -17,6 +17,7 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
+	"gorm.io/gorm"
 )
 
 // CreateServer is the resolver for the createServer field.
@@ -145,7 +146,11 @@ func (r *mutationResolver) SetupServer(ctx context.Context, input model.ServerSe
 			// Try to find out if there is any manager online
 			r, err := core.FetchSwarmManager(&r.ServiceManager.DbClient)
 			if err != nil {
-				return false, err
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return false, errors.New("swarm manager not found")
+				} else {
+					return false, err
+				}
 			}
 			swarmManagerServer = &r
 		}
@@ -153,6 +158,9 @@ func (r *mutationResolver) SetupServer(ctx context.Context, input model.ServerSe
 		// Check if there is any manager
 		r, err := core.FetchSwarmManager(&r.ServiceManager.DbClient)
 		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return false, errors.New("can't setup as worker, no swarm manager found")
+			}
 			return false, err
 		}
 		swarmManagerServer = &r
@@ -410,7 +418,7 @@ func (r *mutationResolver) RemoveServerFromSwarmCluster(ctx context.Context, id 
 }
 
 // EnableProxyOnServer is the resolver for the enableProxyOnServer field.
-func (r *mutationResolver) EnableProxyOnServer(ctx context.Context, id uint) (bool, error) {
+func (r *mutationResolver) EnableProxyOnServer(ctx context.Context, id uint, typeArg model.ProxyType) (bool, error) {
 	// Fetch the server
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
@@ -418,6 +426,13 @@ func (r *mutationResolver) EnableProxyOnServer(ctx context.Context, id uint) (bo
 	}
 	if server.ProxyConfig.Enabled {
 		return false, errors.New("proxy is already enabled")
+	}
+	// Set the proxy type
+	server.ProxyConfig.Type = core.ProxyType(typeArg)
+	// update in db
+	err = core.ChangeProxyType(&r.ServiceManager.DbClient, server, server.ProxyConfig.Type)
+	if err != nil {
+		return false, err
 	}
 	// Enable the proxy
 	server.ProxyConfig.SetupRunning = true
@@ -490,6 +505,15 @@ func (r *queryResolver) Servers(ctx context.Context) ([]*model.Server, error) {
 		serverList = append(serverList, serverToGraphqlObject(&server))
 	}
 	return serverList, nil
+}
+
+// Server is the resolver for the server field.
+func (r *queryResolver) Server(ctx context.Context, id uint) (*model.Server, error) {
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	return serverToGraphqlObject(server), nil
 }
 
 // PublicSSHKey is the resolver for the publicSSHKey field.
