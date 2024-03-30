@@ -121,3 +121,8 @@ func MarkServerAsOnline(db *gorm.DB, server *Server) error {
 func MarkServerAsOffline(db *gorm.DB, server *Server) error {
 	return db.Model(server).Update("status", ServerOffline).Error
 }
+
+// ChangeProxyType changes the proxy type of server in the database
+func ChangeProxyType(db *gorm.DB, server *Server, proxyType ProxyType) error {
+	return db.Model(server).Update("proxy_type", proxyType).Error
+}
