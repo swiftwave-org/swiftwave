@@ -6,7 +6,7 @@ import "gorm.io/gorm"
 // This will not send the log content.
 func FetchServerLogByServerID(db *gorm.DB, serverID uint) ([]ServerLog, error) {
 	var serverLogs []ServerLog
-	err := db.Select("id", "title", "server_id", "created_at", "updated_at").Where("server_id = ?", serverID).Find(&serverLogs).Error
+	err := db.Select("id", "title", "server_id", "created_at", "updated_at").Where("server_id = ?", serverID).Order("created_at DESC").Find(&serverLogs).Error
 	return serverLogs, err
 }
 
