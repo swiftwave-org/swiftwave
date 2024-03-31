@@ -1078,6 +1078,9 @@ type ServerResourceAnalyticsTimeframe string
 
 const (
 	ServerResourceAnalyticsTimeframeLast1Hour   ServerResourceAnalyticsTimeframe = "last_1_hour"
+	ServerResourceAnalyticsTimeframeLast3Hours  ServerResourceAnalyticsTimeframe = "last_3_hours"
+	ServerResourceAnalyticsTimeframeLast6Hours  ServerResourceAnalyticsTimeframe = "last_6_hours"
+	ServerResourceAnalyticsTimeframeLast12Hours ServerResourceAnalyticsTimeframe = "last_12_hours"
 	ServerResourceAnalyticsTimeframeLast24Hours ServerResourceAnalyticsTimeframe = "last_24_hours"
 	ServerResourceAnalyticsTimeframeLast7Days   ServerResourceAnalyticsTimeframe = "last_7_days"
 	ServerResourceAnalyticsTimeframeLast30Days  ServerResourceAnalyticsTimeframe = "last_30_days"
@@ -1085,6 +1088,9 @@ const (
 
 var AllServerResourceAnalyticsTimeframe = []ServerResourceAnalyticsTimeframe{
 	ServerResourceAnalyticsTimeframeLast1Hour,
+	ServerResourceAnalyticsTimeframeLast3Hours,
+	ServerResourceAnalyticsTimeframeLast6Hours,
+	ServerResourceAnalyticsTimeframeLast12Hours,
 	ServerResourceAnalyticsTimeframeLast24Hours,
 	ServerResourceAnalyticsTimeframeLast7Days,
 	ServerResourceAnalyticsTimeframeLast30Days,
@@ -1092,7 +1098,7 @@ var AllServerResourceAnalyticsTimeframe = []ServerResourceAnalyticsTimeframe{
 
 func (e ServerResourceAnalyticsTimeframe) IsValid() bool {
 	switch e {
-	case ServerResourceAnalyticsTimeframeLast1Hour, ServerResourceAnalyticsTimeframeLast24Hours, ServerResourceAnalyticsTimeframeLast7Days, ServerResourceAnalyticsTimeframeLast30Days:
+	case ServerResourceAnalyticsTimeframeLast1Hour, ServerResourceAnalyticsTimeframeLast3Hours, ServerResourceAnalyticsTimeframeLast6Hours, ServerResourceAnalyticsTimeframeLast12Hours, ServerResourceAnalyticsTimeframeLast24Hours, ServerResourceAnalyticsTimeframeLast7Days, ServerResourceAnalyticsTimeframeLast30Days:
 		return true
 	}
 	return false

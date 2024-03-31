@@ -17,6 +17,9 @@ enum ServerStatus {
 
 enum ServerResourceAnalyticsTimeframe {
     last_1_hour
+    last_3_hours
+    last_6_hours
+    last_12_hours
     last_24_hours
     last_7_days
     last_30_days
@@ -80,7 +83,7 @@ extend type Query {
     server(id: Uint!): Server!
     publicSSHKey: String!
     serverResourceAnalytics(id: Uint!, timeframe: ServerResourceAnalyticsTimeframe!): [ServerResourceAnalytics!]!
-    serverDiskUsage(id: Uint!): [ServerDisksUsage!]! # return last 100 records
+    serverDiskUsage(id: Uint!): [ServerDisksUsage!]! # return last 1000 records
     serverLatestResourceAnalytics(id: Uint!): ServerResourceAnalytics!
     serverLatestDiskUsage(id: Uint!): ServerDisksUsage!
 }

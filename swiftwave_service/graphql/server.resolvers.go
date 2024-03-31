@@ -527,6 +527,12 @@ func (r *queryResolver) ServerResourceAnalytics(ctx context.Context, id uint, ti
 	switch timeframe {
 	case model.ServerResourceAnalyticsTimeframeLast1Hour:
 		previousTime = time.Now().Add(-1 * time.Hour)
+	case model.ServerResourceAnalyticsTimeframeLast3Hours:
+		previousTime = time.Now().Add(-3 * time.Hour)
+	case model.ServerResourceAnalyticsTimeframeLast6Hours:
+		previousTime = time.Now().Add(-6 * time.Hour)
+	case model.ServerResourceAnalyticsTimeframeLast12Hours:
+		previousTime = time.Now().Add(-12 * time.Hour)
 	case model.ServerResourceAnalyticsTimeframeLast24Hours:
 		previousTime = time.Now().Add(-24 * time.Hour)
 	case model.ServerResourceAnalyticsTimeframeLast7Days:

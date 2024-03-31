@@ -88,7 +88,7 @@ func FetchServerDiskUsage(_ context.Context, db gorm.DB, serverId uint) ([]*Serv
 	previousUnixTime := time.Now().Unix() - 86400
 	var serverResourceStat []*ServerResourceStat
 	previousTime := time.Unix(previousUnixTime, 0)
-	err := db.Select("id", "server_id", "disk_stats", "recorded_at").Where("server_id = ?", serverId).Where("recorded_at > ?", previousTime).Order("recorded_at desc").Find(&serverResourceStat).Error
+	err := db.Select("id", "server_id", "disk_stats", "recorded_at").Where("server_id = ?", serverId).Where("recorded_at > ?", previousTime).Order("recorded_at desc").Limit(1000).Find(&serverResourceStat).Error
 	return serverResourceStat, err
 }
 
