@@ -143,8 +143,10 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 			}
 			imageRegistryUsername = imageRegistryCredential.Username
 			imageRegistryPassword = imageRegistryCredential.Password
+		} else {
+			imageRegistryUsername = ""
+			imageRegistryPassword = ""
 		}
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image will be fetched from upstream at the time of deployment\n", false)
 		refetchImage = true
 	}
 
