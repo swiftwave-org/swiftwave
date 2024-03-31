@@ -1,9 +1,12 @@
 package rest
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -16,9 +19,20 @@ func (server *Server) analytics(c echo.Context) error {
 	}
 	// fetch hostname from context
 	serverHostName := c.Get("hostname").(string)
-	// unmarshal request body
+	// parse request body
+	var buf bytes.Buffer
+	// Copy the response body to the buffer
+	_, err := io.Copy(&buf, c.Request().Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return c.String(http.StatusBadRequest, "invalid request")
+	}
+	if err != nil {
+		fmt.Println(err.Error())
+		return c.String(http.StatusBadRequest, "invalid request")
+	}
 	var data ResourceStatsData
-	if err := c.Bind(&data); err != nil {
+	if err := json.Unmarshal(buf.Bytes(), &data); err != nil {
 		fmt.Println(err.Error())
 		return c.String(http.StatusBadRequest, "invalid request")
 	}
@@ -95,5 +109,7 @@ func (server *Server) analytics(c echo.Context) error {
 		log.Println(err.Error())
 		return c.String(http.StatusInternalServerError, "failed to create application resource stat")
 	}
+	// commit transaction
+	tx.Commit()
 	return c.String(200, "ok")
 }
