@@ -37,15 +37,13 @@ func CreateApplicationServiceResourceStat(_ context.Context, db gorm.DB, appStat
 				RecvKBPS: (appStat.NetStat.RecvKB + existingAppStat.NetStat.RecvKB) / 60,
 				SentKBPS: (appStat.NetStat.SentKB + existingAppStat.NetStat.SentKB) / 60,
 			}
-			// TODO check if this is correct
-			err = db.Save(&existingAppStat).Error
+			err = db.Where("id = ?", existingAppStat.ID).Save(&existingAppStat).Error
 			if err != nil {
 				return err
 			}
 		}
 	}
-
-	return db.Create(appStats).Error
+	return nil
 }
 
 // FetchLatestServerResourceAnalytics fetches the latest server resource analytics

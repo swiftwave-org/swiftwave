@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"log"
 	"net/http"
 	"time"
 )
@@ -21,9 +22,16 @@ func (server *Server) analytics(c echo.Context) error {
 		fmt.Println(err.Error())
 		return c.String(http.StatusBadRequest, "invalid request")
 	}
+	// create a transaction
+	tx := server.ServiceManager.DbClient.Begin()
+	defer func() {
+		tx.Rollback()
+	}()
+
 	// fetch server id from database
-	serverId, err := core.FetchServerIDByHostName(&server.ServiceManager.DbClient, serverHostName)
+	serverId, err := core.FetchServerIDByHostName(tx, serverHostName)
 	if err != nil {
+		log.Println(err.Error())
 		return c.String(http.StatusInternalServerError, "failed to fetch server id")
 	}
 	// create new host resource stat
@@ -53,8 +61,9 @@ func (server *Server) analytics(c echo.Context) error {
 		},
 		RecordedAt: time.Unix(int64(data.TimeStamp), 0),
 	}
-	err = serverStat.Create(c.Request().Context(), server.ServiceManager.DbClient)
+	err = serverStat.Create(c.Request().Context(), *tx)
 	if err != nil {
+		log.Println(err.Error())
 		return c.String(http.StatusInternalServerError, "failed to create server resource stat")
 	}
 
@@ -62,7 +71,7 @@ func (server *Server) analytics(c echo.Context) error {
 	appStats := make([]*core.ApplicationServiceResourceStat, 0)
 	for serviceName, serviceStat := range data.ServiceStats {
 		application := core.Application{}
-		err := application.FindByName(c.Request().Context(), server.ServiceManager.DbClient, serviceName)
+		err := application.FindByName(c.Request().Context(), *tx, serviceName)
 		if err != nil {
 			continue
 		}
@@ -81,8 +90,9 @@ func (server *Server) analytics(c echo.Context) error {
 		})
 	}
 	// create application resource stat
-	err = core.CreateApplicationServiceResourceStat(c.Request().Context(), server.ServiceManager.DbClient, appStats)
+	err = core.CreateApplicationServiceResourceStat(c.Request().Context(), *tx, appStats)
 	if err != nil {
+		log.Println(err.Error())
 		return c.String(http.StatusInternalServerError, "failed to create application resource stat")
 	}
 	return c.String(200, "ok")
