@@ -6,14 +6,6 @@ import (
 	"time"
 )
 
-// SystemLog : hold log of system
-type SystemLog struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	Content   string    `json:"content"`
-	CreatedAt time.Time `json:"created_at"`
-	Metadata  string    `json:"metadata" gorm:"type:jsonb;default:'{}'"`
-}
-
 // Server : hold information about server
 type Server struct {
 	ID                    uint                   `json:"id" gorm:"primaryKey"`

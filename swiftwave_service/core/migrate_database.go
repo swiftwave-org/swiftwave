@@ -13,7 +13,6 @@ func MigrateDatabase(dbClient *gorm.DB) error {
 	// Migrate the schema
 	err := dbClient.AutoMigrate(
 		&system_config.SystemConfig{},
-		&SystemLog{},
 		&Server{},
 		&ServerLog{},
 		&User{},
