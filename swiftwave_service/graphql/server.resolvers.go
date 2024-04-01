@@ -297,7 +297,7 @@ func (r *mutationResolver) RestrictDeploymentOnServer(ctx context.Context, id ui
 		return false, errors.New("server is not online")
 	}
 	// Fetch any swarm manager
-	swarmManagerServer, err := core.FetchSwarmManagerExceptServer(&r.ServiceManager.DbClient, server.ID)
+	swarmManagerServer, err := core.FetchSwarmManager(&r.ServiceManager.DbClient)
 	if err != nil {
 		return false, errors.New("no manager found")
 	}
@@ -313,7 +313,6 @@ func (r *mutationResolver) RestrictDeploymentOnServer(ctx context.Context, id ui
 			logger.GraphQLLoggerError.Println(err.Error())
 		}
 	}(conn)
-	// Promote this server to manager
 	manager, err := containermanger.New(ctx, conn)
 	if err != nil {
 		return false, err
@@ -337,7 +336,7 @@ func (r *mutationResolver) AllowDeploymentOnServer(ctx context.Context, id uint)
 		return false, errors.New("server is not online")
 	}
 	// Fetch any swarm manager
-	swarmManagerServer, err := core.FetchSwarmManagerExceptServer(&r.ServiceManager.DbClient, server.ID)
+	swarmManagerServer, err := core.FetchSwarmManager(&r.ServiceManager.DbClient)
 	if err != nil {
 		return false, errors.New("no manager found")
 	}
