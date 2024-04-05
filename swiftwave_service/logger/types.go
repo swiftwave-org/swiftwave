@@ -4,6 +4,7 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"log"
 	"os"
+	"strconv"
 )
 
 var DatabaseLogger = log.New(os.Stdout, "[DATABASE] ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
@@ -78,6 +79,25 @@ func ShowLogsInStdout() {
 // Private functions
 
 func openLogFile(path string) (*os.File, error) {
+	// Check if the file exists
+	_, err := os.Stat(path)
+	if !os.IsNotExist(err) {
+		// Rename the file to increment the version > .0, .1
+		count := 0
+		for {
+			newPath := path + "." + strconv.Itoa(count)
+			count++
+			_, err := os.Stat(newPath)
+			if os.IsNotExist(err) {
+				err = os.Rename(path, newPath)
+				if err != nil {
+					return nil, err
+				}
+				break
+			}
+		}
+	}
+	// Create the file
 	logFile, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 	if err != nil {
 		return nil, err

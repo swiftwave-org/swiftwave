@@ -114,6 +114,14 @@ func startLocalRegistry(ctx context.Context) error {
 		return err
 	}
 	if !isRunning {
+		var dockerCmd *exec.Cmd
+		// delete existing container
+		dockerCmd = exec.Command("docker", "rm", localRegistryContainerName, "--force")
+		dockerCmd.Stderr = os.Stderr
+		err := dockerCmd.Run()
+		if err != nil {
+			return err
+		}
 		// generate htpasswd file
 		htpasswdString, err := config.LocalConfig.LocalImageRegistryConfig.Htpasswd()
 		if err != nil {
@@ -126,7 +134,6 @@ func startLocalRegistry(ctx context.Context) error {
 			return err
 		}
 
-		var dockerCmd *exec.Cmd
 		if config.LocalConfig.ServiceConfig.UseTLS {
 			printInfo("Using TLS for local image registry")
 			dockerCmd = exec.Command("docker", "run", "-d",
