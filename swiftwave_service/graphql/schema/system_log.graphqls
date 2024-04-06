@@ -1,6 +1,6 @@
 type FileInfo {
-    Name:    String!
-    ModTime: Time!
+    name:    String!
+    modTime: Time!
 }
 
 extend type Query {

@@ -167,8 +167,8 @@ type EnvironmentVariableInput struct {
 }
 
 type FileInfo struct {
-	Name    string    `json:"Name"`
-	ModTime time.Time `json:"ModTime"`
+	Name    string    `json:"name"`
+	ModTime time.Time `json:"modTime"`
 }
 
 type GitBranchesQueryInput struct {

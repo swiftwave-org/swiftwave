@@ -1061,14 +1061,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EnvironmentVariable.Value(childComplexity), true
 
-	case "FileInfo.ModTime":
+	case "FileInfo.modTime":
 		if e.complexity.FileInfo.ModTime == nil {
 			break
 		}
 
 		return e.complexity.FileInfo.ModTime(childComplexity), true
 
-	case "FileInfo.Name":
+	case "FileInfo.name":
 		if e.complexity.FileInfo.Name == nil {
 			break
 		}
@@ -7481,8 +7481,8 @@ func (ec *executionContext) fieldContext_EnvironmentVariable_value(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _FileInfo_Name(ctx context.Context, field graphql.CollectedField, obj *model.FileInfo) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FileInfo_Name(ctx, field)
+func (ec *executionContext) _FileInfo_name(ctx context.Context, field graphql.CollectedField, obj *model.FileInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FileInfo_name(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7512,7 +7512,7 @@ func (ec *executionContext) _FileInfo_Name(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_FileInfo_Name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_FileInfo_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "FileInfo",
 		Field:      field,
@@ -7525,8 +7525,8 @@ func (ec *executionContext) fieldContext_FileInfo_Name(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _FileInfo_ModTime(ctx context.Context, field graphql.CollectedField, obj *model.FileInfo) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FileInfo_ModTime(ctx, field)
+func (ec *executionContext) _FileInfo_modTime(ctx context.Context, field graphql.CollectedField, obj *model.FileInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FileInfo_modTime(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7556,7 +7556,7 @@ func (ec *executionContext) _FileInfo_ModTime(ctx context.Context, field graphql
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_FileInfo_ModTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_FileInfo_modTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "FileInfo",
 		Field:      field,
@@ -14973,10 +14973,10 @@ func (ec *executionContext) fieldContext_Query_fetchSystemLogRecords(ctx context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Name":
-				return ec.fieldContext_FileInfo_Name(ctx, field)
-			case "ModTime":
-				return ec.fieldContext_FileInfo_ModTime(ctx, field)
+			case "name":
+				return ec.fieldContext_FileInfo_name(ctx, field)
+			case "modTime":
+				return ec.fieldContext_FileInfo_modTime(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FileInfo", field.Name)
 		},
@@ -21644,13 +21644,13 @@ func (ec *executionContext) _FileInfo(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FileInfo")
-		case "Name":
-			out.Values[i] = ec._FileInfo_Name(ctx, field, obj)
+		case "name":
+			out.Values[i] = ec._FileInfo_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "ModTime":
-			out.Values[i] = ec._FileInfo_ModTime(ctx, field, obj)
+		case "modTime":
+			out.Values[i] = ec._FileInfo_modTime(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
