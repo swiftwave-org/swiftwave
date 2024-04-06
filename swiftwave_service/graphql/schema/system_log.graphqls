@@ -1,3 +1,8 @@
+type FileInfo {
+    Name:    String!
+    ModTime: Time!
+}
+
 extend type Query {
-    fetchSystemLogRecords: [String]!
+    fetchSystemLogRecords: [FileInfo]!
 }

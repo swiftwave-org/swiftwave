@@ -34,4 +34,6 @@ func (server *Server) initiateProjectRoutes(e *echo.Echo) {
 	e.PUT("/config/system", bootstrap.UpdateSystemConfigHandler)
 	// analytics
 	e.POST("/service/analytics", server.analytics)
+	// serve log file
+	e.GET("/log/:log_file_name", server.fetchLog)
 }

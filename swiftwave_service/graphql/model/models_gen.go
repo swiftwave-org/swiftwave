@@ -166,6 +166,11 @@ type EnvironmentVariableInput struct {
 	Value string `json:"value"`
 }
 
+type FileInfo struct {
+	Name    string    `json:"Name"`
+	ModTime time.Time `json:"ModTime"`
+}
+
 type GitBranchesQueryInput struct {
 	GitCredentialID uint   `json:"gitCredentialId"`
 	RepositoryURL   string `json:"repositoryUrl"`

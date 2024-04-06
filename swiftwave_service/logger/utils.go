@@ -4,9 +4,15 @@ import (
 	"fmt"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"os"
+	"time"
 )
 
-func FetchSystemLogRecords() ([]*string, error) {
+type FileInfo struct {
+	Name    string
+	ModTime time.Time
+}
+
+func FetchSystemLogRecords() ([]*FileInfo, error) {
 	logDirPath := local_config.LogDirectoryPath
 	// Check if log directory exists
 	_, err := os.Stat(logDirPath)
@@ -18,10 +24,19 @@ func FetchSystemLogRecords() ([]*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	var logFiles []*string
+	var logFiles []*FileInfo
 	for _, file := range files {
 		fileName := file.Name()
-		logFiles = append(logFiles, &fileName)
+		fileModTime := time.Now()
+		x, err := file.Info()
+		if err == nil {
+			fileModTime = x.ModTime()
+		}
+		fileInfo := FileInfo{
+			Name:    fileName,
+			ModTime: fileModTime,
+		}
+		logFiles = append(logFiles, &fileInfo)
 	}
 	return logFiles, nil
 }

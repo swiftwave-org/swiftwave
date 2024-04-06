@@ -162,6 +162,11 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	FileInfo struct {
+		ModTime func(childComplexity int) int
+		Name    func(childComplexity int) int
+	}
+
 	GitCredential struct {
 		Deployments func(childComplexity int) int
 		ID          func(childComplexity int) int
@@ -538,7 +543,7 @@ type QueryResolver interface {
 	ServerLatestResourceAnalytics(ctx context.Context, id uint) (*model.ServerResourceAnalytics, error)
 	ServerLatestDiskUsage(ctx context.Context, id uint) (*model.ServerDisksUsage, error)
 	FetchServerLogContent(ctx context.Context, id uint) (string, error)
-	FetchSystemLogRecords(ctx context.Context) ([]*string, error)
+	FetchSystemLogRecords(ctx context.Context) ([]*model.FileInfo, error)
 	Users(ctx context.Context) ([]*model.User, error)
 	User(ctx context.Context, id uint) (*model.User, error)
 	CurrentUser(ctx context.Context) (*model.User, error)
@@ -1055,6 +1060,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EnvironmentVariable.Value(childComplexity), true
+
+	case "FileInfo.ModTime":
+		if e.complexity.FileInfo.ModTime == nil {
+			break
+		}
+
+		return e.complexity.FileInfo.ModTime(childComplexity), true
+
+	case "FileInfo.Name":
+		if e.complexity.FileInfo.Name == nil {
+			break
+		}
+
+		return e.complexity.FileInfo.Name(childComplexity), true
 
 	case "GitCredential.deployments":
 		if e.complexity.GitCredential.Deployments == nil {
@@ -7457,6 +7476,94 @@ func (ec *executionContext) fieldContext_EnvironmentVariable_value(ctx context.C
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FileInfo_Name(ctx context.Context, field graphql.CollectedField, obj *model.FileInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FileInfo_Name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FileInfo_Name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FileInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FileInfo_ModTime(ctx context.Context, field graphql.CollectedField, obj *model.FileInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FileInfo_ModTime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FileInfo_ModTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FileInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -14853,9 +14960,9 @@ func (ec *executionContext) _Query_fetchSystemLogRecords(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*string)
+	res := resTmp.([]*model.FileInfo)
 	fc.Result = res
-	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
+	return ec.marshalNFileInfo2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐFileInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_fetchSystemLogRecords(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -14865,7 +14972,13 @@ func (ec *executionContext) fieldContext_Query_fetchSystemLogRecords(ctx context
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "Name":
+				return ec.fieldContext_FileInfo_Name(ctx, field)
+			case "ModTime":
+				return ec.fieldContext_FileInfo_ModTime(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FileInfo", field.Name)
 		},
 	}
 	return fc, nil
@@ -21520,6 +21633,50 @@ func (ec *executionContext) _EnvironmentVariable(ctx context.Context, sel ast.Se
 	return out
 }
 
+var fileInfoImplementors = []string{"FileInfo"}
+
+func (ec *executionContext) _FileInfo(ctx context.Context, sel ast.SelectionSet, obj *model.FileInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, fileInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FileInfo")
+		case "Name":
+			out.Values[i] = ec._FileInfo_Name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ModTime":
+			out.Values[i] = ec._FileInfo_ModTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var gitCredentialImplementors = []string{"GitCredential"}
 
 func (ec *executionContext) _GitCredential(ctx context.Context, sel ast.SelectionSet, obj *model.GitCredential) graphql.Marshaler {
@@ -25036,6 +25193,44 @@ func (ec *executionContext) unmarshalNEnvironmentVariableInput2ᚖgithubᚗcom�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNFileInfo2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐFileInfo(ctx context.Context, sel ast.SelectionSet, v []*model.FileInfo) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOFileInfo2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐFileInfo(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
 	res, err := graphql.UnmarshalFloatContext(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -26035,32 +26230,6 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 	return ret
 }
 
-func (ec *executionContext) unmarshalNString2ᚕᚖstring(ctx context.Context, v interface{}) ([]*string, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*string, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOString2ᚖstring(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNString2ᚕᚖstring(ctx context.Context, sel ast.SelectionSet, v []*string) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalOString2ᚖstring(ctx, sel, v[i])
-	}
-
-	return ret
-}
-
 func (ec *executionContext) unmarshalNSwarmMode2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐSwarmMode(ctx context.Context, v interface{}) (model.SwarmMode, error) {
 	var res model.SwarmMode
 	err := res.UnmarshalGQL(v)
@@ -26571,6 +26740,13 @@ func (ec *executionContext) marshalODomain2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋs
 		return graphql.Null
 	}
 	return ec._Domain(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOFileInfo2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐFileInfo(ctx context.Context, sel ast.SelectionSet, v *model.FileInfo) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._FileInfo(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, v interface{}) (*model.GitProvider, error) {
