@@ -3,13 +3,14 @@ package cronjob
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/docker/docker/api/types/swarm"
 	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
-	"strings"
-	"time"
 )
 
 func (m Manager) SyncProxy() {
@@ -112,7 +113,7 @@ func (m Manager) syncProxy() {
 		}
 	} else {
 		// check if env variables, image or placement constraints have changed
-		if !isSameMap(haproxyService.Env, haProxyEnvironmentVariables) || strings.Compare(haproxyService.Image, m.Config.SystemConfig.HAProxyConfig.Image) != 0 || !isListSame(haproxyService.PlacementConstraints, placementConstraints) {
+		if !isSameMap(haproxyService.Env, haProxyEnvironmentVariables) || strings.Compare(getImageNameFromImageWithSHA(haproxyService.Image), m.Config.SystemConfig.HAProxyConfig.Image) != 0 || !isListSame(haproxyService.PlacementConstraints, placementConstraints) {
 			logger.CronJobLogger.Println("Updating haproxy service")
 			// update haproxy service
 			haproxyService.Env = haProxyEnvironmentVariables
@@ -161,7 +162,7 @@ func (m Manager) syncProxy() {
 		}
 	} else {
 		// check if env variables, image or placement constraints have changed
-		if !isSameMap(udpproxyService.Env, udpProxyEnvironmentVariables) || udpproxyService.Image != m.Config.SystemConfig.UDPProxyConfig.Image || !isListSame(udpproxyService.PlacementConstraints, placementConstraints) {
+		if !isSameMap(udpproxyService.Env, udpProxyEnvironmentVariables) || strings.Compare(getImageNameFromImageWithSHA(udpproxyService.Image), m.Config.SystemConfig.UDPProxyConfig.Image) != 0 || !isListSame(udpproxyService.PlacementConstraints, placementConstraints) {
 			// update udpproxy service
 			udpproxyService.Env = udpProxyEnvironmentVariables
 			udpproxyService.Image = m.Config.SystemConfig.UDPProxyConfig.Image
@@ -325,4 +326,12 @@ func isSameMap(map1 map[string]string, map2 map[string]string) bool {
 		}
 	}
 	return true
+}
+
+func getImageNameFromImageWithSHA(imageWithSHA string) string {
+	splittedText := strings.Split(imageWithSHA, "@")
+	if len(splittedText) > 0 {
+		return splittedText[0]
+	}
+	return imageWithSHA
 }
