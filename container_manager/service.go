@@ -433,12 +433,16 @@ func (m Manager) RandomServiceContainerID(serviceName string) (string, error) {
 }
 
 // LogsService Get service logs
-func (m Manager) LogsService(serviceName string) (io.ReadCloser, error) {
-	logs, err := m.client.ServiceLogs(m.ctx, serviceName, container.LogsOptions{
+func (m Manager) LogsService(serviceName string, sinceMinutes int) (io.ReadCloser, error) {
+	containerLogOptions := container.LogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Follow:     true,
-	})
+	}
+	if sinceMinutes > 0 {
+		containerLogOptions.Since = fmt.Sprintf("%dm", sinceMinutes)
+	}
+	logs, err := m.client.ServiceLogs(m.ctx, serviceName, containerLogOptions)
 	if err != nil {
 		return nil, errors.New("error getting service logs")
 	}
