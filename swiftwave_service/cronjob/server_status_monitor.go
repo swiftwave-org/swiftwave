@@ -62,7 +62,7 @@ func (m Manager) isServerOnline(server core.Server) bool {
 		stdoutBuf := new(bytes.Buffer)
 		err := ssh_toolkit.ExecCommandOverSSH(cmd, stdoutBuf, nil, 5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey, 30)
 		if err != nil {
-			return false
+			continue
 		}
 		if strings.Compare(strings.TrimSpace(stdoutBuf.String()), "ok") == 0 {
 			return true
