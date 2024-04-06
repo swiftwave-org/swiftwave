@@ -16,7 +16,7 @@ import (
 )
 
 // FetchRuntimeLog is the resolver for the fetchRuntimeLog field.
-func (r *subscriptionResolver) FetchRuntimeLog(ctx context.Context, applicationID string) (<-chan *model.RuntimeLog, error) {
+func (r *subscriptionResolver) FetchRuntimeLog(ctx context.Context, applicationID string, timeframe model.RuntimeLogTimeframe) (<-chan *model.RuntimeLog, error) {
 	// fetch application
 	var application dbmodel.Application
 	err := application.FindById(ctx, r.ServiceManager.DbClient, applicationID)
@@ -29,7 +29,24 @@ func (r *subscriptionResolver) FetchRuntimeLog(ctx context.Context, applicationI
 		return nil, err
 	}
 	// fetch runtime logs
-	logsReader, err := dockerManager.LogsService(application.Name)
+	var sinceMinutes int
+	switch timeframe {
+	case model.RuntimeLogTimeframeLive:
+		sinceMinutes = 1
+	case model.RuntimeLogTimeframeLast1Hour:
+		sinceMinutes = 60
+	case model.RuntimeLogTimeframeLast3Hours:
+		sinceMinutes = 180
+	case model.RuntimeLogTimeframeLast6Hours:
+		sinceMinutes = 360
+	case model.RuntimeLogTimeframeLast12Hours:
+		sinceMinutes = 720
+	case model.RuntimeLogTimeframeLast24Hours:
+		sinceMinutes = 1440
+	case model.RuntimeLogTimeframeLifetime:
+		sinceMinutes = 0
+	}
+	logsReader, err := dockerManager.LogsService(application.Name, sinceMinutes)
 	if err != nil {
 		return nil, err
 	}

@@ -408,7 +408,7 @@ type ComplexityRoot struct {
 
 	Subscription struct {
 		FetchDeploymentLog func(childComplexity int, id string) int
-		FetchRuntimeLog    func(childComplexity int, applicationID string) int
+		FetchRuntimeLog    func(childComplexity int, applicationID string, timeframe model.RuntimeLogTimeframe) int
 	}
 
 	User struct {
@@ -556,7 +556,7 @@ type ServerResolver interface {
 }
 type SubscriptionResolver interface {
 	FetchDeploymentLog(ctx context.Context, id string) (<-chan *model.DeploymentLog, error)
-	FetchRuntimeLog(ctx context.Context, applicationID string) (<-chan *model.RuntimeLog, error)
+	FetchRuntimeLog(ctx context.Context, applicationID string, timeframe model.RuntimeLogTimeframe) (<-chan *model.RuntimeLog, error)
 }
 
 type executableSchema struct {
@@ -2731,7 +2731,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Subscription.FetchRuntimeLog(childComplexity, args["applicationId"].(string)), true
+		return e.complexity.Subscription.FetchRuntimeLog(childComplexity, args["applicationId"].(string), args["timeframe"].(model.RuntimeLogTimeframe)), true
 
 	case "User.id":
 		if e.complexity.User.ID == nil {
@@ -4128,6 +4128,15 @@ func (ec *executionContext) field_Subscription_fetchRuntimeLog_args(ctx context.
 		}
 	}
 	args["applicationId"] = arg0
+	var arg1 model.RuntimeLogTimeframe
+	if tmp, ok := rawArgs["timeframe"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeframe"))
+		arg1, err = ec.unmarshalNRuntimeLogTimeframe2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRuntimeLogTimeframe(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["timeframe"] = arg1
 	return args, nil
 }
 
@@ -17604,7 +17613,7 @@ func (ec *executionContext) _Subscription_fetchRuntimeLog(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().FetchRuntimeLog(rctx, fc.Args["applicationId"].(string))
+		return ec.resolvers.Subscription().FetchRuntimeLog(rctx, fc.Args["applicationId"].(string), fc.Args["timeframe"].(model.RuntimeLogTimeframe))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25877,6 +25886,16 @@ func (ec *executionContext) marshalNRuntimeLog2ᚖgithubᚗcomᚋswiftwaveᚑorg
 		return graphql.Null
 	}
 	return ec._RuntimeLog(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNRuntimeLogTimeframe2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRuntimeLogTimeframe(ctx context.Context, v interface{}) (model.RuntimeLogTimeframe, error) {
+	var res model.RuntimeLogTimeframe
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRuntimeLogTimeframe2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRuntimeLogTimeframe(ctx context.Context, sel ast.SelectionSet, v model.RuntimeLogTimeframe) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNServer2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServer(ctx context.Context, sel ast.SelectionSet, v model.Server) graphql.Marshaler {

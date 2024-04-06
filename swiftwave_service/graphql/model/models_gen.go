@@ -1085,6 +1085,57 @@ func (e RedirectRuleStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type RuntimeLogTimeframe string
+
+const (
+	RuntimeLogTimeframeLive        RuntimeLogTimeframe = "live"
+	RuntimeLogTimeframeLast1Hour   RuntimeLogTimeframe = "last_1_hour"
+	RuntimeLogTimeframeLast3Hours  RuntimeLogTimeframe = "last_3_hours"
+	RuntimeLogTimeframeLast6Hours  RuntimeLogTimeframe = "last_6_hours"
+	RuntimeLogTimeframeLast12Hours RuntimeLogTimeframe = "last_12_hours"
+	RuntimeLogTimeframeLast24Hours RuntimeLogTimeframe = "last_24_hours"
+	RuntimeLogTimeframeLifetime    RuntimeLogTimeframe = "lifetime"
+)
+
+var AllRuntimeLogTimeframe = []RuntimeLogTimeframe{
+	RuntimeLogTimeframeLive,
+	RuntimeLogTimeframeLast1Hour,
+	RuntimeLogTimeframeLast3Hours,
+	RuntimeLogTimeframeLast6Hours,
+	RuntimeLogTimeframeLast12Hours,
+	RuntimeLogTimeframeLast24Hours,
+	RuntimeLogTimeframeLifetime,
+}
+
+func (e RuntimeLogTimeframe) IsValid() bool {
+	switch e {
+	case RuntimeLogTimeframeLive, RuntimeLogTimeframeLast1Hour, RuntimeLogTimeframeLast3Hours, RuntimeLogTimeframeLast6Hours, RuntimeLogTimeframeLast12Hours, RuntimeLogTimeframeLast24Hours, RuntimeLogTimeframeLifetime:
+		return true
+	}
+	return false
+}
+
+func (e RuntimeLogTimeframe) String() string {
+	return string(e)
+}
+
+func (e *RuntimeLogTimeframe) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RuntimeLogTimeframe(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid RuntimeLogTimeframe", str)
+	}
+	return nil
+}
+
+func (e RuntimeLogTimeframe) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type ServerResourceAnalyticsTimeframe string
 
 const (
