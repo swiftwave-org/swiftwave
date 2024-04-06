@@ -432,6 +432,9 @@ type ApplicationResourceAnalyticsTimeframe string
 
 const (
 	ApplicationResourceAnalyticsTimeframeLast1Hour   ApplicationResourceAnalyticsTimeframe = "last_1_hour"
+	ApplicationResourceAnalyticsTimeframeLast3Hours  ApplicationResourceAnalyticsTimeframe = "last_3_hours"
+	ApplicationResourceAnalyticsTimeframeLast6Hours  ApplicationResourceAnalyticsTimeframe = "last_6_hours"
+	ApplicationResourceAnalyticsTimeframeLast12Hours ApplicationResourceAnalyticsTimeframe = "last_12_hours"
 	ApplicationResourceAnalyticsTimeframeLast24Hours ApplicationResourceAnalyticsTimeframe = "last_24_hours"
 	ApplicationResourceAnalyticsTimeframeLast7Days   ApplicationResourceAnalyticsTimeframe = "last_7_days"
 	ApplicationResourceAnalyticsTimeframeLast30Days  ApplicationResourceAnalyticsTimeframe = "last_30_days"
@@ -439,6 +442,9 @@ const (
 
 var AllApplicationResourceAnalyticsTimeframe = []ApplicationResourceAnalyticsTimeframe{
 	ApplicationResourceAnalyticsTimeframeLast1Hour,
+	ApplicationResourceAnalyticsTimeframeLast3Hours,
+	ApplicationResourceAnalyticsTimeframeLast6Hours,
+	ApplicationResourceAnalyticsTimeframeLast12Hours,
 	ApplicationResourceAnalyticsTimeframeLast24Hours,
 	ApplicationResourceAnalyticsTimeframeLast7Days,
 	ApplicationResourceAnalyticsTimeframeLast30Days,
@@ -446,7 +452,7 @@ var AllApplicationResourceAnalyticsTimeframe = []ApplicationResourceAnalyticsTim
 
 func (e ApplicationResourceAnalyticsTimeframe) IsValid() bool {
 	switch e {
-	case ApplicationResourceAnalyticsTimeframeLast1Hour, ApplicationResourceAnalyticsTimeframeLast24Hours, ApplicationResourceAnalyticsTimeframeLast7Days, ApplicationResourceAnalyticsTimeframeLast30Days:
+	case ApplicationResourceAnalyticsTimeframeLast1Hour, ApplicationResourceAnalyticsTimeframeLast3Hours, ApplicationResourceAnalyticsTimeframeLast6Hours, ApplicationResourceAnalyticsTimeframeLast12Hours, ApplicationResourceAnalyticsTimeframeLast24Hours, ApplicationResourceAnalyticsTimeframeLast7Days, ApplicationResourceAnalyticsTimeframeLast30Days:
 		return true
 	}
 	return false
