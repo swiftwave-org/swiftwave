@@ -51,10 +51,11 @@ var initCmd = &cobra.Command{
 		}
 
 		var domainName string
+		var err error
 
 		if strings.Compare(predefinedDomain, "") == 0 {
 			// Get Domain Name
-			domainName, err := resolveQuickDNSDomain()
+			domainName, err = resolveQuickDNSDomain()
 			if err != nil {
 				printError(err.Error())
 				if isAutoDomainResolve {
@@ -133,7 +134,7 @@ var initCmd = &cobra.Command{
 				Password: defaultString(currentLocalImageRegistryPassword, generateRandomString(20)),
 			},
 		}
-		err := local_config.FillDefaults(newConfig)
+		err = local_config.FillDefaults(newConfig)
 		if err != nil {
 			printError(err.Error())
 			os.Exit(1)
