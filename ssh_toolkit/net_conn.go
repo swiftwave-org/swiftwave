@@ -4,22 +4,21 @@ import (
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"net"
-	"strings"
 	"time"
 )
 
 func NetConnOverSSH(
 	network, address string, netTimeoutSeconds int, // for target task
-	host string, port int, user string, privateKey string, tcpTimeoutSeconds int, // for ssh client
+	host string, port int, user string, privateKey string, // for ssh client
 ) (net.Conn, error) {
 	// fetch ssh client
-	sshRecord, err := getSSHClient(host, port, user, privateKey, tcpTimeoutSeconds)
+	sshRecord, err := getSSHClient(host, port, user, privateKey)
 	if err != nil {
 		return nil, err
 	}
 	// create net connection
 	conn, err := dialWithTimeout(sshRecord, network, address, time.Duration(netTimeoutSeconds)*time.Second)
-	if err != nil && strings.Contains(err.Error(), "dial timeout") {
+	if err != nil && isErrorWhenSSHClientNeedToBeRecreated(err) {
 		deleteSSHClient(host)
 	}
 	return conn, err

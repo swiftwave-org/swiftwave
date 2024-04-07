@@ -18,7 +18,7 @@ func init() {
 	}
 }
 
-func getSSHClient(host string, port int, user string, privateKey string, timeoutSeconds int) (*ssh.Client, error) {
+func getSSHClient(host string, port int, user string, privateKey string) (*ssh.Client, error) {
 	sshClientPool.mutex.RLock()
 	clientEntry, ok := sshClientPool.clients[host]
 	sshClientPool.mutex.RUnlock()
@@ -30,7 +30,7 @@ func getSSHClient(host string, port int, user string, privateKey string, timeout
 			return c, nil
 		}
 	}
-	return newSSHClient(host, port, user, privateKey, timeoutSeconds)
+	return newSSHClient(host, port, user, privateKey, sshTCPTimeoutSeconds)
 }
 
 func newSSHClient(host string, port int, user string, privateKey string, timeoutSeconds int) (*ssh.Client, error) {
