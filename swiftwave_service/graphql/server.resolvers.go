@@ -8,7 +8,10 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"github.com/fatih/color"
 	"net"
+	"os"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -491,6 +494,37 @@ func (r *mutationResolver) FetchAnalyticsServiceToken(ctx context.Context, id ui
 	} else {
 		return tokenRecord.IDToken()
 	}
+}
+
+// ChangeServerIPAddress is the resolver for the changeServerIpAddress field.
+func (r *mutationResolver) ChangeServerIPAddress(ctx context.Context, id uint, ip string) (bool, error) {
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	ip = strings.TrimSpace(ip)
+	if len(ip) == 0 {
+		return false, errors.New("IP is required")
+	}
+	if strings.Compare(server.IP, ip) == 0 {
+		return false, errors.New("IP is already " + server.IP)
+	}
+	err = core.ChangeServerIP(&r.ServiceManager.DbClient, server, ip)
+	if err != nil {
+		return false, err
+	}
+	// Exit process
+	logger.GraphQLLoggerError.Println("Server " + server.HostName + " IP changed to " + ip + "\nRestarting swiftwave in 2 seconds to take effect")
+	// Restart swiftwave service
+	go func() {
+		<-time.After(2 * time.Second)
+		color.Green("Restarting swiftwave service")
+		color.Yellow("Swiftwave service will be restarted in 2 seconds")
+		color.Yellow("If you are running without enabling service, run `swiftwave start` to start the service")
+		_ = exec.Command("systemctl", "restart", "swiftwave.service").Run()
+		os.Exit(0)
+	}()
+	return true, nil
 }
 
 // Servers is the resolver for the servers field.

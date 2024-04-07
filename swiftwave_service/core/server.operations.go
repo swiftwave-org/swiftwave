@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"gorm.io/gorm"
+	"net"
 	"time"
 )
 
@@ -16,6 +17,14 @@ func CreateServer(db *gorm.DB, server *Server) error {
 	}
 	server.LastPing = time.Now()
 	return db.Create(server).Error
+}
+
+// ChangeServerIP changes the IP of a server in the database
+func ChangeServerIP(db *gorm.DB, server *Server, newIp string) error {
+	if ip := net.ParseIP(newIp); ip == nil {
+		return errors.New("invalid IP address")
+	}
+	return db.Model(server).Update("ip", newIp).Error
 }
 
 // UpdateServer updates a server in the database

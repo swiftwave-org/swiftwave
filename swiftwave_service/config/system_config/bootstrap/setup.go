@@ -132,10 +132,9 @@ func SystemSetupHandler(c echo.Context) error {
 	}
 	// Restart swiftwave service
 	go func() {
-		// wait for 2 seconds
 		<-time.After(2 * time.Second)
 		color.Green("Restarting swiftwave service")
-		color.Yellow("Swiftwave service will be restarted in 5 seconds")
+		color.Yellow("Swiftwave service will be restarted in 2 seconds")
 		color.Yellow("If you are running without enabling service, run `swiftwave start` to start the service")
 		_ = exec.Command("systemctl", "restart", "swiftwave.service").Run()
 		os.Exit(1)

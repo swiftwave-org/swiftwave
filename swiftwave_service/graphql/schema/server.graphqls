@@ -102,4 +102,5 @@ extend type Mutation {
     enableProxyOnServer(id: Uint!, type: ProxyType!): Boolean!
     disableProxyOnServer(id: Uint!): Boolean!
     fetchAnalyticsServiceToken(id: Uint!, rotate:Boolean!): String!
+    changeServerIpAddress(id: Uint!, ip: String!): Boolean!
 }
