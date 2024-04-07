@@ -26,6 +26,7 @@ type Application struct {
 	WebhookToken             string                     `json:"webhookToken"`
 	IsSleeping               bool                       `json:"isSleeping"`
 	Command                  string                     `json:"command"`
+	Group                    string                     `json:"group"`
 }
 
 type ApplicationDeployResult struct {
@@ -55,6 +56,7 @@ type ApplicationInput struct {
 	SourceCodeCompressedFileName *string                         `json:"sourceCodeCompressedFileName,omitempty"`
 	DockerImage                  *string                         `json:"dockerImage,omitempty"`
 	ImageRegistryCredentialID    *uint                           `json:"imageRegistryCredentialID,omitempty"`
+	Group                        string                          `json:"group"`
 }
 
 type ApplicationResourceAnalytics struct {
