@@ -3,6 +3,7 @@ package local_config
 import (
 	"errors"
 	"fmt"
+	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/yaml.v3"
 	"io"
@@ -80,8 +81,9 @@ func readConfigFile(path string) (*Config, error) {
 		fmt.Println(err)
 		return nil, errors.New("failed to parse config file")
 	}
-	// validate config
+	// validate and set defaults
 	_ = FillDefaults(&config)
+	ssh_toolkit.UpdateTCPTimeout(config.ServiceConfig.SSHTimeout)
 	return &config, nil
 }
 
@@ -121,6 +123,9 @@ func FillDefaults(config *Config) error {
 	config.LocalImageRegistryConfig.CertPath = defaultLocalImageRegistryCertDirectoryPath
 	config.LocalImageRegistryConfig.AuthPath = defaultLocalImageRegistryAuthDirectoryPath
 	config.LocalImageRegistryConfig.DataPath = defaultLocalImageRegistryDataDirectoryPath
+	if config.ServiceConfig.SSHTimeout == 0 {
+		config.ServiceConfig.SSHTimeout = defaultSSHTimeout
+	}
 	return nil
 }
 

@@ -81,12 +81,12 @@ func (m Manager) SizeVolume(volumeName string, host string, port int, user strin
 		return 0, err
 	}
 	defer func(path string) {
-		_ = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("rm -rf %s", path), nil, nil, 10, host, port, user, privateKey, 20)
+		_ = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("rm -rf %s", path), nil, nil, 10, host, port, user, privateKey)
 	}(path)
 	resultPath := filepath.Join(path, "size.txt")
 	// fetch the size
 	stdoutBuf := &bytes.Buffer{}
-	err = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("cat %s", resultPath), stdoutBuf, nil, 10, host, port, user, privateKey, 20)
+	err = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("cat %s", resultPath), stdoutBuf, nil, 10, host, port, user, privateKey)
 	if err != nil {
 		return 0, errors.New("failed to read size file " + err.Error())
 	}
@@ -109,7 +109,7 @@ func (m Manager) BackupVolume(volumeName string, backupFilePath string, host str
 		return err
 	}
 	defer func(path string) {
-		_ = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("rm -rf %s", path), nil, nil, 10, host, port, user, privateKey, 20)
+		_ = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("rm -rf %s", path), nil, nil, 10, host, port, user, privateKey)
 	}(path)
 	dumpFilePath := filepath.Join(path, "dump.tar.gz")
 	if err != nil {
@@ -142,13 +142,13 @@ func (m Manager) RestoreVolume(volumeName string, backupFilePath string, host st
 	// prepare paths
 	outputPath := filepath.Join("/tmp", fileName)
 	// create temp directory
-	err := ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("mkdir -p %s", outputPath), nil, nil, 10, host, port, user, privateKey, 20)
+	err := ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("mkdir -p %s", outputPath), nil, nil, 10, host, port, user, privateKey)
 	if err != nil {
 		return errors.New("failed to create directory for moving backup file to server  " + err.Error())
 	}
 	// remove temp directory
 	defer func(outputPath string) {
-		_ = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("rm -rf %s", outputPath), nil, nil, 10, host, port, user, privateKey, 20)
+		_ = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("rm -rf %s", outputPath), nil, nil, 10, host, port, user, privateKey)
 	}(outputPath)
 	// file path
 	dumpFilePath := filepath.Join(outputPath, "dump.tar.gz")

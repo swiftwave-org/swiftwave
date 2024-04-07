@@ -51,7 +51,7 @@ func (m Manager) InstallDependenciesOnServer(request InstallDependenciesOnServer
 		_ = serverLog.Update(&m.ServiceManager.DbClient)
 	}()
 
-	detectedOS, err := ssh_toolkit.DetectOS(5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey, 30)
+	detectedOS, err := ssh_toolkit.DetectOS(5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		logText += "Error detecting OS: " + err.Error() + "\n"
 		return nil
@@ -64,7 +64,7 @@ func (m Manager) InstallDependenciesOnServer(request InstallDependenciesOnServer
 		// check if dependency is already installed [ignore init]
 		if dependency != "init" {
 			stdoutBuffer := new(bytes.Buffer)
-			err = ssh_toolkit.ExecCommandOverSSH(core.DependencyCheckCommands[dependency], stdoutBuffer, nil, 5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey, 30)
+			err = ssh_toolkit.ExecCommandOverSSH(core.DependencyCheckCommands[dependency], stdoutBuffer, nil, 5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
 			if err == nil {
 				isExists = stdoutBuffer.String() != ""
 			}
@@ -85,7 +85,7 @@ func (m Manager) InstallDependenciesOnServer(request InstallDependenciesOnServer
 				logText += "Unknown OS: " + string(detectedOS) + "\n"
 				continue
 			}
-			err = ssh_toolkit.ExecCommandOverSSH(command, stdoutBuffer, stderrBuffer, 5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey, 30)
+			err = ssh_toolkit.ExecCommandOverSSH(command, stdoutBuffer, stderrBuffer, 5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
 			logText += stdoutBuffer.String() + "\n"
 			logText += stderrBuffer.String() + "\n"
 			logText += "\n"

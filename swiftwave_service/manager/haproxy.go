@@ -17,7 +17,7 @@ func HAProxyClient(_ context.Context, server core.Server) (*haproxymanager.Manag
 	}
 	// Create client
 	manager := haproxymanager.New(func() (net.Conn, error) {
-		return ssh_toolkit.NetConnOverSSH("unix", c.LocalConfig.ServiceConfig.HAProxyUnixSocketPath, 50, server.IP, 22, server.User, c.SystemConfig.SshPrivateKey, 20)
+		return ssh_toolkit.NetConnOverSSH("unix", c.LocalConfig.ServiceConfig.HAProxyUnixSocketPath, 50, server.IP, 22, server.User, c.SystemConfig.SshPrivateKey)
 	}, c.SystemConfig.HAProxyConfig.Username, c.SystemConfig.HAProxyConfig.Password)
 	return &manager, nil
 }

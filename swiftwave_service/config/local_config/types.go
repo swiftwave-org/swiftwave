@@ -19,6 +19,7 @@ type ServiceConfig struct {
 	AutoRenewManagementNodeCert     bool   `yaml:"auto_renew_management_node_cert"`
 	BindAddress                     string `yaml:"bind_address"`
 	BindPort                        int    `yaml:"bind_port"`
+	SSHTimeout                      int    `yaml:"ssh_timeout"`
 	SocketPathDirectory             string `yaml:"-"`
 	DataDirectory                   string `yaml:"-"`
 	LocalPostgresDataDirectory      string `yaml:"-"`

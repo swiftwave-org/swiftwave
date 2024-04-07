@@ -68,7 +68,7 @@ func (m Manager) syncBackupProxyServer() {
 	// reload proxies on backup server
 	for _, server := range backupServers {
 		// open ssh connection to backup proxy server for docker
-		conn, err := ssh_toolkit.NetConnOverSSH("unix", server.DockerUnixSocketPath, 5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey, 20)
+		conn, err := ssh_toolkit.NetConnOverSSH("unix", server.DockerUnixSocketPath, 5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
 		if err != nil {
 			logger.CronJobLoggerError.Println("Failed to open ssh connection to backup proxy server", server.HostName, "\n", err.Error())
 			continue

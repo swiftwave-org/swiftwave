@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"strings"
 	"time"
 
 	"golang.org/x/crypto/ssh"
@@ -14,17 +13,17 @@ import (
 
 func ExecCommandOverSSH(cmd string,
 	stdoutBuf, stderrBuf *bytes.Buffer, sessionTimeoutSeconds int, // for target task
-	host string, port int, user string, privateKey string, tcpTimeoutSeconds int, // for ssh client
+	host string, port int, user string, privateKey string, // for ssh client
 ) error {
 	// fetch ssh client
-	sshRecord, err := getSSHClient(host, port, user, privateKey, tcpTimeoutSeconds)
+	sshRecord, err := getSSHClient(host, port, user, privateKey)
 	if err != nil {
 		return err
 	}
 	// create session
 	session, err := getSSHSessionWithTimeout(sshRecord, sessionTimeoutSeconds)
 	if err != nil {
-		if strings.Contains(err.Error(), "session creation timeout") {
+		if isErrorWhenSSHClientNeedToBeRecreated(err) {
 			deleteSSHClient(host)
 		}
 		return err
