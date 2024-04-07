@@ -29,3 +29,4 @@ var LocalConfigPath = filepath.Join(defaultDataDirectory, "config.yml")
 var LogDirectoryPath = "/var/log/swiftwave"
 var InfoLogFilePath = filepath.Join(LogDirectoryPath, "swiftwave.log")
 var ErrorLogFilePath = filepath.Join(LogDirectoryPath, "swiftwave.error.log")
+var defaultSSHTimeout = 10
