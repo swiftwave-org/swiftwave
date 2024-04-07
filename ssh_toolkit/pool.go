@@ -34,17 +34,26 @@ func getSSHClient(host string, port int, user string, privateKey string, timeout
 }
 
 func newSSHClient(host string, port int, user string, privateKey string, timeoutSeconds int) (*ssh.Client, error) {
-	// create entry first with a write lock
-	sshClientPool.mutex.Lock()
+	// take pool read lock
+	sshClientPool.mutex.RLock()
 	// check if another goroutine has created the client in the meantime
 	clientEntry, ok := sshClientPool.clients[host]
+	// unlock read
+	sshClientPool.mutex.RUnlock()
 	if ok {
-		sshClientPool.mutex.Unlock()
+		// take mutex read lock on the entry
 		clientEntry.mutex.RLock()
 		c := clientEntry.client
+		// unlock the mutex on the entry
 		clientEntry.mutex.RUnlock()
-		return c, nil
+		if c != nil {
+			// another goroutine has created the client
+			return c, nil
+		}
+		// created record but not yet created the client due to handshake in progress + race condition
 	}
+	// take pool write lock
+	sshClientPool.mutex.Lock()
 	sshClientRecord := &sshClient{
 		client: nil,
 		mutex:  &sync.RWMutex{},
