@@ -37,6 +37,7 @@ type Application {
     webhookToken: String!
     isSleeping: Boolean!
     command: String!
+    group: String!
 }
 
 type ApplicationResourceAnalytics {
@@ -71,6 +72,7 @@ input ApplicationInput {
     # required for upstreamType = "Image"
     dockerImage: String
     imageRegistryCredentialID: Uint
+    group: String!
 }
 
 extend type Query {

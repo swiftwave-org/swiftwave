@@ -59,7 +59,6 @@ func (application *Application) FindByName(ctx context.Context, db gorm.DB, name
 }
 
 func (application *Application) Create(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager, codeTarballDir string) error {
-	// TODO: split this function into smaller functions
 	// verify if there is no application with same name
 	isExist, err := IsExistApplicationName(ctx, db, dockerManager, application.Name)
 	if err != nil {
@@ -115,6 +114,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		Command:        application.Command,
 		Capabilities:   application.Capabilities,
 		Sysctls:        application.Sysctls,
+		Group:          application.Group,
 	}
 	tx := db.Create(&createdApplication)
 	if tx.Error != nil {
