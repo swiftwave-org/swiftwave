@@ -49,16 +49,30 @@ func (r *mutationResolver) CreateServer(ctx context.Context, input model.NewServ
 // DeleteServer is the resolver for the deleteServer field.
 func (r *mutationResolver) DeleteServer(ctx context.Context, id uint) (bool, error) {
 	// Checks -
-	// 1. If it's the last server, then delete it from db
-	// 2. This should be swarm worker node
-	// 3. Should disable ingress proxy on this server
-	// 4. There should be another swarm manager running
-	// 5. Remove from swarm cluster
-	// 6. Remove from the database
+	// 1. If server status `need_setup`, delete it from database
+	// 2. If server status `preparing`, it can't be deleted
+	// 3. If it's the last server, then delete it from db
+	// 4. This should be swarm worker node
+	// 5. Should disable ingress proxy on this server
+	// 6. There should be another swarm manager running
+	// 7. Remove from swarm cluster
+	// 8. Remove from the database
 
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
 		return false, err
+	}
+	// If `need_setup`, delete it from database
+	if server.Status == core.ServerNeedsSetup {
+		err = core.DeleteServer(&r.ServiceManager.DbClient, id)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+	// If `preparing`, it can't be deleted
+	if server.Status == core.ServerPreparing {
+		return false, errors.New("server is preparing, you can delete it only after it come out of `preparing` status")
 	}
 	// If it's the last server, then delete it from db
 	servers, err := core.FetchAllServers(&r.ServiceManager.DbClient)
