@@ -1,8 +1,10 @@
 package containermanger
 
 import (
+	"errors"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"strings"
 )
 
 // InitializeAsManager initializes the swarm as a manager
@@ -32,9 +34,25 @@ func (m Manager) LeaveSwarm() error {
 
 // RemoveNode removes a node from the swarm
 func (m Manager) RemoveNode(hostname string) error {
-	return m.client.NodeRemove(m.ctx, hostname, types.NodeRemoveOptions{
-		Force: true,
-	})
+	// fetch all the nodes
+	nodes, err := m.client.NodeList(m.ctx, types.NodeListOptions{})
+	if err != nil {
+		return errors.New("error fetching swarm nodes ")
+	}
+	// check if the hostname is in the list of nodes
+	for _, node := range nodes {
+		if strings.Compare(node.Description.Hostname, hostname) == 0 {
+			// remove the node
+			err := m.client.NodeRemove(m.ctx, hostname, types.NodeRemoveOptions{
+				Force: true,
+			})
+			if err != nil {
+				return errors.New("error removing node from cluster")
+			}
+			return nil
+		}
+	}
+	return nil
 }
 
 // PromoteToManager promotes a node to manager
