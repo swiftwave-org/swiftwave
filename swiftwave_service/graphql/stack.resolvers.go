@@ -140,13 +140,26 @@ func (r *mutationResolver) DeployStack(ctx context.Context, input model.StackInp
 	for _, variable := range input.Variables {
 		variableMapping[variable.Name] = variable.Value
 	}
+	// Fetch Stack Name
+	//// check if STACK_NAME is present in variableMapping
+	//if _, ok := (*variableMapping)["STACK_NAME"]; !ok {
+	//	return nil, errors.New("STACK_NAME is not provided")
+	//} else {
+	//	if len(strings.TrimSpace((*variableMapping)["STACK_NAME"])) == 0 {
+	//		return nil, errors.New("STACK_NAME is empty")
+	//	}
+	//}
+	if _, ok := variableMapping["STACK_NAME"]; !ok {
+		return nil, errors.New("STACK_NAME is not provided")
+	}
+	stackName := variableMapping["STACK_NAME"]
 	stackFilled, err := stack.FillAndVerifyVariables(&variableMapping, r.ServiceManager)
 	if err != nil {
 		return nil, err
 	}
 
 	// convert to application input
-	applicationsInput, err := stackToApplicationsInput(stackFilled, r.ServiceManager.DbClient)
+	applicationsInput, err := stackToApplicationsInput(stackName, stackFilled, r.ServiceManager.DbClient)
 	if err != nil {
 		return nil, err
 	}
