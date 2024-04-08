@@ -195,8 +195,8 @@ type Application struct {
 	IsSleeping bool `json:"is_sleeping" gorm:"default:false"`
 	// Resource Stats
 	ResourceStats []ApplicationServiceResourceStat `json:"resource_stats" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	// Application Group
-	Group string `json:"group"`
+	// Application ApplicationGroup
+	ApplicationGroup string `json:"application_group"`
 }
 
 // Deployment : hold information about deployment of application

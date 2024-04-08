@@ -245,6 +245,7 @@ type ComplexityRoot struct {
 		SleepApplication                                   func(childComplexity int, id string) int
 		TestSSHAccessToServer                              func(childComplexity int, id uint) int
 		UpdateApplication                                  func(childComplexity int, id string, input model.ApplicationInput) int
+		UpdateApplicationGroup                             func(childComplexity int, id string, group string) int
 		UpdateGitCredential                                func(childComplexity int, id uint, input model.GitCredentialInput) int
 		UpdateImageRegistryCredential                      func(childComplexity int, id uint, input model.ImageRegistryCredentialInput) int
 		VerifyStack                                        func(childComplexity int, input model.StackInput) int
@@ -295,8 +296,10 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Application                        func(childComplexity int, id string) int
+		ApplicationGroups                  func(childComplexity int) int
 		ApplicationResourceAnalytics       func(childComplexity int, id string, timeframe model.ApplicationResourceAnalyticsTimeframe) int
 		Applications                       func(childComplexity int) int
+		ApplicationsByGroup                func(childComplexity int, group string) int
 		CheckGitCredentialRepositoryAccess func(childComplexity int, input model.GitCredentialRepositoryAccessInput) int
 		CurrentUser                        func(childComplexity int) int
 		Deployment                         func(childComplexity int, id string) int
@@ -455,6 +458,7 @@ type IngressRuleResolver interface {
 type MutationResolver interface {
 	CreateApplication(ctx context.Context, input model.ApplicationInput) (*model.Application, error)
 	UpdateApplication(ctx context.Context, id string, input model.ApplicationInput) (*model.Application, error)
+	UpdateApplicationGroup(ctx context.Context, id string, group string) (bool, error)
 	DeleteApplication(ctx context.Context, id string) (bool, error)
 	RebuildApplication(ctx context.Context, id string) (bool, error)
 	RestartApplication(ctx context.Context, id string) (bool, error)
@@ -517,8 +521,10 @@ type PersistentVolumeBindingResolver interface {
 type QueryResolver interface {
 	Application(ctx context.Context, id string) (*model.Application, error)
 	Applications(ctx context.Context) ([]*model.Application, error)
+	ApplicationsByGroup(ctx context.Context, group string) ([]*model.Application, error)
 	IsExistApplicationName(ctx context.Context, name string) (bool, error)
 	ApplicationResourceAnalytics(ctx context.Context, id string, timeframe model.ApplicationResourceAnalyticsTimeframe) ([]*model.ApplicationResourceAnalytics, error)
+	ApplicationGroups(ctx context.Context) ([]string, error)
 	Deployment(ctx context.Context, id string) (*model.Deployment, error)
 	DockerConfigGenerator(ctx context.Context, input model.DockerConfigGeneratorInput) (*model.DockerConfigGeneratorOutput, error)
 	Domains(ctx context.Context) ([]*model.Domain, error)
@@ -1784,6 +1790,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateApplication(childComplexity, args["id"].(string), args["input"].(model.ApplicationInput)), true
 
+	case "Mutation.updateApplicationGroup":
+		if e.complexity.Mutation.UpdateApplicationGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateApplicationGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateApplicationGroup(childComplexity, args["id"].(string), args["group"].(string)), true
+
 	case "Mutation.updateGitCredential":
 		if e.complexity.Mutation.UpdateGitCredential == nil {
 			break
@@ -2033,6 +2051,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Application(childComplexity, args["id"].(string)), true
 
+	case "Query.applicationGroups":
+		if e.complexity.Query.ApplicationGroups == nil {
+			break
+		}
+
+		return e.complexity.Query.ApplicationGroups(childComplexity), true
+
 	case "Query.applicationResourceAnalytics":
 		if e.complexity.Query.ApplicationResourceAnalytics == nil {
 			break
@@ -2051,6 +2076,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Applications(childComplexity), true
+
+	case "Query.applicationsByGroup":
+		if e.complexity.Query.ApplicationsByGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Query_applicationsByGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ApplicationsByGroup(childComplexity, args["group"].(string)), true
 
 	case "Query.checkGitCredentialRepositoryAccess":
 		if e.complexity.Query.CheckGitCredentialRepositoryAccess == nil {
@@ -3667,6 +3704,30 @@ func (ec *executionContext) field_Mutation_testSSHAccessToServer_args(ctx contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateApplicationGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["group"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["group"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateApplication_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3820,6 +3881,21 @@ func (ec *executionContext) field_Query_application_args(ctx context.Context, ra
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_applicationsByGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["group"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["group"] = arg0
 	return args, nil
 }
 
@@ -8914,6 +8990,61 @@ func (ec *executionContext) fieldContext_Mutation_updateApplication(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_updateApplicationGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateApplicationGroup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateApplicationGroup(rctx, fc.Args["id"].(string), fc.Args["group"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateApplicationGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateApplicationGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_deleteApplication(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_deleteApplication(ctx, field)
 	if err != nil {
@@ -13247,6 +13378,97 @@ func (ec *executionContext) fieldContext_Query_applications(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_applicationsByGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_applicationsByGroup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ApplicationsByGroup(rctx, fc.Args["group"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Application)
+	fc.Result = res
+	return ec.marshalNApplication2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_applicationsByGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Application_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Application_name(ctx, field)
+			case "environmentVariables":
+				return ec.fieldContext_Application_environmentVariables(ctx, field)
+			case "persistentVolumeBindings":
+				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "capabilities":
+				return ec.fieldContext_Application_capabilities(ctx, field)
+			case "sysctls":
+				return ec.fieldContext_Application_sysctls(ctx, field)
+			case "realtimeInfo":
+				return ec.fieldContext_Application_realtimeInfo(ctx, field)
+			case "latestDeployment":
+				return ec.fieldContext_Application_latestDeployment(ctx, field)
+			case "deployments":
+				return ec.fieldContext_Application_deployments(ctx, field)
+			case "deploymentMode":
+				return ec.fieldContext_Application_deploymentMode(ctx, field)
+			case "replicas":
+				return ec.fieldContext_Application_replicas(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Application_ingressRules(ctx, field)
+			case "isDeleted":
+				return ec.fieldContext_Application_isDeleted(ctx, field)
+			case "webhookToken":
+				return ec.fieldContext_Application_webhookToken(ctx, field)
+			case "isSleeping":
+				return ec.fieldContext_Application_isSleeping(ctx, field)
+			case "command":
+				return ec.fieldContext_Application_command(ctx, field)
+			case "group":
+				return ec.fieldContext_Application_group(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_applicationsByGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_isExistApplicationName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_isExistApplicationName(ctx, field)
 	if err != nil {
@@ -13365,6 +13587,50 @@ func (ec *executionContext) fieldContext_Query_applicationResourceAnalytics(ctx 
 	if fc.Args, err = ec.field_Query_applicationResourceAnalytics_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_applicationGroups(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_applicationGroups(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ApplicationGroups(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_applicationGroups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -22217,6 +22483,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "updateApplicationGroup":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateApplicationGroup(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "deleteApplication":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteApplication(ctx, field)
@@ -23087,6 +23360,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "applicationsByGroup":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_applicationsByGroup(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "isExistApplicationName":
 			field := field
 
@@ -23119,6 +23414,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_applicationResourceAnalytics(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "applicationGroups":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_applicationGroups(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

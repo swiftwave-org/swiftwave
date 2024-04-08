@@ -218,7 +218,7 @@ func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Appl
 		Capabilities:             record.Capabilities,
 		Sysctls:                  record.Sysctls,
 		IsSleeping:               false,
-		Group:                    record.Group,
+		ApplicationGroup:         record.Group,
 	}
 }
 
@@ -235,7 +235,7 @@ func applicationToGraphqlObject(record *core.Application) *model.Application {
 		Sysctls:        record.Sysctls,
 		IsSleeping:     record.IsSleeping,
 		Command:        record.Command,
-		Group:          record.Group,
+		Group:          record.ApplicationGroup,
 	}
 }
 
