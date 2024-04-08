@@ -42,6 +42,15 @@ func FindAllApplications(ctx context.Context, db gorm.DB) ([]*Application, error
 	return applications, tx.Error
 }
 
+func FindApplicationsByGroup(ctx context.Context, db gorm.DB, group string) ([]*Application, error) {
+	var applications []*Application
+	err := db.Model(&Application{}).Where("application_group = ?", group).Scan(&applications).Error
+	if err != nil {
+		return nil, err
+	}
+	return applications, nil
+}
+
 func (application *Application) FindById(ctx context.Context, db gorm.DB, id string) error {
 	tx := db.Where("id = ?", id).First(&application)
 	if tx.Error != nil {
@@ -106,15 +115,15 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	}
 	// create application
 	createdApplication := Application{
-		ID:             uuid.NewString(),
-		Name:           application.Name,
-		DeploymentMode: application.DeploymentMode,
-		Replicas:       application.Replicas,
-		WebhookToken:   uuid.NewString(),
-		Command:        application.Command,
-		Capabilities:   application.Capabilities,
-		Sysctls:        application.Sysctls,
-		Group:          application.Group,
+		ID:               uuid.NewString(),
+		Name:             application.Name,
+		DeploymentMode:   application.DeploymentMode,
+		Replicas:         application.Replicas,
+		WebhookToken:     uuid.NewString(),
+		Command:          application.Command,
+		Capabilities:     application.Capabilities,
+		Sysctls:          application.Sysctls,
+		ApplicationGroup: application.ApplicationGroup,
 	}
 	tx := db.Create(&createdApplication)
 	if tx.Error != nil {
@@ -523,4 +532,27 @@ func (application *Application) MarkAsWake(ctx context.Context, db gorm.DB) erro
 	// update is sleeping
 	tx := db.Model(&application).Update("is_sleeping", false)
 	return tx.Error
+}
+
+func (application *Application) UpdateGroup(ctx context.Context, db gorm.DB, group string) error {
+	err := application.FindById(ctx, db, application.ID)
+	if err != nil {
+		return err
+	}
+	return db.Model(&application).Update("application_group", group).Error
+}
+
+func FetchApplicationGroups(ctx context.Context, db gorm.DB) ([]string, error) {
+	var groups []string
+	err := db.Model(&Application{}).Select("application_group").Where("application_group IS NOT NULL").Group("application_group").Scan(&groups).Error
+	if err != nil {
+		return nil, err
+	}
+	// remove "" from slice
+	for i, group := range groups {
+		if group == "" {
+			groups = append(groups[:i], groups[i+1:]...)
+		}
+	}
+	return groups, err
 }

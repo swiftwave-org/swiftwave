@@ -78,13 +78,16 @@ input ApplicationInput {
 extend type Query {
     application(id: String!): Application!
     applications: [Application!]!
+    applicationsByGroup(group: String!): [Application!]!
     isExistApplicationName(name: String!): Boolean!
     applicationResourceAnalytics(id: String!, timeframe: ApplicationResourceAnalyticsTimeframe!): [ApplicationResourceAnalytics!]!
+    applicationGroups: [String!]!
 }
 
 extend type Mutation {
     createApplication(input: ApplicationInput!): Application!
     updateApplication(id: String!, input: ApplicationInput!): Application!
+    updateApplicationGroup(id: String!, group: String!): Boolean!
     deleteApplication(id: String!): Boolean!
     rebuildApplication(id: String!): Boolean!
     restartApplication(id: String!): Boolean!
