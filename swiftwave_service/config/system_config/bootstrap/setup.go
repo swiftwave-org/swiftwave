@@ -137,7 +137,7 @@ func SystemSetupHandler(c echo.Context) error {
 		color.Yellow("Swiftwave service will be restarted in 2 seconds")
 		color.Yellow("If you are running without enabling service, run `swiftwave start` to start the service")
 		_ = exec.Command("systemctl", "restart", "swiftwave.service").Run()
-		os.Exit(1)
+		os.Exit(0)
 	}()
 	return c.JSON(http.StatusCreated, map[string]interface{}{
 		"message": "System setup completed successfully",
@@ -223,7 +223,7 @@ func UpdateSystemConfigHandler(c echo.Context) error {
 		color.Yellow("Swiftwave service will be restarted in 5 seconds")
 		color.Yellow("If you are running without enabling service, run `swiftwave start` to start the service")
 		_ = exec.Command("systemctl", "restart", "swiftwave.service").Run()
-		os.Exit(1)
+		os.Exit(0)
 	}()
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "System configuration updated successfully",
