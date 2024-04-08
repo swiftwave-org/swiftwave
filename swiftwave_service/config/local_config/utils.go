@@ -84,6 +84,8 @@ func readConfigFile(path string) (*Config, error) {
 	// validate and set defaults
 	_ = FillDefaults(&config)
 	ssh_toolkit.UpdateTCPTimeout(config.ServiceConfig.SSHTimeout)
+	// write config
+	_ = Update(&config)
 	return &config, nil
 }
 
