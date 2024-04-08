@@ -19,6 +19,15 @@ func CreateServer(db *gorm.DB, server *Server) error {
 	return db.Create(server).Error
 }
 
+// DeleteServer deletes a server from the database
+func DeleteServer(db *gorm.DB, id uint) error {
+	server, err := FetchServerByID(db, id)
+	if err != nil {
+		return err
+	}
+	return db.Delete(server).Error
+}
+
 // ChangeServerIP changes the IP of a server in the database
 func ChangeServerIP(db *gorm.DB, server *Server, newIp string) error {
 	if ip := net.ParseIP(newIp); ip == nil {

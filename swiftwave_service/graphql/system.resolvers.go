@@ -6,10 +6,11 @@ package graphql
 
 import (
 	"context"
-	"github.com/fatih/color"
 	"os"
 	"os/exec"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 // RestartSystem is the resolver for the restartSystem field.

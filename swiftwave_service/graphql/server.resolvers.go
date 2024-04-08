@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
+	swiftwaveServiceManagerDocker "github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"net"
 	"os"
 	"os/exec"
@@ -48,7 +48,60 @@ func (r *mutationResolver) CreateServer(ctx context.Context, input model.NewServ
 
 // DeleteServer is the resolver for the deleteServer field.
 func (r *mutationResolver) DeleteServer(ctx context.Context, id uint) (bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteServer - deleteServer"))
+	// Checks -
+	// 1. If it's the last server, then delete it from db
+	// 2. This should be swarm worker node
+	// 3. Should disable ingress proxy on this server
+	// 4. There should be another swarm manager running
+	// 5. Remove from swarm cluster
+	// 6. Remove from the database
+
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	// If it's the last server, then delete it from db
+	servers, err := core.FetchAllServers(&r.ServiceManager.DbClient)
+	if err != nil {
+		return false, err
+	}
+	if len(servers) == 1 {
+		err = core.DeleteServer(&r.ServiceManager.DbClient, id)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+	// if not the last server, then required additional steps
+	if server.SwarmMode == core.SwarmManager {
+		return false, errors.New("from 'Actions' menu, demote this server to 'Swarm Worker' mode to proceed for deletion")
+	}
+	if server.ProxyConfig.Enabled {
+		return false, errors.New("from 'Actions' menu, disable ingress proxy on this server to proceed for deletion")
+	}
+	// fetch another swarm manager
+	otherSwarmManager, err := core.FetchSwarmManagerExceptServer(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, errors.New("no other swarm manager found to proceed for deletion")
+		}
+	}
+	// fetch docker manager
+	dockerManager, err := swiftwaveServiceManagerDocker.DockerClient(ctx, otherSwarmManager)
+	if err != nil {
+		return false, err
+	}
+	// remove from swarm cluster
+	err = dockerManager.RemoveNode(server.HostName)
+	if err != nil {
+		return false, err
+	}
+	// remove from local database
+	err = core.DeleteServer(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // TestSSHAccessToServer is the resolver for the testSSHAccessToServer field.
@@ -562,7 +615,7 @@ func (r *queryResolver) PublicSSHKey(ctx context.Context) (string, error) {
 
 // ServerResourceAnalytics is the resolver for the serverResourceAnalytics field.
 func (r *queryResolver) ServerResourceAnalytics(ctx context.Context, id uint, timeframe model.ServerResourceAnalyticsTimeframe) ([]*model.ServerResourceAnalytics, error) {
-	var previousTime time.Time = time.Now()
+	var previousTime = time.Now()
 	switch timeframe {
 	case model.ServerResourceAnalyticsTimeframeLast1Hour:
 		previousTime = time.Now().Add(-1 * time.Hour)
