@@ -370,7 +370,7 @@ func userToGraphqlObject(record *core.User) *model.User {
 }
 
 // stackToApplicationsInput : converts Stack to ApplicationInput
-func stackToApplicationsInput(record *stack_parser.Stack, db gorm.DB) ([]model.ApplicationInput, error) {
+func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db gorm.DB) ([]model.ApplicationInput, error) {
 	applications := make([]model.ApplicationInput, 0)
 	for serviceName, service := range record.Services {
 		environmentVariables := make([]*model.EnvironmentVariableInput, 0)
@@ -419,6 +419,7 @@ func stackToApplicationsInput(record *stack_parser.Stack, db gorm.DB) ([]model.A
 			RepositoryBranch:             nil,
 			CodePath:                     nil,
 			SourceCodeCompressedFileName: nil,
+			Group:                        stackName,
 		}
 		applications = append(applications, app)
 	}
