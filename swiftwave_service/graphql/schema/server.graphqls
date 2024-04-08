@@ -90,6 +90,7 @@ extend type Query {
 
 extend type Mutation {
     createServer(input: NewServerInput!): Server!
+    deleteServer(id: Uint!): Boolean!
     testSSHAccessToServer(id: Uint!): Boolean!
     checkDependenciesOnServer(id: Uint!): [Dependency!]
     installDependenciesOnServer(id: Uint!): Boolean!

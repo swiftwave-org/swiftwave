@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"os"
 	"os/exec"
@@ -43,6 +44,11 @@ func (r *mutationResolver) CreateServer(ctx context.Context, input model.NewServ
 		}
 	}
 	return serverToGraphqlObject(server), nil
+}
+
+// DeleteServer is the resolver for the deleteServer field.
+func (r *mutationResolver) DeleteServer(ctx context.Context, id uint) (bool, error) {
+	panic(fmt.Errorf("not implemented: DeleteServer - deleteServer"))
 }
 
 // TestSSHAccessToServer is the resolver for the testSSHAccessToServer field.
