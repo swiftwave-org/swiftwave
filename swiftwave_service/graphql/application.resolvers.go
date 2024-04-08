@@ -48,7 +48,11 @@ func (r *applicationResolver) PersistentVolumeBindings(ctx context.Context, obj 
 func (r *applicationResolver) RealtimeInfo(ctx context.Context, obj *model.Application) (*model.RealtimeInfo, error) {
 	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
 	if err != nil {
-		return nil, err
+		return &model.RealtimeInfo{
+			InfoFound:       false,
+			DesiredReplicas: 0,
+			RunningReplicas: 0,
+		}, nil
 	}
 	info, err := dockerManager.RealtimeInfoService(obj.Name, true)
 	if err != nil {
