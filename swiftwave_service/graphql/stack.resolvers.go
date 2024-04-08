@@ -141,14 +141,6 @@ func (r *mutationResolver) DeployStack(ctx context.Context, input model.StackInp
 		variableMapping[variable.Name] = variable.Value
 	}
 	// Fetch Stack Name
-	//// check if STACK_NAME is present in variableMapping
-	//if _, ok := (*variableMapping)["STACK_NAME"]; !ok {
-	//	return nil, errors.New("STACK_NAME is not provided")
-	//} else {
-	//	if len(strings.TrimSpace((*variableMapping)["STACK_NAME"])) == 0 {
-	//		return nil, errors.New("STACK_NAME is empty")
-	//	}
-	//}
 	if _, ok := variableMapping["STACK_NAME"]; !ok {
 		return nil, errors.New("STACK_NAME is not provided")
 	}
