@@ -37,7 +37,7 @@ func (m Manager) RemoveNode(hostname string) error {
 	// fetch all the nodes
 	nodes, err := m.client.NodeList(m.ctx, types.NodeListOptions{})
 	if err != nil {
-		return errors.New("error fetching swarm nodes ")
+		return errors.New("error fetching swarm nodes list")
 	}
 	// check if the hostname is in the list of nodes
 	for _, node := range nodes {
