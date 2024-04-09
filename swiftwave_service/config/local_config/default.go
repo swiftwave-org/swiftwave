@@ -5,7 +5,7 @@ import "path/filepath"
 var defaultBindAddress = "0.0.0.0"
 var defaultBindPort = 3333
 var defaultImageRegistryPort = 3334
-var defaultSocketPathDirectory = "/var/run/swiftwave"
+var defaultSocketPathDirectory = "/etc/swiftwave"
 var defaultDataDirectory = "/var/lib/swiftwave"
 var defaultNetworkName = "swiftwave_network"
 var defaultHAProxyServiceName = "swiftwave_haproxy"
