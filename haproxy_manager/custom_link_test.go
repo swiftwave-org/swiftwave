@@ -12,10 +12,10 @@ func TestCustomLink(t *testing.T) {
 		transactionId := newTransaction()
 		defer deleteTransaction(transactionId)
 
-		output := "use_backend " + haproxyTestManager.GenerateBackendName("dummy_backend", 8080)
+		output := "use_backend " + haproxyTestManager.GenerateBackendName(TCPBackend, "dummy_backend", 8080)
 
 		// create tcp frontend
-		backendName, err := haproxyTestManager.AddBackend(transactionId, "dummy_backend", 8080, 2)
+		backendName, err := haproxyTestManager.AddBackend(transactionId, TCPBackend, "dummy_backend", 8080, 2)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -36,10 +36,10 @@ func TestCustomLink(t *testing.T) {
 		transactionId := newTransaction()
 		defer deleteTransaction(transactionId)
 
-		output := "use_backend " + haproxyTestManager.GenerateBackendName("dummy_backend", 8080)
+		output := "use_backend " + haproxyTestManager.GenerateBackendName(TCPBackend, "dummy_backend", 8080)
 
 		// create tcp frontend
-		backendName, err := haproxyTestManager.AddBackend(transactionId, "dummy_backend", 8080, 2)
+		backendName, err := haproxyTestManager.AddBackend(transactionId, TCPBackend, "dummy_backend", 8080, 2)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -65,10 +65,10 @@ func TestCustomLink(t *testing.T) {
 		transactionId := newTransaction()
 		defer deleteTransaction(transactionId)
 
-		output := "use_backend " + haproxyTestManager.GenerateBackendName("dummy_backend", 8080)
+		output := "use_backend " + haproxyTestManager.GenerateBackendName(TCPBackend, "dummy_backend", 8080)
 
 		// create tcp frontend
-		backendName, err := haproxyTestManager.AddBackend(transactionId, "dummy_backend", 8080, 2)
+		backendName, err := haproxyTestManager.AddBackend(transactionId, TCPBackend, "dummy_backend", 8080, 2)
 		if err != nil {
 			t.Fatal(err)
 		}

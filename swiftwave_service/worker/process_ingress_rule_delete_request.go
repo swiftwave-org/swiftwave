@@ -6,7 +6,7 @@ import (
 	haproxymanager "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
-	udpproxy "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
+	udpproxymanager "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
 	"gorm.io/gorm"
 	"log"
 )
@@ -14,7 +14,7 @@ import (
 func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context.Context, _ context.CancelFunc) error {
 	dbWithoutTx := m.ServiceManager.DbClient
 	// fetch ingress rule
-	var ingressRule core.IngressRule
+	var ingressRule = &core.IngressRule{}
 	err := ingressRule.FindById(ctx, dbWithoutTx, request.Id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -62,22 +62,34 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 		return errors.New("no proxy servers are active")
 	}
 	// fetch all haproxy managers
-	haproxyManagers, err := manager.HAProxyClients(context.Background(), proxyServers)
-	if err != nil {
-		return err
+	var haproxyManagers []*haproxymanager.Manager
+	if isHAProxyAccessRequired(ingressRule) {
+		haproxyManagers, err = manager.HAProxyClients(context.Background(), proxyServers)
+		if err != nil {
+			return err
+		}
 	}
 	// fetch all udp proxy managers
-	udpProxyManagers, err := manager.UDPProxyClients(context.Background(), proxyServers)
-	if err != nil {
-		return err
+	var udpProxyManagers []*udpproxymanager.Manager
+	if isUDProxyAccessRequired(ingressRule) {
+		udpProxyManagers, err = manager.UDPProxyClients(context.Background(), proxyServers)
+		if err != nil {
+			return err
+		}
 	}
 	// map of server ip and transaction id
 	transactionIdMap := make(map[*haproxymanager.Manager]string)
 	isFailed := false
 
 	for _, haproxyManager := range haproxyManagers {
+		// check if ingress rules is not udp based
+		if ingressRule.Protocol == core.UDPProtocol {
+			continue
+		}
+		// backend protocol
+		backendProtocol := ingressRuleProtocolToBackendProtocol(ingressRule.Protocol)
 		// generate backend name
-		backendName := haproxyManager.GenerateBackendName(application.Name, int(ingressRule.TargetPort))
+		backendName := haproxyManager.GenerateBackendName(backendProtocol, application.Name, int(ingressRule.TargetPort))
 		// delete ingress rule from haproxy
 		// create new haproxy transaction
 		haproxyTransactionId, err := haproxyManager.FetchNewTransactionId()
@@ -122,8 +134,6 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 				isFailed = true
 				break
 			}
-		} else if ingressRule.Protocol == core.UDPProtocol {
-			// leave it for udp proxy
 		} else {
 			// unknown protocol
 			return nil
@@ -152,7 +162,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 	// delete ingress rule from udp proxy
 	for _, udpProxyManager := range udpProxyManagers {
 		if ingressRule.Protocol == core.UDPProtocol {
-			err = udpProxyManager.Remove(udpproxy.Proxy{
+			err = udpProxyManager.Remove(udpproxymanager.Proxy{
 				Port:       int(ingressRule.Port),
 				TargetPort: int(ingressRule.TargetPort),
 				Service:    application.Name,

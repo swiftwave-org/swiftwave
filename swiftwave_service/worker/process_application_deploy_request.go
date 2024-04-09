@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	haproxymanager "github.com/swiftwave-org/swiftwave/haproxy_manager"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"log"
 	"strings"
@@ -216,7 +217,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 		}
 	}
 	// update replicas count in proxy (don't throw error if it fails, only log the error)
-	targetPorts, err := core.FetchIngressTargetPorts(ctx, dbWithoutTx, application.ID)
+	ingressRulesWithTargetPortAndProtocolOnly, err := core.FetchIngressRulesWithTargetPortAndProtocolOnly(ctx, dbWithoutTx, application.ID)
 	if err == nil {
 		// map of server ip and transaction id
 		transactionIdMap := make(map[*haproxymanager.Manager]string)
@@ -232,8 +233,12 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 				break
 			} else {
 				transactionIdMap[haproxyManager] = haproxyTransactionId
-				for _, targetPort := range targetPorts {
-					backendName := haproxyManager.GenerateBackendName(application.Name, targetPort)
+				for _, record := range ingressRulesWithTargetPortAndProtocolOnly {
+					if record.Protocol == core.UDPProtocol {
+						continue
+					}
+					backendProtocol := ingressRuleProtocolToBackendProtocol(record.Protocol)
+					backendName := haproxyManager.GenerateBackendName(backendProtocol, application.Name, int(record.TargetPort))
 					isBackendExist, err := haproxyManager.IsBackendExist(haproxyTransactionId, backendName)
 					if err != nil {
 						isFailed = true
@@ -243,7 +248,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 					}
 					if isBackendExist {
 						// fetch current replicas
-						currentReplicaCount, err := haproxyManager.GetReplicaCount(haproxyTransactionId, application.Name, targetPort)
+						currentReplicaCount, err := haproxyManager.GetReplicaCount(haproxyTransactionId, backendProtocol, application.Name, int(record.TargetPort))
 						if err != nil {
 							isFailed = true
 							log.Println("failed to fetch current replica count", err)
@@ -252,7 +257,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 						}
 						// check if replica count changed
 						if currentReplicaCount != int(application.ReplicaCount()) {
-							err = haproxyManager.UpdateBackendReplicas(haproxyTransactionId, application.Name, targetPort, int(application.ReplicaCount()))
+							err = haproxyManager.UpdateBackendReplicas(haproxyTransactionId, backendProtocol, application.Name, int(record.TargetPort), int(application.ReplicaCount()))
 							if err != nil {
 								isFailed = true
 								log.Println("failed to update replica count", err)
@@ -284,4 +289,29 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update replica count\n", false)
 	}
 	return nil
+}
+
+// private functions
+func ingressRuleProtocolToBackendProtocol(protocol core.ProtocolType) haproxymanager.BackendProtocol {
+	if protocol == core.HTTPProtocol || protocol == core.HTTPSProtocol {
+		return haproxymanager.HTTPBackend
+	}
+	if protocol == core.TCPProtocol {
+		return haproxymanager.TCPBackend
+	}
+	if protocol == core.UDPProtocol {
+		logger.CronJobLoggerError.Println("ingressRuleProtocolToBackendProtocol should not be called for UDP protocol. Report this issue to the team")
+	}
+	return haproxymanager.HTTPBackend
+}
+
+func isHAProxyAccessRequired(ingressRule *core.IngressRule) bool {
+	if ingressRule.Protocol == core.HTTPProtocol || ingressRule.Protocol == core.HTTPSProtocol || ingressRule.Protocol == core.TCPProtocol {
+		return true
+	}
+	return false
+}
+
+func isUDProxyAccessRequired(ingressRule *core.IngressRule) bool {
+	return ingressRule.Protocol == core.UDPProtocol
 }

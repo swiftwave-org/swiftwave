@@ -117,7 +117,7 @@ func TestFrontend(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		backendName, err := haproxyTestManager.AddBackend(transactionId, "service", 8080, 1)
+		backendName, err := haproxyTestManager.AddBackend(transactionId, TCPBackend, "service", 8080, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -142,7 +142,7 @@ func TestFrontend(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		backendName, err := haproxyTestManager.AddBackend(transactionId, "service", 8080, 1)
+		backendName, err := haproxyTestManager.AddBackend(transactionId, HTTPBackend, "service", 8080, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -171,11 +171,11 @@ func TestFrontend(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		backend1Name, err := haproxyTestManager.AddBackend(transactionId, "service", 8080, 1)
+		backend1Name, err := haproxyTestManager.AddBackend(transactionId, HTTPBackend, "service", 8080, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
-		backend2Name, err := haproxyTestManager.AddBackend(transactionId, "service", 8081, 1)
+		backend2Name, err := haproxyTestManager.AddBackend(transactionId, HTTPBackend, "service", 8081, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -225,7 +225,7 @@ func TestFrontend(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Check(t, isExists == false, "switching rule should not exist [api]")
-		backendName, err := haproxyTestManager.AddBackend(transactionId, "service", 8080, 1)
+		backendName, err := haproxyTestManager.AddBackend(transactionId, HTTPBackend, "service", 8080, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
