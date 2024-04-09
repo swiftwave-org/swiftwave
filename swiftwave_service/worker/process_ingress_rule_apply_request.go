@@ -73,6 +73,12 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 	var isFailed bool
 
 	for _, haproxyManager := range haproxyManagers {
+		// check if ingress rules is not udp based
+		if ingressRule.Protocol == core.UDPProtocol {
+			continue
+		}
+		// backend protocol
+		backendProtocol := ingressRuleProtocolToBackendProtocol(ingressRule.Protocol)
 		// create new haproxy transaction
 		haproxyTransactionId, err := haproxyManager.FetchNewTransactionId()
 		if err != nil {
@@ -82,9 +88,9 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 		// add to map
 		transactionIdMap[haproxyManager] = haproxyTransactionId
 		// generate backend name
-		backendName := haproxyManager.GenerateBackendName(application.Name, int(ingressRule.TargetPort))
+		backendName := haproxyManager.GenerateBackendName(backendProtocol, application.Name, int(ingressRule.TargetPort))
 		// add backend
-		_, err = haproxyManager.AddBackend(haproxyTransactionId, application.Name, int(ingressRule.TargetPort), int(application.Replicas))
+		_, err = haproxyManager.AddBackend(haproxyTransactionId, backendProtocol, application.Name, int(ingressRule.TargetPort), int(application.Replicas))
 		if err != nil {
 			isFailed = true
 			break
@@ -118,8 +124,6 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 				isFailed = true
 				break
 			}
-		} else if ingressRule.Protocol == core.UDPProtocol {
-			// will be handled by udp proxy
 		} else {
 			isFailed = true
 			break

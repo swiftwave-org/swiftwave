@@ -76,8 +76,14 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 	isFailed := false
 
 	for _, haproxyManager := range haproxyManagers {
+		// check if ingress rules is not udp based
+		if ingressRule.Protocol == core.UDPProtocol {
+			continue
+		}
+		// backend protocol
+		backendProtocol := ingressRuleProtocolToBackendProtocol(ingressRule.Protocol)
 		// generate backend name
-		backendName := haproxyManager.GenerateBackendName(application.Name, int(ingressRule.TargetPort))
+		backendName := haproxyManager.GenerateBackendName(backendProtocol, application.Name, int(ingressRule.TargetPort))
 		// delete ingress rule from haproxy
 		// create new haproxy transaction
 		haproxyTransactionId, err := haproxyManager.FetchNewTransactionId()

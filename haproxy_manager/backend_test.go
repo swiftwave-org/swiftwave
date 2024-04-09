@@ -11,13 +11,13 @@ func TestHTTPBackend(t *testing.T) {
 	serviceName := "test-service"
 	servicePort := 8080
 	serviceReplicas := 3
-	listenerMode := HTTPMode
+	backendProtocol := HTTPBackend
 
 	t.Run("is backend exists", func(t *testing.T) {
 		transactionId := newTransaction()
 		defer deleteTransaction(transactionId)
 		// backend name
-		backendName := haproxyTestManager.GenerateBackendName(listenerMode, serviceName, servicePort)
+		backendName := haproxyTestManager.GenerateBackendName(backendProtocol, serviceName, servicePort)
 		// check if backend exists
 		isExists, err := haproxyTestManager.IsBackendExist(transactionId, backendName)
 		if err != nil {
@@ -25,7 +25,7 @@ func TestHTTPBackend(t *testing.T) {
 		}
 		assert.Check(t, isExists == false, "backend should not exist [api]")
 		// add backend
-		_, err = haproxyTestManager.AddBackend(transactionId, listenerMode, serviceName, servicePort, serviceReplicas)
+		_, err = haproxyTestManager.AddBackend(transactionId, backendProtocol, serviceName, servicePort, serviceReplicas)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -42,11 +42,11 @@ func TestHTTPBackend(t *testing.T) {
 	t.Run("add backend", func(t *testing.T) {
 		transactionId := newTransaction()
 		defer deleteTransaction(transactionId)
-		backendName, err := haproxyTestManager.AddBackend(transactionId, listenerMode, serviceName, servicePort, 1)
+		backendName, err := haproxyTestManager.AddBackend(transactionId, backendProtocol, serviceName, servicePort, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Check(t, strings.Compare(backendName, haproxyTestManager.GenerateBackendName(listenerMode, serviceName, servicePort)) == 0, "created backend name should match with generated backend name")
+		assert.Check(t, strings.Compare(backendName, haproxyTestManager.GenerateBackendName(backendProtocol, serviceName, servicePort)) == 0, "created backend name should match with generated backend name")
 		assert.Check(t, strings.Contains(fetchConfig(transactionId), backendName), "backend name should be in config")
 	})
 
@@ -55,7 +55,7 @@ func TestHTTPBackend(t *testing.T) {
 	t.Run("delete backend", func(t *testing.T) {
 		transactionId := newTransaction()
 		defer deleteTransaction(transactionId)
-		backendName, err := haproxyTestManager.AddBackend(transactionId, listenerMode, serviceName, servicePort, 1)
+		backendName, err := haproxyTestManager.AddBackend(transactionId, backendProtocol, serviceName, servicePort, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -87,11 +87,11 @@ func TestHTTPBackend(t *testing.T) {
 	t.Run("fetch replica count", func(t *testing.T) {
 		transactionId := newTransaction()
 		defer deleteTransaction(transactionId)
-		_, err := haproxyTestManager.AddBackend(transactionId, listenerMode, serviceName, servicePort, serviceReplicas)
+		_, err := haproxyTestManager.AddBackend(transactionId, backendProtocol, serviceName, servicePort, serviceReplicas)
 		if err != nil {
 			t.Fatal(err)
 		}
-		replicas, err := haproxyTestManager.GetReplicaCount(transactionId, listenerMode, serviceName, servicePort)
+		replicas, err := haproxyTestManager.GetReplicaCount(transactionId, backendProtocol, serviceName, servicePort)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -101,20 +101,20 @@ func TestHTTPBackend(t *testing.T) {
 	t.Run("update replica count", func(t *testing.T) {
 		transactionId := newTransaction()
 		defer deleteTransaction(transactionId)
-		_, err := haproxyTestManager.AddBackend(transactionId, listenerMode, serviceName, servicePort, 1)
+		_, err := haproxyTestManager.AddBackend(transactionId, backendProtocol, serviceName, servicePort, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
-		replicas, err := haproxyTestManager.GetReplicaCount(transactionId, listenerMode, serviceName, servicePort)
+		replicas, err := haproxyTestManager.GetReplicaCount(transactionId, backendProtocol, serviceName, servicePort)
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.Check(t, replicas == 1, "replicas count should be 1 initially")
-		err = haproxyTestManager.UpdateBackendReplicas(transactionId, listenerMode, serviceName, servicePort, 4)
+		err = haproxyTestManager.UpdateBackendReplicas(transactionId, backendProtocol, serviceName, servicePort, 4)
 		if err != nil {
 			t.Fatal(err)
 		}
-		replicas, err = haproxyTestManager.GetReplicaCount(transactionId, listenerMode, serviceName, servicePort)
+		replicas, err = haproxyTestManager.GetReplicaCount(transactionId, backendProtocol, serviceName, servicePort)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -126,13 +126,13 @@ func TestTCPBackend(t *testing.T) {
 	serviceName := "test-service"
 	servicePort := 8080
 	serviceReplicas := 3
-	listenerMode := TCPMode
+	backendProtocol := TCPBackend
 
 	t.Run("is backend exists", func(t *testing.T) {
 		transactionId := newTransaction()
 		defer deleteTransaction(transactionId)
 		// backend name
-		backendName := haproxyTestManager.GenerateBackendName(listenerMode, serviceName, servicePort)
+		backendName := haproxyTestManager.GenerateBackendName(backendProtocol, serviceName, servicePort)
 		// check if backend exists
 		isExists, err := haproxyTestManager.IsBackendExist(transactionId, backendName)
 		if err != nil {
@@ -140,7 +140,7 @@ func TestTCPBackend(t *testing.T) {
 		}
 		assert.Check(t, isExists == false, "backend should not exist [api]")
 		// add backend
-		_, err = haproxyTestManager.AddBackend(transactionId, listenerMode, serviceName, servicePort, serviceReplicas)
+		_, err = haproxyTestManager.AddBackend(transactionId, backendProtocol, serviceName, servicePort, serviceReplicas)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -158,11 +158,11 @@ func TestTCPBackend(t *testing.T) {
 	t.Run("add backend", func(t *testing.T) {
 		transactionId := newTransaction()
 		defer deleteTransaction(transactionId)
-		backendName, err := haproxyTestManager.AddBackend(transactionId, listenerMode, serviceName, servicePort, 1)
+		backendName, err := haproxyTestManager.AddBackend(transactionId, backendProtocol, serviceName, servicePort, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Check(t, strings.Compare(backendName, haproxyTestManager.GenerateBackendName(listenerMode, serviceName, servicePort)) == 0, "created backend name should match with generated backend name")
+		assert.Check(t, strings.Compare(backendName, haproxyTestManager.GenerateBackendName(backendProtocol, serviceName, servicePort)) == 0, "created backend name should match with generated backend name")
 		assert.Check(t, strings.Contains(fetchConfig(transactionId), backendName), "backend name should be in config")
 	})
 
@@ -171,7 +171,7 @@ func TestTCPBackend(t *testing.T) {
 	t.Run("delete backend", func(t *testing.T) {
 		transactionId := newTransaction()
 		defer deleteTransaction(transactionId)
-		backendName, err := haproxyTestManager.AddBackend(transactionId, listenerMode, serviceName, servicePort, 1)
+		backendName, err := haproxyTestManager.AddBackend(transactionId, backendProtocol, serviceName, servicePort, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -203,11 +203,11 @@ func TestTCPBackend(t *testing.T) {
 	t.Run("fetch replica count", func(t *testing.T) {
 		transactionId := newTransaction()
 		defer deleteTransaction(transactionId)
-		_, err := haproxyTestManager.AddBackend(transactionId, listenerMode, serviceName, servicePort, serviceReplicas)
+		_, err := haproxyTestManager.AddBackend(transactionId, backendProtocol, serviceName, servicePort, serviceReplicas)
 		if err != nil {
 			t.Fatal(err)
 		}
-		replicas, err := haproxyTestManager.GetReplicaCount(transactionId, listenerMode, serviceName, servicePort)
+		replicas, err := haproxyTestManager.GetReplicaCount(transactionId, backendProtocol, serviceName, servicePort)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -217,20 +217,20 @@ func TestTCPBackend(t *testing.T) {
 	t.Run("update replica count", func(t *testing.T) {
 		transactionId := newTransaction()
 		defer deleteTransaction(transactionId)
-		_, err := haproxyTestManager.AddBackend(transactionId, listenerMode, serviceName, servicePort, 1)
+		_, err := haproxyTestManager.AddBackend(transactionId, backendProtocol, serviceName, servicePort, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
-		replicas, err := haproxyTestManager.GetReplicaCount(transactionId, listenerMode, serviceName, servicePort)
+		replicas, err := haproxyTestManager.GetReplicaCount(transactionId, backendProtocol, serviceName, servicePort)
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.Check(t, replicas == 1, "replicas count should be 1 initially")
-		err = haproxyTestManager.UpdateBackendReplicas(transactionId, listenerMode, serviceName, servicePort, 4)
+		err = haproxyTestManager.UpdateBackendReplicas(transactionId, backendProtocol, serviceName, servicePort, 4)
 		if err != nil {
 			t.Fatal(err)
 		}
-		replicas, err = haproxyTestManager.GetReplicaCount(transactionId, listenerMode, serviceName, servicePort)
+		replicas, err = haproxyTestManager.GetReplicaCount(transactionId, backendProtocol, serviceName, servicePort)
 		if err != nil {
 			t.Fatal(err)
 		}

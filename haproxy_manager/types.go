@@ -23,3 +23,10 @@ const (
 	HTTPMode ListenerMode = "http"
 	TCPMode  ListenerMode = "tcp"
 )
+
+type BackendProtocol string
+
+const (
+	HTTPBackend BackendProtocol = "http"
+	TCPBackend  BackendProtocol = "tcp"
+)

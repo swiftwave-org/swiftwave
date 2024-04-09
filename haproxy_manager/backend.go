@@ -10,9 +10,9 @@ import (
 )
 
 // GenerateBackendName : Generate Backend name for HAProxy
-func (s Manager) GenerateBackendName(listenerMode ListenerMode, serviceName string, port int) string {
+func (s Manager) GenerateBackendName(backendProtocol BackendProtocol, serviceName string, port int) string {
 	backendName := "be_" + serviceName + "_" + strconv.Itoa(port)
-	if listenerMode == TCPMode {
+	if backendProtocol == TCPBackend {
 		backendName = backendName + "_tcp"
 	}
 	return backendName
@@ -45,8 +45,8 @@ func (s Manager) IsBackendExist(transactionId string, backendName string) (bool,
 
 // AddBackend : Add Backend to HAProxy configuration
 // -- Manage server template with backend
-func (s Manager) AddBackend(transactionId string, listenerMode ListenerMode, serviceName string, port int, replicas int) (string, error) {
-	backendName := s.GenerateBackendName(listenerMode, serviceName, port)
+func (s Manager) AddBackend(transactionId string, backendProtocol BackendProtocol, serviceName string, port int, replicas int) (string, error) {
+	backendName := s.GenerateBackendName(backendProtocol, serviceName, port)
 	// Check if backend exist
 	isBackendExist, err := s.IsBackendExist(transactionId, backendName)
 	if err != nil {
@@ -68,7 +68,7 @@ func (s Manager) AddBackend(transactionId string, listenerMode ListenerMode, ser
 			"algorithm": "roundrobin",
 		},
 	}
-	if listenerMode == TCPMode {
+	if backendProtocol == TCPBackend {
 		addBackendRequestBody["mode"] = "tcp"
 	}
 	addBackendRequestBodyBytes, err := json.Marshal(addBackendRequestBody)
@@ -125,8 +125,8 @@ func (s Manager) AddBackend(transactionId string, listenerMode ListenerMode, ser
 
 // GetReplicaCount : Fetch Backend Replicas
 // -- Manage server template with backend
-func (s Manager) GetReplicaCount(transactionId string, listenerMode ListenerMode, serviceName string, port int) (int, error) {
-	backendName := s.GenerateBackendName(listenerMode, serviceName, port)
+func (s Manager) GetReplicaCount(transactionId string, backendProtocol BackendProtocol, serviceName string, port int) (int, error) {
+	backendName := s.GenerateBackendName(backendProtocol, serviceName, port)
 	// Check if backend exist
 	isBackendExist, err := s.IsBackendExist(transactionId, backendName)
 	if err != nil {
@@ -178,8 +178,8 @@ func (s Manager) GetReplicaCount(transactionId string, listenerMode ListenerMode
 
 // UpdateBackendReplicas : Update Backend Replicas
 // -- Manage server template with backend
-func (s Manager) UpdateBackendReplicas(transactionId string, listenerMode ListenerMode, serviceName string, port int, replicas int) error {
-	backendName := s.GenerateBackendName(listenerMode, serviceName, port)
+func (s Manager) UpdateBackendReplicas(transactionId string, backendProtocol BackendProtocol, serviceName string, port int, replicas int) error {
+	backendName := s.GenerateBackendName(backendProtocol, serviceName, port)
 	// Check if backend exist
 	isBackendExist, err := s.IsBackendExist(transactionId, backendName)
 	if err != nil {
