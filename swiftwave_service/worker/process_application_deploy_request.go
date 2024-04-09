@@ -297,7 +297,7 @@ func ingressRuleProtocolToBackendProtocol(protocol core.ProtocolType) haproxyman
 		return haproxymanager.TCPBackend
 	}
 	if protocol == core.UDPProtocol {
-		logger.CronJobLoggerError.Println("UDP protocol is not supported for haproxy based ingress rules")
+		logger.CronJobLoggerError.Println("ingressRuleProtocolToBackendProtocol should not be called for UDP protocol. Report this issue to the team")
 	}
 	return haproxymanager.HTTPBackend
 }
