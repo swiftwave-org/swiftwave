@@ -134,8 +134,6 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 				isFailed = true
 				break
 			}
-		} else if ingressRule.Protocol == core.UDPProtocol {
-			// leave it for udp proxy
 		} else {
 			// unknown protocol
 			return nil
