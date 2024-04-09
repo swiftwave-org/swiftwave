@@ -234,6 +234,9 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 			} else {
 				transactionIdMap[haproxyManager] = haproxyTransactionId
 				for _, record := range ingressRulesWithTargetPortAndProtocolOnly {
+					if record.Protocol == core.UDPProtocol {
+						continue
+					}
 					backendProtocol := ingressRuleProtocolToBackendProtocol(record.Protocol)
 					backendName := haproxyManager.GenerateBackendName(backendProtocol, application.Name, int(record.TargetPort))
 					isBackendExist, err := haproxyManager.IsBackendExist(haproxyTransactionId, backendName)
@@ -300,4 +303,15 @@ func ingressRuleProtocolToBackendProtocol(protocol core.ProtocolType) haproxyman
 		logger.CronJobLoggerError.Println("ingressRuleProtocolToBackendProtocol should not be called for UDP protocol. Report this issue to the team")
 	}
 	return haproxymanager.HTTPBackend
+}
+
+func isHAProxyAccessRequired(ingressRule *core.IngressRule) bool {
+	if ingressRule.Protocol == core.HTTPProtocol || ingressRule.Protocol == core.HTTPSProtocol || ingressRule.Protocol == core.TCPProtocol {
+		return true
+	}
+	return false
+}
+
+func isUDProxyAccessRequired(ingressRule *core.IngressRule) bool {
+	return ingressRule.Protocol == core.UDPProtocol
 }

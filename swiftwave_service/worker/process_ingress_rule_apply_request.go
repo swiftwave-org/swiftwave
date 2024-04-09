@@ -59,14 +59,20 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 		return errors.New("no proxy servers are active")
 	}
 	// fetch all haproxy managers
-	haproxyManagers, err := manager.HAProxyClients(context.Background(), proxyServers)
-	if err != nil {
-		return err
+	var haproxyManagers []*haproxymanager.Manager
+	if isHAProxyAccessRequired(ingressRule) {
+		haproxyManagers, err = manager.HAProxyClients(context.Background(), proxyServers)
+		if err != nil {
+			return err
+		}
 	}
 	// fetch all udp proxy managers
-	udpProxyManagers, err := manager.UDPProxyClients(context.Background(), proxyServers)
-	if err != nil {
-		return err
+	var udpProxyManagers []*udpproxymanager.Manager
+	if isUDProxyAccessRequired(ingressRule) {
+		udpProxyManagers, err = manager.UDPProxyClients(context.Background(), proxyServers)
+		if err != nil {
+			return err
+		}
 	}
 	// map of server ip and transaction id
 	transactionIdMap := make(map[*haproxymanager.Manager]string)
