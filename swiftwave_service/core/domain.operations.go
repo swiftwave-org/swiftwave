@@ -23,7 +23,7 @@ func FindAllDomains(_ context.Context, db gorm.DB) ([]*Domain, error) {
 
 func FetchDomainsThoseWillExpire(_ context.Context, db gorm.DB, daysToExpire int) ([]*Domain, error) {
 	var domains []*Domain
-	tx := db.Where("ssl_expired_at < ?", time.Now().AddDate(0, 0, daysToExpire)).Find(&domains)
+	tx := db.Where("ssl_status = ?", DomainSSLStatusIssued).Where("ssl_auto_renew = ?", true).Where("ssl_expired_at < ?", time.Now().AddDate(0, 0, daysToExpire)).Find(&domains)
 	return domains, tx.Error
 }
 
