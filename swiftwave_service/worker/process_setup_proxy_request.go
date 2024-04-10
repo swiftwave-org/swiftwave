@@ -106,7 +106,7 @@ func (m Manager) setupAndEnableProxy(request SetupAndEnableProxyRequest, ctx con
 		}
 		// copy haproxy directory to the management server
 		logText += "Copying haproxy config from server " + chosenServer.HostName + " to local\n"
-		err = ssh_toolkit.CopyFolderFromRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, chosenServer.IP, 22, chosenServer.User, m.Config.SystemConfig.SshPrivateKey)
+		err = ssh_toolkit.CopyFolderFromRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, chosenServer.IP, chosenServer.SSHPort, chosenServer.User, m.Config.SystemConfig.SshPrivateKey)
 		if err != nil {
 			logText += "Failed to copy haproxy config from server " + chosenServer.HostName + " to " + server.HostName + "\n"
 			logText += "Error: " + err.Error() + "\n"
@@ -115,7 +115,7 @@ func (m Manager) setupAndEnableProxy(request SetupAndEnableProxyRequest, ctx con
 	}
 	// copy haproxy directory to the server
 	logText += "Copying haproxy config from local to server " + server.HostName + "\n"
-	err = ssh_toolkit.CopyFolderToRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
+	err = ssh_toolkit.CopyFolderToRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, server.IP, server.SSHPort, server.User, m.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		logText += "Failed to copy haproxy config from local to server " + server.HostName + "\n"
 		logText += "Error: " + err.Error() + "\n"

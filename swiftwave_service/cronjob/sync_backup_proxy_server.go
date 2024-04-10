@@ -25,7 +25,7 @@ func (m Manager) syncBackupProxyServer() {
 		return
 	}
 	// copy haproxy config to local server
-	err = ssh_toolkit.CopyFolderFromRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, activeProxyServer.IP, 22, activeProxyServer.User, m.Config.SystemConfig.SshPrivateKey)
+	err = ssh_toolkit.CopyFolderFromRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, activeProxyServer.IP, activeProxyServer.SSHPort, activeProxyServer.User, m.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		logger.CronJobLoggerError.Println("Failed to copy haproxy config from remote server", err.Error())
 		return
@@ -33,7 +33,7 @@ func (m Manager) syncBackupProxyServer() {
 		logger.CronJobLogger.Println("Copied haproxy config from remote server", activeProxyServer.HostName)
 	}
 	// copy udpproxy config to local server
-	err = ssh_toolkit.CopyFolderFromRemoteServer(m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, activeProxyServer.IP, 22, activeProxyServer.User, m.Config.SystemConfig.SshPrivateKey)
+	err = ssh_toolkit.CopyFolderFromRemoteServer(m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, activeProxyServer.IP, activeProxyServer.SSHPort, activeProxyServer.User, m.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		logger.CronJobLoggerError.Println("Failed to copy udpproxy config from remote server", err.Error())
 		return
@@ -48,7 +48,7 @@ func (m Manager) syncBackupProxyServer() {
 	}
 	// copy haproxy config to all backup proxy servers
 	for _, backupServer := range backupServers {
-		err = ssh_toolkit.CopyFolderToRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, backupServer.IP, 22, backupServer.User, m.Config.SystemConfig.SshPrivateKey)
+		err = ssh_toolkit.CopyFolderToRemoteServer(m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath, backupServer.IP, backupServer.SSHPort, backupServer.User, m.Config.SystemConfig.SshPrivateKey)
 		if err != nil {
 			logger.CronJobLoggerError.Println("Failed to copy haproxy config to remote server", backupServer.HostName, "\n", err.Error())
 		} else {
@@ -57,7 +57,7 @@ func (m Manager) syncBackupProxyServer() {
 	}
 	// copy udpproxy config to all backup proxy servers
 	for _, backupServer := range backupServers {
-		err = ssh_toolkit.CopyFolderToRemoteServer(m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, backupServer.IP, 22, backupServer.User, m.Config.SystemConfig.SshPrivateKey)
+		err = ssh_toolkit.CopyFolderToRemoteServer(m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, m.Config.LocalConfig.ServiceConfig.UDPProxyDataDirectoryPath, backupServer.IP, backupServer.SSHPort, backupServer.User, m.Config.SystemConfig.SshPrivateKey)
 		if err != nil {
 			logger.CronJobLoggerError.Println("Failed to copy udpproxy config to remote server", backupServer.HostName, "\n", err.Error())
 		} else {
@@ -68,7 +68,7 @@ func (m Manager) syncBackupProxyServer() {
 	// reload proxies on backup server
 	for _, server := range backupServers {
 		// open ssh connection to backup proxy server for docker
-		conn, err := ssh_toolkit.NetConnOverSSH("unix", server.DockerUnixSocketPath, 5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
+		conn, err := ssh_toolkit.NetConnOverSSH("unix", server.DockerUnixSocketPath, 5, server.IP, server.SSHPort, server.User, m.Config.SystemConfig.SshPrivateKey)
 		if err != nil {
 			logger.CronJobLoggerError.Println("Failed to open ssh connection to backup proxy server", server.HostName, "\n", err.Error())
 			continue

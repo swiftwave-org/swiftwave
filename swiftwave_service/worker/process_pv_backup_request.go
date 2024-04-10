@@ -44,7 +44,7 @@ func (m Manager) PersistentVolumeBackup(request PersistentVolumeBackupRequest, c
 	backupFileName := persistentVolume.Name + "_" + uuid.NewString() + ".tar.gz"
 	backupFilePath := filepath.Join(m.Config.LocalConfig.ServiceConfig.PVBackupDirectoryPath, backupFileName)
 	// create backup
-	err = dockerManager.BackupVolume(persistentVolume.Name, backupFilePath, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
+	err = dockerManager.BackupVolume(persistentVolume.Name, backupFilePath, server.IP, server.SSHPort, server.User, m.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		logger.CronJobLoggerError.Println("error while creating backup > " + err.Error())
 		markPVBackupRequestAsFailed(dbWithoutTx, persistentVolumeBackup)

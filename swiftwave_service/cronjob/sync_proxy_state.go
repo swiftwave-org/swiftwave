@@ -38,7 +38,7 @@ func (m Manager) syncProxy() {
 		return
 	}
 	// create conn over ssh
-	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManager.DockerUnixSocketPath, 5, swarmManager.IP, 22, "root", m.Config.SystemConfig.SshPrivateKey)
+	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManager.DockerUnixSocketPath, 5, swarmManager.IP, swarmManager.SSHPort, "root", m.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		logger.CronJobLoggerError.Println("Failed to create conn over ssh", err.Error())
 		return

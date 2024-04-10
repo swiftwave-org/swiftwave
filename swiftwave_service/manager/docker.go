@@ -15,7 +15,7 @@ func DockerClient(ctx context.Context, server core.Server) (*containermanger.Man
 		return nil, err
 	}
 	// Create Net.Conn over SSH
-	conn, err := ssh_toolkit.NetConnOverSSH("unix", server.DockerUnixSocketPath, 5, server.IP, 22, server.User, c.SystemConfig.SshPrivateKey)
+	conn, err := ssh_toolkit.NetConnOverSSH("unix", server.DockerUnixSocketPath, 5, server.IP, server.SSHPort, server.User, c.SystemConfig.SshPrivateKey)
 	if err != nil {
 		return nil, err
 	}

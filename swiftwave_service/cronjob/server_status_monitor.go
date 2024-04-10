@@ -60,7 +60,7 @@ func (m Manager) isServerOnline(server core.Server) bool {
 	for i := 0; i < 3; i++ {
 		cmd := "echo ok"
 		stdoutBuf := new(bytes.Buffer)
-		err := ssh_toolkit.ExecCommandOverSSH(cmd, stdoutBuf, nil, 3, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
+		err := ssh_toolkit.ExecCommandOverSSH(cmd, stdoutBuf, nil, 3, server.IP, server.SSHPort, server.User, m.Config.SystemConfig.SshPrivateKey)
 		if err != nil {
 			continue
 		}
