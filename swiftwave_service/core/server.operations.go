@@ -36,6 +36,11 @@ func ChangeServerIP(db *gorm.DB, server *Server, newIp string) error {
 	return db.Model(server).Update("ip", newIp).Error
 }
 
+// ChangeSSHPort changes the SSH port of a server in the database
+func ChangeSSHPort(db *gorm.DB, server *Server, newPort int) error {
+	return db.Model(server).Update("ssh_port", newPort).Error
+}
+
 // UpdateServer updates a server in the database
 func UpdateServer(db *gorm.DB, server *Server) error {
 	return db.Save(server).Error

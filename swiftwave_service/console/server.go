@@ -178,7 +178,7 @@ func (server *Server) handleSSHConsoleRequestToServer(c echo.Context, rows int, 
 	// create context with cancel
 	ctx, ctxCancel := context.WithCancel(context.Background())
 	// create ssh
-	session, stdin, stdout, stderr, err := ssh_toolkit.DirectSSH(ctx, cols, rows, remoteServer.IP, 22, remoteServer.User, server.Config.SystemConfig.SshPrivateKey)
+	session, stdin, stdout, stderr, err := ssh_toolkit.DirectSSH(ctx, cols, rows, remoteServer.IP, remoteServer.SSHPort, remoteServer.User, server.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		ctxCancel()
 		return c.String(http.StatusInternalServerError, "Failed to connect to server")
@@ -310,7 +310,7 @@ func (server *Server) handleSSHConsoleRequestToApplication(c echo.Context, rows 
 	}
 	// create ssh
 	dockerHost := fmt.Sprintf("unix://%s", remoteServer.DockerUnixSocketPath)
-	session, stdin, stdout, stderr, err := ssh_toolkit.DirectSSHToContainer(ctx, cols, rows, containerId, dockerHost, remoteServer.IP, 22, remoteServer.User, server.Config.SystemConfig.SshPrivateKey)
+	session, stdin, stdout, stderr, err := ssh_toolkit.DirectSSHToContainer(ctx, cols, rows, containerId, dockerHost, remoteServer.IP, remoteServer.SSHPort, remoteServer.User, server.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		ctxCancel()
 		return c.String(http.StatusInternalServerError, "Failed to connect to server")

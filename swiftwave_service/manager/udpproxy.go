@@ -17,7 +17,7 @@ func UDPProxyClient(_ context.Context, server core.Server) (*udp_proxy_manager.M
 	}
 	// Create Net.Conn over SSH
 	manager := udp_proxy_manager.New(func() (net.Conn, error) {
-		return ssh_toolkit.NetConnOverSSH("unix", c.LocalConfig.ServiceConfig.UDPProxyUnixSocketPath, 20, server.IP, 22, server.User, c.SystemConfig.SshPrivateKey)
+		return ssh_toolkit.NetConnOverSSH("unix", c.LocalConfig.ServiceConfig.UDPProxyUnixSocketPath, 20, server.IP, server.SSHPort, server.User, c.SystemConfig.SshPrivateKey)
 	})
 	return &manager, nil
 }

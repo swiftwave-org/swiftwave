@@ -132,7 +132,7 @@ func (r *queryResolver) PersistentVolumeSizeMb(ctx context.Context, id uint) (fl
 		return 0, errors.New("failed to fetch docker manager")
 	}
 	// fetch size
-	size, err := dockerManager.SizeVolume(record.Name, swarmManagerServer.IP, 22, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey)
+	size, err := dockerManager.SizeVolume(record.Name, swarmManagerServer.IP, swarmManagerServer.SSHPort, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		return 0, err
 	}

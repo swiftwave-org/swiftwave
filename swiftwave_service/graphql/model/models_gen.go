@@ -249,8 +249,9 @@ type NFSConfigInput struct {
 }
 
 type NewServerInput struct {
-	IP   string `json:"ip"`
-	User string `json:"user"`
+	IP      string `json:"ip"`
+	SSHPort int    `json:"ssh_port"`
+	User    string `json:"user"`
 }
 
 type PasswordUpdateInput struct {
@@ -352,6 +353,7 @@ type Server struct {
 	IP                   string       `json:"ip"`
 	Hostname             string       `json:"hostname"`
 	User                 string       `json:"user"`
+	SSHPort              int          `json:"ssh_port"`
 	SwarmMode            SwarmMode    `json:"swarmMode"`
 	ScheduleDeployments  bool         `json:"scheduleDeployments"`
 	DockerUnixSocketPath string       `json:"dockerUnixSocketPath"`

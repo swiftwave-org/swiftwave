@@ -38,7 +38,7 @@ func (m Manager) PersistentVolumeRestore(request PersistentVolumeRestoreRequest,
 	}
 	// restore backup
 	localRestoreFilePath := filepath.Join(m.Config.LocalConfig.ServiceConfig.PVRestoreDirectoryPath, persistentVolumeRestore.File)
-	err = dockerManager.RestoreVolume(persistentVolume.Name, localRestoreFilePath, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
+	err = dockerManager.RestoreVolume(persistentVolume.Name, localRestoreFilePath, server.IP, server.SSHPort, server.User, m.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		markPVRestoreRequestAsFailed(dbWithoutTx, persistentVolumeRestore)
 		_ = os.RemoveAll(localRestoreFilePath)

@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	swiftwaveServiceManagerDocker "github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
+	"fmt"
 	"net"
 	"os"
 	"os/exec"
@@ -21,6 +21,7 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
+	swiftwaveServiceManagerDocker "github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"gorm.io/gorm"
 )
 
@@ -125,7 +126,7 @@ func (r *mutationResolver) TestSSHAccessToServer(ctx context.Context, id uint) (
 	if err != nil {
 		return false, err
 	}
-	err = ssh_toolkit.ExecCommandOverSSH(command, nil, nil, 10, server.IP, 22, server.User, r.Config.SystemConfig.SshPrivateKey)
+	err = ssh_toolkit.ExecCommandOverSSH(command, nil, nil, 10, server.IP, server.SSHPort, server.User, r.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		return false, err
 	}
@@ -144,7 +145,7 @@ func (r *mutationResolver) CheckDependenciesOnServer(ctx context.Context, id uin
 			continue
 		}
 		stdoutBuffer := new(bytes.Buffer)
-		err = ssh_toolkit.ExecCommandOverSSH(core.DependencyCheckCommands[dependency], stdoutBuffer, nil, 5, server.IP, 22, server.User, r.Config.SystemConfig.SshPrivateKey)
+		err = ssh_toolkit.ExecCommandOverSSH(core.DependencyCheckCommands[dependency], stdoutBuffer, nil, 5, server.IP, server.SSHPort, server.User, r.Config.SystemConfig.SshPrivateKey)
 		if err != nil {
 			if strings.Contains(err.Error(), "exited with status 1") {
 				result = append(result, &model.Dependency{Name: dependency, Available: false})
@@ -250,7 +251,7 @@ func (r *mutationResolver) SetupServer(ctx context.Context, input model.ServerSe
 
 	// Fetch hostname
 	hostnameStdoutBuffer := new(bytes.Buffer)
-	err = ssh_toolkit.ExecCommandOverSSH("cat /etc/hostname", hostnameStdoutBuffer, nil, 10, server.IP, 22, server.User, r.Config.SystemConfig.SshPrivateKey)
+	err = ssh_toolkit.ExecCommandOverSSH("cat /etc/hostname", hostnameStdoutBuffer, nil, 10, server.IP, server.SSHPort, server.User, r.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		return false, err
 	}
@@ -299,7 +300,7 @@ func (r *mutationResolver) PromoteServerToManager(ctx context.Context, id uint) 
 	}
 	// If there is any swarm manager, then promote this server to manager
 	// Fetch net.Conn to the swarm manager
-	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, 22, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey)
+	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, swarmManagerServer.SSHPort, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		return false, err
 	}
@@ -339,7 +340,7 @@ func (r *mutationResolver) DemoteServerToWorker(ctx context.Context, id uint) (b
 	}
 	// If there is any swarm manager, then promote this server to manager
 	// Fetch net.Conn to the swarm manager
-	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, 22, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey)
+	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, swarmManagerServer.SSHPort, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		return false, err
 	}
@@ -379,7 +380,7 @@ func (r *mutationResolver) RestrictDeploymentOnServer(ctx context.Context, id ui
 	}
 	// If there is any swarm manager, then promote this server to manager
 	// Fetch net.Conn to the swarm manager
-	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, 22, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey)
+	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, swarmManagerServer.SSHPort, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		return false, err
 	}
@@ -418,7 +419,7 @@ func (r *mutationResolver) AllowDeploymentOnServer(ctx context.Context, id uint)
 	}
 	// If there is any swarm manager, then promote this server to manager
 	// Fetch net.Conn to the swarm manager
-	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, 22, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey)
+	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, swarmManagerServer.SSHPort, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		return false, err
 	}
@@ -455,7 +456,7 @@ func (r *mutationResolver) RemoveServerFromSwarmCluster(ctx context.Context, id 
 	}
 	// If there is any swarm manager, then promote this server to manager
 	// Fetch net.Conn to the swarm manager
-	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, 22, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey)
+	conn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, swarmManagerServer.SSHPort, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		return false, err
 	}
@@ -477,7 +478,7 @@ func (r *mutationResolver) RemoveServerFromSwarmCluster(ctx context.Context, id 
 	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
 	if err == nil {
 		// try to connect to the server and leave from the swarm
-		serverConn, err2 := ssh_toolkit.NetConnOverSSH("unix", server.DockerUnixSocketPath, 5, server.IP, 22, server.User, r.Config.SystemConfig.SshPrivateKey)
+		serverConn, err2 := ssh_toolkit.NetConnOverSSH("unix", server.DockerUnixSocketPath, 5, server.IP, swarmManagerServer.SSHPort, server.User, r.Config.SystemConfig.SshPrivateKey)
 		if err2 == nil {
 			defer func(serverConn net.Conn) {
 				_ = serverConn.Close()
@@ -588,6 +589,33 @@ func (r *mutationResolver) ChangeServerIPAddress(ctx context.Context, id uint, i
 	}
 	// Exit process
 	logger.GraphQLLoggerError.Println("Server " + server.HostName + " IP changed to " + ip + "\nRestarting swiftwave in 2 seconds to take effect")
+	// Restart swiftwave service
+	go func() {
+		<-time.After(2 * time.Second)
+		color.Green("Restarting swiftwave service")
+		color.Yellow("Swiftwave service will be restarted in 2 seconds")
+		color.Yellow("If you are running without enabling service, run `swiftwave start` to start the service")
+		_ = exec.Command("systemctl", "restart", "swiftwave.service").Run()
+		os.Exit(0)
+	}()
+	return true, nil
+}
+
+// ChangeSSHPort is the resolver for the changeSSHPort field.
+func (r *mutationResolver) ChangeSSHPort(ctx context.Context, id uint, port int) (bool, error) {
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	if server.SSHPort == port {
+		return false, errors.New("SSH port is already " + fmt.Sprintf("%d", port))
+	}
+	err = core.ChangeSSHPort(&r.ServiceManager.DbClient, server, port)
+	if err != nil {
+		return false, err
+	}
+	// Exit process
+	logger.GraphQLLoggerError.Println("Server " + server.HostName + " SSH port changed to " + fmt.Sprintf("%d", port) + "\nRestarting swiftwave in 2 seconds to take effect")
 	// Restart swiftwave service
 	go func() {
 		<-time.After(2 * time.Second)

@@ -95,7 +95,7 @@ func (m Manager) setupServerHelper(request SetupServerRequest, ctx context.Conte
 	for _, dir := range directories {
 		stdoutBuf := bytes.Buffer{}
 		stderrBuf := bytes.Buffer{}
-		err := ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("mkdir -p %s && chmod -R 0711 %s", dir, dir), &stdoutBuf, &stderrBuf, 5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
+		err := ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("mkdir -p %s && chmod -R 0711 %s", dir, dir), &stdoutBuf, &stderrBuf, 5, server.IP, server.SSHPort, server.User, m.Config.SystemConfig.SshPrivateKey)
 		if err != nil {
 			logText += "Failed to create folder " + dir + "\n"
 			logText += stdoutBuf.String() + "\n" + stderrBuf.String() + "\n"
@@ -106,7 +106,7 @@ func (m Manager) setupServerHelper(request SetupServerRequest, ctx context.Conte
 	}
 
 	// check docker socket
-	conn, err := ssh_toolkit.NetConnOverSSH("unix", server.DockerUnixSocketPath, 5, server.IP, 22, server.User, m.Config.SystemConfig.SshPrivateKey)
+	conn, err := ssh_toolkit.NetConnOverSSH("unix", server.DockerUnixSocketPath, 5, server.IP, server.SSHPort, server.User, m.Config.SystemConfig.SshPrivateKey)
 	if err != nil {
 		logText += "Failed to connect to docker socket\n"
 		logText += fmt.Sprintf("%s should have acess to %s\n", server.User, server.DockerUnixSocketPath)
@@ -189,7 +189,7 @@ func (m Manager) setupServerHelper(request SetupServerRequest, ctx context.Conte
 		}
 	} else {
 		// Get docker client of swarm manager
-		swarmManagerConn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, 22, swarmManagerServer.User, m.Config.SystemConfig.SshPrivateKey)
+		swarmManagerConn, err := ssh_toolkit.NetConnOverSSH("unix", swarmManagerServer.DockerUnixSocketPath, 5, swarmManagerServer.IP, swarmManagerServer.SSHPort, swarmManagerServer.User, m.Config.SystemConfig.SshPrivateKey)
 		if err != nil {
 			logText += "Failed to connect to swarm manager\n"
 			logText += err.Error() + "\n"
