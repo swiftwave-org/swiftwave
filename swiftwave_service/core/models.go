@@ -51,7 +51,7 @@ type GitCredential struct {
 	Name        string       `json:"name"`
 	Username    string       `json:"username"`
 	Password    string       `json:"password"`
-	Deployments []Deployment `json:"deployments" gorm:"foreignKey:GitCredentialID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" `
+	Deployments []Deployment `json:"deployments" gorm:"foreignKey:GitCredentialID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" `
 }
 
 // ImageRegistryCredential : credential for docker image registry
@@ -60,7 +60,7 @@ type ImageRegistryCredential struct {
 	Url         string       `json:"url"`
 	Username    string       `json:"username"`
 	Password    string       `json:"password"`
-	Deployments []Deployment `json:"deployments" gorm:"foreignKey:ImageRegistryCredentialID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Deployments []Deployment `json:"deployments" gorm:"foreignKey:ImageRegistryCredentialID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // Domain : hold information about domain
@@ -109,8 +109,8 @@ type PersistentVolume struct {
 	Type                     PersistentVolumeType      `json:"type" gorm:"default:'local'"`
 	NFSConfig                NFSConfig                 `json:"nfs_config" gorm:"embedded;embeddedPrefix:nfs_config_"`
 	PersistentVolumeBindings []PersistentVolumeBinding `json:"persistent_volume_bindings" gorm:"foreignKey:PersistentVolumeID"`
-	PersistentVolumeBackups  []PersistentVolumeBackup  `json:"persistent_volume_backups" gorm:"foreignKey:PersistentVolumeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	PersistentVolumeRestores []PersistentVolumeRestore `json:"persistent_volume_restores" gorm:"foreignKey:PersistentVolumeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	PersistentVolumeBackups  []PersistentVolumeBackup  `json:"persistent_volume_backups" gorm:"foreignKey:PersistentVolumeID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	PersistentVolumeRestores []PersistentVolumeRestore `json:"persistent_volume_restores" gorm:"foreignKey:PersistentVolumeID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // PersistentVolumeBinding : hold information about persistent volume binding
