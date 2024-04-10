@@ -601,8 +601,8 @@ func (r *mutationResolver) ChangeServerIPAddress(ctx context.Context, id uint, i
 	return true, nil
 }
 
-// ChangeSSHPort is the resolver for the changeSSHPort field.
-func (r *mutationResolver) ChangeSSHPort(ctx context.Context, id uint, port int) (bool, error) {
+// ChangeServerSSHPort is the resolver for the changeServerSSHPort field.
+func (r *mutationResolver) ChangeServerSSHPort(ctx context.Context, id uint, port int) (bool, error) {
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
 		return false, err
