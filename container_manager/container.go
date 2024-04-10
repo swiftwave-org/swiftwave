@@ -80,3 +80,9 @@ func (m Manager) IsContainerRunning(containerName string) (bool, error) {
 	}
 	return containers[0].State == "running", nil
 }
+
+// PruneContainers prunes all containers
+func (m Manager) PruneContainers() error {
+	_, err := m.client.ContainersPrune(m.ctx, filters.NewArgs())
+	return err
+}

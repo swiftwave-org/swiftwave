@@ -37,11 +37,17 @@ func (m Manager) PersistentVolumeDeletion(request PersistentVolumeDeletionReques
 		if err != nil {
 			return err
 		}
-		err = dockerManager.RemoveVolume(volume.Name)
+		// prune containers
+		err = dockerManager.PruneContainers()
 		if err != nil {
-			logger.WorkerLoggerError.Println("Error deleting volume", volume.Name, " from server", server.ID, err.Error())
+			logger.WorkerLoggerError.Println("Error pruning containers", err.Error())
 		} else {
-			isDeleted = true
+			err = dockerManager.RemoveVolume(volume.Name)
+			if err != nil {
+				logger.WorkerLoggerError.Println("Error deleting volume", volume.Name, " from server", server.ID, err.Error())
+			} else {
+				isDeleted = true
+			}
 		}
 	}
 	if !isDeleted {
