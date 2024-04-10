@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	swiftwaveServiceManagerDocker "github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
+	"fmt"
 	"net"
 	"os"
 	"os/exec"
@@ -21,6 +21,7 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
+	swiftwaveServiceManagerDocker "github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"gorm.io/gorm"
 )
 
@@ -588,6 +589,33 @@ func (r *mutationResolver) ChangeServerIPAddress(ctx context.Context, id uint, i
 	}
 	// Exit process
 	logger.GraphQLLoggerError.Println("Server " + server.HostName + " IP changed to " + ip + "\nRestarting swiftwave in 2 seconds to take effect")
+	// Restart swiftwave service
+	go func() {
+		<-time.After(2 * time.Second)
+		color.Green("Restarting swiftwave service")
+		color.Yellow("Swiftwave service will be restarted in 2 seconds")
+		color.Yellow("If you are running without enabling service, run `swiftwave start` to start the service")
+		_ = exec.Command("systemctl", "restart", "swiftwave.service").Run()
+		os.Exit(0)
+	}()
+	return true, nil
+}
+
+// ChangeSSHPort is the resolver for the changeSSHPort field.
+func (r *mutationResolver) ChangeSSHPort(ctx context.Context, id uint, port int) (bool, error) {
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	if server.SSHPort == port {
+		return false, errors.New("SSH port is already " + fmt.Sprintf("%d", port))
+	}
+	err = core.ChangeSSHPort(&r.ServiceManager.DbClient, server, port)
+	if err != nil {
+		return false, err
+	}
+	// Exit process
+	logger.GraphQLLoggerError.Println("Server " + server.HostName + " SSH port changed to " + fmt.Sprintf("%d", port) + "\nRestarting swiftwave in 2 seconds to take effect")
 	// Restart swiftwave service
 	go func() {
 		<-time.After(2 * time.Second)

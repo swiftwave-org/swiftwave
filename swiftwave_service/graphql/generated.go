@@ -205,6 +205,7 @@ type ComplexityRoot struct {
 		BackupPersistentVolume                             func(childComplexity int, input model.PersistentVolumeBackupInput) int
 		CancelDeployment                                   func(childComplexity int, id string) int
 		ChangePassword                                     func(childComplexity int, input *model.PasswordUpdateInput) int
+		ChangeSSHPort                                      func(childComplexity int, id uint, port int) int
 		ChangeServerIPAddress                              func(childComplexity int, id uint, ip string) int
 		CheckDependenciesOnServer                          func(childComplexity int, id uint) int
 		CleanupStack                                       func(childComplexity int, input model.StackInput) int
@@ -367,6 +368,7 @@ type ComplexityRoot struct {
 		Logs                 func(childComplexity int) int
 		ProxyEnabled         func(childComplexity int) int
 		ProxyType            func(childComplexity int) int
+		SSHPort              func(childComplexity int) int
 		ScheduleDeployments  func(childComplexity int) int
 		Status               func(childComplexity int) int
 		SwarmMode            func(childComplexity int) int
@@ -504,6 +506,7 @@ type MutationResolver interface {
 	DisableProxyOnServer(ctx context.Context, id uint) (bool, error)
 	FetchAnalyticsServiceToken(ctx context.Context, id uint, rotate bool) (string, error)
 	ChangeServerIPAddress(ctx context.Context, id uint, ip string) (bool, error)
+	ChangeSSHPort(ctx context.Context, id uint, port int) (bool, error)
 	CleanupStack(ctx context.Context, input model.StackInput) (string, error)
 	VerifyStack(ctx context.Context, input model.StackInput) (*model.StackVerifyResult, error)
 	DeployStack(ctx context.Context, input model.StackInput) ([]*model.ApplicationDeployResult, error)
@@ -1313,6 +1316,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ChangePassword(childComplexity, args["input"].(*model.PasswordUpdateInput)), true
+
+	case "Mutation.changeSSHPort":
+		if e.complexity.Mutation.ChangeSSHPort == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_changeSSHPort_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ChangeSSHPort(childComplexity, args["id"].(uint), args["port"].(int)), true
 
 	case "Mutation.changeServerIpAddress":
 		if e.complexity.Mutation.ChangeServerIPAddress == nil {
@@ -2588,6 +2603,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Server.ProxyType(childComplexity), true
 
+	case "Server.ssh_port":
+		if e.complexity.Server.SSHPort == nil {
+			break
+		}
+
+		return e.complexity.Server.SSHPort(childComplexity), true
+
 	case "Server.scheduleDeployments":
 		if e.complexity.Server.ScheduleDeployments == nil {
 			break
@@ -3113,6 +3135,30 @@ func (ec *executionContext) field_Mutation_changePassword_args(ctx context.Conte
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_changeSSHPort_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["port"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("port"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["port"] = arg1
 	return args, nil
 }
 
@@ -10851,6 +10897,8 @@ func (ec *executionContext) fieldContext_Mutation_createServer(ctx context.Conte
 				return ec.fieldContext_Server_hostname(ctx, field)
 			case "user":
 				return ec.fieldContext_Server_user(ctx, field)
+			case "ssh_port":
+				return ec.fieldContext_Server_ssh_port(ctx, field)
 			case "swarmMode":
 				return ec.fieldContext_Server_swarmMode(ctx, field)
 			case "scheduleDeployments":
@@ -11650,6 +11698,61 @@ func (ec *executionContext) fieldContext_Mutation_changeServerIpAddress(ctx cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_changeServerIpAddress_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_changeSSHPort(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_changeSSHPort(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ChangeSSHPort(rctx, fc.Args["id"].(uint), fc.Args["port"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_changeSSHPort(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_changeSSHPort_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -15045,6 +15148,8 @@ func (ec *executionContext) fieldContext_Query_servers(ctx context.Context, fiel
 				return ec.fieldContext_Server_hostname(ctx, field)
 			case "user":
 				return ec.fieldContext_Server_user(ctx, field)
+			case "ssh_port":
+				return ec.fieldContext_Server_ssh_port(ctx, field)
 			case "swarmMode":
 				return ec.fieldContext_Server_swarmMode(ctx, field)
 			case "scheduleDeployments":
@@ -15113,6 +15218,8 @@ func (ec *executionContext) fieldContext_Query_server(ctx context.Context, field
 				return ec.fieldContext_Server_hostname(ctx, field)
 			case "user":
 				return ec.fieldContext_Server_user(ctx, field)
+			case "ssh_port":
+				return ec.fieldContext_Server_ssh_port(ctx, field)
 			case "swarmMode":
 				return ec.fieldContext_Server_swarmMode(ctx, field)
 			case "scheduleDeployments":
@@ -16654,6 +16761,50 @@ func (ec *executionContext) fieldContext_Server_user(ctx context.Context, field 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Server_ssh_port(ctx context.Context, field graphql.CollectedField, obj *model.Server) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Server_ssh_port(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SSHPort, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Server_ssh_port(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Server",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -20739,7 +20890,7 @@ func (ec *executionContext) unmarshalInputNewServerInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"ip", "user"}
+	fieldsInOrder := [...]string{"ip", "ssh_port", "user"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -20753,6 +20904,13 @@ func (ec *executionContext) unmarshalInputNewServerInput(ctx context.Context, ob
 				return it, err
 			}
 			it.IP = data
+		case "ssh_port":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ssh_port"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SSHPort = data
 		case "user":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -22920,6 +23078,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "changeSSHPort":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_changeSSHPort(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "cleanupStack":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_cleanupStack(ctx, field)
@@ -24529,6 +24694,11 @@ func (ec *executionContext) _Server(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "user":
 			out.Values[i] = ec._Server_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "ssh_port":
+			out.Values[i] = ec._Server_ssh_port(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

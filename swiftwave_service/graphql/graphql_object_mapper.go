@@ -431,6 +431,7 @@ func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db g
 func newServerInputToDatabaseObject(record *model.NewServerInput) *core.Server {
 	return &core.Server{
 		IP:                   record.IP,
+		SSHPort:              record.SSHPort,
 		HostName:             "",
 		User:                 record.User,
 		ScheduleDeployments:  false,
@@ -449,6 +450,7 @@ func serverToGraphqlObject(record *core.Server) *model.Server {
 	return &model.Server{
 		ID:                   record.ID,
 		IP:                   record.IP,
+		SSHPort:              record.SSHPort,
 		Hostname:             record.HostName,
 		User:                 record.User,
 		ScheduleDeployments:  record.ScheduleDeployments,

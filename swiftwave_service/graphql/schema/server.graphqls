@@ -27,6 +27,7 @@ enum ServerResourceAnalyticsTimeframe {
 
 input NewServerInput {
     ip: String!
+    ssh_port: Int!
     user: String!
 }
 
@@ -35,6 +36,7 @@ type Server {
     ip: String!
     hostname: String!
     user: String!
+    ssh_port: Int!
     swarmMode: SwarmMode!
     scheduleDeployments: Boolean!
     dockerUnixSocketPath: String!
@@ -104,4 +106,5 @@ extend type Mutation {
     disableProxyOnServer(id: Uint!): Boolean!
     fetchAnalyticsServiceToken(id: Uint!, rotate:Boolean!): String!
     changeServerIpAddress(id: Uint!, ip: String!): Boolean!
+    changeSSHPort(id: Uint!, port: Int!): Boolean!
 }
