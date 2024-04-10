@@ -19,6 +19,12 @@ func (m Manager) PersistentVolumeDeletion(request PersistentVolumeDeletionReques
 		}
 		return err
 	}
+	// Validate deletion
+	err = volume.ValidateDeletion(ctx, m.ServiceManager.DbClient)
+	if err != nil {
+		logger.WorkerLoggerError.Printf("Persistent Volume `%s` deletion validation failed> %s", volume.Name, err.Error())
+		return nil
+	}
 	// Fetch all servers
 	servers, err := core.FetchAllServers(&m.ServiceManager.DbClient)
 	if err != nil {

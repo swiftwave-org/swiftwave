@@ -101,17 +101,6 @@ func (persistentVolume *PersistentVolume) ValidateDeletion(_ context.Context, db
 	if count > 0 {
 		return errors.New("there are some applications using this volume, delete them to delete this volume")
 	}
-	// check if there is any backup of this persistentVolume
-	var backupCount int64
-	db.Model(&PersistentVolumeBackup{}).Where("persistent_volume_id = ?", persistentVolume.ID).Count(&backupCount)
-	if backupCount > 0 {
-		return errors.New("there are some backups of this volume, delete them first to delete this volume")
-	}
-	var restoreCount int64
-	db.Model(&PersistentVolumeRestore{}).Where("persistent_volume_id = ?", persistentVolume.ID).Count(&restoreCount)
-	if restoreCount > 0 {
-		return errors.New("there are some restore histories of this volume, delete them first to delete this volume")
-	}
 	return nil
 }
 
