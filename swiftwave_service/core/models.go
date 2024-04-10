@@ -12,6 +12,7 @@ type Server struct {
 	IP                    string                 `json:"ip"`
 	HostName              string                 `json:"host_name" gorm:"unique"`
 	User                  string                 `json:"user"`
+	SSHPort               int                    `json:"ssh_port" gorm:"default:22"`
 	ScheduleDeployments   bool                   `json:"schedule_deployments" gorm:"default:true"`
 	DockerUnixSocketPath  string                 `json:"docker_unix_socket_path"`
 	SwarmMode             SwarmMode              `json:"swarm_mode"`
