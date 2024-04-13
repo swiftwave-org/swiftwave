@@ -6,7 +6,6 @@ import (
 	swiftwave_config "github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config/bootstrap"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
 	"os"
 
@@ -81,7 +80,7 @@ func Execute() {
 			printError("Failed to connect to database: " + err.Error())
 			os.Exit(1)
 		}
-		err = core.MigrateDatabase(dbClient)
+		err = db.MigrateDatabase(dbClient)
 		if err != nil {
 			printError("Failed to migrate database: " + err.Error())
 			os.Exit(1)

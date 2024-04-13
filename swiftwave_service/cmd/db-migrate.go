@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	swiftwave "github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
 )
 
@@ -18,7 +17,7 @@ var dbMigrateCmd = &cobra.Command{
 			printError("Failed to create database client")
 		}
 		// Migrate the database
-		err = swiftwave.MigrateDatabase(client)
+		err = db.MigrateDatabase(client)
 		if err != nil {
 			printError("Failed to migrate the database")
 		} else {
