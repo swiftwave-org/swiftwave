@@ -22,5 +22,12 @@ if echo "$migration_name" | grep -q '[^a-z0-9_]'; then
     exit 1
 fi
 
+# check if atlas is installed
+if ! command -v atlas > /dev/null; then
+    echo "atlas is not installed"
+    echo "Run \`curl -sSf https://atlasgo.sh | sh\` to install atlas or visit https://atlasgo.io/getting-started/ to learn more"
+    exit 1
+fi
+
 # create a new migration file
 atlas migrate diff --env gorm $migration_name
