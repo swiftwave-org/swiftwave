@@ -1,0 +1,20 @@
+name: DB Migration
+on:
+  [push, pull_request]
+jobs:
+  verify-db-migration-commited-if-changed-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.22
+      - name: Install atlas
+        run: curl -sSf https://atlasgo.sh | sh
+      - name: Install Dependencies
+        run: go mod download
+      - name: Check if migration is missed
+        run: ./.github/scripts/check_if_migration_missed.sh
