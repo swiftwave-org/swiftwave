@@ -1,0 +1,34 @@
+name: DB Migration
+on:
+  [push, pull_request]
+jobs:
+  check-uncommitted-db-migrations:
+    services:
+      # Spin up a postgres:15 container to be used as the dev-database.
+      postgres15:
+        image: postgres:15
+        env:
+          POSTGRES_DB: dev
+          POSTGRES_PASSWORD: pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.22
+      - name: Install atlas
+        uses: ariga/setup-atlas@master
+      - name: Install Dependencies
+        run: go mod download
+      - name: Check if migration is missed
+        run: ./.github/scripts/check_if_migration_missed.sh
