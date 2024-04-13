@@ -1,19 +1,26 @@
 #!/usr/bin/env sh
 
-# first argument is the migration name
-migration_name=$1
+# join of all arguments from first to last using _ as separator
+migration_name=$(echo "$@" | tr ' ' '_')
 
-## ask for the migration name
+# ask for the migration name
 if [ -z "$migration_name" ]; then
     read -p "Enter the migration name: " migration_name
 fi
 
-## if the migration name is empty, exit
+# if the migration name is empty, exit
 if [ -z "$migration_name" ]; then
     echo "Migration name cannot be empty"
     exit 1
 fi
 
-# create a new migration file
+echo "Migration name: $migration_name"
 
+# anything except a-z0-9_ is not allowed
+if echo "$migration_name" | grep -q '[^a-z0-9_]'; then
+    echo "Migration name can only contain lowercase alphabets, numbers, and underscores"
+    exit 1
+fi
+
+# create a new migration file
 atlas migrate diff --env gorm $migration_name
