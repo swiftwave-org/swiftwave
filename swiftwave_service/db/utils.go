@@ -25,6 +25,14 @@ func GetClient(config *local_config.Config, maxRetry uint) (*gorm.DB, error) {
 	if config.IsDevelopmentMode {
 		logLevel = gormlogger.Info
 	}
+	ignoreRecordNotFoundError := true
+	if config.IsDevelopmentMode {
+		ignoreRecordNotFoundError = false
+	}
+	parameterizedQueries := true
+	if config.IsDevelopmentMode {
+		parameterizedQueries = false
+	}
 
 	gormConfig := &gorm.Config{
 		SkipDefaultTransaction: true,
@@ -32,8 +40,8 @@ func GetClient(config *local_config.Config, maxRetry uint) (*gorm.DB, error) {
 			SlowThreshold:             500 * time.Millisecond,
 			Colorful:                  false,
 			LogLevel:                  logLevel,
-			IgnoreRecordNotFoundError: true,
-			ParameterizedQueries:      true,
+			IgnoreRecordNotFoundError: ignoreRecordNotFoundError,
+			ParameterizedQueries:      parameterizedQueries,
 		}),
 	}
 	currentRetry := uint(0)
