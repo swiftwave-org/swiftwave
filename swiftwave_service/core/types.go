@@ -214,6 +214,7 @@ var RequiredServerDependencies = []string{
 	"git",
 	"tar",
 	"nfs",
+	"cifs",
 	"docker",
 }
 
@@ -224,6 +225,7 @@ var DependencyCheckCommands = map[string]string{
 	"git":    "which git",
 	"tar":    "which tar",
 	"nfs":    "which nfsstat",
+	"cifs":   "which mount.cifs",
 	"docker": "which docker",
 }
 
@@ -234,6 +236,7 @@ var DebianDependenciesInstallCommands = map[string]string{
 	"git":    "apt install -y git",
 	"tar":    "apt install -y tar",
 	"nfs":    "apt install -y nfs-common",
+	"cifs":   "apt install -y cifs-utils",
 	"docker": "curl -fsSL get.docker.com | sh -",
 }
 var FedoraDependenciesInstallCommands = map[string]string{
@@ -243,6 +246,7 @@ var FedoraDependenciesInstallCommands = map[string]string{
 	"git":    "dnf install -y git",
 	"tar":    "dnf install -y tar",
 	"nfs":    "dnf install -y nfs-utils",
+	"cifs":   "dnf install -y cifs-utils",
 	"docker": "curl -fsSL get.docker.com | sh -",
 }
 

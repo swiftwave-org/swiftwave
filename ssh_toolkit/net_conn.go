@@ -14,12 +14,15 @@ func NetConnOverSSH(
 	// fetch ssh client
 	sshRecord, err := getSSHClient(host, port, user, privateKey)
 	if err != nil {
+		if isErrorWhenSSHClientNeedToBeRecreated(err) {
+			DeleteSSHClient(host)
+		}
 		return nil, err
 	}
 	// create net connection
 	conn, err := dialWithTimeout(sshRecord, network, address, time.Duration(netTimeoutSeconds)*time.Second)
 	if err != nil && isErrorWhenSSHClientNeedToBeRecreated(err) {
-		deleteSSHClient(host)
+		DeleteSSHClient(host)
 	}
 	return conn, err
 }

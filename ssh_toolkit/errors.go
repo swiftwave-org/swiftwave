@@ -9,11 +9,14 @@ var errorsWhenSSHClientNeedToBeRecreated = []string{
 	"failed to dial ssh",
 	"handshake failed",
 	"unable to authenticate",
+	"connection refused",
+	"use of closed network connection",
 	"rejected: too many authentication failures",
 	"rejected: connection closed by remote host",
 	"rejected: connect failed",
 	"open failed",
 	"handshake failed",
+	"EOF",
 }
 
 func isErrorWhenSSHClientNeedToBeRecreated(err error) bool {

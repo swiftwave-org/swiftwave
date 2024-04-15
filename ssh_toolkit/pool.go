@@ -68,7 +68,7 @@ func newSSHClient(host string, port int, user string, privateKey string, timeout
 	signer, err := ssh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
 		sshClientRecord.mutex.Unlock()
-		deleteSSHClient(host)
+		DeleteSSHClient(host)
 		return nil, err
 	}
 	config := &ssh.ClientConfig{
@@ -82,7 +82,7 @@ func newSSHClient(host string, port int, user string, privateKey string, timeout
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), config)
 	if err != nil {
 		sshClientRecord.mutex.Unlock()
-		deleteSSHClient(host)
+		DeleteSSHClient(host)
 		return nil, err
 	}
 	sshClientRecord.client = client
@@ -90,7 +90,7 @@ func newSSHClient(host string, port int, user string, privateKey string, timeout
 	return client, nil
 }
 
-func deleteSSHClient(host string) {
+func DeleteSSHClient(host string) {
 	sshClientPool.mutex.Lock()
 	clientEntry, ok := sshClientPool.clients[host]
 	if ok {

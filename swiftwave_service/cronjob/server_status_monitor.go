@@ -35,6 +35,9 @@ func (m Manager) monitorServerStatus() {
 				continue
 			}
 			go func(server core.Server) {
+				if server.Status == core.ServerOffline {
+					ssh_toolkit.DeleteSSHClient(server.HostName)
+				}
 				if m.isServerOnline(server) {
 					err = core.MarkServerAsOnline(&m.ServiceManager.DbClient, &server)
 					if err != nil {
@@ -60,7 +63,8 @@ func (m Manager) isServerOnline(server core.Server) bool {
 	for i := 0; i < 3; i++ {
 		cmd := "echo ok"
 		stdoutBuf := new(bytes.Buffer)
-		err := ssh_toolkit.ExecCommandOverSSH(cmd, stdoutBuf, nil, 3, server.IP, server.SSHPort, server.User, m.Config.SystemConfig.SshPrivateKey)
+		stderrBuf := new(bytes.Buffer)
+		err := ssh_toolkit.ExecCommandOverSSH(cmd, stdoutBuf, stderrBuf, 3, server.IP, server.SSHPort, server.User, m.Config.SystemConfig.SshPrivateKey)
 		if err != nil {
 			continue
 		}
