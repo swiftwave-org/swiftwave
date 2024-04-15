@@ -76,7 +76,6 @@ CREATE TABLE "public"."servers" (
   "ip" text NULL,
   "host_name" text NULL,
   "user" text NULL,
-  "ssh_port" bigint NULL DEFAULT 22,
   "schedule_deployments" boolean NULL DEFAULT true,
   "docker_unix_socket_path" text NULL,
   "swarm_mode" text NULL,
