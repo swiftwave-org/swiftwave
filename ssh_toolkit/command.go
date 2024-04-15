@@ -18,13 +18,16 @@ func ExecCommandOverSSH(cmd string,
 	// fetch ssh client
 	sshRecord, err := getSSHClient(host, port, user, privateKey)
 	if err != nil {
+		if isErrorWhenSSHClientNeedToBeRecreated(err) {
+			DeleteSSHClient(host)
+		}
 		return err
 	}
 	// create session
 	session, err := getSSHSessionWithTimeout(sshRecord, sessionTimeoutSeconds)
 	if err != nil {
 		if isErrorWhenSSHClientNeedToBeRecreated(err) {
-			deleteSSHClient(host)
+			DeleteSSHClient(host)
 		}
 		return err
 	}
@@ -44,7 +47,18 @@ func ExecCommandOverSSH(cmd string,
 	session.Stdout = stdoutBuf
 	session.Stderr = stderrBuf
 	// run command
-	return session.Run(cmd)
+	err = session.Run(cmd)
+	if err != nil {
+		if isErrorWhenSSHClientNeedToBeRecreated(err) {
+			DeleteSSHClient(host)
+		}
+		if isErrorWhenSSHClientNeedToBeRecreated(errors.New(stderrBuf.String())) {
+			DeleteSSHClient(host)
+			return fmt.Errorf("%s - %s", err, stderrBuf.String())
+		}
+		return err
+	}
+	return nil
 }
 
 // private functions
