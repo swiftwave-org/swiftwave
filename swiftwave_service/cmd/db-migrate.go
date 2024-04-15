@@ -15,6 +15,7 @@ var dbMigrateCmd = &cobra.Command{
 		client, err := db.GetClient(config.LocalConfig, 1)
 		if err != nil {
 			printError("Failed to create database client")
+			return
 		}
 		// Migrate the database
 		err = db.MigrateDatabase(client)
