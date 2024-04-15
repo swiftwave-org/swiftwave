@@ -99,6 +99,15 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	CIFSConfig struct {
+		DirMode  func(childComplexity int) int
+		FileMode func(childComplexity int) int
+		Host     func(childComplexity int) int
+		Password func(childComplexity int) int
+		Share    func(childComplexity int) int
+		Username func(childComplexity int) int
+	}
+
 	Dependency struct {
 		Available func(childComplexity int) int
 		Name      func(childComplexity int) int
@@ -263,6 +272,7 @@ type ComplexityRoot struct {
 
 	PersistentVolume struct {
 		Backups                  func(childComplexity int) int
+		CifsConfig               func(childComplexity int) int
 		ID                       func(childComplexity int) int
 		Name                     func(childComplexity int) int
 		NfsConfig                func(childComplexity int) int
@@ -782,6 +792,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BuildArg.Value(childComplexity), true
+
+	case "CIFSConfig.dir_mode":
+		if e.complexity.CIFSConfig.DirMode == nil {
+			break
+		}
+
+		return e.complexity.CIFSConfig.DirMode(childComplexity), true
+
+	case "CIFSConfig.file_mode":
+		if e.complexity.CIFSConfig.FileMode == nil {
+			break
+		}
+
+		return e.complexity.CIFSConfig.FileMode(childComplexity), true
+
+	case "CIFSConfig.host":
+		if e.complexity.CIFSConfig.Host == nil {
+			break
+		}
+
+		return e.complexity.CIFSConfig.Host(childComplexity), true
+
+	case "CIFSConfig.password":
+		if e.complexity.CIFSConfig.Password == nil {
+			break
+		}
+
+		return e.complexity.CIFSConfig.Password(childComplexity), true
+
+	case "CIFSConfig.share":
+		if e.complexity.CIFSConfig.Share == nil {
+			break
+		}
+
+		return e.complexity.CIFSConfig.Share(childComplexity), true
+
+	case "CIFSConfig.username":
+		if e.complexity.CIFSConfig.Username == nil {
+			break
+		}
+
+		return e.complexity.CIFSConfig.Username(childComplexity), true
 
 	case "Dependency.available":
 		if e.complexity.Dependency.Available == nil {
@@ -1916,6 +1968,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PersistentVolume.Backups(childComplexity), true
 
+	case "PersistentVolume.cifsConfig":
+		if e.complexity.PersistentVolume.CifsConfig == nil {
+			break
+		}
+
+		return e.complexity.PersistentVolume.CifsConfig(childComplexity), true
+
 	case "PersistentVolume.id":
 		if e.complexity.PersistentVolume.ID == nil {
 			break
@@ -2861,6 +2920,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputApplicationInput,
 		ec.unmarshalInputBuildArgInput,
+		ec.unmarshalInputCIFSConfigInput,
 		ec.unmarshalInputCustomSSLInput,
 		ec.unmarshalInputDockerConfigGeneratorInput,
 		ec.unmarshalInputDomainInput,
@@ -2995,7 +3055,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/user.graphqls.graphqls"
+//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/user.graphqls.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -3010,6 +3070,7 @@ var sources = []*ast.Source{
 	{Name: "schema/application.graphqls", Input: sourceData("schema/application.graphqls"), BuiltIn: false},
 	{Name: "schema/base.graphqls", Input: sourceData("schema/base.graphqls"), BuiltIn: false},
 	{Name: "schema/build_arg.graphqls", Input: sourceData("schema/build_arg.graphqls"), BuiltIn: false},
+	{Name: "schema/cifs_config.graphqls", Input: sourceData("schema/cifs_config.graphqls"), BuiltIn: false},
 	{Name: "schema/deployment.graphqls", Input: sourceData("schema/deployment.graphqls"), BuiltIn: false},
 	{Name: "schema/deployment_log.graphqls", Input: sourceData("schema/deployment_log.graphqls"), BuiltIn: false},
 	{Name: "schema/docker_config_generator.graphqls", Input: sourceData("schema/docker_config_generator.graphqls"), BuiltIn: false},
@@ -5734,6 +5795,270 @@ func (ec *executionContext) _BuildArg_value(ctx context.Context, field graphql.C
 func (ec *executionContext) fieldContext_BuildArg_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "BuildArg",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CIFSConfig_host(ctx context.Context, field graphql.CollectedField, obj *model.CIFSConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CIFSConfig_host(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Host, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CIFSConfig_host(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CIFSConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CIFSConfig_share(ctx context.Context, field graphql.CollectedField, obj *model.CIFSConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CIFSConfig_share(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Share, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CIFSConfig_share(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CIFSConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CIFSConfig_username(ctx context.Context, field graphql.CollectedField, obj *model.CIFSConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CIFSConfig_username(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Username, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CIFSConfig_username(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CIFSConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CIFSConfig_password(ctx context.Context, field graphql.CollectedField, obj *model.CIFSConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CIFSConfig_password(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Password, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CIFSConfig_password(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CIFSConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CIFSConfig_file_mode(ctx context.Context, field graphql.CollectedField, obj *model.CIFSConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CIFSConfig_file_mode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FileMode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CIFSConfig_file_mode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CIFSConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CIFSConfig_dir_mode(ctx context.Context, field graphql.CollectedField, obj *model.CIFSConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CIFSConfig_dir_mode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DirMode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CIFSConfig_dir_mode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CIFSConfig",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -10357,6 +10682,8 @@ func (ec *executionContext) fieldContext_Mutation_createPersistentVolume(ctx con
 				return ec.fieldContext_PersistentVolume_type(ctx, field)
 			case "nfsConfig":
 				return ec.fieldContext_PersistentVolume_nfsConfig(ctx, field)
+			case "cifsConfig":
+				return ec.fieldContext_PersistentVolume_cifsConfig(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
@@ -12476,6 +12803,64 @@ func (ec *executionContext) fieldContext_PersistentVolume_nfsConfig(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _PersistentVolume_cifsConfig(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolume) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PersistentVolume_cifsConfig(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CifsConfig, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.CIFSConfig)
+	fc.Result = res
+	return ec.marshalNCIFSConfig2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐCIFSConfig(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PersistentVolume_cifsConfig(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersistentVolume",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "host":
+				return ec.fieldContext_CIFSConfig_host(ctx, field)
+			case "share":
+				return ec.fieldContext_CIFSConfig_share(ctx, field)
+			case "username":
+				return ec.fieldContext_CIFSConfig_username(ctx, field)
+			case "password":
+				return ec.fieldContext_CIFSConfig_password(ctx, field)
+			case "file_mode":
+				return ec.fieldContext_CIFSConfig_file_mode(ctx, field)
+			case "dir_mode":
+				return ec.fieldContext_CIFSConfig_dir_mode(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CIFSConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PersistentVolume_persistentVolumeBindings(ctx context.Context, field graphql.CollectedField, obj *model.PersistentVolume) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 	if err != nil {
@@ -13047,6 +13432,8 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_persistentVolum
 				return ec.fieldContext_PersistentVolume_type(ctx, field)
 			case "nfsConfig":
 				return ec.fieldContext_PersistentVolume_nfsConfig(ctx, field)
+			case "cifsConfig":
+				return ec.fieldContext_PersistentVolume_cifsConfig(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
@@ -14778,6 +15165,8 @@ func (ec *executionContext) fieldContext_Query_persistentVolumes(ctx context.Con
 				return ec.fieldContext_PersistentVolume_type(ctx, field)
 			case "nfsConfig":
 				return ec.fieldContext_PersistentVolume_nfsConfig(ctx, field)
+			case "cifsConfig":
+				return ec.fieldContext_PersistentVolume_cifsConfig(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
@@ -14835,6 +15224,8 @@ func (ec *executionContext) fieldContext_Query_persistentVolume(ctx context.Cont
 				return ec.fieldContext_PersistentVolume_type(ctx, field)
 			case "nfsConfig":
 				return ec.fieldContext_PersistentVolume_nfsConfig(ctx, field)
+			case "cifsConfig":
+				return ec.fieldContext_PersistentVolume_cifsConfig(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_PersistentVolume_persistentVolumeBindings(ctx, field)
 			case "backups":
@@ -20452,6 +20843,68 @@ func (ec *executionContext) unmarshalInputBuildArgInput(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCIFSConfigInput(ctx context.Context, obj interface{}) (model.CIFSConfigInput, error) {
+	var it model.CIFSConfigInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"host", "share", "username", "password", "file_mode", "dir_mode"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "host":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("host"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Host = data
+		case "share":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("share"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Share = data
+		case "username":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Username = data
+		case "password":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Password = data
+		case "file_mode":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file_mode"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FileMode = data
+		case "dir_mode":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dir_mode"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DirMode = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCustomSSLInput(ctx context.Context, obj interface{}) (model.CustomSSLInput, error) {
 	var it model.CustomSSLInput
 	asMap := map[string]interface{}{}
@@ -21033,7 +21486,7 @@ func (ec *executionContext) unmarshalInputPersistentVolumeInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "type", "nfsConfig"}
+	fieldsInOrder := [...]string{"name", "type", "nfsConfig", "cifsConfig"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -21061,6 +21514,13 @@ func (ec *executionContext) unmarshalInputPersistentVolumeInput(ctx context.Cont
 				return it, err
 			}
 			it.NfsConfig = data
+		case "cifsConfig":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cifsConfig"))
+			data, err := ec.unmarshalNCIFSConfigInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐCIFSConfigInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CifsConfig = data
 		}
 	}
 
@@ -21721,6 +22181,70 @@ func (ec *executionContext) _BuildArg(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "value":
 			out.Values[i] = ec._BuildArg_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var cIFSConfigImplementors = []string{"CIFSConfig"}
+
+func (ec *executionContext) _CIFSConfig(ctx context.Context, sel ast.SelectionSet, obj *model.CIFSConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, cIFSConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CIFSConfig")
+		case "host":
+			out.Values[i] = ec._CIFSConfig_host(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "share":
+			out.Values[i] = ec._CIFSConfig_share(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "username":
+			out.Values[i] = ec._CIFSConfig_username(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "password":
+			out.Values[i] = ec._CIFSConfig_password(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "file_mode":
+			out.Values[i] = ec._CIFSConfig_file_mode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "dir_mode":
+			out.Values[i] = ec._CIFSConfig_dir_mode(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -23231,6 +23755,11 @@ func (ec *executionContext) _PersistentVolume(ctx context.Context, sel ast.Selec
 			}
 		case "nfsConfig":
 			out.Values[i] = ec._PersistentVolume_nfsConfig(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "cifsConfig":
+			out.Values[i] = ec._PersistentVolume_cifsConfig(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
@@ -25747,6 +26276,21 @@ func (ec *executionContext) unmarshalNBuildArgInput2ᚕᚖgithubᚗcomᚋswiftwa
 
 func (ec *executionContext) unmarshalNBuildArgInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐBuildArgInput(ctx context.Context, v interface{}) (*model.BuildArgInput, error) {
 	res, err := ec.unmarshalInputBuildArgInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCIFSConfig2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐCIFSConfig(ctx context.Context, sel ast.SelectionSet, v *model.CIFSConfig) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CIFSConfig(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCIFSConfigInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐCIFSConfigInput(ctx context.Context, v interface{}) (*model.CIFSConfigInput, error) {
+	res, err := ec.unmarshalInputCIFSConfigInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

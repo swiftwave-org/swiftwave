@@ -109,6 +109,7 @@ type PersistentVolume struct {
 	Name                     string                    `json:"name" gorm:"unique"`
 	Type                     PersistentVolumeType      `json:"type" gorm:"default:'local'"`
 	NFSConfig                NFSConfig                 `json:"nfs_config" gorm:"embedded;embeddedPrefix:nfs_config_"`
+	CIFSConfig               CIFSConfig                `json:"cifs_config" gorm:"embedded;embeddedPrefix:cifs_config_"`
 	PersistentVolumeBindings []PersistentVolumeBinding `json:"persistent_volume_bindings" gorm:"foreignKey:PersistentVolumeID"`
 	PersistentVolumeBackups  []PersistentVolumeBackup  `json:"persistent_volume_backups" gorm:"foreignKey:PersistentVolumeID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	PersistentVolumeRestores []PersistentVolumeRestore `json:"persistent_volume_restores" gorm:"foreignKey:PersistentVolumeID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`

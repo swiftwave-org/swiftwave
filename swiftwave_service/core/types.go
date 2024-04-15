@@ -187,6 +187,7 @@ type PersistentVolumeType string
 const (
 	PersistentVolumeTypeLocal PersistentVolumeType = "local"
 	PersistentVolumeTypeNFS   PersistentVolumeType = "nfs"
+	PersistentVolumeTypeCIFS  PersistentVolumeType = "cifs"
 )
 
 // NFSConfig : configuration for NFS Storage
@@ -194,6 +195,16 @@ type NFSConfig struct {
 	Host    string `json:"host,omitempty"`
 	Path    string `json:"path,omitempty"`
 	Version int    `json:"version,omitempty"`
+}
+
+// CIFSConfig : configuration for CIFS Storage
+type CIFSConfig struct {
+	Share    string `json:"share"`
+	Host     string `json:"host"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	FileMode string `json:"file_mode"`
+	DirMode  string `json:"dir_mode"`
 }
 
 var RequiredServerDependencies = []string{
