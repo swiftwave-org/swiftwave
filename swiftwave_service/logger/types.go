@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-var DatabaseLogger = log.New(os.Stdout, "[DATABASE] ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
+var DatabaseLogger = log.New(os.Stdout, "[DATABASE] ", log.Ldate|log.Ltime|log.LUTC)
 var DatabaseLoggerError = log.New(os.Stdout, "[DATABASE] ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
 var CronJobLogger = log.New(os.Stdout, "[CRONJOB] ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
 var CronJobLoggerError = log.New(os.Stdout, "[CRONJOB] ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)

@@ -25,12 +25,15 @@ func GetClient(config *local_config.Config, maxRetry uint) (*gorm.DB, error) {
 	if config.IsDevelopmentMode {
 		logLevel = gormlogger.Info
 	}
+
 	gormConfig := &gorm.Config{
 		SkipDefaultTransaction: true,
-		Logger: gormlogger.New(logger.DatabaseLogger, gormlogger.Config{
-			SlowThreshold: 500 * time.Millisecond,
-			Colorful:      false,
-			LogLevel:      logLevel,
+		Logger: newCustomLogger(logger.DatabaseLogger, gormlogger.Config{
+			SlowThreshold:             500 * time.Millisecond,
+			Colorful:                  false,
+			LogLevel:                  logLevel,
+			IgnoreRecordNotFoundError: true,
+			ParameterizedQueries:      true,
 		}),
 	}
 	currentRetry := uint(0)
