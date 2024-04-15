@@ -77,6 +77,24 @@ type BuildArgInput struct {
 	Value string `json:"value"`
 }
 
+type CIFSConfig struct {
+	Host     string `json:"host"`
+	Share    string `json:"share"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	FileMode string `json:"file_mode"`
+	DirMode  string `json:"dir_mode"`
+}
+
+type CIFSConfigInput struct {
+	Host     string `json:"host"`
+	Share    string `json:"share"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	FileMode string `json:"file_mode"`
+	DirMode  string `json:"dir_mode"`
+}
+
 type CustomSSLInput struct {
 	FullChain  string `json:"fullChain"`
 	PrivateKey string `json:"privateKey"`
@@ -264,6 +282,7 @@ type PersistentVolume struct {
 	Name                     string                     `json:"name"`
 	Type                     PersistentVolumeType       `json:"type"`
 	NfsConfig                *NFSConfig                 `json:"nfsConfig"`
+	CifsConfig               *CIFSConfig                `json:"cifsConfig"`
 	PersistentVolumeBindings []*PersistentVolumeBinding `json:"persistentVolumeBindings"`
 	Backups                  []*PersistentVolumeBackup  `json:"backups"`
 	Restores                 []*PersistentVolumeRestore `json:"restores"`
@@ -298,9 +317,10 @@ type PersistentVolumeBindingInput struct {
 }
 
 type PersistentVolumeInput struct {
-	Name      string               `json:"name"`
-	Type      PersistentVolumeType `json:"type"`
-	NfsConfig *NFSConfigInput      `json:"nfsConfig"`
+	Name       string               `json:"name"`
+	Type       PersistentVolumeType `json:"type"`
+	NfsConfig  *NFSConfigInput      `json:"nfsConfig"`
+	CifsConfig *CIFSConfigInput     `json:"cifsConfig"`
 }
 
 type PersistentVolumeRestore struct {
@@ -922,16 +942,18 @@ type PersistentVolumeType string
 const (
 	PersistentVolumeTypeLocal PersistentVolumeType = "local"
 	PersistentVolumeTypeNfs   PersistentVolumeType = "nfs"
+	PersistentVolumeTypeCifs  PersistentVolumeType = "cifs"
 )
 
 var AllPersistentVolumeType = []PersistentVolumeType{
 	PersistentVolumeTypeLocal,
 	PersistentVolumeTypeNfs,
+	PersistentVolumeTypeCifs,
 }
 
 func (e PersistentVolumeType) IsValid() bool {
 	switch e {
-	case PersistentVolumeTypeLocal, PersistentVolumeTypeNfs:
+	case PersistentVolumeTypeLocal, PersistentVolumeTypeNfs, PersistentVolumeTypeCifs:
 		return true
 	}
 	return false

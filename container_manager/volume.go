@@ -46,6 +46,23 @@ func (m Manager) CreateNFSVolume(name string, nfsServer string, nfsPath string, 
 	return nil
 }
 
+// CreateCIFSVolume : Create a new CIFS volume, return id of the volume
+func (m Manager) CreateCIFSVolume(name string, cifsHost string, cifsShare string, username string, password string, fileMode string, dirMode string) error {
+	_, err := m.client.VolumeCreate(m.ctx, volume.CreateOptions{
+		Name:   name,
+		Driver: "local",
+		DriverOpts: map[string]string{
+			"type":   "cifs",
+			"device": cifsShare,
+			"o":      fmt.Sprintf("addr=%s,username=%s,password=%s,file_mode=%s,dir_mode=%s", cifsHost, username, password, fileMode, dirMode),
+		},
+	})
+	if err != nil {
+		return errors.New("error creating volume " + err.Error())
+	}
+	return nil
+}
+
 // RemoveVolume : Remove a volume by id
 func (m Manager) RemoveVolume(id string) error {
 	err := m.client.VolumeRemove(m.ctx, id, true)

@@ -67,6 +67,14 @@ func persistentVolumeToGraphqlObject(record *core.PersistentVolume) *model.Persi
 			Path:    record.NFSConfig.Path,
 			Version: record.NFSConfig.Version,
 		},
+		CifsConfig: &model.CIFSConfig{
+			Share:    record.CIFSConfig.Share,
+			Host:     record.CIFSConfig.Host,
+			Username: record.CIFSConfig.Username,
+			Password: record.CIFSConfig.Password,
+			FileMode: record.CIFSConfig.FileMode,
+			DirMode:  record.CIFSConfig.DirMode,
+		},
 	}
 }
 
@@ -79,6 +87,14 @@ func persistentVolumeInputToDatabaseObject(record *model.PersistentVolumeInput) 
 			Host:    record.NfsConfig.Host,
 			Path:    record.NfsConfig.Path,
 			Version: record.NfsConfig.Version,
+		},
+		CIFSConfig: core.CIFSConfig{
+			Share:    record.CifsConfig.Share,
+			Host:     record.CifsConfig.Host,
+			Username: record.CifsConfig.Username,
+			Password: record.CifsConfig.Password,
+			FileMode: record.CifsConfig.FileMode,
+			DirMode:  record.CifsConfig.DirMode,
 		},
 	}
 }

@@ -1,6 +1,7 @@
 enum PersistentVolumeType {
     local
     nfs
+    cifs
 }
 
 type PersistentVolume {
@@ -8,6 +9,7 @@ type PersistentVolume {
     name: String!
     type: PersistentVolumeType!
     nfsConfig: NFSConfig!
+    cifsConfig: CIFSConfig!
     persistentVolumeBindings: [PersistentVolumeBinding!]!
     backups: [PersistentVolumeBackup!]!
     restores: [PersistentVolumeRestore!]!
@@ -17,6 +19,7 @@ input PersistentVolumeInput {
     name: String!
     type: PersistentVolumeType!
     nfsConfig: NFSConfigInput!
+    cifsConfig: CIFSConfigInput!
 }
 
 extend type Query {

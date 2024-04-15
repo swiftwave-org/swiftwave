@@ -1,3 +1,5 @@
-h1:VF+tZx4laXZ3T2EmA16xC0WOdD8kyupvVhIxHyzqhow=
+h1:6dZWAUCl1AcaOu5dZJdHaNZ3zngD6MC28BhA19NtHsU=
 20240413191732_init.down.sql h1:HoitObGwuKF/akF4qg3dol2FfNTLCEuf6wHYDuCez8I=
 20240413191732_init.up.sql h1:SSfeL4XTzfkPhdTfo6ElhmZCvlDvESyB4ZLqJbvMkM0=
+20240415051843_cifs_config_added.down.sql h1:bpHfK0AkgKiBDjOie+9t/u7uxvjnkSN9skIA85ydtSM=
+20240415051843_cifs_config_added.up.sql h1:zgeZR4RgcR+NLCaA1M377m5wMUXNC+gaIsYu9dOLhMM=

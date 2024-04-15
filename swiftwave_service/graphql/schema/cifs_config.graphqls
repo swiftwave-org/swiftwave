@@ -1,0 +1,17 @@
+type CIFSConfig {
+    host: String!
+    share: String!
+    username: String!
+    password: String!
+    file_mode: String!
+    dir_mode: String!
+}
+
+input CIFSConfigInput {
+    host: String!
+    share: String!
+    username: String!
+    password: String!
+    file_mode: String!
+    dir_mode: String!
+}
