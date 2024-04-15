@@ -80,22 +80,30 @@ func persistentVolumeToGraphqlObject(record *core.PersistentVolume) *model.Persi
 
 // persistentVolumeInputToDatabaseObject : converts PersistentVolumeInput to PersistentVolumeDatabaseObject
 func persistentVolumeInputToDatabaseObject(record *model.PersistentVolumeInput) *core.PersistentVolume {
-	return &core.PersistentVolume{
-		Name: record.Name,
-		Type: core.PersistentVolumeType(record.Type),
-		NFSConfig: core.NFSConfig{
+	nfsConfig := core.NFSConfig{}
+	if record.Type == model.PersistentVolumeTypeNfs {
+		nfsConfig = core.NFSConfig{
 			Host:    record.NfsConfig.Host,
 			Path:    record.NfsConfig.Path,
 			Version: record.NfsConfig.Version,
-		},
-		CIFSConfig: core.CIFSConfig{
+		}
+	}
+	cifsConfig := core.CIFSConfig{}
+	if record.Type == model.PersistentVolumeTypeCifs {
+		cifsConfig = core.CIFSConfig{
 			Share:    record.CifsConfig.Share,
 			Host:     record.CifsConfig.Host,
 			Username: record.CifsConfig.Username,
 			Password: record.CifsConfig.Password,
 			FileMode: record.CifsConfig.FileMode,
 			DirMode:  record.CifsConfig.DirMode,
-		},
+		}
+	}
+	return &core.PersistentVolume{
+		Name:       record.Name,
+		Type:       core.PersistentVolumeType(record.Type),
+		NFSConfig:  nfsConfig,
+		CIFSConfig: cifsConfig,
 	}
 }
 
