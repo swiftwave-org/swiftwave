@@ -74,7 +74,7 @@ type Domain struct {
 	SSLIssuedAt   time.Time       `json:"ssl_issued_at"`
 	SSLExpiredAt  time.Time       `json:"ssl_expired_at"`
 	SSLIssuer     string          `json:"ssl_issuer"`
-	SSLAutoRenew  bool            `json:"ssl_auto_renew" gorm:"default:false"`
+	SslAutoRenew  bool            `json:"ssl_auto_renew" gorm:"default:false"`
 	IngressRules  []IngressRule   `json:"ingress_rules" gorm:"foreignKey:DomainID"`
 	RedirectRules []RedirectRule  `json:"redirect_rules" gorm:"foreignKey:DomainID"`
 }
