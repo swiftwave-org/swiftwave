@@ -1,5 +1,4 @@
 ![swiftwave](https://github.com/swiftwave-org/swiftwave/assets/57363826/807a7622-37fd-4951-b177-50b538a45339)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fswiftwave-org%2Fswiftwave.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fswiftwave-org%2Fswiftwave?ref=badge_shield)
 
 <br>
 <div align="center">
@@ -49,7 +48,7 @@ Swiftwave is in its initial stages, with limited awareness among users. To promo
 </div>
 
 
-### 📄 License
+### 📄 License [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fswiftwave-org%2Fswiftwave.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fswiftwave-org%2Fswiftwave?ref=badge_shield)
 
 [Apache-2.0](LICENSE)
 
