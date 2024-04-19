@@ -6,7 +6,6 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"gorm.io/gorm"
 )
@@ -15,7 +14,7 @@ import (
 var migrationFilesFS embed.FS
 
 func MigrateDatabase(client *gorm.DB) error {
-	migrationFSDriver, err := iofs.New(migrationFilesFS, "migrations")
+	migrationFSDriver, err := NewCustomIOFSDriver(migrationFilesFS, "migrations")
 	if err != nil {
 		logger.DatabaseLoggerError.Println("Failed to create migration fs driver")
 		logger.DatabaseLoggerError.Println(err)
