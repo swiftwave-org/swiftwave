@@ -63,7 +63,7 @@ func (m Manager) SSLGenerate(request SSLGenerateRequest, ctx context.Context, _ 
 	// update status
 	domain.SSLStatus = core.DomainSSLStatusIssued
 	// enable auto renew
-	domain.SSLAutoRenew = true
+	domain.SslAutoRenew = true
 	// update domain
 	err = domain.Update(ctx, dbWithoutTx)
 	if err != nil {

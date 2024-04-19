@@ -298,7 +298,7 @@ func domainInputToDatabaseObject(record *model.DomainInput) *core.Domain {
 	return &core.Domain{
 		Name:         record.Name,
 		SSLStatus:    core.DomainSSLStatusNone,
-		SSLAutoRenew: false,
+		SslAutoRenew: false,
 	}
 }
 
@@ -312,7 +312,7 @@ func domainToGraphqlObject(record *core.Domain) *model.Domain {
 		SslFullChain:  record.SSLFullChain,
 		SslIssuedAt:   record.SSLIssuedAt,
 		SslIssuer:     record.SSLIssuer,
-		SslAutoRenew:  record.SSLAutoRenew,
+		SslAutoRenew:  record.SslAutoRenew,
 	}
 }
 

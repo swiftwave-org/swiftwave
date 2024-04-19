@@ -1,7 +1,9 @@
-h1:icdTT4yZ8uFtUOwQFRGT+K1FgTqhqKnIjnOOrTRksdo=
+h1:B1aYHk010MYf5PgmyNaawbYfCxFAeg33aY7XpzkeTgE=
 20240413191732_init.down.sql h1:HoitObGwuKF/akF4qg3dol2FfNTLCEuf6wHYDuCez8I=
 20240413191732_init.up.sql h1:USKdQx/yTz1KJ0+mDwYGhKm3WzX7k+I9+6B6SxImwaE=
 20240414051823_server_custom_ssh_port_added.down.sql h1:IC1DFQBQceTPTRdZOo5/WqytH+ZbgcKrQuMCkhArF/0=
 20240414051823_server_custom_ssh_port_added.up.sql h1:e8WCM91vs1tYOSNujP3H8VL5sdIgL3zJCUO2tJJ4V4A=
 20240415051843_cifs_config_added.down.sql h1:mpfh0mD7rG8QzLr+O2lURFSsmVjkZabQZgDqxa4A00M=
 20240415051843_cifs_config_added.up.sql h1:O5MSdlTbkma6mtjfsiOKgvuMMnndr2azAq/QnKVbPv8=
+20240419180603_rename_ssl_auto_renew_field.down.sql h1:OQYYIJZo1EtWI3irEBczbXwjeFazhYBJ6cvGFKc2wQA=
+20240419180603_rename_ssl_auto_renew_field.up.sql h1:qHMYf83ShzTMlZCUz8K5Zq61U4ikmni8U69KBSNCejo=

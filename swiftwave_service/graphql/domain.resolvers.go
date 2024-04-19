@@ -117,7 +117,7 @@ func (r *mutationResolver) AddCustomSsl(ctx context.Context, id uint, input mode
 	record.SSLPrivateKey = input.PrivateKey
 	record.SSLFullChain = input.FullChain
 	record.SSLStatus = core.DomainSSLStatusIssued
-	record.SSLAutoRenew = false
+	record.SslAutoRenew = false
 	err = record.Update(ctx, r.ServiceManager.DbClient)
 	if err != nil {
 		return nil, err
