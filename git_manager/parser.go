@@ -59,9 +59,7 @@ func ParseGitRepoInfo(gitUrl string) (*GitRepoInfo, error) {
 		gitRepoInfo.SshEndpoint = splits[1]
 		gitRepoInfo.Owner = splits[2]
 		gitRepoInfo.Name = splits[3]
-		if strings.HasPrefix(gitRepoInfo.Name, ".git") {
-			gitRepoInfo.Name = strings.TrimSuffix(gitRepoInfo.Name, ".git")
-		}
+		gitRepoInfo.Name = strings.TrimSuffix(gitRepoInfo.Name, ".git")
 		gitRepoInfo.Provider = gitProvider(gitRepoInfo.SshEndpoint)
 		return &gitRepoInfo, nil
 	} else if isValidHttpGitUrl(gitUrl) {
@@ -73,9 +71,7 @@ func ParseGitRepoInfo(gitUrl string) (*GitRepoInfo, error) {
 		gitUrl = strings.TrimPrefix(gitUrl, "http://")
 		gitUrl = strings.TrimPrefix(gitUrl, "https://")
 		// strip if ends has / or .git
-		if strings.HasSuffix(gitUrl, "/") {
-			gitUrl = strings.TrimSuffix(gitUrl, "/")
-		}
+		gitUrl = strings.TrimSuffix(gitUrl, "/")
 		splits := strings.Split(gitUrl, "/")
 		if len(splits) < 3 {
 			return nil, invalidGitUrlError
@@ -88,9 +84,7 @@ func ParseGitRepoInfo(gitUrl string) (*GitRepoInfo, error) {
 		}
 		gitRepoInfo.Owner = splits[1]
 		gitRepoInfo.Name = splits[2]
-		if strings.HasSuffix(gitRepoInfo.Name, ".git") {
-			gitRepoInfo.Name = strings.TrimSuffix(gitRepoInfo.Name, ".git")
-		}
+		gitRepoInfo.Name = strings.TrimSuffix(gitRepoInfo.Name, ".git")
 		gitRepoInfo.Provider = gitProvider(gitRepoInfo.HttpEndpoint)
 		return &gitRepoInfo, nil
 	}
