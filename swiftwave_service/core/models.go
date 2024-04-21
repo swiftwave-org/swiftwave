@@ -56,7 +56,7 @@ type GitCredential struct {
 	SshPrivateKey string  `json:"ssh_private_key"`
 	SshPublicKey  string  `json:"ssh_public_key"`
 
-	Deployments []Deployment `json:"deployments" gorm:"foreignKey:GitCredentialID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" `
+	Deployments []Deployment `json:"deployments" gorm:"foreignKey:GitCredentialID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" `
 }
 
 // ImageRegistryCredential : credential for docker image registry
