@@ -3,6 +3,7 @@ package graphql
 import (
 	"context"
 	"fmt"
+	gitmanager "github.com/swiftwave-org/swiftwave/git_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/stack_parser"
 	"gorm.io/gorm"
 	"time"
@@ -199,13 +200,27 @@ func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) 
 	for _, buildArg := range record.BuildArgs {
 		buildArgs = append(buildArgs, *buildArgInputToDatabaseObject(buildArg))
 	}
+	var repoInfo gitmanager.GitRepoInfo
+	if record.UpstreamType == model.UpstreamTypeGit {
+		parsedRepoInfo, _ := gitmanager.ParseGitRepoInfo(*record.RepositoryURL)
+		if parsedRepoInfo != nil {
+			repoInfo = *parsedRepoInfo
+		}
+	}
+	gitType := core.GitHttp
+	if repoInfo.IsSshEndpoint {
+		gitType = core.GitSsh
+	}
 	return &core.Deployment{
 		UpstreamType:                 core.UpstreamType(record.UpstreamType),
 		GitCredentialID:              record.GitCredentialID,
-		GitProvider:                  core.GitProvider(DefaultGitProvider(record.GitProvider)),
-		RepositoryOwner:              DefaultString(record.RepositoryOwner, ""),
-		RepositoryName:               DefaultString(record.RepositoryName, ""),
+		GitType:                      gitType,
+		GitProvider:                  repoInfo.Provider,
+		RepositoryOwner:              repoInfo.Owner,
+		RepositoryName:               repoInfo.Name,
 		RepositoryBranch:             DefaultString(record.RepositoryBranch, ""),
+		GitEndpoint:                  repoInfo.URL(),
+		GitSshUser:                   repoInfo.SshUser,
 		CommitHash:                   "",
 		CodePath:                     DefaultString(record.CodePath, ""),
 		SourceCodeCompressedFileName: DefaultString(record.SourceCodeCompressedFileName, ""),
@@ -278,7 +293,7 @@ func deploymentToGraphqlObject(record *core.Deployment) *model.Deployment {
 		ApplicationID:                record.ApplicationID,
 		UpstreamType:                 model.UpstreamType(record.UpstreamType),
 		GitCredentialID:              gitCredentialId,
-		GitProvider:                  model.GitProvider(record.GitProvider),
+		GitProvider:                  record.GitProvider,
 		RepositoryOwner:              record.RepositoryOwner,
 		RepositoryName:               record.RepositoryName,
 		RepositoryBranch:             record.RepositoryBranch,
@@ -437,9 +452,7 @@ func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db g
 			DockerImage:                  &image,
 			ImageRegistryCredentialID:    nil,
 			GitCredentialID:              nil,
-			GitProvider:                  nil,
-			RepositoryOwner:              nil,
-			RepositoryName:               nil,
+			RepositoryURL:                nil,
 			RepositoryBranch:             nil,
 			CodePath:                     nil,
 			SourceCodeCompressedFileName: nil,

@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"strings"
@@ -190,11 +191,11 @@ func (deployment *Deployment) GitRepositoryURL() string {
 	if deployment.UpstreamType != UpstreamTypeGit {
 		return ""
 	}
-	if deployment.GitProvider == GitProviderGithub {
-		return "https://github.com/" + deployment.RepositoryOwner + "/" + deployment.RepositoryName + ".git"
+	if deployment.GitType == GitHttp {
+		return fmt.Sprintf("%s/%s/%s", deployment.GitEndpoint, deployment.RepositoryOwner, deployment.RepositoryName)
 	}
-	if deployment.GitProvider == GitProviderGitlab {
-		return "https://gitlab.com/" + deployment.RepositoryOwner + "/" + deployment.RepositoryName + ".git"
+	if deployment.GitType == GitSsh {
+		return fmt.Sprintf("%s@%s:%s/%s", deployment.GitSshUser, deployment.GitEndpoint, deployment.RepositoryOwner, deployment.RepositoryName)
 	}
 	return ""
 }

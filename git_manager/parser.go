@@ -2,6 +2,7 @@ package gitmanager
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -20,12 +21,13 @@ func init() {
 }
 
 type GitRepoInfo struct {
-	Provider     string
-	Owner        string
-	Name         string
-	HttpEndpoint string
-	SshEndpoint  string
-	SshUser      string
+	IsParsed      bool
+	Provider      string
+	Owner         string
+	Name          string
+	Endpoint      string
+	SshUser       string
+	IsSshEndpoint bool
 }
 
 func ParseGitRepoInfo(gitUrl string) (*GitRepoInfo, error) {
@@ -56,11 +58,13 @@ func ParseGitRepoInfo(gitUrl string) (*GitRepoInfo, error) {
 			return nil, invalidGitUrlError
 		}
 		gitRepoInfo.SshUser = splits[0]
-		gitRepoInfo.SshEndpoint = splits[1]
+		gitRepoInfo.Endpoint = splits[1]
 		gitRepoInfo.Owner = splits[2]
 		gitRepoInfo.Name = splits[3]
 		gitRepoInfo.Name = strings.TrimSuffix(gitRepoInfo.Name, ".git")
-		gitRepoInfo.Provider = gitProvider(gitRepoInfo.SshEndpoint)
+		gitRepoInfo.Provider = gitProvider(gitRepoInfo.Endpoint)
+		gitRepoInfo.IsSshEndpoint = true
+		gitRepoInfo.IsParsed = true
 		return &gitRepoInfo, nil
 	} else if isValidHttpGitUrl(gitUrl) {
 		isHttps := true
@@ -76,16 +80,18 @@ func ParseGitRepoInfo(gitUrl string) (*GitRepoInfo, error) {
 		if len(splits) < 3 {
 			return nil, invalidGitUrlError
 		}
-		gitRepoInfo.HttpEndpoint = splits[0]
+		gitRepoInfo.Endpoint = splits[0]
 		if isHttps {
-			gitRepoInfo.HttpEndpoint = "https://" + gitRepoInfo.HttpEndpoint
+			gitRepoInfo.Endpoint = "https://" + gitRepoInfo.Endpoint
 		} else {
-			gitRepoInfo.HttpEndpoint = "http://" + gitRepoInfo.HttpEndpoint
+			gitRepoInfo.Endpoint = "http://" + gitRepoInfo.Endpoint
 		}
 		gitRepoInfo.Owner = splits[1]
 		gitRepoInfo.Name = splits[2]
 		gitRepoInfo.Name = strings.TrimSuffix(gitRepoInfo.Name, ".git")
-		gitRepoInfo.Provider = gitProvider(gitRepoInfo.HttpEndpoint)
+		gitRepoInfo.Provider = gitProvider(gitRepoInfo.Endpoint)
+		gitRepoInfo.IsSshEndpoint = false
+		gitRepoInfo.IsParsed = true
 		return &gitRepoInfo, nil
 	}
 
@@ -110,4 +116,14 @@ func gitProvider(endpoint string) string {
 	} else {
 		return endpoint
 	}
+}
+
+func (gitRepoInfo *GitRepoInfo) URL() string {
+	if !gitRepoInfo.IsParsed {
+		return ""
+	}
+	if gitRepoInfo.IsSshEndpoint {
+		return fmt.Sprintf("%s@%s:%s/%s", gitRepoInfo.SshUser, gitRepoInfo.Endpoint, gitRepoInfo.Owner, gitRepoInfo.Name)
+	}
+	return fmt.Sprintf("%s/%s/%s", gitRepoInfo.Endpoint, gitRepoInfo.Owner, gitRepoInfo.Name)
 }

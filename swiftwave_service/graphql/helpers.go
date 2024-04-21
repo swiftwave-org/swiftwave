@@ -18,18 +18,6 @@ import (
 	"strings"
 )
 
-func generateGitUrl(provider model.GitProvider, owner string, repo string) string {
-	if provider == model.GitProviderGithub {
-		return fmt.Sprintf("https://github.com/%s/%s", owner, repo)
-	} else if provider == model.GitProviderGitlab {
-		return fmt.Sprintf("https://gitlab.com/%s/%s", owner, repo)
-	} else if provider == model.GitProviderNone {
-		return ""
-	} else {
-		return ""
-	}
-}
-
 func convertMapToDockerConfigBuildArgs(input map[string]dockerconfiggenerator.Variable) []*model.DockerConfigBuildArg {
 	var output = make([]*model.DockerConfigBuildArg, 0)
 	for key, value := range input {

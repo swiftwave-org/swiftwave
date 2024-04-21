@@ -14,10 +14,9 @@ enum DeploymentStatus {
     stalled
 }
 
-enum GitProvider {
-    none
-    github
-    gitlab
+enum GitType {
+    http
+    ssh
 }
 
 type Deployment {
@@ -28,10 +27,14 @@ type Deployment {
     # required for upstreamType = "git"
     gitCredentialID: Uint!
     gitCredential: GitCredential!
-    gitProvider: GitProvider!
+    gitType: GitType!
+    gitProvider: String!
+    gitEndpoint: String!
+    gitSshUser: String!
     repositoryOwner: String!
     repositoryName: String!
     repositoryBranch: String!
+    repositoryUrl: String!
     commitHash: String!
     codePath: String!
     # required for upstreamType = "SourceCode"

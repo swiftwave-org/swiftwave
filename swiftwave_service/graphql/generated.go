@@ -124,13 +124,17 @@ type ComplexityRoot struct {
 		Dockerfile                   func(childComplexity int) int
 		GitCredential                func(childComplexity int) int
 		GitCredentialID              func(childComplexity int) int
+		GitEndpoint                  func(childComplexity int) int
 		GitProvider                  func(childComplexity int) int
+		GitSSHUser                   func(childComplexity int) int
+		GitType                      func(childComplexity int) int
 		ID                           func(childComplexity int) int
 		ImageRegistryCredential      func(childComplexity int) int
 		ImageRegistryCredentialID    func(childComplexity int) int
 		RepositoryBranch             func(childComplexity int) int
 		RepositoryName               func(childComplexity int) int
 		RepositoryOwner              func(childComplexity int) int
+		RepositoryURL                func(childComplexity int) int
 		SourceCodeCompressedFileName func(childComplexity int) int
 		Status                       func(childComplexity int) int
 		UpstreamType                 func(childComplexity int) int
@@ -919,12 +923,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Deployment.GitCredentialID(childComplexity), true
 
+	case "Deployment.gitEndpoint":
+		if e.complexity.Deployment.GitEndpoint == nil {
+			break
+		}
+
+		return e.complexity.Deployment.GitEndpoint(childComplexity), true
+
 	case "Deployment.gitProvider":
 		if e.complexity.Deployment.GitProvider == nil {
 			break
 		}
 
 		return e.complexity.Deployment.GitProvider(childComplexity), true
+
+	case "Deployment.gitSshUser":
+		if e.complexity.Deployment.GitSSHUser == nil {
+			break
+		}
+
+		return e.complexity.Deployment.GitSSHUser(childComplexity), true
+
+	case "Deployment.gitType":
+		if e.complexity.Deployment.GitType == nil {
+			break
+		}
+
+		return e.complexity.Deployment.GitType(childComplexity), true
 
 	case "Deployment.id":
 		if e.complexity.Deployment.ID == nil {
@@ -967,6 +992,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Deployment.RepositoryOwner(childComplexity), true
+
+	case "Deployment.repositoryUrl":
+		if e.complexity.Deployment.RepositoryURL == nil {
+			break
+		}
+
+		return e.complexity.Deployment.RepositoryURL(childComplexity), true
 
 	case "Deployment.sourceCodeCompressedFileName":
 		if e.complexity.Deployment.SourceCodeCompressedFileName == nil {
@@ -4835,14 +4867,22 @@ func (ec *executionContext) fieldContext_Application_latestDeployment(ctx contex
 				return ec.fieldContext_Deployment_gitCredentialID(ctx, field)
 			case "gitCredential":
 				return ec.fieldContext_Deployment_gitCredential(ctx, field)
+			case "gitType":
+				return ec.fieldContext_Deployment_gitType(ctx, field)
 			case "gitProvider":
 				return ec.fieldContext_Deployment_gitProvider(ctx, field)
+			case "gitEndpoint":
+				return ec.fieldContext_Deployment_gitEndpoint(ctx, field)
+			case "gitSshUser":
+				return ec.fieldContext_Deployment_gitSshUser(ctx, field)
 			case "repositoryOwner":
 				return ec.fieldContext_Deployment_repositoryOwner(ctx, field)
 			case "repositoryName":
 				return ec.fieldContext_Deployment_repositoryName(ctx, field)
 			case "repositoryBranch":
 				return ec.fieldContext_Deployment_repositoryBranch(ctx, field)
+			case "repositoryUrl":
+				return ec.fieldContext_Deployment_repositoryUrl(ctx, field)
 			case "commitHash":
 				return ec.fieldContext_Deployment_commitHash(ctx, field)
 			case "codePath":
@@ -4921,14 +4961,22 @@ func (ec *executionContext) fieldContext_Application_deployments(ctx context.Con
 				return ec.fieldContext_Deployment_gitCredentialID(ctx, field)
 			case "gitCredential":
 				return ec.fieldContext_Deployment_gitCredential(ctx, field)
+			case "gitType":
+				return ec.fieldContext_Deployment_gitType(ctx, field)
 			case "gitProvider":
 				return ec.fieldContext_Deployment_gitProvider(ctx, field)
+			case "gitEndpoint":
+				return ec.fieldContext_Deployment_gitEndpoint(ctx, field)
+			case "gitSshUser":
+				return ec.fieldContext_Deployment_gitSshUser(ctx, field)
 			case "repositoryOwner":
 				return ec.fieldContext_Deployment_repositoryOwner(ctx, field)
 			case "repositoryName":
 				return ec.fieldContext_Deployment_repositoryName(ctx, field)
 			case "repositoryBranch":
 				return ec.fieldContext_Deployment_repositoryBranch(ctx, field)
+			case "repositoryUrl":
+				return ec.fieldContext_Deployment_repositoryUrl(ctx, field)
 			case "commitHash":
 				return ec.fieldContext_Deployment_commitHash(ctx, field)
 			case "codePath":
@@ -6469,6 +6517,50 @@ func (ec *executionContext) fieldContext_Deployment_gitCredential(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _Deployment_gitType(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_gitType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GitType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.GitType)
+	fc.Result = res
+	return ec.marshalNGitType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_gitType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type GitType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Deployment_gitProvider(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Deployment_gitProvider(ctx, field)
 	if err != nil {
@@ -6495,9 +6587,9 @@ func (ec *executionContext) _Deployment_gitProvider(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.GitProvider)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNGitProvider2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Deployment_gitProvider(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6507,7 +6599,95 @@ func (ec *executionContext) fieldContext_Deployment_gitProvider(ctx context.Cont
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type GitProvider does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_gitEndpoint(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_gitEndpoint(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GitEndpoint, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_gitEndpoint(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_gitSshUser(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_gitSshUser(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GitSSHUser, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_gitSshUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6633,6 +6813,50 @@ func (ec *executionContext) _Deployment_repositoryBranch(ctx context.Context, fi
 }
 
 func (ec *executionContext) fieldContext_Deployment_repositoryBranch(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Deployment_repositoryUrl(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_repositoryUrl(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RepositoryURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_repositoryUrl(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Deployment",
 		Field:      field,
@@ -8385,14 +8609,22 @@ func (ec *executionContext) fieldContext_GitCredential_deployments(ctx context.C
 				return ec.fieldContext_Deployment_gitCredentialID(ctx, field)
 			case "gitCredential":
 				return ec.fieldContext_Deployment_gitCredential(ctx, field)
+			case "gitType":
+				return ec.fieldContext_Deployment_gitType(ctx, field)
 			case "gitProvider":
 				return ec.fieldContext_Deployment_gitProvider(ctx, field)
+			case "gitEndpoint":
+				return ec.fieldContext_Deployment_gitEndpoint(ctx, field)
+			case "gitSshUser":
+				return ec.fieldContext_Deployment_gitSshUser(ctx, field)
 			case "repositoryOwner":
 				return ec.fieldContext_Deployment_repositoryOwner(ctx, field)
 			case "repositoryName":
 				return ec.fieldContext_Deployment_repositoryName(ctx, field)
 			case "repositoryBranch":
 				return ec.fieldContext_Deployment_repositoryBranch(ctx, field)
+			case "repositoryUrl":
+				return ec.fieldContext_Deployment_repositoryUrl(ctx, field)
 			case "commitHash":
 				return ec.fieldContext_Deployment_commitHash(ctx, field)
 			case "codePath":
@@ -8647,14 +8879,22 @@ func (ec *executionContext) fieldContext_ImageRegistryCredential_deployments(ctx
 				return ec.fieldContext_Deployment_gitCredentialID(ctx, field)
 			case "gitCredential":
 				return ec.fieldContext_Deployment_gitCredential(ctx, field)
+			case "gitType":
+				return ec.fieldContext_Deployment_gitType(ctx, field)
 			case "gitProvider":
 				return ec.fieldContext_Deployment_gitProvider(ctx, field)
+			case "gitEndpoint":
+				return ec.fieldContext_Deployment_gitEndpoint(ctx, field)
+			case "gitSshUser":
+				return ec.fieldContext_Deployment_gitSshUser(ctx, field)
 			case "repositoryOwner":
 				return ec.fieldContext_Deployment_repositoryOwner(ctx, field)
 			case "repositoryName":
 				return ec.fieldContext_Deployment_repositoryName(ctx, field)
 			case "repositoryBranch":
 				return ec.fieldContext_Deployment_repositoryBranch(ctx, field)
+			case "repositoryUrl":
+				return ec.fieldContext_Deployment_repositoryUrl(ctx, field)
 			case "commitHash":
 				return ec.fieldContext_Deployment_commitHash(ctx, field)
 			case "codePath":
@@ -14314,14 +14554,22 @@ func (ec *executionContext) fieldContext_Query_deployment(ctx context.Context, f
 				return ec.fieldContext_Deployment_gitCredentialID(ctx, field)
 			case "gitCredential":
 				return ec.fieldContext_Deployment_gitCredential(ctx, field)
+			case "gitType":
+				return ec.fieldContext_Deployment_gitType(ctx, field)
 			case "gitProvider":
 				return ec.fieldContext_Deployment_gitProvider(ctx, field)
+			case "gitEndpoint":
+				return ec.fieldContext_Deployment_gitEndpoint(ctx, field)
+			case "gitSshUser":
+				return ec.fieldContext_Deployment_gitSshUser(ctx, field)
 			case "repositoryOwner":
 				return ec.fieldContext_Deployment_repositoryOwner(ctx, field)
 			case "repositoryName":
 				return ec.fieldContext_Deployment_repositoryName(ctx, field)
 			case "repositoryBranch":
 				return ec.fieldContext_Deployment_repositoryBranch(ctx, field)
+			case "repositoryUrl":
+				return ec.fieldContext_Deployment_repositoryUrl(ctx, field)
 			case "commitHash":
 				return ec.fieldContext_Deployment_commitHash(ctx, field)
 			case "codePath":
@@ -20649,7 +20897,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "capabilities", "sysctls", "dockerfile", "buildArgs", "deploymentMode", "replicas", "upstreamType", "command", "gitCredentialID", "gitProvider", "repositoryOwner", "repositoryName", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID", "group"}
+	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "capabilities", "sysctls", "dockerfile", "buildArgs", "deploymentMode", "replicas", "upstreamType", "command", "gitCredentialID", "repositoryUrl", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID", "group"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -20740,27 +20988,13 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 				return it, err
 			}
 			it.GitCredentialID = data
-		case "gitProvider":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gitProvider"))
-			data, err := ec.unmarshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.GitProvider = data
-		case "repositoryOwner":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryOwner"))
+		case "repositoryUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryUrl"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.RepositoryOwner = data
-		case "repositoryName":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryName"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.RepositoryName = data
+			it.RepositoryURL = data
 		case "repositoryBranch":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryBranch"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -20953,7 +21187,7 @@ func (ec *executionContext) unmarshalInputDockerConfigGeneratorInput(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"sourceType", "gitCredentialID", "gitProvider", "repositoryOwner", "repositoryName", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "customDockerFile"}
+	fieldsInOrder := [...]string{"sourceType", "gitCredentialID", "repositoryUrl", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "customDockerFile"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -20974,27 +21208,13 @@ func (ec *executionContext) unmarshalInputDockerConfigGeneratorInput(ctx context
 				return it, err
 			}
 			it.GitCredentialID = data
-		case "gitProvider":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gitProvider"))
-			data, err := ec.unmarshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.GitProvider = data
-		case "repositoryOwner":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryOwner"))
+		case "repositoryUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryUrl"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.RepositoryOwner = data
-		case "repositoryName":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryName"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.RepositoryName = data
+			it.RepositoryURL = data
 		case "repositoryBranch":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repositoryBranch"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -22418,8 +22638,23 @@ func (ec *executionContext) _Deployment(ctx context.Context, sel ast.SelectionSe
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "gitType":
+			out.Values[i] = ec._Deployment_gitType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "gitProvider":
 			out.Values[i] = ec._Deployment_gitProvider(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "gitEndpoint":
+			out.Values[i] = ec._Deployment_gitEndpoint(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "gitSshUser":
+			out.Values[i] = ec._Deployment_gitSshUser(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
@@ -22435,6 +22670,11 @@ func (ec *executionContext) _Deployment(ctx context.Context, sel ast.SelectionSe
 			}
 		case "repositoryBranch":
 			out.Values[i] = ec._Deployment_repositoryBranch(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "repositoryUrl":
+			out.Values[i] = ec._Deployment_repositoryUrl(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
@@ -26691,13 +26931,13 @@ func (ec *executionContext) unmarshalNGitCredentialRepositoryAccessInput2github�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNGitProvider2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, v interface{}) (model.GitProvider, error) {
-	var res model.GitProvider
+func (ec *executionContext) unmarshalNGitType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitType(ctx context.Context, v interface{}) (model.GitType, error) {
+	var res model.GitType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNGitProvider2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, sel ast.SelectionSet, v model.GitProvider) graphql.Marshaler {
+func (ec *executionContext) marshalNGitType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitType(ctx context.Context, sel ast.SelectionSet, v model.GitType) graphql.Marshaler {
 	return v
 }
 
@@ -28129,22 +28369,6 @@ func (ec *executionContext) marshalOFileInfo2ᚖgithubᚗcomᚋswiftwaveᚑorg�
 		return graphql.Null
 	}
 	return ec._FileInfo(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, v interface{}) (*model.GitProvider, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(model.GitProvider)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOGitProvider2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitProvider(ctx context.Context, sel ast.SelectionSet, v *model.GitProvider) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) unmarshalOPasswordUpdateInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐPasswordUpdateInput(ctx context.Context, v interface{}) (*model.PasswordUpdateInput, error) {

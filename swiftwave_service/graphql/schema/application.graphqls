@@ -62,9 +62,7 @@ input ApplicationInput {
     command: String! # docker run command (can be blank)
     # required for upstreamType = "git"
     gitCredentialID: Uint
-    gitProvider: GitProvider
-    repositoryOwner: String
-    repositoryName: String
+    repositoryUrl: String
     repositoryBranch: String
     codePath: String
     # required for upstreamType = "SourceCode"

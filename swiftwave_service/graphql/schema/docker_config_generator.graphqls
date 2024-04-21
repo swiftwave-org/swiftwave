@@ -8,9 +8,7 @@ input DockerConfigGeneratorInput {
     sourceType: DockerConfigSourceType!
     #  sourceType == git
     gitCredentialID: Uint
-    gitProvider: GitProvider
-    repositoryOwner: String
-    repositoryName: String
+    repositoryUrl: String
     repositoryBranch: String
     codePath: String
     #  sourceType == sourceCode

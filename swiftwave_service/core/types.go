@@ -97,12 +97,12 @@ const (
 	DeploymentStalled             DeploymentStatus = "stalled"
 )
 
-// GitCredentialType type of git credential
-type GitCredentialType string
+// GitType type of git credential
+type GitType string
 
 const (
-	GitHttpCredential GitCredentialType = "http"
-	GitSshCredential  GitCredentialType = "ssh"
+	GitHttp GitType = "http"
+	GitSsh  GitType = "ssh"
 )
 
 // ProtocolType : type of protocol for ingress rule

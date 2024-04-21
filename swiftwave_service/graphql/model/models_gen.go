@@ -48,9 +48,7 @@ type ApplicationInput struct {
 	UpstreamType                 UpstreamType                    `json:"upstreamType"`
 	Command                      string                          `json:"command"`
 	GitCredentialID              *uint                           `json:"gitCredentialID,omitempty"`
-	GitProvider                  *GitProvider                    `json:"gitProvider,omitempty"`
-	RepositoryOwner              *string                         `json:"repositoryOwner,omitempty"`
-	RepositoryName               *string                         `json:"repositoryName,omitempty"`
+	RepositoryURL                *string                         `json:"repositoryUrl,omitempty"`
 	RepositoryBranch             *string                         `json:"repositoryBranch,omitempty"`
 	CodePath                     *string                         `json:"codePath,omitempty"`
 	SourceCodeCompressedFileName *string                         `json:"sourceCodeCompressedFileName,omitempty"`
@@ -113,10 +111,14 @@ type Deployment struct {
 	UpstreamType                 UpstreamType             `json:"upstreamType"`
 	GitCredentialID              uint                     `json:"gitCredentialID"`
 	GitCredential                *GitCredential           `json:"gitCredential"`
-	GitProvider                  GitProvider              `json:"gitProvider"`
+	GitType                      GitType                  `json:"gitType"`
+	GitProvider                  string                   `json:"gitProvider"`
+	GitEndpoint                  string                   `json:"gitEndpoint"`
+	GitSSHUser                   string                   `json:"gitSshUser"`
 	RepositoryOwner              string                   `json:"repositoryOwner"`
 	RepositoryName               string                   `json:"repositoryName"`
 	RepositoryBranch             string                   `json:"repositoryBranch"`
+	RepositoryURL                string                   `json:"repositoryUrl"`
 	CommitHash                   string                   `json:"commitHash"`
 	CodePath                     string                   `json:"codePath"`
 	SourceCodeCompressedFileName string                   `json:"sourceCodeCompressedFileName"`
@@ -144,9 +146,7 @@ type DockerConfigBuildArg struct {
 type DockerConfigGeneratorInput struct {
 	SourceType                   DockerConfigSourceType `json:"sourceType"`
 	GitCredentialID              *uint                  `json:"gitCredentialID,omitempty"`
-	GitProvider                  *GitProvider           `json:"gitProvider,omitempty"`
-	RepositoryOwner              *string                `json:"repositoryOwner,omitempty"`
-	RepositoryName               *string                `json:"repositoryName,omitempty"`
+	RepositoryURL                *string                `json:"repositoryUrl,omitempty"`
 	RepositoryBranch             *string                `json:"repositoryBranch,omitempty"`
 	CodePath                     *string                `json:"codePath,omitempty"`
 	SourceCodeCompressedFileName *string                `json:"sourceCodeCompressedFileName,omitempty"`
@@ -683,46 +683,44 @@ func (e DomainSSLStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type GitProvider string
+type GitType string
 
 const (
-	GitProviderNone   GitProvider = "none"
-	GitProviderGithub GitProvider = "github"
-	GitProviderGitlab GitProvider = "gitlab"
+	GitTypeHTTP GitType = "http"
+	GitTypeSSH  GitType = "ssh"
 )
 
-var AllGitProvider = []GitProvider{
-	GitProviderNone,
-	GitProviderGithub,
-	GitProviderGitlab,
+var AllGitType = []GitType{
+	GitTypeHTTP,
+	GitTypeSSH,
 }
 
-func (e GitProvider) IsValid() bool {
+func (e GitType) IsValid() bool {
 	switch e {
-	case GitProviderNone, GitProviderGithub, GitProviderGitlab:
+	case GitTypeHTTP, GitTypeSSH:
 		return true
 	}
 	return false
 }
 
-func (e GitProvider) String() string {
+func (e GitType) String() string {
 	return string(e)
 }
 
-func (e *GitProvider) UnmarshalGQL(v interface{}) error {
+func (e *GitType) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = GitProvider(str)
+	*e = GitType(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid GitProvider", str)
+		return fmt.Errorf("%s is not a valid GitType", str)
 	}
 	return nil
 }
 
-func (e GitProvider) MarshalGQL(w io.Writer) {
+func (e GitType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
