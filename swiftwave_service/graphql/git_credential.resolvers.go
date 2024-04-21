@@ -120,7 +120,7 @@ func (r *queryResolver) CheckGitCredentialRepositoryAccess(ctx context.Context, 
 			return false, errors.New("git credential not found")
 		}
 	}
-	_, err := GIT.FetchBranches(input.RepositoryURL, gitCredential.Username, gitCredential.Password)
+	_, err := GIT.FetchBranches(input.RepositoryURL, gitCredential.Username, gitCredential.Password, gitCredential.SshPrivateKey)
 	return err == nil, nil
 }
 

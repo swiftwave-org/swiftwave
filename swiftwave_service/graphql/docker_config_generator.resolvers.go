@@ -37,6 +37,7 @@ func (r *queryResolver) DockerConfigGenerator(ctx context.Context, input model.D
 	} else if input.SourceType == model.DockerConfigSourceTypeGit {
 		gitUsername := ""
 		gitPassword := ""
+		gitPrivateKey := ""
 		if input.GitCredentialID != nil {
 			var gitCredential core.GitCredential
 			if err := gitCredential.FindById(ctx, r.ServiceManager.DbClient, *input.GitCredentialID); err != nil {
@@ -44,6 +45,7 @@ func (r *queryResolver) DockerConfigGenerator(ctx context.Context, input model.D
 			}
 			gitUsername = gitCredential.Username
 			gitPassword = gitCredential.Password
+			gitPrivateKey = gitCredential.SshPrivateKey
 		}
 		if input.RepositoryURL == nil || input.RepositoryBranch == nil {
 			return nil, errors.New("invalid git url, repository owner, repository name or branch provided")
@@ -56,7 +58,7 @@ func (r *queryResolver) DockerConfigGenerator(ctx context.Context, input model.D
 			input.CodePath = new(string)
 			*input.CodePath = ""
 		}
-		config, err := r.ServiceManager.DockerConfigGenerator.GenerateConfigFromGitRepository(repoInfo.URL(), *input.RepositoryBranch, *input.CodePath, gitUsername, gitPassword)
+		config, err := r.ServiceManager.DockerConfigGenerator.GenerateConfigFromGitRepository(repoInfo.URL(), *input.RepositoryBranch, *input.CodePath, gitUsername, gitPassword, gitPrivateKey)
 		if err != nil {
 			return nil, errors.New("failed to generate docker config from git repository")
 		}

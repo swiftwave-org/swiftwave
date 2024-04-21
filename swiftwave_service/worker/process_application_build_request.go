@@ -142,6 +142,7 @@ func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, _ g
 func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, _ context.CancelFunc, dockerManager *containermanger.Manager) error {
 	gitUsername := ""
 	gitPassword := ""
+	gitPrivateKey := ""
 
 	if deployment.GitCredentialID != nil {
 		// fetch git credentials
@@ -153,6 +154,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 		}
 		gitUsername = gitCredentials.Username
 		gitPassword = gitCredentials.Password
+		gitPrivateKey = gitCredentials.SshPrivateKey
 	}
 	// create temporary directory for git clone
 	tempDirectory := "/tmp/" + uuid.New().String()
@@ -168,7 +170,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 		}
 	}(tempDirectory)
 	// fetch commit hash
-	commitHash, err := gitmanager.FetchLatestCommitHash(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitUsername, gitPassword)
+	commitHash, err := gitmanager.FetchLatestCommitHash(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitUsername, gitPassword, gitPrivateKey)
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch latest commit hash\n", true)
 		return err
@@ -183,7 +185,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 	}
 	// clone git repository
 	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Cloning git repository > "+deployment.GitRepositoryURL()+"\n", false)
-	err = gitmanager.CloneRepository(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitUsername, gitPassword, tempDirectory)
+	err = gitmanager.CloneRepository(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitUsername, gitPassword, gitPrivateKey, tempDirectory)
 	if err != nil {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to clone git repository\n", true)
 		return err

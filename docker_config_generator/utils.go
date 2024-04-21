@@ -13,14 +13,14 @@ import (
 )
 
 // Generate DockerConfig from git repository.
-func (m Manager) GenerateConfigFromGitRepository(git_url string, branch string, codePath string, username string, password string) (DockerFileConfig, error) {
+func (m Manager) GenerateConfigFromGitRepository(git_url string, branch string, codePath string, username string, password string, privateKey string) (DockerFileConfig, error) {
 	tmpFolder := "/tmp/" + uuid.New().String()
 	if os.Mkdir(tmpFolder, 0777) != nil {
 		return DockerFileConfig{}, errors.New("failed to create tmp folder")
 	}
 	defer deleteDirectory(tmpFolder)
 	// Clone repository
-	err := GIT.CloneRepository(git_url, branch, username, password, tmpFolder)
+	err := GIT.CloneRepository(git_url, branch, username, password, privateKey, tmpFolder)
 	if err != nil {
 		return DockerFileConfig{}, errors.New("failed to clone repository")
 	}
