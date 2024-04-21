@@ -2,10 +2,16 @@ package graphql
 
 import (
 	"context"
+	"crypto"
+	"encoding/base64"
+	"encoding/pem"
 	"fmt"
 	gitmanager "github.com/swiftwave-org/swiftwave/git_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/stack_parser"
+	"golang.org/x/crypto/ed25519"
+	"golang.org/x/crypto/ssh"
 	"gorm.io/gorm"
+	"strings"
 	"time"
 
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
@@ -22,19 +28,61 @@ import (
 // gitCredentialToGraphqlObject : converts GitCredential to GitCredentialGraphqlObject
 func gitCredentialToGraphqlObject(record *core.GitCredential) *model.GitCredential {
 	return &model.GitCredential{
-		ID:       record.ID,
-		Name:     record.Name,
-		Username: record.Username,
-		Password: record.Password,
+		ID:            record.ID,
+		Type:          model.GitType(record.Type),
+		Name:          record.Name,
+		Username:      record.Username,
+		Password:      record.Password,
+		SSHPublicKey:  record.SshPublicKey,
+		SSHPrivateKey: record.SshPrivateKey,
 	}
 }
 
 // gitCredentialInputToDatabaseObject : converts GitCredentialInput to GitCredentialDatabaseObject
 func gitCredentialInputToDatabaseObject(record *model.GitCredentialInput) *core.GitCredential {
+	sshPrivateKey := ""
+	sshPublicKey := ""
+
+	record.SSHPrivateKey = strings.TrimSpace(record.SSHPrivateKey)
+
+	if record.Type == model.GitTypeSSH {
+		if strings.Compare(record.SSHPrivateKey, "") == 0 {
+			// create ssh private key
+			pub, priv, err := ed25519.GenerateKey(nil)
+			if err == nil {
+				p, err := ssh.MarshalPrivateKey(crypto.PrivateKey(priv), "")
+				if err == nil {
+					privateKeyPem := pem.EncodeToMemory(p)
+					sshPrivateKey = string(privateKeyPem) + "\n"
+					publicKey, err := ssh.NewPublicKey(pub)
+					if err == nil {
+						sshPublicKey = "ssh-ed25519" + " " + base64.StdEncoding.EncodeToString(publicKey.Marshal()) + " swiftwave"
+					}
+				}
+			}
+		} else {
+			// parse ssh private key
+			sshPrivateKey = record.SSHPrivateKey
+			if !strings.HasSuffix(sshPrivateKey, "\n") {
+				sshPrivateKey += "\n"
+			}
+			p, err := ssh.ParsePrivateKey([]byte(sshPrivateKey))
+			if err == nil {
+				if p.PublicKey().Type() == ssh.KeyAlgoED25519 {
+					sshPublicKey = "ssh-ed25519" + " " + base64.StdEncoding.EncodeToString(p.PublicKey().Marshal()) + " swiftwave"
+				}
+			}
+		}
+	}
+
+	// parse ssh private key
 	return &core.GitCredential{
-		Name:     record.Name,
-		Username: record.Username,
-		Password: record.Password,
+		Name:          record.Name,
+		Type:          core.GitType(record.Type),
+		Username:      record.Username,
+		Password:      record.Password,
+		SshPrivateKey: sshPrivateKey,
+		SshPublicKey:  sshPublicKey,
 	}
 }
 
