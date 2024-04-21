@@ -20,7 +20,7 @@ func IsSystemSetupRequired() (bool, error) {
 		return false, err
 	}
 	// Create db connection
-	dbConnection, err := db.GetClient(localConfig, 1)
+	dbConnection, err := db.GetClient(localConfig, 10)
 	if err != nil {
 		return false, errors.New("failed to connect to database")
 	}

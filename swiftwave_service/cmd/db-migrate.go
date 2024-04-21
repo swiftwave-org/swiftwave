@@ -12,7 +12,7 @@ var dbMigrateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		autorunDBIfRequired()
 		// Initiating database client
-		client, err := db.GetClient(config.LocalConfig, 1)
+		client, err := db.GetClient(config.LocalConfig, 10)
 		if err != nil {
 			printError("Failed to create database client")
 			return

@@ -109,7 +109,7 @@ var generateCertificateCommand = &cobra.Command{
 		echoServer.HideBanner = true
 		echoServer.Pre(middleware.RemoveTrailingSlash())
 		// Initiating database client
-		dbClient, err := db.GetClient(config.LocalConfig, 1)
+		dbClient, err := db.GetClient(config.LocalConfig, 10)
 		if err != nil {
 			printError("Failed to connect to database")
 			return
