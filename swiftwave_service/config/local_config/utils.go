@@ -128,6 +128,12 @@ func FillDefaults(config *Config) error {
 	if config.ServiceConfig.SSHTimeout == 0 {
 		config.ServiceConfig.SSHTimeout = defaultSSHTimeout
 	}
+	if strings.Compare(config.EnvironmentVariables.SshAuthSock, "") == 0 {
+		config.EnvironmentVariables.SshAuthSock = os.Getenv("SSH_AUTH_SOCK")
+	}
+	if strings.Compare(config.EnvironmentVariables.SshKnownHosts, "") == 0 {
+		config.EnvironmentVariables.SshKnownHosts = os.Getenv("SSH_KNOWN_HOSTS")
+	}
 	return nil
 }
 

@@ -7,6 +7,7 @@ import (
 	swiftwave "github.com/swiftwave-org/swiftwave/swiftwave_service"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config/bootstrap"
 	"os"
+	"strings"
 )
 
 var startCmd = &cobra.Command{
@@ -17,6 +18,26 @@ var startCmd = &cobra.Command{
 		if config == nil {
 			return
 		}
+		_ = os.Setenv("SSH_AUTH_SOCK", config.LocalConfig.EnvironmentVariables.SshAuthSock)
+		_ = os.Setenv("SSH_KNOWN_HOSTS", config.LocalConfig.EnvironmentVariables.SshKnownHosts)
+
+		isCheckForGitSshConfigFailed := false
+
+		if strings.Compare(config.LocalConfig.EnvironmentVariables.SshAuthSock, "") == 0 {
+			printError("SSH_AUTH_SOCK is not available in environment variables\n")
+			printInfo("Run `swiftwave config` to edit the config file and set SSH_AUTH_SOCK")
+			isCheckForGitSshConfigFailed = true
+		}
+		if strings.Compare(config.LocalConfig.EnvironmentVariables.SshKnownHosts, "") == 0 {
+			printError("SSH_KNOWN_HOSTS is not available in environment variables\n")
+			printInfo("Run `swiftwave config` to edit the config file and set SSH_KNOWN_HOSTS")
+			isCheckForGitSshConfigFailed = true
+		}
+
+		if isCheckForGitSshConfigFailed {
+			os.Exit(1)
+		}
+
 		if config.LocalConfig.IsDevelopmentMode {
 			color.Yellow("Running in Development mode")
 			color.Red("This can impose security risks. Turn off development mode (swiftwave config) in production environment.")
