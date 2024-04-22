@@ -18,8 +18,16 @@ var startCmd = &cobra.Command{
 		if config == nil {
 			return
 		}
-		_ = os.Setenv("SSH_AUTH_SOCK", config.LocalConfig.EnvironmentVariables.SshAuthSock)
-		_ = os.Setenv("SSH_KNOWN_HOSTS", config.LocalConfig.EnvironmentVariables.SshKnownHosts)
+		err := os.Setenv("SSH_AUTH_SOCK", config.LocalConfig.EnvironmentVariables.SshAuthSock)
+		if err != nil {
+			printError("Failed to set SSH_AUTH_SOCK in environment variables\n" + err.Error())
+			os.Exit(1)
+		}
+		err = os.Setenv("SSH_KNOWN_HOSTS", config.LocalConfig.EnvironmentVariables.SshKnownHosts)
+		if err != nil {
+			printError("Failed to set SSH_KNOWN_HOSTS in environment variables\n" + err.Error())
+			os.Exit(1)
+		}
 
 		isCheckForGitSshConfigFailed := false
 
