@@ -42,7 +42,7 @@ Swiftwave is in its initial stages, with limited awareness among users. To promo
 ### ✨ Authors
 
 <div align="center">
-    <a href="https://github.com/usebruno/bruno/graphs/contributors">
+    <a href="https://github.com/swiftwave-org/swiftwave/graphs/contributors">
         <img src="https://contrib.rocks/image?repo=swiftwave-org/swiftwave" />
     </a>
 </div>
