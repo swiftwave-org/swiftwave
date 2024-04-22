@@ -8,7 +8,6 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
-
 	"github.com/go-git/go-git/v5/storage/memory"
 	"os"
 	"sort"
@@ -127,18 +126,26 @@ func getAuthMethod(repoInfo *GitRepoInfo, username string, password string, priv
 	}
 	var auth transport.AuthMethod
 	// If username and password both are provided, then use only http auth
-	if username != "" && password != "" && !repoInfo.IsSshEndpoint {
+	if strings.Compare(username, "") != 0 && strings.Compare(password, "") != 0 && !repoInfo.IsSshEndpoint {
 		httpAuth := &http.BasicAuth{
 			Username: username,
 			Password: password,
 		}
 		auth = httpAuth
-	} else if privateKey != "" && repoInfo.IsSshEndpoint {
-		privateKeyAuth, err := ssh.NewPublicKeys(repoInfo.SshUser, []byte(privateKey), "")
-		if err != nil {
-			return nil, err
+	} else if repoInfo.IsSshEndpoint {
+		if strings.Compare(privateKey, "") != 0 {
+			privateKeyAuth, err := ssh.NewPublicKeys(repoInfo.SshUser, []byte(privateKey), "")
+			if err != nil {
+				return nil, err
+			}
+			auth = privateKeyAuth
+		} else {
+			sshAgentAuth, err := ssh.NewSSHAgentAuth(repoInfo.SshUser)
+			if err != nil {
+				return nil, err
+			}
+			auth = sshAgentAuth
 		}
-		auth = privateKeyAuth
 	} else {
 		auth = nil
 	}
