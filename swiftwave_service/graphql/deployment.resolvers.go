@@ -7,7 +7,6 @@ package graphql
 import (
 	"context"
 	"errors"
-
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )

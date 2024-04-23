@@ -336,6 +336,10 @@ func deploymentToGraphqlObject(record *core.Deployment) *model.Deployment {
 	if record.ImageRegistryCredentialID != nil {
 		imageRegistryCredentialId = *record.ImageRegistryCredentialID
 	}
+	repositoryUrl := ""
+	if record.UpstreamType == core.UpstreamTypeGit {
+		repositoryUrl = record.GitRepositoryURL()
+	}
 	return &model.Deployment{
 		ID:                           record.ID,
 		ApplicationID:                record.ApplicationID,
@@ -345,6 +349,7 @@ func deploymentToGraphqlObject(record *core.Deployment) *model.Deployment {
 		RepositoryOwner:              record.RepositoryOwner,
 		RepositoryName:               record.RepositoryName,
 		RepositoryBranch:             record.RepositoryBranch,
+		RepositoryURL:                repositoryUrl,
 		CommitHash:                   record.CommitHash,
 		CodePath:                     record.CodePath,
 		SourceCodeCompressedFileName: record.SourceCodeCompressedFileName,
