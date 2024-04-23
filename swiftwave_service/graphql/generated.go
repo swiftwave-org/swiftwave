@@ -182,14 +182,12 @@ type ComplexityRoot struct {
 	}
 
 	GitCredential struct {
-		Deployments   func(childComplexity int) int
-		ID            func(childComplexity int) int
-		Name          func(childComplexity int) int
-		Password      func(childComplexity int) int
-		SSHPrivateKey func(childComplexity int) int
-		SSHPublicKey  func(childComplexity int) int
-		Type          func(childComplexity int) int
-		Username      func(childComplexity int) int
+		Deployments  func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Name         func(childComplexity int) int
+		SSHPublicKey func(childComplexity int) int
+		Type         func(childComplexity int) int
+		Username     func(childComplexity int) int
 	}
 
 	ImageRegistryCredential struct {
@@ -1205,20 +1203,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.GitCredential.Name(childComplexity), true
-
-	case "GitCredential.password":
-		if e.complexity.GitCredential.Password == nil {
-			break
-		}
-
-		return e.complexity.GitCredential.Password(childComplexity), true
-
-	case "GitCredential.sshPrivateKey":
-		if e.complexity.GitCredential.SSHPrivateKey == nil {
-			break
-		}
-
-		return e.complexity.GitCredential.SSHPrivateKey(childComplexity), true
 
 	case "GitCredential.sshPublicKey":
 		if e.complexity.GitCredential.SSHPublicKey == nil {
@@ -6532,10 +6516,6 @@ func (ec *executionContext) fieldContext_Deployment_gitCredential(ctx context.Co
 				return ec.fieldContext_GitCredential_name(ctx, field)
 			case "username":
 				return ec.fieldContext_GitCredential_username(ctx, field)
-			case "password":
-				return ec.fieldContext_GitCredential_password(ctx, field)
-			case "sshPrivateKey":
-				return ec.fieldContext_GitCredential_sshPrivateKey(ctx, field)
 			case "sshPublicKey":
 				return ec.fieldContext_GitCredential_sshPublicKey(ctx, field)
 			case "deployments":
@@ -8588,94 +8568,6 @@ func (ec *executionContext) fieldContext_GitCredential_username(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _GitCredential_password(ctx context.Context, field graphql.CollectedField, obj *model.GitCredential) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GitCredential_password(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Password, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_GitCredential_password(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "GitCredential",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _GitCredential_sshPrivateKey(ctx context.Context, field graphql.CollectedField, obj *model.GitCredential) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GitCredential_sshPrivateKey(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.SSHPrivateKey, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_GitCredential_sshPrivateKey(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "GitCredential",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _GitCredential_sshPublicKey(ctx context.Context, field graphql.CollectedField, obj *model.GitCredential) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_GitCredential_sshPublicKey(ctx, field)
 	if err != nil {
@@ -10575,10 +10467,6 @@ func (ec *executionContext) fieldContext_Mutation_createGitCredential(ctx contex
 				return ec.fieldContext_GitCredential_name(ctx, field)
 			case "username":
 				return ec.fieldContext_GitCredential_username(ctx, field)
-			case "password":
-				return ec.fieldContext_GitCredential_password(ctx, field)
-			case "sshPrivateKey":
-				return ec.fieldContext_GitCredential_sshPrivateKey(ctx, field)
 			case "sshPublicKey":
 				return ec.fieldContext_GitCredential_sshPublicKey(ctx, field)
 			case "deployments":
@@ -10648,10 +10536,6 @@ func (ec *executionContext) fieldContext_Mutation_updateGitCredential(ctx contex
 				return ec.fieldContext_GitCredential_name(ctx, field)
 			case "username":
 				return ec.fieldContext_GitCredential_username(ctx, field)
-			case "password":
-				return ec.fieldContext_GitCredential_password(ctx, field)
-			case "sshPrivateKey":
-				return ec.fieldContext_GitCredential_sshPrivateKey(ctx, field)
 			case "sshPublicKey":
 				return ec.fieldContext_GitCredential_sshPublicKey(ctx, field)
 			case "deployments":
@@ -15142,10 +15026,6 @@ func (ec *executionContext) fieldContext_Query_gitCredentials(ctx context.Contex
 				return ec.fieldContext_GitCredential_name(ctx, field)
 			case "username":
 				return ec.fieldContext_GitCredential_username(ctx, field)
-			case "password":
-				return ec.fieldContext_GitCredential_password(ctx, field)
-			case "sshPrivateKey":
-				return ec.fieldContext_GitCredential_sshPrivateKey(ctx, field)
 			case "sshPublicKey":
 				return ec.fieldContext_GitCredential_sshPublicKey(ctx, field)
 			case "deployments":
@@ -15204,10 +15084,6 @@ func (ec *executionContext) fieldContext_Query_gitCredential(ctx context.Context
 				return ec.fieldContext_GitCredential_name(ctx, field)
 			case "username":
 				return ec.fieldContext_GitCredential_username(ctx, field)
-			case "password":
-				return ec.fieldContext_GitCredential_password(ctx, field)
-			case "sshPrivateKey":
-				return ec.fieldContext_GitCredential_sshPrivateKey(ctx, field)
 			case "sshPublicKey":
 				return ec.fieldContext_GitCredential_sshPublicKey(ctx, field)
 			case "deployments":
@@ -23413,16 +23289,6 @@ func (ec *executionContext) _GitCredential(ctx context.Context, sel ast.Selectio
 			}
 		case "username":
 			out.Values[i] = ec._GitCredential_username(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "password":
-			out.Values[i] = ec._GitCredential_password(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "sshPrivateKey":
-			out.Values[i] = ec._GitCredential_sshPrivateKey(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

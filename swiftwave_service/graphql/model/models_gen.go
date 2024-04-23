@@ -197,14 +197,12 @@ type GitBranchesQueryInput struct {
 }
 
 type GitCredential struct {
-	ID            uint          `json:"id"`
-	Type          GitType       `json:"type"`
-	Name          string        `json:"name"`
-	Username      string        `json:"username"`
-	Password      string        `json:"password"`
-	SSHPrivateKey string        `json:"sshPrivateKey"`
-	SSHPublicKey  string        `json:"sshPublicKey"`
-	Deployments   []*Deployment `json:"deployments"`
+	ID           uint          `json:"id"`
+	Type         GitType       `json:"type"`
+	Name         string        `json:"name"`
+	Username     string        `json:"username"`
+	SSHPublicKey string        `json:"sshPublicKey"`
+	Deployments  []*Deployment `json:"deployments"`
 }
 
 type GitCredentialInput struct {

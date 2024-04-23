@@ -28,13 +28,11 @@ import (
 // gitCredentialToGraphqlObject : converts GitCredential to GitCredentialGraphqlObject
 func gitCredentialToGraphqlObject(record *core.GitCredential) *model.GitCredential {
 	return &model.GitCredential{
-		ID:            record.ID,
-		Type:          model.GitType(record.Type),
-		Name:          record.Name,
-		Username:      record.Username,
-		Password:      record.Password,
-		SSHPublicKey:  record.SshPublicKey,
-		SSHPrivateKey: record.SshPrivateKey,
+		ID:           record.ID,
+		Type:         model.GitType(record.Type),
+		Name:         record.Name,
+		Username:     record.Username,
+		SSHPublicKey: record.SshPublicKey,
 	}
 }
 
