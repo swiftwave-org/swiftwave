@@ -195,10 +195,18 @@ func (deployment *Deployment) GitRepositoryURL() string {
 		return ""
 	}
 	if deployment.GitType == GitHttp {
-		return fmt.Sprintf("%s/%s/%s", deployment.GitEndpoint, deployment.RepositoryOwner, deployment.RepositoryName)
+		if strings.Compare(deployment.RepositoryOwner, "") == 0 {
+			return fmt.Sprintf("%s/%s", deployment.GitEndpoint, deployment.RepositoryName)
+		} else {
+			return fmt.Sprintf("%s/%s/%s", deployment.GitEndpoint, deployment.RepositoryOwner, deployment.RepositoryName)
+		}
 	}
 	if deployment.GitType == GitSsh {
-		return fmt.Sprintf("%s@%s:%s/%s", deployment.GitSshUser, deployment.GitEndpoint, deployment.RepositoryOwner, deployment.RepositoryName)
+		if strings.Compare(deployment.RepositoryOwner, "") == 0 {
+			return fmt.Sprintf("%s@%s:%s", deployment.GitSshUser, deployment.GitEndpoint, deployment.RepositoryName)
+		} else {
+			return fmt.Sprintf("%s@%s:%s/%s", deployment.GitSshUser, deployment.GitEndpoint, deployment.RepositoryOwner, deployment.RepositoryName)
+		}
 	}
 	return ""
 }
