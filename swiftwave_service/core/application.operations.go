@@ -188,7 +188,10 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		UpstreamType:  application.LatestDeployment.UpstreamType,
 		// Fields for UpstreamType = Git
 		GitCredentialID:  gitCredentialID,
+		GitType:          application.LatestDeployment.GitType,
 		GitProvider:      application.LatestDeployment.GitProvider,
+		GitEndpoint:      application.LatestDeployment.GitEndpoint,
+		GitSshUser:       application.LatestDeployment.GitSshUser,
 		RepositoryOwner:  application.LatestDeployment.RepositoryOwner,
 		RepositoryName:   application.LatestDeployment.RepositoryName,
 		RepositoryBranch: application.LatestDeployment.RepositoryBranch,

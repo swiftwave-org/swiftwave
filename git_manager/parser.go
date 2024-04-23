@@ -31,12 +31,6 @@ type GitRepoInfo struct {
 }
 
 func ParseGitRepoInfo(gitUrl string) (*GitRepoInfo, error) {
-	// handle any panic
-	defer func() {
-		if r := recover(); r != nil {
-			return
-		}
-	}()
 	// clean up the git url
 	gitUrl = strings.TrimSpace(gitUrl)
 

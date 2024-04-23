@@ -103,6 +103,9 @@ func (deployment *Deployment) Update(ctx context.Context, db gorm.DB) (*Deployme
 	if deployment.UpstreamType != latestDeployment.UpstreamType ||
 		deployment.GitCredentialID != latestDeployment.GitCredentialID ||
 		deployment.GitProvider != latestDeployment.GitProvider ||
+		deployment.GitType != latestDeployment.GitType ||
+		deployment.GitEndpoint != latestDeployment.GitEndpoint ||
+		deployment.GitSshUser != latestDeployment.GitSshUser ||
 		deployment.RepositoryOwner != latestDeployment.RepositoryOwner ||
 		deployment.RepositoryName != latestDeployment.RepositoryName ||
 		deployment.RepositoryBranch != latestDeployment.RepositoryBranch ||

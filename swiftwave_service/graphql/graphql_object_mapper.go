@@ -267,7 +267,7 @@ func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) 
 		RepositoryOwner:              repoInfo.Owner,
 		RepositoryName:               repoInfo.Name,
 		RepositoryBranch:             DefaultString(record.RepositoryBranch, ""),
-		GitEndpoint:                  repoInfo.URL(),
+		GitEndpoint:                  repoInfo.Endpoint,
 		GitSshUser:                   repoInfo.SshUser,
 		CommitHash:                   "",
 		CodePath:                     DefaultString(record.CodePath, ""),
