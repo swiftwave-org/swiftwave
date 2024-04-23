@@ -203,9 +203,19 @@ func (deployment *Deployment) GitRepositoryURL() string {
 	}
 	if deployment.GitType == GitSsh {
 		if strings.Compare(deployment.RepositoryOwner, "") == 0 {
-			return fmt.Sprintf("%s@%s:%s", deployment.GitSshUser, deployment.GitEndpoint, deployment.RepositoryName)
+			if strings.Contains(deployment.GitEndpoint, ":") {
+				// if port is present, then use v2 ssh format
+				return fmt.Sprintf("ssh://%s@%s/%s", deployment.GitSshUser, deployment.GitEndpoint, deployment.RepositoryName)
+			} else {
+				return fmt.Sprintf("%s@%s:%s", deployment.GitSshUser, deployment.GitEndpoint, deployment.RepositoryName)
+			}
 		} else {
-			return fmt.Sprintf("%s@%s:%s/%s", deployment.GitSshUser, deployment.GitEndpoint, deployment.RepositoryOwner, deployment.RepositoryName)
+			if strings.Contains(deployment.GitEndpoint, ":") {
+				// if port is present, then use v2 ssh format
+				return fmt.Sprintf("ssh://%s@%s/%s/%s", deployment.GitSshUser, deployment.GitEndpoint, deployment.RepositoryOwner, deployment.RepositoryName)
+			} else {
+				return fmt.Sprintf("%s@%s:%s/%s", deployment.GitSshUser, deployment.GitEndpoint, deployment.RepositoryOwner, deployment.RepositoryName)
+			}
 		}
 	}
 	return ""
