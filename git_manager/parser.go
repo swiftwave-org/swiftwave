@@ -10,13 +10,16 @@ import (
 var UnknownParseError = errors.New("unknown parse error")
 var invalidGitUrlError = errors.New("invalid git url")
 
-var sshGitUrlRegexStr = `^.+@.+\:.+\/.+$`
-var sshGitUrlRegex *regexp.Regexp
+var sshGitUrlRegexV1Str = `^.+@.+\:.+\/.+$`
+var sshGitUrlRegexV1 *regexp.Regexp
+var sshGitUrlRegexV2 *regexp.Regexp
+var sshGitUrlRegexV2Str = `^ssh:\/\/.+@.+\/.+$`
 var httpGitUrlRegexStr = `^(https://|http://|).+/.+$`
 var httpGitUrlRegex *regexp.Regexp
 
 func init() {
-	sshGitUrlRegex = regexp.MustCompile(sshGitUrlRegexStr)
+	sshGitUrlRegexV1 = regexp.MustCompile(sshGitUrlRegexV1Str)
+	sshGitUrlRegexV2 = regexp.MustCompile(sshGitUrlRegexV2Str)
 	httpGitUrlRegex = regexp.MustCompile(httpGitUrlRegexStr)
 }
 
@@ -40,10 +43,30 @@ func ParseGitRepoInfo(gitUrl string) (*GitRepoInfo, error) {
 	* https://github.com/swiftwave-org/swiftwave
 	* github.com/swiftwave-org/swiftwave
 	* git@github.com:swiftwave-org/swiftwave.git
+	* v2 ssh format
+	* ssh://git@host.xz:2222/path/to/repo.git/
 	 */
 
 	var gitRepoInfo GitRepoInfo
-	if isValidSSHGitUrl(gitUrl) {
+	if isValidSSHGitUrlV2(gitUrl) {
+		url := strings.TrimPrefix(gitUrl, "ssh://")
+		isSeparator := func(c rune) bool {
+			return c == '@' || c == '/'
+		}
+		splits := strings.FieldsFunc(url, isSeparator)
+		if len(splits) < 3 {
+			return nil, invalidGitUrlError
+		}
+		gitRepoInfo.SshUser = splits[0]
+		gitRepoInfo.Endpoint = splits[1]
+		gitRepoInfo.Owner = strings.Join(splits[2:len(splits)-1], "/")
+		gitRepoInfo.Name = splits[len(splits)-1]
+		gitRepoInfo.Name = strings.TrimSuffix(gitRepoInfo.Name, ".git")
+		gitRepoInfo.Provider = gitProvider(gitRepoInfo.Endpoint)
+		gitRepoInfo.IsSshEndpoint = true
+		gitRepoInfo.IsParsed = true
+		return &gitRepoInfo, nil
+	} else if isValidSSHGitUrlV1(gitUrl) {
 		isSeparator := func(c rune) bool {
 			return c == '@' || c == ':' || c == '/'
 		}
@@ -92,8 +115,12 @@ func ParseGitRepoInfo(gitUrl string) (*GitRepoInfo, error) {
 	return nil, UnknownParseError
 }
 
-func isValidSSHGitUrl(gitUrl string) bool {
-	return sshGitUrlRegex.MatchString(gitUrl)
+func isValidSSHGitUrlV1(gitUrl string) bool {
+	return sshGitUrlRegexV1.MatchString(gitUrl)
+}
+
+func isValidSSHGitUrlV2(gitUrl string) bool {
+	return sshGitUrlRegexV2.MatchString(gitUrl)
 }
 
 func isValidHttpGitUrl(gitUrl string) bool {
@@ -118,9 +145,20 @@ func (gitRepoInfo *GitRepoInfo) URL() string {
 	}
 	if gitRepoInfo.IsSshEndpoint {
 		if strings.Compare(gitRepoInfo.Owner, "") == 0 {
-			return fmt.Sprintf("%s@%s:%s", gitRepoInfo.SshUser, gitRepoInfo.Endpoint, gitRepoInfo.Name)
+			if strings.Contains(gitRepoInfo.Endpoint, ":") {
+				// if port is present, then use v2 ssh format
+				return fmt.Sprintf("ssh://%s@%s/%s", gitRepoInfo.SshUser, gitRepoInfo.Endpoint, gitRepoInfo.Name)
+			} else {
+				return fmt.Sprintf("%s@%s:%s", gitRepoInfo.SshUser, gitRepoInfo.Endpoint, gitRepoInfo.Name)
+			}
 		} else {
-			return fmt.Sprintf("%s@%s:%s/%s", gitRepoInfo.SshUser, gitRepoInfo.Endpoint, gitRepoInfo.Owner, gitRepoInfo.Name)
+			if strings.Contains(gitRepoInfo.Endpoint, ":") {
+				// if port is present, then use v2 ssh format
+				return fmt.Sprintf("ssh://%s@%s/%s/%s", gitRepoInfo.SshUser, gitRepoInfo.Endpoint, gitRepoInfo.Owner, gitRepoInfo.Name)
+			} else {
+				return fmt.Sprintf("%s@%s:%s/%s", gitRepoInfo.SshUser, gitRepoInfo.Endpoint, gitRepoInfo.Owner, gitRepoInfo.Name)
+
+			}
 		}
 	} else {
 		if strings.Compare(gitRepoInfo.Owner, "") == 0 {
