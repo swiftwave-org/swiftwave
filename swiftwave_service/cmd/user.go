@@ -76,7 +76,7 @@ var createUserCmd = &cobra.Command{
 			color.Yellow("Use it only for automation purposes")
 		}
 		// Initiating database client
-		dbClient, err := db.GetClient(config.LocalConfig, 1)
+		dbClient, err := db.GetClient(config.LocalConfig, 10)
 		if err != nil {
 			printError("Failed to connect to database")
 			return
@@ -114,7 +114,7 @@ var deleteUserCmd = &cobra.Command{
 			return
 		}
 		// Initiating database client
-		dbClient, err := db.GetClient(config.LocalConfig, 1)
+		dbClient, err := db.GetClient(config.LocalConfig, 10)
 
 		if err != nil {
 			printError("Failed to connect to database")

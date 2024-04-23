@@ -22,6 +22,6 @@ func (r *queryResolver) GitBranches(ctx context.Context, input model.GitBranches
 			return nil, tx.Error
 		}
 	}
-	branches, err := GIT.FetchBranches(input.RepositoryURL, gitCredential.Username, gitCredential.Password)
+	branches, err := GIT.FetchBranches(input.RepositoryURL, gitCredential.Username, gitCredential.Password, gitCredential.SshPrivateKey)
 	return branches, err
 }

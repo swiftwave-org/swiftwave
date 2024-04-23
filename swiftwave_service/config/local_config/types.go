@@ -11,6 +11,7 @@ type Config struct {
 	ServiceConfig            ServiceConfig            `yaml:"service"`
 	PostgresqlConfig         PostgresqlConfig         `yaml:"postgresql"`
 	LocalImageRegistryConfig LocalImageRegistryConfig `yaml:"local_image_registry"`
+	EnvironmentVariables     EnvironmentVariables     `yaml:"environment_variables"`
 }
 
 type ServiceConfig struct {
@@ -63,4 +64,9 @@ type LocalImageRegistryConfig struct {
 	DataPath string `yaml:"-"`
 	CertPath string `yaml:"-"`
 	AuthPath string `yaml:"-"`
+}
+
+type EnvironmentVariables struct {
+	SshAuthSock   string `yaml:"SSH_AUTH_SOCK"`
+	SshKnownHosts string `yaml:"SSH_KNOWN_HOSTS"`
 }

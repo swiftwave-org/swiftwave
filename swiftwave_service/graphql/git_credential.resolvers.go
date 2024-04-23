@@ -35,6 +35,9 @@ func (r *mutationResolver) CreateGitCredential(ctx context.Context, input model.
 	if record.Name == "" {
 		return nil, errors.New("name is required")
 	}
+	if record.Type == core.GitSsh && (strings.Compare(record.SshPrivateKey, "") == 0 || strings.Compare(record.SshPublicKey, "") == 0) {
+		return nil, errors.New("provide a valid ED25519 key in openssh format")
+	}
 	err := record.Create(ctx, r.ServiceManager.DbClient)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key") {
@@ -54,9 +57,19 @@ func (r *mutationResolver) UpdateGitCredential(ctx context.Context, id uint, inp
 		return nil, err
 	}
 	// update record
+	newRecord := gitCredentialInputToDatabaseObject(&input)
+	if newRecord.Name == "" {
+		return nil, errors.New("name is required")
+	}
+	if newRecord.Type == core.GitSsh && (strings.Compare(newRecord.SshPrivateKey, "") == 0 || strings.Compare(newRecord.SshPublicKey, "") == 0) {
+		return nil, errors.New("provide a valid ED25519 key in openssh format")
+	}
 	record.Name = input.Name
+	record.Type = newRecord.Type
 	record.Username = input.Username
 	record.Password = input.Password
+	record.SshPrivateKey = newRecord.SshPrivateKey
+	record.SshPublicKey = newRecord.SshPublicKey
 	err = record.Update(ctx, r.ServiceManager.DbClient)
 	if err != nil {
 		return nil, err
@@ -120,7 +133,7 @@ func (r *queryResolver) CheckGitCredentialRepositoryAccess(ctx context.Context, 
 			return false, errors.New("git credential not found")
 		}
 	}
-	_, err := GIT.FetchBranches(input.RepositoryURL, gitCredential.Username, gitCredential.Password)
+	_, err := GIT.FetchBranches(input.RepositoryURL, gitCredential.Username, gitCredential.Password, gitCredential.SshPrivateKey)
 	return err == nil, nil
 }
 

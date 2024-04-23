@@ -166,6 +166,7 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 	if databaseObject.LatestDeployment.UpstreamType == core.UpstreamTypeGit {
 		gitUsername := ""
 		gitPassword := ""
+		gitPrivateKey := ""
 		if databaseObject.LatestDeployment.GitCredentialID != nil {
 			var gitCredential core.GitCredential
 			if err := gitCredential.FindById(ctx, r.ServiceManager.DbClient, *databaseObject.LatestDeployment.GitCredentialID); err != nil {
@@ -173,9 +174,10 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 			}
 			gitUsername = gitCredential.Username
 			gitPassword = gitCredential.Password
+			gitPrivateKey = gitCredential.SshPrivateKey
 		}
 
-		commitHash, err := gitmanager.FetchLatestCommitHash(databaseObject.LatestDeployment.GitRepositoryURL(), databaseObject.LatestDeployment.RepositoryBranch, gitUsername, gitPassword)
+		commitHash, err := gitmanager.FetchLatestCommitHash(databaseObject.LatestDeployment.GitRepositoryURL(), databaseObject.LatestDeployment.RepositoryBranch, gitUsername, gitPassword, gitPrivateKey)
 		if err != nil {
 			return nil, errors.New("failed to fetch latest commit hash")
 		}

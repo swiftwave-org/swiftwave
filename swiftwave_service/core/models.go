@@ -48,11 +48,15 @@ type User struct {
 
 // GitCredential : credential for git client
 type GitCredential struct {
-	ID          uint         `json:"id" gorm:"primaryKey"`
-	Name        string       `json:"name"`
-	Username    string       `json:"username"`
-	Password    string       `json:"password"`
-	Deployments []Deployment `json:"deployments" gorm:"foreignKey:GitCredentialID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" `
+	ID            uint    `json:"id" gorm:"primaryKey"`
+	Name          string  `json:"name"`
+	Type          GitType `json:"type" gorm:"default:'http'"`
+	Username      string  `json:"username"`
+	Password      string  `json:"password"`
+	SshPrivateKey string  `json:"ssh_private_key"`
+	SshPublicKey  string  `json:"ssh_public_key"`
+
+	Deployments []Deployment `json:"deployments" gorm:"foreignKey:GitCredentialID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" `
 }
 
 // ImageRegistryCredential : credential for docker image registry
@@ -207,13 +211,16 @@ type Deployment struct {
 	ApplicationID string       `json:"application_id"`
 	UpstreamType  UpstreamType `json:"upstream_type"`
 	// Fields for UpstreamType = Git
-	GitCredentialID  *uint       `json:"git_credential_id"`
-	GitProvider      GitProvider `json:"git_provider"`
-	RepositoryOwner  string      `json:"repository_owner"`
-	RepositoryName   string      `json:"repository_name"`
-	RepositoryBranch string      `json:"repository_branch"`
-	CodePath         string      `json:"code_path"`
-	CommitHash       string      `json:"commit_hash"`
+	GitCredentialID  *uint   `json:"git_credential_id"`
+	GitProvider      string  `json:"git_provider"`
+	GitType          GitType `json:"git_type" gorm:"default:'http'"`
+	RepositoryOwner  string  `json:"repository_owner"`
+	RepositoryName   string  `json:"repository_name"`
+	RepositoryBranch string  `json:"repository_branch"`
+	GitEndpoint      string  `json:"git_endpoint"`
+	GitSshUser       string  `json:"git_ssh_user"`
+	CodePath         string  `json:"code_path"`
+	CommitHash       string  `json:"commit_hash"`
 	// Fields for UpstreamType = SourceCode
 	SourceCodeCompressedFileName string `json:"source_code_compressed_file_name"`
 	// Fields for UpstreamType = Image

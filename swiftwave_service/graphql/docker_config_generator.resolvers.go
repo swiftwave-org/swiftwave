@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	gitmanager "github.com/swiftwave-org/swiftwave/git_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
@@ -36,6 +37,7 @@ func (r *queryResolver) DockerConfigGenerator(ctx context.Context, input model.D
 	} else if input.SourceType == model.DockerConfigSourceTypeGit {
 		gitUsername := ""
 		gitPassword := ""
+		gitPrivateKey := ""
 		if input.GitCredentialID != nil {
 			var gitCredential core.GitCredential
 			if err := gitCredential.FindById(ctx, r.ServiceManager.DbClient, *input.GitCredentialID); err != nil {
@@ -43,16 +45,20 @@ func (r *queryResolver) DockerConfigGenerator(ctx context.Context, input model.D
 			}
 			gitUsername = gitCredential.Username
 			gitPassword = gitCredential.Password
+			gitPrivateKey = gitCredential.SshPrivateKey
 		}
-		if input.GitProvider == nil || input.RepositoryOwner == nil || input.RepositoryName == nil || input.RepositoryBranch == nil {
-			return nil, errors.New("invalid git provider, repository owner, repository name or branch provided")
+		if input.RepositoryURL == nil || input.RepositoryBranch == nil {
+			return nil, errors.New("invalid git url, repository owner, repository name or branch provided")
 		}
-		gitUrl := generateGitUrl(*input.GitProvider, *input.RepositoryOwner, *input.RepositoryName)
+		repoInfo, err := gitmanager.ParseGitRepoInfo(*input.RepositoryURL)
+		if err != nil {
+			return nil, err
+		}
 		if input.CodePath == nil {
 			input.CodePath = new(string)
 			*input.CodePath = ""
 		}
-		config, err := r.ServiceManager.DockerConfigGenerator.GenerateConfigFromGitRepository(gitUrl, *input.RepositoryBranch, *input.CodePath, gitUsername, gitPassword)
+		config, err := r.ServiceManager.DockerConfigGenerator.GenerateConfigFromGitRepository(repoInfo.URL(), *input.RepositoryBranch, *input.CodePath, gitUsername, gitPassword, gitPrivateKey)
 		if err != nil {
 			return nil, errors.New("failed to generate docker config from git repository")
 		}
