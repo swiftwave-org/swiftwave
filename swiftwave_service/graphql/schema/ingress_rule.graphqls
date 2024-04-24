@@ -7,7 +7,7 @@ enum IngressRuleStatus {
 
 enum IngressRuleTargetType {
     application
-    external_service
+    externalService
 }
 
 input IngressRuleInput {

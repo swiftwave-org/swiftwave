@@ -780,7 +780,7 @@ type IngressRuleTargetType string
 
 const (
 	IngressRuleTargetTypeApplication     IngressRuleTargetType = "application"
-	IngressRuleTargetTypeExternalService IngressRuleTargetType = "external_service"
+	IngressRuleTargetTypeExternalService IngressRuleTargetType = "externalService"
 )
 
 var AllIngressRuleTargetType = []IngressRuleTargetType{
