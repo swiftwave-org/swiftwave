@@ -7,6 +7,7 @@ package graphql
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
@@ -27,6 +28,9 @@ func (r *ingressRuleResolver) Domain(ctx context.Context, obj *model.IngressRule
 
 // Application is the resolver for the application field.
 func (r *ingressRuleResolver) Application(ctx context.Context, obj *model.IngressRule) (*model.Application, error) {
+	if obj.TargetType == model.IngressRuleTargetTypeExternalService {
+		return nil, nil
+	}
 	application := &core.Application{}
 	err := application.FindById(ctx, r.ServiceManager.DbClient, obj.ApplicationID)
 	if err != nil {
@@ -38,6 +42,9 @@ func (r *ingressRuleResolver) Application(ctx context.Context, obj *model.Ingres
 // CreateIngressRule is the resolver for the createIngressRule field.
 func (r *mutationResolver) CreateIngressRule(ctx context.Context, input model.IngressRuleInput) (*model.IngressRule, error) {
 	record := ingressRuleInputToDatabaseObject(&input)
+	if record.TargetType == core.ExternalServiceIngressRule && strings.Compare(record.ExternalService, "") == 0 {
+		return nil, errors.New("external service is required")
+	}
 	restrictedPorts := make([]int, 0)
 	for _, port := range r.Config.SystemConfig.RestrictedPorts {
 		restrictedPorts = append(restrictedPorts, int(port))

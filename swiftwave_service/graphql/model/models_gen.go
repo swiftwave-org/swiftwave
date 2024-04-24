@@ -233,25 +233,29 @@ type ImageRegistryCredentialInput struct {
 }
 
 type IngressRule struct {
-	ID            uint              `json:"id"`
-	DomainID      *uint             `json:"domainId,omitempty"`
-	Domain        *Domain           `json:"domain,omitempty"`
-	Protocol      ProtocolType      `json:"protocol"`
-	Port          uint              `json:"port"`
-	ApplicationID string            `json:"applicationId"`
-	Application   *Application      `json:"application"`
-	TargetPort    uint              `json:"targetPort"`
-	Status        IngressRuleStatus `json:"status"`
-	CreatedAt     time.Time         `json:"createdAt"`
-	UpdatedAt     time.Time         `json:"updatedAt"`
+	ID              uint                  `json:"id"`
+	TargetType      IngressRuleTargetType `json:"targetType"`
+	DomainID        *uint                 `json:"domainId,omitempty"`
+	Domain          *Domain               `json:"domain,omitempty"`
+	Protocol        ProtocolType          `json:"protocol"`
+	Port            uint                  `json:"port"`
+	ApplicationID   string                `json:"applicationId"`
+	Application     *Application          `json:"application"`
+	ExternalService string                `json:"externalService"`
+	TargetPort      uint                  `json:"targetPort"`
+	Status          IngressRuleStatus     `json:"status"`
+	CreatedAt       time.Time             `json:"createdAt"`
+	UpdatedAt       time.Time             `json:"updatedAt"`
 }
 
 type IngressRuleInput struct {
-	DomainID      *uint        `json:"domainId,omitempty"`
-	ApplicationID string       `json:"applicationId"`
-	Protocol      ProtocolType `json:"protocol"`
-	Port          uint         `json:"port"`
-	TargetPort    uint         `json:"targetPort"`
+	DomainID        *uint                 `json:"domainId,omitempty"`
+	TargetType      IngressRuleTargetType `json:"targetType"`
+	ApplicationID   string                `json:"applicationId"`
+	ExternalService string                `json:"externalService"`
+	Protocol        ProtocolType          `json:"protocol"`
+	Port            uint                  `json:"port"`
+	TargetPort      uint                  `json:"targetPort"`
 }
 
 type Mutation struct {
@@ -769,6 +773,47 @@ func (e *IngressRuleStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e IngressRuleStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type IngressRuleTargetType string
+
+const (
+	IngressRuleTargetTypeApplication     IngressRuleTargetType = "application"
+	IngressRuleTargetTypeExternalService IngressRuleTargetType = "external_service"
+)
+
+var AllIngressRuleTargetType = []IngressRuleTargetType{
+	IngressRuleTargetTypeApplication,
+	IngressRuleTargetTypeExternalService,
+}
+
+func (e IngressRuleTargetType) IsValid() bool {
+	switch e {
+	case IngressRuleTargetTypeApplication, IngressRuleTargetTypeExternalService:
+		return true
+	}
+	return false
+}
+
+func (e IngressRuleTargetType) String() string {
+	return string(e)
+}
+
+func (e *IngressRuleTargetType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = IngressRuleTargetType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid IngressRuleTargetType", str)
+	}
+	return nil
+}
+
+func (e IngressRuleTargetType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
