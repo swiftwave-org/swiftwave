@@ -115,6 +115,14 @@ const (
 	UDPProtocol   ProtocolType = "udp"
 )
 
+// IngressRuleTargetType : type of target for ingress rule
+type IngressRuleTargetType string
+
+const (
+	ApplicationIngressRule     IngressRuleTargetType = "application"
+	ExternalServiceIngressRule IngressRuleTargetType = "externalService"
+)
+
 // IngressRuleStatus : status of the ingress rule
 type IngressRuleStatus string
 

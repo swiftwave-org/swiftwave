@@ -42,11 +42,23 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 		}
 	}
 
-	// fetch application
-	application := &core.Application{}
-	err = application.FindById(ctx, dbWithoutTx, ingressRule.ApplicationID)
-	if err != nil {
-		return err
+	// service name
+	serviceName := ""
+	var serviceReplicas uint = 1
+
+	if ingressRule.TargetType == core.ApplicationIngressRule {
+		// fetch application
+		application := &core.Application{}
+		err = application.FindById(ctx, dbWithoutTx, *ingressRule.ApplicationID)
+		if err != nil {
+			return err
+		}
+		serviceName = application.Name
+		serviceReplicas = application.Replicas
+	} else if ingressRule.TargetType == core.ExternalServiceIngressRule {
+		serviceName = ingressRule.ExternalService
+	} else {
+		return nil
 	}
 
 	// fetch all proxy servers
@@ -94,9 +106,9 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 		// add to map
 		transactionIdMap[haproxyManager] = haproxyTransactionId
 		// generate backend name
-		backendName := haproxyManager.GenerateBackendName(backendProtocol, application.Name, int(ingressRule.TargetPort))
+		backendName := haproxyManager.GenerateBackendName(backendProtocol, serviceName, int(ingressRule.TargetPort))
 		// add backend
-		_, err = haproxyManager.AddBackend(haproxyTransactionId, backendProtocol, application.Name, int(ingressRule.TargetPort), int(application.Replicas))
+		_, err = haproxyManager.AddBackend(haproxyTransactionId, backendProtocol, serviceName, int(ingressRule.TargetPort), int(serviceReplicas))
 		if err != nil {
 			isFailed = true
 			break
@@ -141,7 +153,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 			err = udpProxyManager.Add(udpproxymanager.Proxy{
 				Port:       int(ingressRule.Port),
 				TargetPort: int(ingressRule.TargetPort),
-				Service:    application.Name,
+				Service:    serviceName,
 			}, restrictedPorts)
 			if err != nil {
 				isFailed = true

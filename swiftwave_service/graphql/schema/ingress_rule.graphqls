@@ -5,9 +5,16 @@ enum IngressRuleStatus {
     failed
 }
 
+enum IngressRuleTargetType {
+    application
+    externalService
+}
+
 input IngressRuleInput {
     domainId: Uint
+    targetType: IngressRuleTargetType!
     applicationId: String!
+    externalService: String!
     protocol: ProtocolType!
     port: Uint!
     targetPort: Uint!
@@ -15,12 +22,14 @@ input IngressRuleInput {
 
 type IngressRule {
     id: Uint!
+    targetType: IngressRuleTargetType!
     domainId: Uint
     domain: Domain
     protocol: ProtocolType!
     port: Uint!
     applicationId: String!
     application: Application!
+    externalService: String!
     targetPort: Uint!
     status: IngressRuleStatus!
     createdAt: Time!

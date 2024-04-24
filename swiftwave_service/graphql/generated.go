@@ -199,17 +199,19 @@ type ComplexityRoot struct {
 	}
 
 	IngressRule struct {
-		Application   func(childComplexity int) int
-		ApplicationID func(childComplexity int) int
-		CreatedAt     func(childComplexity int) int
-		Domain        func(childComplexity int) int
-		DomainID      func(childComplexity int) int
-		ID            func(childComplexity int) int
-		Port          func(childComplexity int) int
-		Protocol      func(childComplexity int) int
-		Status        func(childComplexity int) int
-		TargetPort    func(childComplexity int) int
-		UpdatedAt     func(childComplexity int) int
+		Application     func(childComplexity int) int
+		ApplicationID   func(childComplexity int) int
+		CreatedAt       func(childComplexity int) int
+		Domain          func(childComplexity int) int
+		DomainID        func(childComplexity int) int
+		ExternalService func(childComplexity int) int
+		ID              func(childComplexity int) int
+		Port            func(childComplexity int) int
+		Protocol        func(childComplexity int) int
+		Status          func(childComplexity int) int
+		TargetPort      func(childComplexity int) int
+		TargetType      func(childComplexity int) int
+		UpdatedAt       func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -1295,6 +1297,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.IngressRule.DomainID(childComplexity), true
 
+	case "IngressRule.externalService":
+		if e.complexity.IngressRule.ExternalService == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.ExternalService(childComplexity), true
+
 	case "IngressRule.id":
 		if e.complexity.IngressRule.ID == nil {
 			break
@@ -1329,6 +1338,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.IngressRule.TargetPort(childComplexity), true
+
+	case "IngressRule.targetType":
+		if e.complexity.IngressRule.TargetType == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.TargetType(childComplexity), true
 
 	case "IngressRule.updatedAt":
 		if e.complexity.IngressRule.UpdatedAt == nil {
@@ -5141,6 +5157,8 @@ func (ec *executionContext) fieldContext_Application_ingressRules(ctx context.Co
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_IngressRule_id(ctx, field)
+			case "targetType":
+				return ec.fieldContext_IngressRule_targetType(ctx, field)
 			case "domainId":
 				return ec.fieldContext_IngressRule_domainId(ctx, field)
 			case "domain":
@@ -5153,6 +5171,8 @@ func (ec *executionContext) fieldContext_Application_ingressRules(ctx context.Co
 				return ec.fieldContext_IngressRule_applicationId(ctx, field)
 			case "application":
 				return ec.fieldContext_IngressRule_application(ctx, field)
+			case "externalService":
+				return ec.fieldContext_IngressRule_externalService(ctx, field)
 			case "targetPort":
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
 			case "status":
@@ -8127,6 +8147,8 @@ func (ec *executionContext) fieldContext_Domain_ingressRules(ctx context.Context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_IngressRule_id(ctx, field)
+			case "targetType":
+				return ec.fieldContext_IngressRule_targetType(ctx, field)
 			case "domainId":
 				return ec.fieldContext_IngressRule_domainId(ctx, field)
 			case "domain":
@@ -8139,6 +8161,8 @@ func (ec *executionContext) fieldContext_Domain_ingressRules(ctx context.Context
 				return ec.fieldContext_IngressRule_applicationId(ctx, field)
 			case "application":
 				return ec.fieldContext_IngressRule_application(ctx, field)
+			case "externalService":
+				return ec.fieldContext_IngressRule_externalService(ctx, field)
 			case "targetPort":
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
 			case "status":
@@ -9020,6 +9044,50 @@ func (ec *executionContext) fieldContext_IngressRule_id(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _IngressRule_targetType(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_targetType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TargetType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.IngressRuleTargetType)
+	fc.Result = res
+	return ec.marshalNIngressRuleTargetType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleTargetType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_targetType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type IngressRuleTargetType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _IngressRule_domainId(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_IngressRule_domainId(ctx, field)
 	if err != nil {
@@ -9331,6 +9399,50 @@ func (ec *executionContext) fieldContext_IngressRule_application(ctx context.Con
 				return ec.fieldContext_Application_group(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_externalService(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_externalService(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExternalService, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_externalService(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -10843,6 +10955,8 @@ func (ec *executionContext) fieldContext_Mutation_createIngressRule(ctx context.
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_IngressRule_id(ctx, field)
+			case "targetType":
+				return ec.fieldContext_IngressRule_targetType(ctx, field)
 			case "domainId":
 				return ec.fieldContext_IngressRule_domainId(ctx, field)
 			case "domain":
@@ -10855,6 +10969,8 @@ func (ec *executionContext) fieldContext_Mutation_createIngressRule(ctx context.
 				return ec.fieldContext_IngressRule_applicationId(ctx, field)
 			case "application":
 				return ec.fieldContext_IngressRule_application(ctx, field)
+			case "externalService":
+				return ec.fieldContext_IngressRule_externalService(ctx, field)
 			case "targetPort":
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
 			case "status":
@@ -15325,6 +15441,8 @@ func (ec *executionContext) fieldContext_Query_ingressRule(ctx context.Context, 
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_IngressRule_id(ctx, field)
+			case "targetType":
+				return ec.fieldContext_IngressRule_targetType(ctx, field)
 			case "domainId":
 				return ec.fieldContext_IngressRule_domainId(ctx, field)
 			case "domain":
@@ -15337,6 +15455,8 @@ func (ec *executionContext) fieldContext_Query_ingressRule(ctx context.Context, 
 				return ec.fieldContext_IngressRule_applicationId(ctx, field)
 			case "application":
 				return ec.fieldContext_IngressRule_application(ctx, field)
+			case "externalService":
+				return ec.fieldContext_IngressRule_externalService(ctx, field)
 			case "targetPort":
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
 			case "status":
@@ -15404,6 +15524,8 @@ func (ec *executionContext) fieldContext_Query_ingressRules(ctx context.Context,
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_IngressRule_id(ctx, field)
+			case "targetType":
+				return ec.fieldContext_IngressRule_targetType(ctx, field)
 			case "domainId":
 				return ec.fieldContext_IngressRule_domainId(ctx, field)
 			case "domain":
@@ -15416,6 +15538,8 @@ func (ec *executionContext) fieldContext_Query_ingressRules(ctx context.Context,
 				return ec.fieldContext_IngressRule_applicationId(ctx, field)
 			case "application":
 				return ec.fieldContext_IngressRule_application(ctx, field)
+			case "externalService":
+				return ec.fieldContext_IngressRule_externalService(ctx, field)
 			case "targetPort":
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
 			case "status":
@@ -21543,7 +21667,7 @@ func (ec *executionContext) unmarshalInputIngressRuleInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"domainId", "applicationId", "protocol", "port", "targetPort"}
+	fieldsInOrder := [...]string{"domainId", "targetType", "applicationId", "externalService", "protocol", "port", "targetPort"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -21557,6 +21681,13 @@ func (ec *executionContext) unmarshalInputIngressRuleInput(ctx context.Context, 
 				return it, err
 			}
 			it.DomainID = data
+		case "targetType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("targetType"))
+			data, err := ec.unmarshalNIngressRuleTargetType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleTargetType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TargetType = data
 		case "applicationId":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("applicationId"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -21564,6 +21695,13 @@ func (ec *executionContext) unmarshalInputIngressRuleInput(ctx context.Context, 
 				return it, err
 			}
 			it.ApplicationID = data
+		case "externalService":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("externalService"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExternalService = data
 		case "protocol":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("protocol"))
 			data, err := ec.unmarshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐProtocolType(ctx, v)
@@ -23462,6 +23600,11 @@ func (ec *executionContext) _IngressRule(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "targetType":
+			out.Values[i] = ec._IngressRule_targetType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "domainId":
 			out.Values[i] = ec._IngressRule_domainId(ctx, field, obj)
 		case "domain":
@@ -23548,6 +23691,11 @@ func (ec *executionContext) _IngressRule(ctx context.Context, sel ast.SelectionS
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "externalService":
+			out.Values[i] = ec._IngressRule_externalService(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "targetPort":
 			out.Values[i] = ec._IngressRule_targetPort(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -27155,6 +27303,16 @@ func (ec *executionContext) unmarshalNIngressRuleStatus2githubᚗcomᚋswiftwave
 }
 
 func (ec *executionContext) marshalNIngressRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleStatus(ctx context.Context, sel ast.SelectionSet, v model.IngressRuleStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNIngressRuleTargetType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleTargetType(ctx context.Context, v interface{}) (model.IngressRuleTargetType, error) {
+	var res model.IngressRuleTargetType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNIngressRuleTargetType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleTargetType(ctx context.Context, sel ast.SelectionSet, v model.IngressRuleTargetType) graphql.Marshaler {
 	return v
 }
 

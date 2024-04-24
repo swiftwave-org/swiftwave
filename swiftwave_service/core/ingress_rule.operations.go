@@ -59,12 +59,19 @@ func (ingressRule *IngressRule) Create(ctx context.Context, db gorm.DB, restrict
 			return err
 		}
 	}
-	// verify if application exist
-	application := &Application{}
-	err := application.FindById(ctx, db, ingressRule.ApplicationID)
-	if err != nil {
-		return err
+
+	if ingressRule.TargetType == ApplicationIngressRule {
+		if ingressRule.ApplicationID == nil {
+			return errors.New("invalid application id")
+		}
+		// fetch application
+		application := &Application{}
+		err := application.FindById(ctx, db, *ingressRule.ApplicationID)
+		if err != nil {
+			return err
+		}
 	}
+
 	// validation
 	if ingressRule.Protocol == HTTPProtocol || ingressRule.Protocol == HTTPSProtocol {
 		// verify there is no ingress rule with same domain and port

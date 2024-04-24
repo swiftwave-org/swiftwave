@@ -42,14 +42,21 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 		}
 	}
 
-	// fetch application
-	var application core.Application
-	err = application.FindById(ctx, dbWithoutTx, ingressRule.ApplicationID)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil
+	// service name
+	serviceName := ""
+
+	if ingressRule.TargetType == core.ApplicationIngressRule {
+		// fetch application
+		application := &core.Application{}
+		err = application.FindById(ctx, dbWithoutTx, *ingressRule.ApplicationID)
+		if err != nil {
+			return err
 		}
-		return err
+		serviceName = application.Name
+	} else if ingressRule.TargetType == core.ExternalServiceIngressRule {
+		serviceName = ingressRule.ExternalService
+	} else {
+		return nil
 	}
 
 	// fetch all proxy servers
@@ -89,7 +96,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 		// backend protocol
 		backendProtocol := ingressRuleProtocolToBackendProtocol(ingressRule.Protocol)
 		// generate backend name
-		backendName := haproxyManager.GenerateBackendName(backendProtocol, application.Name, int(ingressRule.TargetPort))
+		backendName := haproxyManager.GenerateBackendName(backendProtocol, serviceName, int(ingressRule.TargetPort))
 		// delete ingress rule from haproxy
 		// create new haproxy transaction
 		haproxyTransactionId, err := haproxyManager.FetchNewTransactionId()
@@ -165,7 +172,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 			err = udpProxyManager.Remove(udpproxymanager.Proxy{
 				Port:       int(ingressRule.Port),
 				TargetPort: int(ingressRule.TargetPort),
-				Service:    application.Name,
+				Service:    serviceName,
 			})
 			if err != nil {
 				// set status as failed and exit

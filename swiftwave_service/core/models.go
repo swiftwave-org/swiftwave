@@ -85,15 +85,17 @@ type Domain struct {
 
 // IngressRule : hold information about Ingress rule for service
 type IngressRule struct {
-	ID            uint              `json:"id" gorm:"primaryKey"`
-	DomainID      *uint             `json:"domain_id,omitempty" gorm:"default:null"`
-	ApplicationID string            `json:"application_id"`
-	Protocol      ProtocolType      `json:"protocol"`
-	Port          uint              `json:"port"`        // external port
-	TargetPort    uint              `json:"target_port"` // port of the application
-	Status        IngressRuleStatus `json:"status"`
-	CreatedAt     time.Time         `json:"created_at"`
-	UpdatedAt     time.Time         `json:"updated_at"`
+	ID              uint                  `json:"id" gorm:"primaryKey"`
+	DomainID        *uint                 `json:"domain_id,omitempty" gorm:"default:null"`
+	Protocol        ProtocolType          `json:"protocol"`
+	Port            uint                  `json:"port"`        // external port
+	TargetPort      uint                  `json:"target_port"` // port of the application
+	TargetType      IngressRuleTargetType `json:"target_type" gorm:"default:'application'"`
+	ApplicationID   *string               `json:"application_id"`
+	ExternalService string                `json:"external_service"`
+	Status          IngressRuleStatus     `json:"status"`
+	CreatedAt       time.Time             `json:"created_at"`
+	UpdatedAt       time.Time             `json:"updated_at"`
 }
 
 // RedirectRule : hold information about Redirect rules for domain
