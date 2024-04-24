@@ -120,7 +120,7 @@ type IngressRuleTargetType string
 
 const (
 	ApplicationIngressRule     IngressRuleTargetType = "application"
-	ExternalServiceIngressRule IngressRuleTargetType = "external_service"
+	ExternalServiceIngressRule IngressRuleTargetType = "externalService"
 )
 
 // IngressRuleStatus : status of the ingress rule
