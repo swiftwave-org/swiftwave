@@ -28,10 +28,10 @@ func (r *ingressRuleResolver) Domain(ctx context.Context, obj *model.IngressRule
 
 // Application is the resolver for the application field.
 func (r *ingressRuleResolver) Application(ctx context.Context, obj *model.IngressRule) (*model.Application, error) {
-	if obj.TargetType == model.IngressRuleTargetTypeExternalService {
-		return nil, nil
-	}
 	application := &core.Application{}
+	if obj.TargetType == model.IngressRuleTargetTypeExternalService {
+		return applicationToGraphqlObject(application), nil
+	}
 	err := application.FindById(ctx, r.ServiceManager.DbClient, obj.ApplicationID)
 	if err != nil {
 		return nil, err

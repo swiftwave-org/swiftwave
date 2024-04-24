@@ -91,7 +91,7 @@ type IngressRule struct {
 	Port            uint                  `json:"port"`        // external port
 	TargetPort      uint                  `json:"target_port"` // port of the application
 	TargetType      IngressRuleTargetType `json:"target_type" gorm:"default:'application'"`
-	ApplicationID   string                `json:"application_id"`
+	ApplicationID   *string               `json:"application_id"`
 	ExternalService string                `json:"external_service"`
 	Status          IngressRuleStatus     `json:"status"`
 	CreatedAt       time.Time             `json:"created_at"`

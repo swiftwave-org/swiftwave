@@ -49,7 +49,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 	if ingressRule.TargetType == core.ApplicationIngressRule {
 		// fetch application
 		application := &core.Application{}
-		err = application.FindById(ctx, dbWithoutTx, ingressRule.ApplicationID)
+		err = application.FindById(ctx, dbWithoutTx, *ingressRule.ApplicationID)
 		if err != nil {
 			return err
 		}

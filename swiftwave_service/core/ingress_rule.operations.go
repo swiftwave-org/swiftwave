@@ -61,9 +61,12 @@ func (ingressRule *IngressRule) Create(ctx context.Context, db gorm.DB, restrict
 	}
 
 	if ingressRule.TargetType == ApplicationIngressRule {
+		if ingressRule.ApplicationID == nil {
+			return errors.New("invalid application id")
+		}
 		// fetch application
 		application := &Application{}
-		err := application.FindById(ctx, db, ingressRule.ApplicationID)
+		err := application.FindById(ctx, db, *ingressRule.ApplicationID)
 		if err != nil {
 			return err
 		}

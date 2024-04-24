@@ -388,9 +388,9 @@ func ingressRuleInputToDatabaseObject(record *model.IngressRuleInput) *core.Ingr
 	if record.Protocol == model.ProtocolTypeTCP || record.Protocol == model.ProtocolTypeUDP {
 		record.DomainID = nil
 	}
-	applicationId := ""
+	var applicationId *string
 	if record.TargetType == model.IngressRuleTargetTypeApplication {
-		applicationId = record.ApplicationID
+		applicationId = &record.ApplicationID
 	}
 	return &core.IngressRule{
 		TargetType:      core.IngressRuleTargetType(record.TargetType),
@@ -412,7 +412,7 @@ func ingressRuleToGraphqlObject(record *core.IngressRule) *model.IngressRule {
 		ID:              record.ID,
 		TargetType:      model.IngressRuleTargetType(record.TargetType),
 		ExternalService: record.ExternalService,
-		ApplicationID:   record.ApplicationID,
+		ApplicationID:   DefaultString(record.ApplicationID, ""),
 		DomainID:        record.DomainID,
 		Protocol:        model.ProtocolType(record.Protocol),
 		Port:            record.Port,
