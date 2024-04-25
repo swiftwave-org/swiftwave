@@ -91,7 +91,7 @@ func Execute() {
 		loadSystemConfig := false
 
 		// if it's start command, and system setup is required, don't load complete config
-		if len(os.Args) > 1 && (os.Args[1] == "start" || os.Args[1] == "localregistry" || os.Args[1] == "tq") {
+		if len(os.Args) > 1 && (os.Args[1] == "start" || os.Args[1] == "localregistry" || os.Args[1] == "tq" || os.Args[1] == "tls") {
 			setupRequired, err := bootstrap.IsSystemSetupRequired()
 			if err != nil {
 				printError("Failed to check if system setup is required: " + err.Error())
@@ -100,7 +100,7 @@ func Execute() {
 			if !setupRequired {
 				loadSystemConfig = true
 			} else {
-				if os.Args[1] == "tq" || os.Args[1] == "localregistry" {
+				if os.Args[1] == "tq" || os.Args[1] == "localregistry" || os.Args[1] == "tls" {
 					printError("System setup is required. Run 'swiftwave start' to setup system")
 					os.Exit(1)
 				}
