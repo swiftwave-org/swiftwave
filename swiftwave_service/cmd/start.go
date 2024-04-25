@@ -33,17 +33,15 @@ var startCmd = &cobra.Command{
 
 		if strings.Compare(config.LocalConfig.EnvironmentVariables.SshAuthSock, "") == 0 {
 			printError("SSH_AUTH_SOCK is not available in environment variables\n")
+			printInfo("Enable SSH Agent Forwarding in your SSH config")
 			printInfo("Run `swiftwave config` to edit the config file and set SSH_AUTH_SOCK")
 			isCheckForGitSshConfigFailed = true
 		}
 		if strings.Compare(config.LocalConfig.EnvironmentVariables.SshKnownHosts, "") == 0 {
 			printError("SSH_KNOWN_HOSTS is not available in environment variables\n")
+			printInfo("Enable SSH Agent Forwarding in your SSH config")
 			printInfo("Run `swiftwave config` to edit the config file and set SSH_KNOWN_HOSTS")
 			isCheckForGitSshConfigFailed = true
-		}
-
-		if isCheckForGitSshConfigFailed {
-			os.Exit(1)
 		}
 
 		if config.LocalConfig.IsDevelopmentMode {
