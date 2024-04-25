@@ -3,6 +3,7 @@ package gitmanager
 import (
 	"errors"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -168,4 +169,18 @@ func (gitRepoInfo *GitRepoInfo) URL() string {
 			return fmt.Sprintf("%s/%s/%s", gitRepoInfo.Endpoint, gitRepoInfo.Owner, gitRepoInfo.Name)
 		}
 	}
+}
+
+func isGitSSHAgentForwardingEnabled() bool {
+	// check if SSH_AUTH_SOCK is set
+	sshAuthSock := os.Getenv("SSH_AUTH_SOCK")
+	if strings.Compare(sshAuthSock, "") == 0 {
+		return false
+	}
+	// check if SSH_KNOWN_HOSTS is set
+	sshKnownHosts := os.Getenv("SSH_KNOWN_HOSTS")
+	if strings.Compare(sshKnownHosts, "") == 0 {
+		return false
+	}
+	return true
 }

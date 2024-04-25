@@ -140,11 +140,15 @@ func getAuthMethod(repoInfo *GitRepoInfo, username string, password string, priv
 			}
 			auth = privateKeyAuth
 		} else {
-			sshAgentAuth, err := ssh.NewSSHAgentAuth(repoInfo.SshUser)
-			if err != nil {
-				return nil, err
+			if isGitSSHAgentForwardingEnabled() {
+				sshAgentAuth, err := ssh.NewSSHAgentAuth(repoInfo.SshUser)
+				if err != nil {
+					return nil, err
+				}
+				auth = sshAgentAuth
+			} else {
+				return nil, errors.New("please setup SSH Agent Forwarding in your server SSH config for git authentication. You can use integrated authentication mechanisms by providing a ssh git credential")
 			}
-			auth = sshAgentAuth
 		}
 	} else {
 		auth = nil
