@@ -3,7 +3,7 @@ module github.com/swiftwave-org/swiftwave
 go 1.21.7
 
 require (
-	ariga.io/atlas-provider-gorm v0.3.3
+	ariga.io/atlas-provider-gorm v0.3.4
 	github.com/99designs/gqlgen v0.17.45
 	github.com/aws/aws-sdk-go v1.51.29
 	github.com/docker/docker v26.1.0+incompatible
