@@ -117,7 +117,6 @@ func startLocalRegistry(ctx context.Context) error {
 		var dockerCmd *exec.Cmd
 		// delete existing container
 		dockerCmd = exec.Command("docker", "rm", localRegistryContainerName, "--force")
-		dockerCmd.Stderr = os.Stderr
 		err := dockerCmd.Run()
 		if err != nil {
 			return err
@@ -179,7 +178,6 @@ func stopLocalRegistry(ctx context.Context) error {
 	}
 	if isRunning {
 		dockerCmd := exec.Command("docker", "rm", localRegistryContainerName, "--force")
-		dockerCmd.Stderr = os.Stderr
 		err := dockerCmd.Run()
 		if err != nil {
 			return err
