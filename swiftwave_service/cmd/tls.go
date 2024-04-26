@@ -319,19 +319,14 @@ func restartLocalRegistryIfRequired(ctx context.Context) {
 		return
 	}
 	if isRequired {
-		isRunning, err := isLocalRegistryRunning(ctx)
+		err := restartLocalRegistry(ctx)
 		if err != nil {
-			printError("Failed to check if local registry is running")
+			printError("Failed to restart local image registry")
 			printError(err.Error())
-			return
+		} else {
+			printSuccess("Local registry restarted successfully")
 		}
-		if !isRunning {
-			err := restartLocalRegistry(ctx)
-			if err != nil {
-				printError("Failed to restart local registry")
-				printError(err.Error())
-				return
-			}
-		}
+	} else {
+		printInfo("[IGNORE] Local registry restart is not required, as not configured")
 	}
 }
