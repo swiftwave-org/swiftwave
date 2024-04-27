@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sort"
 	"strings"
 
 	GIT "github.com/swiftwave-org/swiftwave/git_manager"
@@ -166,4 +167,32 @@ func (m Manager) DefaultArgsFromService(serviceName string) map[string]string {
 		args[key] = variable.Default
 	}
 	return args
+}
+
+// AvailableDockerConfigs returns available docker configs.
+func (m Manager) AvailableDockerConfigs() []string {
+	var availableDockerConfigs []string
+	for serviceName := range m.Config.Templates {
+		availableDockerConfigs = append(availableDockerConfigs, serviceName)
+	}
+	sort.Strings(availableDockerConfigs)
+	return availableDockerConfigs
+}
+
+// DockerConfigFromServiceName returns docker config for a service.
+func (m Manager) DockerConfigFromServiceName(serviceName string) (DockerFileConfig, error) {
+	if _, ok := m.Config.Templates[serviceName]; !ok {
+		return DockerFileConfig{}, errors.New("service not found")
+	}
+	if _, ok := m.DockerTemplates[serviceName]; !ok {
+		return DockerFileConfig{}, errors.New("dockerfile not found")
+	}
+	dockerConfig := DockerFileConfig{}
+	dockerConfig.DetectedService = serviceName
+	dockerConfig.DockerFile = m.DockerTemplates[serviceName]
+	dockerConfig.Variables = m.Config.Templates[serviceName].Variables
+	if dockerConfig.Variables == nil {
+		dockerConfig.Variables = map[string]Variable{}
+	}
+	return dockerConfig, nil
 }
