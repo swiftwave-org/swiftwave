@@ -23,7 +23,6 @@ func (r *queryResolver) DockerConfigGenerator(ctx context.Context, input model.D
 			return nil, errors.New("invalid source code provided")
 		}
 		filename := sanitizeFileName(*input.SourceCodeCompressedFileName)
-		// TODO; tarball directory setup
 		filename = filepath.Join(r.Config.LocalConfig.ServiceConfig.TarballDirectoryPath, filename)
 		config, err := r.ServiceManager.DockerConfigGenerator.GenerateConfigFromSourceCodeTar(filename)
 		if err != nil {
@@ -86,4 +85,22 @@ func (r *queryResolver) DockerConfigGenerator(ctx context.Context, input model.D
 	} else {
 		return nil, fmt.Errorf("invalid source type")
 	}
+}
+
+// AvailableDockerConfigs is the resolver for the availableDockerConfigs field.
+func (r *queryResolver) AvailableDockerConfigs(ctx context.Context) ([]string, error) {
+	return r.ServiceManager.DockerConfigGenerator.AvailableDockerConfigs(), nil
+}
+
+// DockerConfigFromServiceName is the resolver for the dockerConfigFromServiceName field.
+func (r *queryResolver) DockerConfigFromServiceName(ctx context.Context, serviceName string) (*model.DockerConfigGeneratorOutput, error) {
+	dockerConfig, err := r.ServiceManager.DockerConfigGenerator.DockerConfigFromServiceName(serviceName)
+	if err != nil {
+		return nil, err
+	}
+	return &model.DockerConfigGeneratorOutput{
+		DockerFile:          &dockerConfig.DockerFile,
+		DetectedServiceName: &dockerConfig.DetectedService,
+		DockerBuildArgs:     convertMapToDockerConfigBuildArgs(dockerConfig.Variables),
+	}, nil
 }

@@ -32,4 +32,6 @@ type DockerConfigGeneratorOutput {
 
 extend type Query {
     dockerConfigGenerator(input: DockerConfigGeneratorInput!): DockerConfigGeneratorOutput
+    availableDockerConfigs: [String!]
+    dockerConfigFromServiceName(serviceName: String!): DockerConfigGeneratorOutput
 }
