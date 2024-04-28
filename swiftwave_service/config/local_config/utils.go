@@ -151,7 +151,7 @@ func (config *Config) String() (string, error) {
 }
 
 func (config *Config) GetRegistryURL() string {
-	return fmt.Sprintf("%s:%d", config.ServiceConfig.ManagementNodeAddress, config.LocalImageRegistryConfig.Port)
+	return fmt.Sprintf("%s:%d", config.LocalImageRegistryNodeAddressConsideringTunnelling(), config.LocalImageRegistryNodePortConsideringTunnelling())
 }
 
 func (config *Config) ManagementNodeAddressConsideringTunnelling() string {
@@ -166,6 +166,20 @@ func (config *Config) ManagementNodePortConsideringTunnelling() int {
 		return config.ManagementNodeTunnellingConfig.ManagementNodePort
 	}
 	return config.ServiceConfig.BindPort
+}
+
+func (config *Config) LocalImageRegistryNodeAddressConsideringTunnelling() string {
+	if config.ManagementNodeTunnellingConfig.Enabled {
+		return config.ManagementNodeTunnellingConfig.LocalImageRegistryNodeAddress
+	}
+	return config.ServiceConfig.ManagementNodeAddress
+}
+
+func (config *Config) LocalImageRegistryNodePortConsideringTunnelling() int {
+	if config.ManagementNodeTunnellingConfig.Enabled {
+		return config.ManagementNodeTunnellingConfig.LocalImageRegistryNodePort
+	}
+	return config.LocalImageRegistryConfig.Port
 }
 
 func (l *LocalImageRegistryConfig) Htpasswd() (string, error) {
