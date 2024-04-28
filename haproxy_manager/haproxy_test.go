@@ -60,6 +60,7 @@ func startTestContainer(ctx context.Context) (*haproxyContainer, error) {
 			"ADMIN_USER":                 "admin",
 			"ADMIN_PASSWORD":             "admin",
 			"SWIFTWAVE_SERVICE_ENDPOINT": "localhost:80",
+			"SWIFTWAVE_SERVICE_ADDRESS":  "localhost",
 		},
 		Mounts: testcontainers.ContainerMounts{
 			{
