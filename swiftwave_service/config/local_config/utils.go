@@ -154,6 +154,20 @@ func (config *Config) GetRegistryURL() string {
 	return fmt.Sprintf("%s:%d", config.ServiceConfig.ManagementNodeAddress, config.LocalImageRegistryConfig.Port)
 }
 
+func (config *Config) ManagementNodeAddressConsideringTunnelling() string {
+	if config.ManagementNodeTunnellingConfig.Enabled {
+		return config.ManagementNodeTunnellingConfig.ManagementNodeAddress
+	}
+	return config.ServiceConfig.ManagementNodeAddress
+}
+
+func (config *Config) ManagementNodePortConsideringTunnelling() int {
+	if config.ManagementNodeTunnellingConfig.Enabled {
+		return config.ManagementNodeTunnellingConfig.ManagementNodePort
+	}
+	return config.ServiceConfig.BindPort
+}
+
 func (l *LocalImageRegistryConfig) Htpasswd() (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(l.Password), bcrypt.DefaultCost)
 	if err != nil {
