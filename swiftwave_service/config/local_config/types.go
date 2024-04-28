@@ -73,7 +73,9 @@ type EnvironmentVariables struct {
 }
 
 type ManagementNodeTunnellingConfig struct {
-	Enabled               bool   `yaml:"enabled"`
-	ManagementNodeAddress string `yaml:"management_node_address"`
-	ManagementNodePort    int    `yaml:"management_node_port"`
+	Enabled                       bool   `yaml:"enabled"`
+	ManagementNodeAddress         string `yaml:"management_node_address"`
+	ManagementNodePort            int    `yaml:"management_node_port"`
+	LocalImageRegistryNodeAddress string `yaml:"local_image_registry_node_address"`
+	LocalImageRegistryNodePort    int    `yaml:"local_image_registry_node_port"`
 }
