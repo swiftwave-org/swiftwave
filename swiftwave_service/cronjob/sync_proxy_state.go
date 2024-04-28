@@ -82,7 +82,8 @@ func (m Manager) syncProxy() {
 	haProxyEnvironmentVariables := map[string]string{
 		"ADMIN_USERNAME":             m.Config.SystemConfig.HAProxyConfig.Username,
 		"ADMIN_PASSWORD":             m.Config.SystemConfig.HAProxyConfig.Password,
-		"SWIFTWAVE_SERVICE_ENDPOINT": fmt.Sprintf("%s:%d", m.Config.LocalConfig.ServiceConfig.ManagementNodeAddress, m.Config.LocalConfig.ServiceConfig.BindPort),
+		"SWIFTWAVE_SERVICE_ENDPOINT": fmt.Sprintf("%s:%d", m.Config.LocalConfig.ManagementNodeAddressConsideringTunnelling(), m.Config.LocalConfig.ManagementNodePortConsideringTunnelling()),
+		"SWIFTWAVE_SERVICE_ADDRESS":  m.Config.LocalConfig.ManagementNodeAddressConsideringTunnelling(),
 	}
 	// Try to fetch info about haproxy service
 	haproxyService, err := dockerClient.GetService(m.Config.LocalConfig.ServiceConfig.HAProxyServiceName)
@@ -131,7 +132,7 @@ func (m Manager) syncProxy() {
 	}
 	// udp proxy
 	udpProxyEnvironmentVariables := map[string]string{
-		"SWIFTWAVE_SERVICE_ENDPOINT": fmt.Sprintf("%s:%d", m.Config.LocalConfig.ServiceConfig.ManagementNodeAddress, m.Config.LocalConfig.ServiceConfig.BindPort),
+		"SWIFTWAVE_SERVICE_ENDPOINT": fmt.Sprintf("%s:%d", m.Config.LocalConfig.ManagementNodeAddressConsideringTunnelling(), m.Config.LocalConfig.ManagementNodePortConsideringTunnelling()),
 	}
 	// Try to fetch info about udpproxy service
 	udpproxyService, err := dockerClient.GetService(m.Config.LocalConfig.ServiceConfig.UDPProxyServiceName)

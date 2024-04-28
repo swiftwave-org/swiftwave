@@ -6,12 +6,13 @@ import _ "embed"
 var softwareVersion string
 
 type Config struct {
-	IsDevelopmentMode        bool                     `yaml:"dev_mode"`
-	Version                  string                   `yaml:"-"`
-	ServiceConfig            ServiceConfig            `yaml:"service"`
-	PostgresqlConfig         PostgresqlConfig         `yaml:"postgresql"`
-	LocalImageRegistryConfig LocalImageRegistryConfig `yaml:"local_image_registry"`
-	EnvironmentVariables     EnvironmentVariables     `yaml:"environment_variables"`
+	IsDevelopmentMode              bool                           `yaml:"dev_mode"`
+	Version                        string                         `yaml:"-"`
+	ServiceConfig                  ServiceConfig                  `yaml:"service"`
+	PostgresqlConfig               PostgresqlConfig               `yaml:"postgresql"`
+	LocalImageRegistryConfig       LocalImageRegistryConfig       `yaml:"local_image_registry"`
+	EnvironmentVariables           EnvironmentVariables           `yaml:"environment_variables"`
+	ManagementNodeTunnellingConfig ManagementNodeTunnellingConfig `yaml:"management_node_tunnelling"`
 }
 
 type ServiceConfig struct {
@@ -69,4 +70,10 @@ type LocalImageRegistryConfig struct {
 type EnvironmentVariables struct {
 	SshAuthSock   string `yaml:"SSH_AUTH_SOCK"`
 	SshKnownHosts string `yaml:"SSH_KNOWN_HOSTS"`
+}
+
+type ManagementNodeTunnellingConfig struct {
+	Enabled               bool   `yaml:"enabled"`
+	ManagementNodeAddress string `yaml:"management_node_address"`
+	ManagementNodePort    int    `yaml:"management_node_port"`
 }
