@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -172,6 +173,48 @@ func generateDefaultHAProxyConfiguration(config *config.Config) error {
 		}
 	}
 
+	// Create `errors` directory if it does not exist
+	if _, err := os.Stat(config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath + "/errors"); os.IsNotExist(err) {
+		err = os.MkdirAll(config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath+"/errors", os.ModePerm)
+		if err != nil {
+			return err
+		} else {
+			log.Println("Created `errors` directory")
+		}
+	}
+
+	// Check if `502.http` file exists
+	if !checkIfFileExists(config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath + "/errors/502.http") {
+		content, err := downloadContent(generateHAProxyErrorPageDownloadUrl(502))
+		if err != nil {
+			return err
+		} else {
+			log.Println("Downloaded `502.http` file")
+			err = writeContent(config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath+"/errors/502.http", content)
+			if err != nil {
+				return err
+			} else {
+				log.Println("Created `502.http` file")
+			}
+		}
+	}
+
+	// Check if `503.http` file exists
+	if !checkIfFileExists(config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath + "/errors/503.http") {
+		content, err := downloadContent(generateHAProxyErrorPageDownloadUrl(503))
+		if err != nil {
+			return err
+		} else {
+			log.Println("Downloaded `503.http` file")
+			err = writeContent(config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath+"/errors/503.http", content)
+			if err != nil {
+				return err
+			} else {
+				log.Println("Created `503.http` file")
+			}
+		}
+	}
+
 	// Create `ssl` directory if it does not exist
 	if _, err := os.Stat(config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath + "/ssl"); os.IsNotExist(err) {
 		err := os.MkdirAll(config.LocalConfig.ServiceConfig.HAProxyDataDirectoryPath+"/ssl", os.ModePerm)
@@ -212,6 +255,10 @@ func generateHAProxyConfigDownloadBaseUrl(config *config.Config) (string, error)
 	version := splitString[1]
 	url := "https://raw.githubusercontent.com/swiftwave-org/haproxy/main/" + version
 	return url, nil
+}
+
+func generateHAProxyErrorPageDownloadUrl(errorCode int) string {
+	return "https://raw.githubusercontent.com/swiftwave-org/haproxy/main/" + strconv.Itoa(errorCode) + ".http"
 }
 
 func downloadContent(url string) (string, error) {
