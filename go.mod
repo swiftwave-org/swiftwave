@@ -23,7 +23,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/testcontainers/testcontainers-go v0.30.0
 	github.com/vektah/gqlparser/v2 v2.5.11
-	golang.org/x/term v0.19.0
+	golang.org/x/term v0.20.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.5.7
 	gorm.io/gorm v1.25.10
@@ -142,7 +142,7 @@ require (
 	golang.org/x/crypto v0.22.0
 	golang.org/x/mod v0.16.0 // indirect
 	golang.org/x/net v0.24.0
-	golang.org/x/sys v0.19.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.19.0 // indirect
 )
