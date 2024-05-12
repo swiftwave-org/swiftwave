@@ -242,6 +242,7 @@ var DependencyCheckCommands = map[string]string{
 	"tar":    "which tar",
 	"nfs":    "which nfsstat",
 	"cifs":   "which mount.cifs",
+	"rsync":  "which rsync",
 	"docker": "which docker",
 }
 
@@ -253,6 +254,7 @@ var DebianDependenciesInstallCommands = map[string]string{
 	"tar":    "apt install -y tar",
 	"nfs":    "apt install -y nfs-common",
 	"cifs":   "apt install -y cifs-utils",
+	"rsync":  "apt install -y rsync",
 	"docker": "curl -fsSL get.docker.com | sh -",
 }
 var FedoraDependenciesInstallCommands = map[string]string{
@@ -263,6 +265,7 @@ var FedoraDependenciesInstallCommands = map[string]string{
 	"tar":    "dnf install -y tar",
 	"nfs":    "dnf install -y nfs-utils",
 	"cifs":   "dnf install -y cifs-utils",
+	"rsync":  "dnf install -y rsync",
 	"docker": "curl -fsSL get.docker.com | sh -",
 }
 
