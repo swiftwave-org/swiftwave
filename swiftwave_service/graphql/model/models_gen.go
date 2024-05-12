@@ -367,6 +367,7 @@ type RedirectRule struct {
 
 type RedirectRuleInput struct {
 	DomainID    uint         `json:"domainId"`
+	NewDomain   string       `json:"newDomain"`
 	Protocol    ProtocolType `json:"protocol"`
 	RedirectURL string       `json:"redirectURL"`
 }

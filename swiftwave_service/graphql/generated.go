@@ -22148,7 +22148,7 @@ func (ec *executionContext) unmarshalInputRedirectRuleInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"domainId", "protocol", "redirectURL"}
+	fieldsInOrder := [...]string{"domainId", "newDomain", "protocol", "redirectURL"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -22162,6 +22162,13 @@ func (ec *executionContext) unmarshalInputRedirectRuleInput(ctx context.Context,
 				return it, err
 			}
 			it.DomainID = data
+		case "newDomain":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newDomain"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NewDomain = data
 		case "protocol":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("protocol"))
 			data, err := ec.unmarshalNProtocolType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐProtocolType(ctx, v)
