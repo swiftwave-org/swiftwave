@@ -250,6 +250,7 @@ type IngressRule struct {
 
 type IngressRuleInput struct {
 	DomainID        *uint                 `json:"domainId,omitempty"`
+	NewDomain       string                `json:"newDomain"`
 	TargetType      IngressRuleTargetType `json:"targetType"`
 	ApplicationID   string                `json:"applicationId"`
 	ExternalService string                `json:"externalService"`
