@@ -23,18 +23,25 @@ func (r *mutationResolver) CreateRedirectRule(ctx context.Context, input model.R
 			if strings.Compare(input.NewDomain, "") == 0 {
 				return nil, errors.New("new domain is required as existing domain id is not provided")
 			} else {
-				// create a new domain
-				resp, err := r.AddDomain(ctx, model.DomainInput{
-					Name: input.NewDomain,
-				})
-				if err != nil {
-					return nil, err
+				// find domain by name
+				var domain = &core.Domain{}
+				err := domain.FindByName(ctx, r.ServiceManager.DbClient, input.NewDomain)
+				if err == nil {
+					record.DomainID = domain.ID
+				} else {
+					// create a new domain
+					resp, err := r.AddDomain(ctx, model.DomainInput{
+						Name: input.NewDomain,
+					})
+					if err != nil {
+						return nil, err
+					}
+					if resp == nil {
+						return nil, errors.New("failed to create new domain")
+					}
+					// set domain id
+					record.DomainID = resp.ID
 				}
-				if resp == nil {
-					return nil, errors.New("failed to create new domain")
-				}
-				// set domain id
-				record.DomainID = resp.ID
 			}
 		}
 	}
