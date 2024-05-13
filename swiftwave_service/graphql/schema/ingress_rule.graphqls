@@ -46,7 +46,7 @@ type IngressRule {
 extend type Query {
     ingressRule(id: Uint!): IngressRule!
     ingressRules: [IngressRule!]!
-    isNewIngressRuleValid(validationInput: IngressRuleValidationInput!): Boolean!
+    isNewIngressRuleValid(input: IngressRuleValidationInput!): Boolean!
 }
 
 extend type Mutation {

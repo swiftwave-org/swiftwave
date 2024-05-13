@@ -339,7 +339,7 @@ type ComplexityRoot struct {
 		IngressRules                       func(childComplexity int) int
 		IsExistApplicationName             func(childComplexity int, name string) int
 		IsExistPersistentVolume            func(childComplexity int, name string) int
-		IsNewIngressRuleValid              func(childComplexity int, validationInput model.IngressRuleValidationInput) int
+		IsNewIngressRuleValid              func(childComplexity int, input model.IngressRuleValidationInput) int
 		PersistentVolume                   func(childComplexity int, id uint) int
 		PersistentVolumeSizeMb             func(childComplexity int, id uint) int
 		PersistentVolumes                  func(childComplexity int) int
@@ -567,7 +567,7 @@ type QueryResolver interface {
 	ImageRegistryCredential(ctx context.Context, id uint) (*model.ImageRegistryCredential, error)
 	IngressRule(ctx context.Context, id uint) (*model.IngressRule, error)
 	IngressRules(ctx context.Context) ([]*model.IngressRule, error)
-	IsNewIngressRuleValid(ctx context.Context, validationInput model.IngressRuleValidationInput) (bool, error)
+	IsNewIngressRuleValid(ctx context.Context, input model.IngressRuleValidationInput) (bool, error)
 	PersistentVolumes(ctx context.Context) ([]*model.PersistentVolume, error)
 	PersistentVolume(ctx context.Context, id uint) (*model.PersistentVolume, error)
 	PersistentVolumeSizeMb(ctx context.Context, id uint) (float64, error)
@@ -2451,7 +2451,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.IsNewIngressRuleValid(childComplexity, args["validationInput"].(model.IngressRuleValidationInput)), true
+		return e.complexity.Query.IsNewIngressRuleValid(childComplexity, args["input"].(model.IngressRuleValidationInput)), true
 
 	case "Query.persistentVolume":
 		if e.complexity.Query.PersistentVolume == nil {
@@ -4323,14 +4323,14 @@ func (ec *executionContext) field_Query_isNewIngressRuleValid_args(ctx context.C
 	var err error
 	args := map[string]interface{}{}
 	var arg0 model.IngressRuleValidationInput
-	if tmp, ok := rawArgs["validationInput"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("validationInput"))
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNIngressRuleValidationInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleValidationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["validationInput"] = arg0
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -15738,7 +15738,7 @@ func (ec *executionContext) _Query_isNewIngressRuleValid(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().IsNewIngressRuleValid(rctx, fc.Args["validationInput"].(model.IngressRuleValidationInput))
+		return ec.resolvers.Query().IsNewIngressRuleValid(rctx, fc.Args["input"].(model.IngressRuleValidationInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

@@ -107,8 +107,8 @@ func (r *queryResolver) IngressRules(ctx context.Context) ([]*model.IngressRule,
 }
 
 // IsNewIngressRuleValid is the resolver for the isNewIngressRuleValid field.
-func (r *queryResolver) IsNewIngressRuleValid(ctx context.Context, validationInput model.IngressRuleValidationInput) (bool, error) {
-	record := ingressRuleValidationInputToDatabaseObject(&validationInput)
+func (r *queryResolver) IsNewIngressRuleValid(ctx context.Context, input model.IngressRuleValidationInput) (bool, error) {
+	record := ingressRuleValidationInputToDatabaseObject(&input)
 	restrictedPorts := make([]int, 0)
 	for _, port := range r.Config.SystemConfig.RestrictedPorts {
 		restrictedPorts = append(restrictedPorts, int(port))
