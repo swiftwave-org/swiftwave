@@ -339,7 +339,7 @@ type ComplexityRoot struct {
 		IngressRules                       func(childComplexity int) int
 		IsExistApplicationName             func(childComplexity int, name string) int
 		IsExistPersistentVolume            func(childComplexity int, name string) int
-		IsIngressRuleExist                 func(childComplexity int, validationInput model.IngressRuleValidationInput) int
+		IsNewIngressRuleValid              func(childComplexity int, validationInput model.IngressRuleValidationInput) int
 		PersistentVolume                   func(childComplexity int, id uint) int
 		PersistentVolumeSizeMb             func(childComplexity int, id uint) int
 		PersistentVolumes                  func(childComplexity int) int
@@ -567,7 +567,7 @@ type QueryResolver interface {
 	ImageRegistryCredential(ctx context.Context, id uint) (*model.ImageRegistryCredential, error)
 	IngressRule(ctx context.Context, id uint) (*model.IngressRule, error)
 	IngressRules(ctx context.Context) ([]*model.IngressRule, error)
-	IsIngressRuleExist(ctx context.Context, validationInput model.IngressRuleValidationInput) (bool, error)
+	IsNewIngressRuleValid(ctx context.Context, validationInput model.IngressRuleValidationInput) (bool, error)
 	PersistentVolumes(ctx context.Context) ([]*model.PersistentVolume, error)
 	PersistentVolume(ctx context.Context, id uint) (*model.PersistentVolume, error)
 	PersistentVolumeSizeMb(ctx context.Context, id uint) (float64, error)
@@ -2441,17 +2441,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.IsExistPersistentVolume(childComplexity, args["name"].(string)), true
 
-	case "Query.isIngressRuleExist":
-		if e.complexity.Query.IsIngressRuleExist == nil {
+	case "Query.isNewIngressRuleValid":
+		if e.complexity.Query.IsNewIngressRuleValid == nil {
 			break
 		}
 
-		args, err := ec.field_Query_isIngressRuleExist_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_isNewIngressRuleValid_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.IsIngressRuleExist(childComplexity, args["validationInput"].(model.IngressRuleValidationInput)), true
+		return e.complexity.Query.IsNewIngressRuleValid(childComplexity, args["validationInput"].(model.IngressRuleValidationInput)), true
 
 	case "Query.persistentVolume":
 		if e.complexity.Query.PersistentVolume == nil {
@@ -4319,7 +4319,7 @@ func (ec *executionContext) field_Query_isExistPersistentVolume_args(ctx context
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_isIngressRuleExist_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_isNewIngressRuleValid_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 model.IngressRuleValidationInput
@@ -15724,8 +15724,8 @@ func (ec *executionContext) fieldContext_Query_ingressRules(_ context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_isIngressRuleExist(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_isIngressRuleExist(ctx, field)
+func (ec *executionContext) _Query_isNewIngressRuleValid(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_isNewIngressRuleValid(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -15738,7 +15738,7 @@ func (ec *executionContext) _Query_isIngressRuleExist(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().IsIngressRuleExist(rctx, fc.Args["validationInput"].(model.IngressRuleValidationInput))
+		return ec.resolvers.Query().IsNewIngressRuleValid(rctx, fc.Args["validationInput"].(model.IngressRuleValidationInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15755,7 +15755,7 @@ func (ec *executionContext) _Query_isIngressRuleExist(ctx context.Context, field
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_isIngressRuleExist(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_isNewIngressRuleValid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -15772,7 +15772,7 @@ func (ec *executionContext) fieldContext_Query_isIngressRuleExist(ctx context.Co
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_isIngressRuleExist_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_isNewIngressRuleValid_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -25349,7 +25349,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "isIngressRuleExist":
+		case "isNewIngressRuleValid":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -25358,7 +25358,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_isIngressRuleExist(ctx, field)
+				res = ec._Query_isNewIngressRuleValid(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
