@@ -231,6 +231,7 @@ var RequiredServerDependencies = []string{
 	"tar",
 	"nfs",
 	"cifs",
+	"rsync",
 	"docker",
 }
 
