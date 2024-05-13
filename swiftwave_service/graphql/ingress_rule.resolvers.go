@@ -45,36 +45,6 @@ func (r *mutationResolver) CreateIngressRule(ctx context.Context, input model.In
 	if record.TargetType == core.ExternalServiceIngressRule && strings.Compare(record.ExternalService, "") == 0 {
 		return nil, errors.New("external service is required")
 	}
-	if record.Protocol == core.HTTPProtocol || record.Protocol == core.HTTPSProtocol {
-		// check if domainId is nil or 0
-		if record.DomainID == nil || *record.DomainID == 0 {
-			// check if newDomain is not empty
-			if strings.Compare(input.NewDomain, "") == 0 {
-				return nil, errors.New("new domain is required as existing domain id is not provided")
-			} else {
-				// find domain by name
-				var domain = &core.Domain{}
-				err := domain.FindByName(ctx, r.ServiceManager.DbClient, input.NewDomain)
-				if err == nil {
-					record.DomainID = &domain.ID
-				} else {
-					// create a new domain
-					resp, err := r.AddDomain(ctx, model.DomainInput{
-						Name: input.NewDomain,
-					})
-					if err != nil {
-						return nil, err
-					}
-					if resp == nil {
-
-						return nil, errors.New("failed to create new domain")
-					}
-					// set domain id
-					record.DomainID = &resp.ID
-				}
-			}
-		}
-	}
 	restrictedPorts := make([]int, 0)
 	for _, port := range r.Config.SystemConfig.RestrictedPorts {
 		restrictedPorts = append(restrictedPorts, int(port))

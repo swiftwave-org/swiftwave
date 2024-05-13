@@ -11,8 +11,7 @@ enum IngressRuleTargetType {
 }
 
 input IngressRuleInput {
-    domainId: Uint # If domainId is 0 or nil, then use newDomain field to create a new domain
-    newDomain: String!
+    domainId: Uint
     targetType: IngressRuleTargetType!
     applicationId: String!
     externalService: String!

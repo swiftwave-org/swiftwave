@@ -32,11 +32,6 @@ func (domain *Domain) FindById(_ context.Context, db gorm.DB, id uint) error {
 	return tx.Error
 }
 
-func (domain *Domain) FindByName(_ context.Context, db gorm.DB, name string) error {
-	tx := db.Where("name = ?", name).First(&domain)
-	return tx.Error
-}
-
 func (domain *Domain) Create(_ context.Context, db gorm.DB) error {
 	err := domain.fillSSLInfo()
 	if err != nil {
