@@ -406,6 +406,22 @@ func ingressRuleInputToDatabaseObject(record *model.IngressRuleInput) *core.Ingr
 	}
 }
 
+// ingressRuleValidationInputToDatabaseObject : converts IngressRuleValidationInput to IngressRuleDatabaseObject
+func ingressRuleValidationInputToDatabaseObject(record *model.IngressRuleValidationInput) *core.IngressRule {
+	return &core.IngressRule{
+		TargetType:      core.ExternalServiceIngressRule,
+		ExternalService: "dummy",
+		ApplicationID:   nil,
+		DomainID:        &record.DomainID,
+		Protocol:        core.ProtocolType(record.Protocol),
+		Port:            record.Port,
+		TargetPort:      0,
+		Status:          core.IngressRuleStatusPending,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+	}
+}
+
 // ingressRuleToGraphqlObject : converts IngressRule to IngressRuleGraphqlObject
 func ingressRuleToGraphqlObject(record *core.IngressRule) *model.IngressRule {
 	return &model.IngressRule{

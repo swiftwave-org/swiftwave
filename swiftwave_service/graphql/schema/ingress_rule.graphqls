@@ -20,6 +20,13 @@ input IngressRuleInput {
     targetPort: Uint!
 }
 
+input IngressRuleValidationInput {
+    domainId: Uint!
+    protocol: ProtocolType!
+    port: Uint!
+}
+
+
 type IngressRule {
     id: Uint!
     targetType: IngressRuleTargetType!
@@ -39,6 +46,7 @@ type IngressRule {
 extend type Query {
     ingressRule(id: Uint!): IngressRule!
     ingressRules: [IngressRule!]!
+    isIngressRuleExist(validationInput: IngressRuleValidationInput!): Boolean!
 }
 
 extend type Mutation {

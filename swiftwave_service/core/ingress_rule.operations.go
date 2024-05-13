@@ -38,7 +38,7 @@ func FindIngressRulesByApplicationID(ctx context.Context, db gorm.DB, applicatio
 	return ingressRules, tx.Error
 }
 
-func (ingressRule *IngressRule) Create(ctx context.Context, db gorm.DB, restrictedPorts []int) error {
+func (ingressRule *IngressRule) IsValidNewIngressRule(ctx context.Context, db gorm.DB, restrictedPorts []int) error {
 	// if TCP/UDP mode, ensure port 80, 443 not requested
 	if ingressRule.Protocol == TCPProtocol || ingressRule.Protocol == UDPProtocol {
 		if ingressRule.Port == 80 || ingressRule.Port == 443 {
@@ -99,7 +99,13 @@ func (ingressRule *IngressRule) Create(ctx context.Context, db gorm.DB, restrict
 			return errors.New("there is redirect rule with same domain and port")
 		}
 	}
+	return nil
+}
 
+func (ingressRule *IngressRule) Create(ctx context.Context, db gorm.DB, restrictedPorts []int) error {
+	if err := ingressRule.IsValidNewIngressRule(ctx, db, restrictedPorts); err != nil {
+		return err
+	}
 	// create record
 	tx := db.Create(&ingressRule)
 	return tx.Error

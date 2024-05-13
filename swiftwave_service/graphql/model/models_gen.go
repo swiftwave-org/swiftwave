@@ -258,6 +258,12 @@ type IngressRuleInput struct {
 	TargetPort      uint                  `json:"targetPort"`
 }
 
+type IngressRuleValidationInput struct {
+	DomainID uint         `json:"domainId"`
+	Protocol ProtocolType `json:"protocol"`
+	Port     uint         `json:"port"`
+}
+
 type Mutation struct {
 }
 
