@@ -21,7 +21,7 @@ input IngressRuleInput {
 }
 
 input IngressRuleValidationInput {
-    domainId: Uint!
+    domainId: Uint
     protocol: ProtocolType!
     port: Uint!
 }

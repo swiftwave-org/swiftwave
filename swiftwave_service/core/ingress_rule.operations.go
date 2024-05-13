@@ -45,6 +45,20 @@ func (ingressRule *IngressRule) IsValidNewIngressRule(ctx context.Context, db go
 			return errors.New("port 80, 443 not allowed for TCP/UDP mode")
 		}
 	}
+	if ingressRule.Protocol == HTTPSProtocol && ingressRule.Port == 80 {
+		return errors.New("port 80 not allowed for HTTPS mode")
+	}
+	if ingressRule.Protocol == HTTPProtocol && ingressRule.Port == 443 {
+		return errors.New("port 443 not allowed for HTTP mode")
+	}
+	if ingressRule.Protocol == HTTPSProtocol && ingressRule.Port != 443 {
+		return errors.New("only port 443 is allowed for HTTPS mode")
+	}
+	if ingressRule.Protocol == HTTPProtocol || ingressRule.Protocol == HTTPSProtocol {
+		if ingressRule.DomainID == nil {
+			return errors.New("domain is required for HTTP/HTTPS mode")
+		}
+	}
 	// check if port is restricted
 	for _, p := range restrictedPorts {
 		if int(ingressRule.Port) == p {

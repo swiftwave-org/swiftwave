@@ -259,7 +259,7 @@ type IngressRuleInput struct {
 }
 
 type IngressRuleValidationInput struct {
-	DomainID uint         `json:"domainId"`
+	DomainID *uint        `json:"domainId,omitempty"`
 	Protocol ProtocolType `json:"protocol"`
 	Port     uint         `json:"port"`
 }

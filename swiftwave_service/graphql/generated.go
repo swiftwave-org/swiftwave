@@ -21969,7 +21969,7 @@ func (ec *executionContext) unmarshalInputIngressRuleValidationInput(ctx context
 		switch k {
 		case "domainId":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("domainId"))
-			data, err := ec.unmarshalNUint2uint(ctx, v)
+			data, err := ec.unmarshalOUint2ᚖuint(ctx, v)
 			if err != nil {
 				return it, err
 			}

@@ -412,7 +412,7 @@ func ingressRuleValidationInputToDatabaseObject(record *model.IngressRuleValidat
 		TargetType:      core.ExternalServiceIngressRule,
 		ExternalService: "dummy",
 		ApplicationID:   nil,
-		DomainID:        &record.DomainID,
+		DomainID:        record.DomainID,
 		Protocol:        core.ProtocolType(record.Protocol),
 		Port:            record.Port,
 		TargetPort:      0,
@@ -486,6 +486,10 @@ func userToGraphqlObject(record *core.User) *model.User {
 // stackToApplicationsInput : converts Stack to ApplicationInput
 func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db gorm.DB) ([]model.ApplicationInput, error) {
 	applications := make([]model.ApplicationInput, 0)
+	groupName := ""
+	if len(record.Services) > 1 {
+		groupName = stackName
+	}
 	for serviceName, service := range record.Services {
 		environmentVariables := make([]*model.EnvironmentVariableInput, 0)
 		for key, value := range service.Environment {
@@ -531,7 +535,7 @@ func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db g
 			RepositoryBranch:             nil,
 			CodePath:                     nil,
 			SourceCodeCompressedFileName: nil,
-			Group:                        stackName,
+			Group:                        groupName,
 		}
 		applications = append(applications, app)
 	}

@@ -86,10 +86,10 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 	}
 	// set message
 	if len(result.InvalidServices) == 0 {
-		result.Success = result.Success && true
+		result.Success = true
 		result.Message = "All services are verified"
 	} else {
-		result.Success = result.Success && false
+		result.Success = false
 		unverifiedServiceStr := ""
 		for _, service := range result.InvalidServices {
 			unverifiedServiceStr += service + ", "
@@ -101,10 +101,10 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 	}
 
 	if len(result.InvalidVolumes) == 0 {
-		result.Success = result.Success && true
+		result.Success = true
 		result.Message = fmt.Sprintf("%s\nAll volumes are verified", result.Message)
 	} else {
-		result.Success = result.Success && false
+		result.Success = false
 		unverifiedVolumeStr := ""
 		for _, volume := range result.InvalidVolumes {
 			unverifiedVolumeStr += volume + ", "
