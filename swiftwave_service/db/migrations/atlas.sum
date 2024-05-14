@@ -1,4 +1,4 @@
-h1:mpHGUclZEPysTNwzUNy1cTaUCwfcawuBHSpi9afnWSc=
+h1:5qyc47ng4U4GZ4quiz5weMwfDWk2+DmyWEBQbn04KVk=
 20240413191732_init.down.sql h1:HoitObGwuKF/akF4qg3dol2FfNTLCEuf6wHYDuCez8I=
 20240413191732_init.up.sql h1:USKdQx/yTz1KJ0+mDwYGhKm3WzX7k+I9+6B6SxImwaE=
 20240414051823_server_custom_ssh_port_added.down.sql h1:IC1DFQBQceTPTRdZOo5/WqytH+ZbgcKrQuMCkhArF/0=
@@ -13,3 +13,5 @@ h1:mpHGUclZEPysTNwzUNy1cTaUCwfcawuBHSpi9afnWSc=
 20240421181500_mark_fk_as_null_on_git_cred_deletion.up.sql h1:e/vFMTpcVsjuCUU6Ar93qhyMTlgFn2wNeZq86OtxVq0=
 20240424040429_ingress_rule_add_external_service.down.sql h1:6bNPEyyaQOpRTzD7ML/QVLBWYi4UGQUl7auP0VyfXaQ=
 20240424040429_ingress_rule_add_external_service.up.sql h1:3q8wuNDma79x7gA6nC1rvtVmZ6y/4PDAUY0EEprTXc8=
+20240514053116_mark_server_ip_as_unique.down.sql h1:9h83htkJgsV9eOe3MOdyyEAiXPhWxDjVT+Ab/WzQyxo=
+20240514053116_mark_server_ip_as_unique.up.sql h1:CMRnnkKZdEchRp5jLNjOEbm2uX9UK6IlzMc4ymziFq0=

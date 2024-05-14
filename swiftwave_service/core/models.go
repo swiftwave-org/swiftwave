@@ -9,8 +9,8 @@ import (
 // Server : hold information about server
 type Server struct {
 	ID                    uint                   `json:"id" gorm:"primaryKey"`
-	IP                    string                 `json:"ip"`
-	HostName              string                 `json:"host_name" gorm:"unique"`
+	IP                    string                 `json:"ip" gorm:"unique"`
+	HostName              string                 `json:"host_name"`
 	User                  string                 `json:"user"`
 	SSHPort               int                    `json:"ssh_port" gorm:"default:22"`
 	ScheduleDeployments   bool                   `json:"schedule_deployments" gorm:"default:true"`
