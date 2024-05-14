@@ -3,7 +3,9 @@ package core
 import (
 	"context"
 	"errors"
+	"fmt"
 	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"gorm.io/gorm"
 	"regexp"
 )
@@ -48,7 +50,9 @@ func (persistentVolume *PersistentVolume) FindByName(_ context.Context, db gorm.
 	return tx.Error
 }
 
-func (persistentVolume *PersistentVolume) Create(_ context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
+type createDockerClientFromServerRecord func(ctx context.Context, server Server) (*containermanger.Manager, error)
+
+func (persistentVolume *PersistentVolume) Create(ctx context.Context, db gorm.DB, createDockerClientFromServerRecord createDockerClientFromServerRecord) error {
 	// verify name is valid
 	if !isValidVolumeName(persistentVolume.Name) {
 		return errors.New("name can only contain alphabets, numbers and underscore")
@@ -60,10 +64,35 @@ func (persistentVolume *PersistentVolume) Create(_ context.Context, db gorm.DB, 
 	if count > 0 {
 		return errors.New("persistentVolume with same name already exists")
 	}
-	// verify from docker client
-	isExists := dockerManager.ExistsVolume(persistentVolume.Name)
-	if isExists {
-		return errors.New("persistentVolume with same name already exists")
+	// fetch all active servers
+	servers, err := FetchAllServers(&db)
+	if err != nil {
+		return err
+	}
+	// check if any server is offline
+	for _, server := range servers {
+		if server.Status == ServerOffline {
+			return fmt.Errorf("server %s is offline", server.IP)
+		}
+	}
+	// create docker manager for all servers
+	dockerManagers := map[string]containermanger.Manager{}
+	for _, server := range servers {
+		if server.Status == ServerOnline {
+			dockerManager, err := createDockerClientFromServerRecord(ctx, server)
+			if err != nil {
+				return err
+			}
+			dockerManagers[server.IP] = *dockerManager
+		}
+	}
+
+	// check if volume exists in any server
+	for serverIP, dockerManager := range dockerManagers {
+		isExists := dockerManager.ExistsVolume(persistentVolume.Name)
+		if isExists {
+			return fmt.Errorf("volume %s exists in server %s", persistentVolume.Name, serverIP)
+		}
 	}
 	// Start a database transaction
 	transaction := db.Begin()
@@ -73,21 +102,24 @@ func (persistentVolume *PersistentVolume) Create(_ context.Context, db gorm.DB, 
 		transaction.Rollback()
 		return tx.Error
 	}
-	var err error
-	// Create persistentVolume in docker
-	if persistentVolume.Type == PersistentVolumeTypeLocal {
-		err = dockerManager.CreateLocalVolume(persistentVolume.Name)
-	} else if persistentVolume.Type == PersistentVolumeTypeNFS {
-		err = dockerManager.CreateNFSVolume(persistentVolume.Name, persistentVolume.NFSConfig.Host, persistentVolume.NFSConfig.Path, persistentVolume.NFSConfig.Version)
-	} else if persistentVolume.Type == PersistentVolumeTypeCIFS {
-		err = dockerManager.CreateCIFSVolume(persistentVolume.Name, persistentVolume.CIFSConfig.Host, persistentVolume.CIFSConfig.Share, persistentVolume.CIFSConfig.Username, persistentVolume.CIFSConfig.Password, persistentVolume.CIFSConfig.FileMode, persistentVolume.CIFSConfig.DirMode)
-	} else {
-		transaction.Rollback()
-		return errors.New("invalid persistentVolume type")
-	}
-	if err != nil {
-		transaction.Rollback()
-		return err
+	// create volume in each server
+	for serverIP, dockerManager := range dockerManagers {
+		// Create persistentVolume in docker
+		if persistentVolume.Type == PersistentVolumeTypeLocal {
+			err = dockerManager.CreateLocalVolume(persistentVolume.Name)
+		} else if persistentVolume.Type == PersistentVolumeTypeNFS {
+			err = dockerManager.CreateNFSVolume(persistentVolume.Name, persistentVolume.NFSConfig.Host, persistentVolume.NFSConfig.Path, persistentVolume.NFSConfig.Version)
+		} else if persistentVolume.Type == PersistentVolumeTypeCIFS {
+			err = dockerManager.CreateCIFSVolume(persistentVolume.Name, persistentVolume.CIFSConfig.Host, persistentVolume.CIFSConfig.Share, persistentVolume.CIFSConfig.Username, persistentVolume.CIFSConfig.Password, persistentVolume.CIFSConfig.FileMode, persistentVolume.CIFSConfig.DirMode)
+		} else {
+			transaction.Rollback()
+			return errors.New("invalid persistentVolume type")
+		}
+		if err != nil {
+			transaction.Rollback()
+			logger.DatabaseLoggerError.Println("Failed to create volume in server " + serverIP + " > " + err.Error())
+			return errors.New("failed to create volume in server " + serverIP + " > " + err.Error())
+		}
 	}
 	return transaction.Commit().Error
 }
