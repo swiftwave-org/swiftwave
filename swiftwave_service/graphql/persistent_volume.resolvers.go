@@ -16,11 +16,7 @@ import (
 // CreatePersistentVolume is the resolver for the createPersistentVolume field.
 func (r *mutationResolver) CreatePersistentVolume(ctx context.Context, input model.PersistentVolumeInput) (*model.PersistentVolume, error) {
 	record := persistentVolumeInputToDatabaseObject(&input)
-	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
-	if err != nil {
-		return nil, err
-	}
-	err = record.Create(ctx, r.ServiceManager.DbClient, *dockerManager)
+	err := record.Create(ctx, r.ServiceManager.DbClient, manager.DockerClient)
 	if err != nil {
 		return nil, err
 	}
