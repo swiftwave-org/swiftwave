@@ -229,6 +229,32 @@ func (m Manager) setupServerHelper(request SetupServerRequest, ctx context.Conte
 		}
 	}
 
+	// create all the volume in the server
+	pvVolumes, err := core.FindAllPersistentVolumes(ctx, m.ServiceManager.DbClient)
+	if err != nil {
+		logText += "Failed to find all persistent volumes\nUser may need to create them manually\n"
+		logText += err.Error() + "\n"
+	}
+	for _, persistentVolume := range pvVolumes {
+		// remove volume (try)
+		_ = dockerClient.RemoveVolume(persistentVolume.Name)
+		// create volume
+		var err error
+		if persistentVolume.Type == core.PersistentVolumeTypeLocal {
+			err = dockerClient.CreateLocalVolume(persistentVolume.Name)
+		} else if persistentVolume.Type == core.PersistentVolumeTypeNFS {
+			err = dockerClient.CreateNFSVolume(persistentVolume.Name, persistentVolume.NFSConfig.Host, persistentVolume.NFSConfig.Path, persistentVolume.NFSConfig.Version)
+		} else if persistentVolume.Type == core.PersistentVolumeTypeCIFS {
+			err = dockerClient.CreateCIFSVolume(persistentVolume.Name, persistentVolume.CIFSConfig.Host, persistentVolume.CIFSConfig.Share, persistentVolume.CIFSConfig.Username, persistentVolume.CIFSConfig.Password, persistentVolume.CIFSConfig.FileMode, persistentVolume.CIFSConfig.DirMode)
+		}
+		if err != nil {
+			logText += "Failed to add persistent volume " + persistentVolume.Name + "\n"
+			logText += err.Error() + "\n"
+		} else {
+			logText += "Persistent volume " + persistentVolume.Name + " added successfully\n"
+		}
+	}
+
 	// set log
 	logText += "Server is ready for deployment\n"
 	return nil
