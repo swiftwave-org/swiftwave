@@ -149,3 +149,17 @@ func MarkServerAsOffline(db *gorm.DB, server *Server) error {
 func ChangeProxyType(db *gorm.DB, server *Server, proxyType ProxyType) error {
 	return db.Model(server).Update("proxy_type", proxyType).Error
 }
+
+// FetchDisabledDeploymentServerHostNames fetches the hostnames of all servers that are not in deployment mode
+func FetchDisabledDeploymentServerHostNames(db *gorm.DB) ([]string, error) {
+	var disabledServers []Server
+	err := db.Where("schedule_deployments = ?", false).Select("host_name").Distinct("host_name").Find(&disabledServers).Error
+	if err != nil {
+		return nil, err
+	}
+	var hostNames []string
+	for _, server := range disabledServers {
+		hostNames = append(hostNames, server.HostName)
+	}
+	return hostNames, nil
+}

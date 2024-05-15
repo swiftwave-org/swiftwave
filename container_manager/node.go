@@ -92,6 +92,15 @@ func (m Manager) ListNodes() (*map[string]swarm.Node, error) {
 	return &nodeMap, nil
 }
 
+// FetchNodeStatus fetches the status of a node
+func (m Manager) FetchNodeStatus(hostname string) (string, error) {
+	node, _, err := m.client.NodeInspectWithRaw(m.ctx, hostname)
+	if err != nil {
+		return "", err
+	}
+	return string(node.Status.State), nil
+}
+
 // MarkNodeAsActive marks a node as active
 func (m Manager) MarkNodeAsActive(hostname string) error {
 	// fetch node
