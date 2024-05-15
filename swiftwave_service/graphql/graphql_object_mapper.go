@@ -342,6 +342,7 @@ func deploymentToGraphqlObject(record *core.Deployment) *model.Deployment {
 		ID:                           record.ID,
 		ApplicationID:                record.ApplicationID,
 		UpstreamType:                 model.UpstreamType(record.UpstreamType),
+		GitEndpoint:                  record.GitEndpoint,
 		GitCredentialID:              gitCredentialId,
 		GitProvider:                  record.GitProvider,
 		RepositoryOwner:              record.RepositoryOwner,
