@@ -6,7 +6,7 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 )
 
-func (m Manager) UpdateApplicationOnServerScheduleDeploymentUpdate(_ PersistentVolumeDeletionRequest, ctx context.Context, _ context.CancelFunc) error {
+func (m Manager) UpdateApplicationOnServerScheduleDeploymentUpdate(_ UpdateApplicationOnServerScheduleDeploymentStatusUpdateRequest, ctx context.Context, _ context.CancelFunc) error {
 	deploymentInfo, err := core.FindApplicationsForForceUpdate(ctx, m.ServiceManager.DbClient)
 	if err != nil {
 		logger.WorkerLoggerError.Println("Failed to fetch application deployment info", err.Error())
