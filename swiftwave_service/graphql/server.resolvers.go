@@ -370,9 +370,21 @@ func (r *mutationResolver) RestrictDeploymentOnServer(ctx context.Context, id ui
 	if err != nil {
 		return false, err
 	}
+	oldScheduleDeploymentsStatus := server.ScheduleDeployments
 	server.ScheduleDeployments = false
 	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
-	return err == nil, err
+	if err != nil {
+		return false, err
+	}
+	// Enqueue request to update applications on schedule_deployment update
+	err = r.WorkerManager.EnqueueUpdateApplicationOnServerScheduleDeploymentUpdateRequest(server.ID)
+	if err != nil {
+		// rollback status
+		server.ScheduleDeployments = oldScheduleDeploymentsStatus
+		_ = core.UpdateServer(&r.ServiceManager.DbClient, server)
+		return false, err
+	}
+	return true, nil
 }
 
 // AllowDeploymentOnServer is the resolver for the allowDeploymentOnServer field.
@@ -381,9 +393,21 @@ func (r *mutationResolver) AllowDeploymentOnServer(ctx context.Context, id uint)
 	if err != nil {
 		return false, err
 	}
+	oldScheduleDeploymentsStatus := server.ScheduleDeployments
 	server.ScheduleDeployments = true
 	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
-	return err == nil, err
+	if err != nil {
+		return false, err
+	}
+	// Enqueue request to update applications on schedule_deployment update
+	err = r.WorkerManager.EnqueueUpdateApplicationOnServerScheduleDeploymentUpdateRequest(server.ID)
+	if err != nil {
+		// rollback status
+		server.ScheduleDeployments = oldScheduleDeploymentsStatus
+		_ = core.UpdateServer(&r.ServiceManager.DbClient, server)
+		return false, err
+	}
+	return true, nil
 }
 
 // PutServerInMaintenanceMode is the resolver for the putServerInMaintenanceMode field.

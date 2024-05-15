@@ -45,6 +45,7 @@ func (m Manager) registerWorkerFunctions() {
 	panicOnError(taskQueueClient.RegisterFunction(installDependenciesOnServerQueueName, m.InstallDependenciesOnServer))
 	panicOnError(taskQueueClient.RegisterFunction(setupServerQueueName, m.SetupServer))
 	panicOnError(taskQueueClient.RegisterFunction(setupAndEnableProxyQueueName, m.SetupAndEnableProxy))
+	panicOnError(taskQueueClient.RegisterFunction(updateApplicationOnServerScheduleDeploymentUpdateQueueName, m.UpdateApplicationOnServerScheduleDeploymentUpdate))
 	// When adding a new function, add it to the list of Queues() as well
 }
 
@@ -64,6 +65,7 @@ func Queues() []string {
 		installDependenciesOnServerQueueName,
 		setupServerQueueName,
 		setupAndEnableProxyQueueName,
+		updateApplicationOnServerScheduleDeploymentUpdateQueueName,
 	}
 }
 

@@ -97,3 +97,9 @@ func (m Manager) EnqueueDeletePersistentVolumeRequest(persistentVolumeId uint) e
 		Id: persistentVolumeId,
 	})
 }
+
+func (m Manager) EnqueueUpdateApplicationOnServerScheduleDeploymentUpdateRequest(serverId uint) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(updateApplicationOnServerScheduleDeploymentUpdateQueueName, UpdateApplicationOnServerScheduleDeploymentStatusUpdateRequest{
+		ServerId: serverId,
+	})
+}
