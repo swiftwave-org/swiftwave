@@ -225,6 +225,7 @@ type CIFSConfig struct {
 
 var RequiredServerDependencies = []string{
 	"init",
+	"awk",
 	"curl",
 	"unzip",
 	"git",
@@ -237,6 +238,7 @@ var RequiredServerDependencies = []string{
 
 var DependencyCheckCommands = map[string]string{
 	"init":   "echo hi", // dummy command
+	"awk":    "which awk",
 	"curl":   "which curl",
 	"unzip":  "which unzip",
 	"git":    "which git",
@@ -249,6 +251,7 @@ var DependencyCheckCommands = map[string]string{
 
 var DebianDependenciesInstallCommands = map[string]string{
 	"init":   "apt -y update",
+	"awk":    "apt install -y gawk",
 	"curl":   "apt install -y curl",
 	"unzip":  "apt install -y unzip",
 	"git":    "apt install -y git",
@@ -260,6 +263,7 @@ var DebianDependenciesInstallCommands = map[string]string{
 }
 var FedoraDependenciesInstallCommands = map[string]string{
 	"init":   "dnf -y update",
+	"awk":    "dnf install -y gawk",
 	"curl":   "dnf install -y curl",
 	"unzip":  "dnf install -y unzip",
 	"git":    "dnf install -y git",
