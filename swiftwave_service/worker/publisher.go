@@ -9,8 +9,17 @@ func (m Manager) EnqueueBuildApplicationRequest(applicationId string, deployment
 
 func (m Manager) EnqueueDeployApplicationRequest(applicationId string, deploymentId string) error {
 	return m.ServiceManager.TaskQueueClient.EnqueueTask(deployApplicationQueueName, DeployApplicationRequest{
-		AppId:        applicationId,
-		DeploymentId: deploymentId,
+		AppId:             applicationId,
+		DeploymentId:      deploymentId,
+		IgnoreProxyUpdate: false,
+	})
+}
+
+func (m Manager) EnqueueDeployApplicationRequestWithNoProxyUpdate(applicationId string, deploymentId string) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(deployApplicationQueueName, DeployApplicationRequest{
+		AppId:             applicationId,
+		DeploymentId:      deploymentId,
+		IgnoreProxyUpdate: true,
 	})
 }
 

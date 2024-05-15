@@ -33,8 +33,9 @@ const (
 
 // DeployApplicationRequest : request payload for deploy application
 type DeployApplicationRequest struct {
-	AppId        string `json:"app_id"`
-	DeploymentId string `json:"deployment_id"`
+	AppId             string `json:"app_id"`
+	DeploymentId      string `json:"deployment_id"`
+	IgnoreProxyUpdate bool   `json:"ignore_proxy_update"`
 }
 
 // BuildApplicationRequest : request payload for deploy application

@@ -154,18 +154,29 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 	if refetchImage {
 		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "[Notice] Image will be fetched from remote during deployment\n", false)
 	}
+	// prepare placement constraints
+	var placementConstraints = make([]string, 0)
+	disabledServerHostnames, err := core.FetchDisabledDeploymentServerHostNames(&m.ServiceManager.DbClient)
+	if err != nil {
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch disabled deployment servers\nPlease check database connection\n", false)
+		return err
+	}
+	for _, hostname := range disabledServerHostnames {
+		placementConstraints = append(placementConstraints, "node.hostname!="+hostname)
+	}
 	// create service
 	service := containermanger.Service{
-		Name:           application.Name,
-		Image:          dockerImageUri,
-		Command:        command,
-		Env:            environmentVariablesMap,
-		Networks:       []string{m.Config.SystemConfig.NetworkName},
-		DeploymentMode: containermanger.DeploymentMode(application.DeploymentMode),
-		Replicas:       uint64(application.ReplicaCount()),
-		VolumeMounts:   volumeMounts,
-		Capabilities:   application.Capabilities,
-		Sysctls:        sysctls,
+		Name:                 application.Name,
+		Image:                dockerImageUri,
+		Command:              command,
+		Env:                  environmentVariablesMap,
+		Networks:             []string{m.Config.SystemConfig.NetworkName},
+		DeploymentMode:       containermanger.DeploymentMode(application.DeploymentMode),
+		Replicas:             uint64(application.ReplicaCount()),
+		VolumeMounts:         volumeMounts,
+		Capabilities:         application.Capabilities,
+		Sysctls:              sysctls,
+		PlacementConstraints: placementConstraints,
 	}
 	// find current deployment and mark it as stalled
 	currentDeployment, err := core.FindCurrentLiveDeploymentByApplicationId(ctx, *db, request.AppId)
