@@ -26,9 +26,12 @@ func (m Manager) DeployApplication(request DeployApplicationRequest, _ context.C
 		return err
 	}
 	// fetch all proxy servers
-	proxyServers, err := core.FetchProxyActiveServers(&m.ServiceManager.DbClient)
-	if err != nil {
-		return err
+	proxyServers := make([]core.Server, 0)
+	if !request.IgnoreProxyUpdate {
+		proxyServers, err = core.FetchProxyActiveServers(&m.ServiceManager.DbClient)
+		if err != nil {
+			return err
+		}
 	}
 	// fetch all haproxy managers
 	haproxyManagers, err := manager.HAProxyClients(context.Background(), proxyServers)
@@ -227,77 +230,82 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to rollback service\n", false)
 		}
 	}
-	// update replicas count in proxy (don't throw error if it fails, only log the error)
-	ingressRulesWithTargetPortAndProtocolOnly, err := core.FetchIngressRulesWithTargetPortAndProtocolOnly(ctx, dbWithoutTx, application.ID)
-	if err == nil {
-		// map of server ip and transaction id
-		transactionIdMap := make(map[*haproxymanager.Manager]string)
-		isFailed := false
 
-		for _, haproxyManager := range haproxyManagers {
-			// create new haproxy transaction
-			haproxyTransactionId, err := haproxyManager.FetchNewTransactionId()
-			if err != nil {
-				isFailed = true
-				log.Println("failed to create new haproxy transaction", err)
-				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to create new haproxy transaction\n", false)
-				break
-			} else {
-				transactionIdMap[haproxyManager] = haproxyTransactionId
-				for _, record := range ingressRulesWithTargetPortAndProtocolOnly {
-					if record.Protocol == core.UDPProtocol {
-						continue
-					}
-					backendProtocol := ingressRuleProtocolToBackendProtocol(record.Protocol)
-					backendName := haproxyManager.GenerateBackendName(backendProtocol, application.Name, int(record.TargetPort))
-					isBackendExist, err := haproxyManager.IsBackendExist(haproxyTransactionId, backendName)
-					if err != nil {
-						isFailed = true
-						log.Println("failed to check if backend exist", err)
-						addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to check if backend exist\n", false)
-						continue
-					}
-					if isBackendExist {
-						// fetch current replicas
-						currentReplicaCount, err := haproxyManager.GetReplicaCount(haproxyTransactionId, backendProtocol, application.Name, int(record.TargetPort))
-						if err != nil {
-							isFailed = true
-							log.Println("failed to fetch current replica count", err)
-							addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch current replica count\n", false)
+	if !request.IgnoreProxyUpdate {
+		// update replicas count in proxy (don't throw error if it fails, only log the error)
+		ingressRulesWithTargetPortAndProtocolOnly, err := core.FetchIngressRulesWithTargetPortAndProtocolOnly(ctx, dbWithoutTx, application.ID)
+		if err == nil {
+			// map of server ip and transaction id
+			transactionIdMap := make(map[*haproxymanager.Manager]string)
+			isFailed := false
+
+			for _, haproxyManager := range haproxyManagers {
+				// create new haproxy transaction
+				haproxyTransactionId, err := haproxyManager.FetchNewTransactionId()
+				if err != nil {
+					isFailed = true
+					log.Println("failed to create new haproxy transaction", err)
+					addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to create new haproxy transaction\n", false)
+					break
+				} else {
+					transactionIdMap[haproxyManager] = haproxyTransactionId
+					for _, record := range ingressRulesWithTargetPortAndProtocolOnly {
+						if record.Protocol == core.UDPProtocol {
 							continue
 						}
-						// check if replica count changed
-						if currentReplicaCount != int(application.ReplicaCount()) {
-							err = haproxyManager.UpdateBackendReplicas(haproxyTransactionId, backendProtocol, application.Name, int(record.TargetPort), int(application.ReplicaCount()))
+						backendProtocol := ingressRuleProtocolToBackendProtocol(record.Protocol)
+						backendName := haproxyManager.GenerateBackendName(backendProtocol, application.Name, int(record.TargetPort))
+						isBackendExist, err := haproxyManager.IsBackendExist(haproxyTransactionId, backendName)
+						if err != nil {
+							isFailed = true
+							log.Println("failed to check if backend exist", err)
+							addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to check if backend exist\n", false)
+							continue
+						}
+						if isBackendExist {
+							// fetch current replicas
+							currentReplicaCount, err := haproxyManager.GetReplicaCount(haproxyTransactionId, backendProtocol, application.Name, int(record.TargetPort))
 							if err != nil {
 								isFailed = true
-								log.Println("failed to update replica count", err)
-								addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update replica count\n", false)
+								log.Println("failed to fetch current replica count", err)
+								addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch current replica count\n", false)
+								continue
+							}
+							// check if replica count changed
+							if currentReplicaCount != int(application.ReplicaCount()) {
+								err = haproxyManager.UpdateBackendReplicas(haproxyTransactionId, backendProtocol, application.Name, int(record.TargetPort), int(application.ReplicaCount()))
+								if err != nil {
+									isFailed = true
+									log.Println("failed to update replica count", err)
+									addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update replica count\n", false)
+								}
 							}
 						}
 					}
 				}
 			}
-		}
 
-		for haproxyManager, haproxyTransactionId := range transactionIdMap {
-			if !isFailed {
-				// commit the haproxy transaction
-				err = haproxyManager.CommitTransaction(haproxyTransactionId)
-			}
-			if isFailed || err != nil {
-				log.Println("failed to commit haproxy transaction", err)
-				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to commit haproxy transaction\n", false)
-				err := haproxyManager.DeleteTransaction(haproxyTransactionId)
-				if err != nil {
-					log.Println("failed to rollback haproxy transaction", err)
-					addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to rollback haproxy transaction\n", false)
+			for haproxyManager, haproxyTransactionId := range transactionIdMap {
+				if !isFailed {
+					// commit the haproxy transaction
+					err = haproxyManager.CommitTransaction(haproxyTransactionId)
+				}
+				if isFailed || err != nil {
+					log.Println("failed to commit haproxy transaction", err)
+					addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to commit haproxy transaction\n", false)
+					err := haproxyManager.DeleteTransaction(haproxyTransactionId)
+					if err != nil {
+						log.Println("failed to rollback haproxy transaction", err)
+						addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to rollback haproxy transaction\n", false)
+					}
 				}
 			}
+		} else {
+			log.Println("failed to update replica count", err)
+			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update replica count\n", false)
 		}
 	} else {
-		log.Println("failed to update replica count", err)
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update replica count\n", false)
+		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "[Notice] Ignoring proxy update as it's not requested\n", false)
 	}
 	return nil
 }
