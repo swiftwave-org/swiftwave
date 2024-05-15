@@ -38,6 +38,7 @@ type Server {
     user: String!
     ssh_port: Int!
     swarmMode: SwarmMode!
+    swarmNodeStatus: String!
     scheduleDeployments: Boolean!
     dockerUnixSocketPath: String!
     proxyEnabled: Boolean!
@@ -101,6 +102,8 @@ extend type Mutation {
     demoteServerToWorker(id: Uint!): Boolean!
     restrictDeploymentOnServer(id: Uint!): Boolean!
     allowDeploymentOnServer(id: Uint!): Boolean!
+    putServerInMaintenanceMode(id: Uint!): Boolean!
+    putServerOutOfMaintenanceMode(id: Uint!): Boolean!
     removeServerFromSwarmCluster(id: Uint!): Boolean!
     enableProxyOnServer(id: Uint!, type: ProxyType!): Boolean!
     disableProxyOnServer(id: Uint!): Boolean!

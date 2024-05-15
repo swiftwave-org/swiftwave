@@ -388,6 +388,7 @@ type Server struct {
 	User                 string       `json:"user"`
 	SSHPort              int          `json:"ssh_port"`
 	SwarmMode            SwarmMode    `json:"swarmMode"`
+	SwarmNodeStatus      string       `json:"swarmNodeStatus"`
 	ScheduleDeployments  bool         `json:"scheduleDeployments"`
 	DockerUnixSocketPath string       `json:"dockerUnixSocketPath"`
 	ProxyEnabled         bool         `json:"proxyEnabled"`
