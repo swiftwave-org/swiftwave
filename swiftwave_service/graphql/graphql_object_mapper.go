@@ -551,6 +551,7 @@ func newServerInputToDatabaseObject(record *model.NewServerInput) *core.Server {
 		HostName:             "",
 		User:                 record.User,
 		ScheduleDeployments:  false,
+		MaintenanceMode:      false,
 		DockerUnixSocketPath: "",
 		SwarmMode:            core.SwarmMode(model.SwarmModeWorker),
 		ProxyConfig: core.ProxyConfig{
@@ -570,6 +571,7 @@ func serverToGraphqlObject(record *core.Server) *model.Server {
 		Hostname:             record.HostName,
 		User:                 record.User,
 		ScheduleDeployments:  record.ScheduleDeployments,
+		MaintenanceMode:      record.MaintenanceMode,
 		DockerUnixSocketPath: record.DockerUnixSocketPath,
 		SwarmMode:            model.SwarmMode(record.SwarmMode),
 		ProxyType:            model.ProxyType(record.ProxyConfig.Type),

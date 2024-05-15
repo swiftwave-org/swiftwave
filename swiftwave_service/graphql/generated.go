@@ -388,6 +388,7 @@ type ComplexityRoot struct {
 		ID                   func(childComplexity int) int
 		IP                   func(childComplexity int) int
 		Logs                 func(childComplexity int) int
+		MaintenanceMode      func(childComplexity int) int
 		ProxyEnabled         func(childComplexity int) int
 		ProxyType            func(childComplexity int) int
 		SSHPort              func(childComplexity int) int
@@ -2771,6 +2772,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Server.Logs(childComplexity), true
+
+	case "Server.maintenanceMode":
+		if e.complexity.Server.MaintenanceMode == nil {
+			break
+		}
+
+		return e.complexity.Server.MaintenanceMode(childComplexity), true
 
 	case "Server.proxyEnabled":
 		if e.complexity.Server.ProxyEnabled == nil {
@@ -11782,6 +11790,8 @@ func (ec *executionContext) fieldContext_Mutation_createServer(ctx context.Conte
 				return ec.fieldContext_Server_swarmNodeStatus(ctx, field)
 			case "scheduleDeployments":
 				return ec.fieldContext_Server_scheduleDeployments(ctx, field)
+			case "maintenanceMode":
+				return ec.fieldContext_Server_maintenanceMode(ctx, field)
 			case "dockerUnixSocketPath":
 				return ec.fieldContext_Server_dockerUnixSocketPath(ctx, field)
 			case "proxyEnabled":
@@ -16385,6 +16395,8 @@ func (ec *executionContext) fieldContext_Query_servers(_ context.Context, field 
 				return ec.fieldContext_Server_swarmNodeStatus(ctx, field)
 			case "scheduleDeployments":
 				return ec.fieldContext_Server_scheduleDeployments(ctx, field)
+			case "maintenanceMode":
+				return ec.fieldContext_Server_maintenanceMode(ctx, field)
 			case "dockerUnixSocketPath":
 				return ec.fieldContext_Server_dockerUnixSocketPath(ctx, field)
 			case "proxyEnabled":
@@ -16457,6 +16469,8 @@ func (ec *executionContext) fieldContext_Query_server(ctx context.Context, field
 				return ec.fieldContext_Server_swarmNodeStatus(ctx, field)
 			case "scheduleDeployments":
 				return ec.fieldContext_Server_scheduleDeployments(ctx, field)
+			case "maintenanceMode":
+				return ec.fieldContext_Server_maintenanceMode(ctx, field)
 			case "dockerUnixSocketPath":
 				return ec.fieldContext_Server_dockerUnixSocketPath(ctx, field)
 			case "proxyEnabled":
@@ -18163,6 +18177,50 @@ func (ec *executionContext) _Server_scheduleDeployments(ctx context.Context, fie
 }
 
 func (ec *executionContext) fieldContext_Server_scheduleDeployments(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Server",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Server_maintenanceMode(ctx context.Context, field graphql.CollectedField, obj *model.Server) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Server_maintenanceMode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MaintenanceMode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Server_maintenanceMode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Server",
 		Field:      field,
@@ -26310,6 +26368,11 @@ func (ec *executionContext) _Server(ctx context.Context, sel ast.SelectionSet, o
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "scheduleDeployments":
 			out.Values[i] = ec._Server_scheduleDeployments(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "maintenanceMode":
+			out.Values[i] = ec._Server_maintenanceMode(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

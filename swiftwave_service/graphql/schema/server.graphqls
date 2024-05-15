@@ -40,6 +40,7 @@ type Server {
     swarmMode: SwarmMode!
     swarmNodeStatus: String!
     scheduleDeployments: Boolean!
+    maintenanceMode: Boolean!
     dockerUnixSocketPath: String!
     proxyEnabled: Boolean!
     proxyType: ProxyType!

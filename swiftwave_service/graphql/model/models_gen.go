@@ -390,6 +390,7 @@ type Server struct {
 	SwarmMode            SwarmMode    `json:"swarmMode"`
 	SwarmNodeStatus      string       `json:"swarmNodeStatus"`
 	ScheduleDeployments  bool         `json:"scheduleDeployments"`
+	MaintenanceMode      bool         `json:"maintenanceMode"`
 	DockerUnixSocketPath string       `json:"dockerUnixSocketPath"`
 	ProxyEnabled         bool         `json:"proxyEnabled"`
 	ProxyType            ProxyType    `json:"proxyType"`
