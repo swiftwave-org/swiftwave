@@ -7,7 +7,7 @@ require (
 	github.com/99designs/gqlgen v0.17.46
 	github.com/aws/aws-sdk-go v1.53.0
 	github.com/docker/docker v26.1.2+incompatible
-	github.com/fatih/color v1.16.0
+	github.com/fatih/color v1.17.0
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt/v5 v5.2.1
