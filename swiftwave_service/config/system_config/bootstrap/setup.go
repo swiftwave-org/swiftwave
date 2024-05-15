@@ -37,7 +37,6 @@ func StartBootstrapServer() error {
 	if err := loadConfig(); err != nil {
 		return err
 	}
-
 	// Pre-check if system setup is required
 	setupRequired, err := IsSystemSetupRequired()
 	if err != nil {
@@ -84,7 +83,12 @@ func SystemSetupHandler(c echo.Context) error {
 			"message": "Admin username and password are required",
 		})
 	}
-
+	// check if email is valid
+	if err := checkEmail(systemConfigReq.LetsEncrypt.EmailAddress); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": err.Error(),
+		})
+	}
 	// Create DB client
 	dbClient, err := db.GetClient(localConfig, 2)
 	if err != nil {
@@ -191,6 +195,12 @@ func UpdateSystemConfigHandler(c echo.Context) error {
 	if err := c.Bind(systemConfigReq); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": "Invalid request payload",
+		})
+	}
+	// check if email is valid
+	if err := checkEmail(systemConfigReq.LetsEncrypt.EmailAddress); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": err.Error(),
 		})
 	}
 	// Remove some fields for safety
