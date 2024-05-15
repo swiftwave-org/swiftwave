@@ -444,7 +444,7 @@ func (r *mutationResolver) PutServerInMaintenanceMode(ctx context.Context, id ui
 	if err != nil {
 		return false, err
 	}
-	server.MaintenanceMode = false
+	server.MaintenanceMode = true
 	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
 	return err == nil, err
 }
@@ -475,7 +475,6 @@ func (r *mutationResolver) PutServerOutOfMaintenanceMode(ctx context.Context, id
 			logger.GraphQLLoggerError.Println(err.Error())
 		}
 	}(conn)
-	// Promote this server to manager
 	manager, err := containermanger.New(ctx, conn)
 	if err != nil {
 		return false, err
@@ -484,7 +483,7 @@ func (r *mutationResolver) PutServerOutOfMaintenanceMode(ctx context.Context, id
 	if err != nil {
 		return false, err
 	}
-	server.MaintenanceMode = true
+	server.MaintenanceMode = false
 	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
 	return err == nil, err
 }
@@ -777,19 +776,19 @@ func (r *queryResolver) ServerLatestDiskUsage(ctx context.Context, id uint) (*mo
 func (r *serverResolver) SwarmNodeStatus(ctx context.Context, obj *model.Server) (string, error) {
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
-		return "---", nil
+		return "", nil
 	}
 	if server.Status != core.ServerOnline {
-		return "Offline", errors.New("server is not online")
+		return "", nil
 	}
 	// Fetch any swarm manager
 	swarmManagerServer, err := core.FetchSwarmManager(&r.ServiceManager.DbClient)
 	if err != nil {
-		return "---", nil
+		return "", nil
 	}
 	manager, err := swiftwaveServiceManagerDocker.DockerClient(ctx, swarmManagerServer)
 	if err != nil {
-		return "---", nil
+		return "", nil
 	}
 	return manager.FetchNodeStatus(server.HostName)
 }
