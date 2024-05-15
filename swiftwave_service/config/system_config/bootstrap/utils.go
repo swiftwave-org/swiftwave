@@ -4,6 +4,8 @@ import (
 	cryptorand "crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	_ "embed"
+	"net/mail"
 
 	"encoding/pem"
 	"errors"
@@ -313,4 +315,38 @@ func dbRecordToPayload(record *system_config.SystemConfig) SystemConfigurationPa
 
 func isEmptyString(s string) bool {
 	return len(strings.TrimSpace(s)) == 0
+}
+
+//go:embed disposable_email_list.txt
+var disposableEmailList string
+
+func checkEmail(email string) error {
+	if strings.Contains(email, "<") {
+		return errors.New("email contains illegal character '<'")
+	}
+	if strings.Contains(email, ">") {
+		return errors.New("email contains illegal character '>'")
+	}
+	_, err := mail.ParseAddress(email)
+	if err != nil {
+		return errors.New("invalid email address")
+	}
+	splits := strings.Split(email, "@")
+	if len(splits) != 2 {
+		return errors.New("invalid email address")
+	}
+	domain := strings.Split(email, "@")[1]
+	err = errors.New("sorry, you cannot use test email address for registration")
+	if strings.Contains(domain, "test") {
+		return err
+	}
+	if strings.Contains(domain, "example") {
+		return err
+	}
+	for _, disposableEmail := range strings.Split(disposableEmailList, "\n") {
+		if strings.Contains(domain, disposableEmail) {
+			return err
+		}
+	}
+	return nil
 }
