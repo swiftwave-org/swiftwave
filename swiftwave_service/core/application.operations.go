@@ -18,7 +18,7 @@ import (
 // Each function's argument format should be (ctx context.Context, db gorm.DB, ...)
 // context used to pass some data to the function e.g. user id, auth info, etc.
 
-func IsExistApplicationName(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager, name string) (bool, error) {
+func IsExistApplicationName(_ context.Context, db gorm.DB, dockerManager containermanger.Manager, name string) (bool, error) {
 	// verify from database
 	var count int64
 	tx := db.Model(&Application{}).Where("name = ?", name).Count(&count)
@@ -36,19 +36,40 @@ func IsExistApplicationName(ctx context.Context, db gorm.DB, dockerManager conta
 	return false, nil
 }
 
-func FindAllApplications(ctx context.Context, db gorm.DB) ([]*Application, error) {
+func FindAllApplications(_ context.Context, db gorm.DB) ([]*Application, error) {
 	var applications []*Application
 	tx := db.Find(&applications)
 	return applications, tx.Error
 }
 
-func FindApplicationsByGroup(ctx context.Context, db gorm.DB, group string) ([]*Application, error) {
+func FindApplicationsByGroup(_ context.Context, db gorm.DB, group string) ([]*Application, error) {
 	var applications []*Application
 	err := db.Model(&Application{}).Where("application_group = ?", group).Scan(&applications).Error
 	if err != nil {
 		return nil, err
 	}
 	return applications, nil
+}
+
+type ApplicationDeploymentInfo struct {
+	ApplicationID string
+	DeploymentID  string
+}
+
+func FindApplicationsForForceUpdate(_ context.Context, db gorm.DB) ([]*ApplicationDeploymentInfo, error) {
+	var deployments []*Deployment
+	err := db.Model(&Deployment{}).Where("status = ?", DeploymentStatusLive).Scan(&deployments).Error
+	if err != nil {
+		return nil, err
+	}
+	var applicationDeploymentInfos []*ApplicationDeploymentInfo
+	for _, deployment := range deployments {
+		applicationDeploymentInfos = append(applicationDeploymentInfos, &ApplicationDeploymentInfo{
+			ApplicationID: deployment.ApplicationID,
+			DeploymentID:  deployment.ID,
+		})
+	}
+	return applicationDeploymentInfos, nil
 }
 
 func (application *Application) FindById(ctx context.Context, db gorm.DB, id string) error {

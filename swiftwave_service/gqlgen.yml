@@ -110,3 +110,5 @@ models:
     fields:
       logs:
         resolver: true
+      swarmNodeStatus:
+        resolver: true

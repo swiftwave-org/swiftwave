@@ -370,6 +370,52 @@ func (r *mutationResolver) RestrictDeploymentOnServer(ctx context.Context, id ui
 	if err != nil {
 		return false, err
 	}
+	oldScheduleDeploymentsStatus := server.ScheduleDeployments
+	server.ScheduleDeployments = false
+	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
+	if err != nil {
+		return false, err
+	}
+	// Enqueue request to update applications on schedule_deployment update
+	err = r.WorkerManager.EnqueueUpdateApplicationOnServerScheduleDeploymentUpdateRequest(server.ID)
+	if err != nil {
+		// rollback status
+		server.ScheduleDeployments = oldScheduleDeploymentsStatus
+		_ = core.UpdateServer(&r.ServiceManager.DbClient, server)
+		return false, err
+	}
+	return true, nil
+}
+
+// AllowDeploymentOnServer is the resolver for the allowDeploymentOnServer field.
+func (r *mutationResolver) AllowDeploymentOnServer(ctx context.Context, id uint) (bool, error) {
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	oldScheduleDeploymentsStatus := server.ScheduleDeployments
+	server.ScheduleDeployments = true
+	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
+	if err != nil {
+		return false, err
+	}
+	// Enqueue request to update applications on schedule_deployment update
+	err = r.WorkerManager.EnqueueUpdateApplicationOnServerScheduleDeploymentUpdateRequest(server.ID)
+	if err != nil {
+		// rollback status
+		server.ScheduleDeployments = oldScheduleDeploymentsStatus
+		_ = core.UpdateServer(&r.ServiceManager.DbClient, server)
+		return false, err
+	}
+	return true, nil
+}
+
+// PutServerInMaintenanceMode is the resolver for the putServerInMaintenanceMode field.
+func (r *mutationResolver) PutServerInMaintenanceMode(ctx context.Context, id uint) (bool, error) {
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
 	if server.Status != core.ServerOnline {
 		return false, errors.New("server is not online")
 	}
@@ -398,13 +444,13 @@ func (r *mutationResolver) RestrictDeploymentOnServer(ctx context.Context, id ui
 	if err != nil {
 		return false, err
 	}
-	server.ScheduleDeployments = false
+	server.MaintenanceMode = true
 	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
 	return err == nil, err
 }
 
-// AllowDeploymentOnServer is the resolver for the allowDeploymentOnServer field.
-func (r *mutationResolver) AllowDeploymentOnServer(ctx context.Context, id uint) (bool, error) {
+// PutServerOutOfMaintenanceMode is the resolver for the putServerOutOfMaintenanceMode field.
+func (r *mutationResolver) PutServerOutOfMaintenanceMode(ctx context.Context, id uint) (bool, error) {
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
 	if err != nil {
 		return false, err
@@ -429,7 +475,6 @@ func (r *mutationResolver) AllowDeploymentOnServer(ctx context.Context, id uint)
 			logger.GraphQLLoggerError.Println(err.Error())
 		}
 	}(conn)
-	// Promote this server to manager
 	manager, err := containermanger.New(ctx, conn)
 	if err != nil {
 		return false, err
@@ -438,7 +483,7 @@ func (r *mutationResolver) AllowDeploymentOnServer(ctx context.Context, id uint)
 	if err != nil {
 		return false, err
 	}
-	server.ScheduleDeployments = true
+	server.MaintenanceMode = false
 	err = core.UpdateServer(&r.ServiceManager.DbClient, server)
 	return err == nil, err
 }
@@ -725,6 +770,27 @@ func (r *queryResolver) ServerLatestDiskUsage(ctx context.Context, id uint) (*mo
 	// convert the server disk usage to graphql object
 	res := severDisksStatToGraphqlObject(*serverDiskStats, *timestamp)
 	return &res, nil
+}
+
+// SwarmNodeStatus is the resolver for the swarmNodeStatus field.
+func (r *serverResolver) SwarmNodeStatus(ctx context.Context, obj *model.Server) (string, error) {
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, obj.ID)
+	if err != nil {
+		return "", nil
+	}
+	if server.Status != core.ServerOnline {
+		return "", nil
+	}
+	// Fetch any swarm manager
+	swarmManagerServer, err := core.FetchSwarmManager(&r.ServiceManager.DbClient)
+	if err != nil {
+		return "", nil
+	}
+	manager, err := swiftwaveServiceManagerDocker.DockerClient(ctx, swarmManagerServer)
+	if err != nil {
+		return "", nil
+	}
+	return manager.FetchNodeStatus(server.HostName)
 }
 
 // Logs is the resolver for the logs field.

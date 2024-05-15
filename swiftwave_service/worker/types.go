@@ -13,28 +13,30 @@ type Manager struct {
 
 // Queue names
 const (
-	buildApplicationQueueName            = "build_application"
-	deployApplicationQueueName           = "deploy_application"
-	deleteApplicationQueueName           = "delete_application"
-	ingressRuleApplyQueueName            = "ingress_rule_apply"
-	ingressRuleDeleteQueueName           = "ingress_rule_delete"
-	redirectRuleApplyQueueName           = "redirect_rule_apply"
-	redirectRuleDeleteQueueName          = "redirect_rule_delete"
-	sslGenerateQueueName                 = "ssl_generate"
-	persistentVolumeBackupQueueName      = "persistent_volume_backup"
-	persistentVolumeRestoreQueueName     = "persistent_volume_restore"
-	installDependenciesOnServerQueueName = "install_dependencies_on_server"
-	setupServerQueueName                 = "setup_server"
-	setupAndEnableProxyQueueName         = "setup_and_enable_proxy"
-	deletePersistentVolumeQueueName      = "delete_persistent_volume"
+	buildApplicationQueueName                                  = "build_application"
+	deployApplicationQueueName                                 = "deploy_application"
+	deleteApplicationQueueName                                 = "delete_application"
+	ingressRuleApplyQueueName                                  = "ingress_rule_apply"
+	ingressRuleDeleteQueueName                                 = "ingress_rule_delete"
+	redirectRuleApplyQueueName                                 = "redirect_rule_apply"
+	redirectRuleDeleteQueueName                                = "redirect_rule_delete"
+	sslGenerateQueueName                                       = "ssl_generate"
+	persistentVolumeBackupQueueName                            = "persistent_volume_backup"
+	persistentVolumeRestoreQueueName                           = "persistent_volume_restore"
+	installDependenciesOnServerQueueName                       = "install_dependencies_on_server"
+	setupServerQueueName                                       = "setup_server"
+	setupAndEnableProxyQueueName                               = "setup_and_enable_proxy"
+	deletePersistentVolumeQueueName                            = "delete_persistent_volume"
+	updateApplicationOnServerScheduleDeploymentUpdateQueueName = "update_application_on_server_schedule_deployment_status_update"
 )
 
 // Request Payload
 
 // DeployApplicationRequest : request payload for deploy application
 type DeployApplicationRequest struct {
-	AppId        string `json:"app_id"`
-	DeploymentId string `json:"deployment_id"`
+	AppId             string `json:"app_id"`
+	DeploymentId      string `json:"deployment_id"`
+	IgnoreProxyUpdate bool   `json:"ignore_proxy_update"`
 }
 
 // BuildApplicationRequest : request payload for deploy application
@@ -104,4 +106,9 @@ type SetupAndEnableProxyRequest struct {
 // PersistentVolumeDeletionRequest : request payload for delete persistent volume
 type PersistentVolumeDeletionRequest struct {
 	Id uint `json:"id"`
+}
+
+// UpdateApplicationOnServerScheduleDeploymentStatusUpdateRequest : request payload for update application on server deployment status update
+type UpdateApplicationOnServerScheduleDeploymentStatusUpdateRequest struct {
+	ServerId uint `json:"server_id"`
 }

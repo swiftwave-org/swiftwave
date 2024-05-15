@@ -253,6 +253,8 @@ type ComplexityRoot struct {
 		InstallDependenciesOnServer                        func(childComplexity int, id uint) int
 		IssueSsl                                           func(childComplexity int, id uint) int
 		PromoteServerToManager                             func(childComplexity int, id uint) int
+		PutServerInMaintenanceMode                         func(childComplexity int, id uint) int
+		PutServerOutOfMaintenanceMode                      func(childComplexity int, id uint) int
 		RebuildApplication                                 func(childComplexity int, id string) int
 		RegenerateWebhookToken                             func(childComplexity int, id string) int
 		RemoveDomain                                       func(childComplexity int, id uint) int
@@ -386,12 +388,14 @@ type ComplexityRoot struct {
 		ID                   func(childComplexity int) int
 		IP                   func(childComplexity int) int
 		Logs                 func(childComplexity int) int
+		MaintenanceMode      func(childComplexity int) int
 		ProxyEnabled         func(childComplexity int) int
 		ProxyType            func(childComplexity int) int
 		SSHPort              func(childComplexity int) int
 		ScheduleDeployments  func(childComplexity int) int
 		Status               func(childComplexity int) int
 		SwarmMode            func(childComplexity int) int
+		SwarmNodeStatus      func(childComplexity int) int
 		User                 func(childComplexity int) int
 	}
 
@@ -521,6 +525,8 @@ type MutationResolver interface {
 	DemoteServerToWorker(ctx context.Context, id uint) (bool, error)
 	RestrictDeploymentOnServer(ctx context.Context, id uint) (bool, error)
 	AllowDeploymentOnServer(ctx context.Context, id uint) (bool, error)
+	PutServerInMaintenanceMode(ctx context.Context, id uint) (bool, error)
+	PutServerOutOfMaintenanceMode(ctx context.Context, id uint) (bool, error)
 	RemoveServerFromSwarmCluster(ctx context.Context, id uint) (bool, error)
 	EnableProxyOnServer(ctx context.Context, id uint, typeArg model.ProxyType) (bool, error)
 	DisableProxyOnServer(ctx context.Context, id uint) (bool, error)
@@ -591,6 +597,8 @@ type RedirectRuleResolver interface {
 	Domain(ctx context.Context, obj *model.RedirectRule) (*model.Domain, error)
 }
 type ServerResolver interface {
+	SwarmNodeStatus(ctx context.Context, obj *model.Server) (string, error)
+
 	Logs(ctx context.Context, obj *model.Server) ([]*model.ServerLog, error)
 }
 type SubscriptionResolver interface {
@@ -1815,6 +1823,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.PromoteServerToManager(childComplexity, args["id"].(uint)), true
 
+	case "Mutation.putServerInMaintenanceMode":
+		if e.complexity.Mutation.PutServerInMaintenanceMode == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_putServerInMaintenanceMode_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.PutServerInMaintenanceMode(childComplexity, args["id"].(uint)), true
+
+	case "Mutation.putServerOutOfMaintenanceMode":
+		if e.complexity.Mutation.PutServerOutOfMaintenanceMode == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_putServerOutOfMaintenanceMode_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.PutServerOutOfMaintenanceMode(childComplexity, args["id"].(uint)), true
+
 	case "Mutation.rebuildApplication":
 		if e.complexity.Mutation.RebuildApplication == nil {
 			break
@@ -2741,6 +2773,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Server.Logs(childComplexity), true
 
+	case "Server.maintenanceMode":
+		if e.complexity.Server.MaintenanceMode == nil {
+			break
+		}
+
+		return e.complexity.Server.MaintenanceMode(childComplexity), true
+
 	case "Server.proxyEnabled":
 		if e.complexity.Server.ProxyEnabled == nil {
 			break
@@ -2782,6 +2821,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Server.SwarmMode(childComplexity), true
+
+	case "Server.swarmNodeStatus":
+		if e.complexity.Server.SwarmNodeStatus == nil {
+			break
+		}
+
+		return e.complexity.Server.SwarmNodeStatus(childComplexity), true
 
 	case "Server.user":
 		if e.complexity.Server.User == nil {
@@ -3795,6 +3841,36 @@ func (ec *executionContext) field_Mutation_issueSSL_args(ctx context.Context, ra
 }
 
 func (ec *executionContext) field_Mutation_promoteServerToManager_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_putServerInMaintenanceMode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_putServerOutOfMaintenanceMode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 uint
@@ -11710,8 +11786,12 @@ func (ec *executionContext) fieldContext_Mutation_createServer(ctx context.Conte
 				return ec.fieldContext_Server_ssh_port(ctx, field)
 			case "swarmMode":
 				return ec.fieldContext_Server_swarmMode(ctx, field)
+			case "swarmNodeStatus":
+				return ec.fieldContext_Server_swarmNodeStatus(ctx, field)
 			case "scheduleDeployments":
 				return ec.fieldContext_Server_scheduleDeployments(ctx, field)
+			case "maintenanceMode":
+				return ec.fieldContext_Server_maintenanceMode(ctx, field)
 			case "dockerUnixSocketPath":
 				return ec.fieldContext_Server_dockerUnixSocketPath(ctx, field)
 			case "proxyEnabled":
@@ -12232,6 +12312,116 @@ func (ec *executionContext) fieldContext_Mutation_allowDeploymentOnServer(ctx co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_allowDeploymentOnServer_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_putServerInMaintenanceMode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_putServerInMaintenanceMode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().PutServerInMaintenanceMode(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_putServerInMaintenanceMode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_putServerInMaintenanceMode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_putServerOutOfMaintenanceMode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_putServerOutOfMaintenanceMode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().PutServerOutOfMaintenanceMode(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_putServerOutOfMaintenanceMode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_putServerOutOfMaintenanceMode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -16201,8 +16391,12 @@ func (ec *executionContext) fieldContext_Query_servers(_ context.Context, field 
 				return ec.fieldContext_Server_ssh_port(ctx, field)
 			case "swarmMode":
 				return ec.fieldContext_Server_swarmMode(ctx, field)
+			case "swarmNodeStatus":
+				return ec.fieldContext_Server_swarmNodeStatus(ctx, field)
 			case "scheduleDeployments":
 				return ec.fieldContext_Server_scheduleDeployments(ctx, field)
+			case "maintenanceMode":
+				return ec.fieldContext_Server_maintenanceMode(ctx, field)
 			case "dockerUnixSocketPath":
 				return ec.fieldContext_Server_dockerUnixSocketPath(ctx, field)
 			case "proxyEnabled":
@@ -16271,8 +16465,12 @@ func (ec *executionContext) fieldContext_Query_server(ctx context.Context, field
 				return ec.fieldContext_Server_ssh_port(ctx, field)
 			case "swarmMode":
 				return ec.fieldContext_Server_swarmMode(ctx, field)
+			case "swarmNodeStatus":
+				return ec.fieldContext_Server_swarmNodeStatus(ctx, field)
 			case "scheduleDeployments":
 				return ec.fieldContext_Server_scheduleDeployments(ctx, field)
+			case "maintenanceMode":
+				return ec.fieldContext_Server_maintenanceMode(ctx, field)
 			case "dockerUnixSocketPath":
 				return ec.fieldContext_Server_dockerUnixSocketPath(ctx, field)
 			case "proxyEnabled":
@@ -17903,6 +18101,50 @@ func (ec *executionContext) fieldContext_Server_swarmMode(_ context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Server_swarmNodeStatus(ctx context.Context, field graphql.CollectedField, obj *model.Server) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Server_swarmNodeStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Server().SwarmNodeStatus(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Server_swarmNodeStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Server",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Server_scheduleDeployments(ctx context.Context, field graphql.CollectedField, obj *model.Server) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Server_scheduleDeployments(ctx, field)
 	if err != nil {
@@ -17935,6 +18177,50 @@ func (ec *executionContext) _Server_scheduleDeployments(ctx context.Context, fie
 }
 
 func (ec *executionContext) fieldContext_Server_scheduleDeployments(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Server",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Server_maintenanceMode(ctx context.Context, field graphql.CollectedField, obj *model.Server) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Server_maintenanceMode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MaintenanceMode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Server_maintenanceMode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Server",
 		Field:      field,
@@ -24301,6 +24587,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "putServerInMaintenanceMode":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_putServerInMaintenanceMode(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "putServerOutOfMaintenanceMode":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_putServerOutOfMaintenanceMode(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "removeServerFromSwarmCluster":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_removeServerFromSwarmCluster(ctx, field)
@@ -26030,8 +26330,49 @@ func (ec *executionContext) _Server(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "swarmNodeStatus":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Server_swarmNodeStatus(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "scheduleDeployments":
 			out.Values[i] = ec._Server_scheduleDeployments(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "maintenanceMode":
+			out.Values[i] = ec._Server_maintenanceMode(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
