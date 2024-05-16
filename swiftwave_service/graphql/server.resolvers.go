@@ -772,6 +772,47 @@ func (r *queryResolver) ServerLatestDiskUsage(ctx context.Context, id uint) (*mo
 	return &res, nil
 }
 
+// NetworkInterfacesOnServer is the resolver for the networkInterfacesOnServer field.
+func (r *queryResolver) NetworkInterfacesOnServer(ctx context.Context, id uint) ([]*model.NetworkInterface, error) {
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	stdoutBuffer := new(bytes.Buffer)
+	err = ssh_toolkit.ExecCommandOverSSH("ip -o addr show | awk '{print $2, $4}'", stdoutBuffer, nil, 5, server.IP, server.SSHPort, server.User, r.Config.SystemConfig.SshPrivateKey)
+	if err != nil {
+		return nil, err
+	}
+	rawLines := strings.Split(stdoutBuffer.String(), "\n")
+	networkInterfaces := make([]*model.NetworkInterface, 0)
+	for _, line := range rawLines {
+		line = strings.TrimSpace(line)
+		if len(line) == 0 {
+			continue
+		}
+		splits := strings.Split(line, " ")
+		if len(splits) != 2 {
+			continue
+		}
+		interfaceName := splits[0]
+		// ignore `docker0` and `docker_gwbridge`
+		if interfaceName == "docker0" || interfaceName == "docker_gwbridge" || interfaceName == "lo" {
+			continue
+		}
+		ip := splits[1]
+		// strip the cidr from the ip
+		ip = strings.Split(ip, "/")[0]
+		// check if ipv4
+		if net.ParseIP(ip) != nil && net.ParseIP(ip).To4() != nil {
+			networkInterfaces = append(networkInterfaces, &model.NetworkInterface{
+				Name: interfaceName,
+				IP:   ip,
+			})
+		}
+	}
+	return networkInterfaces, nil
+}
+
 // SwarmNodeStatus is the resolver for the swarmNodeStatus field.
 func (r *serverResolver) SwarmNodeStatus(ctx context.Context, obj *model.Server) (string, error) {
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, obj.ID)
