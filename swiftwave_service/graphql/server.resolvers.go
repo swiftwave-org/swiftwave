@@ -195,6 +195,11 @@ func (r *mutationResolver) SetupServer(ctx context.Context, input model.ServerSe
 		return false, err
 	}
 
+	// Check if advertise IP is valid ipv4
+	if net.ParseIP(input.AdvertiseIP) == nil || net.ParseIP(input.AdvertiseIP).To4() == nil {
+		return false, errors.New("invalid advertise IP")
+	}
+
 	// Check if all dependencies are installed
 	installedDependencies, err := r.CheckDependenciesOnServer(ctx, input.ID)
 	if err != nil {
@@ -277,7 +282,7 @@ func (r *mutationResolver) SetupServer(ctx context.Context, input model.ServerSe
 		return false, err
 	}
 	// Push the request to the queue
-	err = r.WorkerManager.EnqueueSetupServerRequest(input.ID, serverLog.ID)
+	err = r.WorkerManager.EnqueueSetupServerRequest(input.ID, serverLog.ID, input.AdvertiseIP)
 	if err != nil {
 		return false, err
 	}
@@ -770,6 +775,47 @@ func (r *queryResolver) ServerLatestDiskUsage(ctx context.Context, id uint) (*mo
 	// convert the server disk usage to graphql object
 	res := severDisksStatToGraphqlObject(*serverDiskStats, *timestamp)
 	return &res, nil
+}
+
+// NetworkInterfacesOnServer is the resolver for the networkInterfacesOnServer field.
+func (r *queryResolver) NetworkInterfacesOnServer(ctx context.Context, id uint) ([]*model.NetworkInterface, error) {
+	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	stdoutBuffer := new(bytes.Buffer)
+	err = ssh_toolkit.ExecCommandOverSSH("ip -o addr show | awk '{print $2, $4}'", stdoutBuffer, nil, 5, server.IP, server.SSHPort, server.User, r.Config.SystemConfig.SshPrivateKey)
+	if err != nil {
+		return nil, err
+	}
+	rawLines := strings.Split(stdoutBuffer.String(), "\n")
+	networkInterfaces := make([]*model.NetworkInterface, 0)
+	for _, line := range rawLines {
+		line = strings.TrimSpace(line)
+		if len(line) == 0 {
+			continue
+		}
+		splits := strings.Split(line, " ")
+		if len(splits) != 2 {
+			continue
+		}
+		interfaceName := splits[0]
+		// ignore `docker0` and `docker_gwbridge`
+		if interfaceName == "docker0" || interfaceName == "docker_gwbridge" || interfaceName == "lo" {
+			continue
+		}
+		ip := splits[1]
+		// strip the cidr from the ip
+		ip = strings.Split(ip, "/")[0]
+		// check if ipv4
+		if net.ParseIP(ip) != nil && net.ParseIP(ip).To4() != nil {
+			networkInterfaces = append(networkInterfaces, &model.NetworkInterface{
+				Name: interfaceName,
+				IP:   ip,
+			})
+		}
+	}
+	return networkInterfaces, nil
 }
 
 // SwarmNodeStatus is the resolver for the swarmNodeStatus field.

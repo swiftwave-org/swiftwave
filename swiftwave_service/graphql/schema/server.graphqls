@@ -51,6 +51,7 @@ type Server {
 input ServerSetupInput {
     id: Uint!
     dockerUnixSocketPath: String!
+    advertiseIP: String!
     swarmMode: SwarmMode!
 }
 
@@ -82,6 +83,11 @@ type ServerDisksUsage {
     timestamp: Time!
 }
 
+type NetworkInterface {
+    name: String!
+    ip: String!
+}
+
 extend type Query {
     servers: [Server!]
     server(id: Uint!): Server!
@@ -90,6 +96,7 @@ extend type Query {
     serverDiskUsage(id: Uint!): [ServerDisksUsage!]! # return last 1000 records
     serverLatestResourceAnalytics(id: Uint!): ServerResourceAnalytics!
     serverLatestDiskUsage(id: Uint!): ServerDisksUsage!
+    networkInterfacesOnServer(id: Uint!): [NetworkInterface!]!
 }
 
 extend type Mutation {

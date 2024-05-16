@@ -78,10 +78,11 @@ func (m Manager) EnqueueInstallDependenciesOnServerRequest(serverId uint, logId 
 	})
 }
 
-func (m Manager) EnqueueSetupServerRequest(serverId uint, logId uint) error {
+func (m Manager) EnqueueSetupServerRequest(serverId uint, logId uint, advertiseIP string) error {
 	return m.ServiceManager.TaskQueueClient.EnqueueTask(setupServerQueueName, SetupServerRequest{
-		ServerId: serverId,
-		LogId:    logId,
+		ServerId:    serverId,
+		LogId:       logId,
+		AdvertiseIP: advertiseIP,
 	})
 }
 

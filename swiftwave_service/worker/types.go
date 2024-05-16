@@ -93,8 +93,9 @@ type InstallDependenciesOnServerRequest struct {
 
 // SetupServerRequest : request payload for setup server
 type SetupServerRequest struct {
-	ServerId uint `json:"server_id"`
-	LogId    uint `json:"log_id"`
+	ServerId    uint   `json:"server_id"`
+	AdvertiseIP string `json:"advertise_ip"`
+	LogId       uint   `json:"log_id"`
 }
 
 // SetupAndEnableProxyRequest : request payload for setup server

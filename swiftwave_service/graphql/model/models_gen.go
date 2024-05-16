@@ -279,6 +279,11 @@ type NFSConfigInput struct {
 	Version int    `json:"version"`
 }
 
+type NetworkInterface struct {
+	Name string `json:"name"`
+	IP   string `json:"ip"`
+}
+
 type NewServerInput struct {
 	IP      string `json:"ip"`
 	SSHPort int    `json:"ssh_port"`
@@ -431,6 +436,7 @@ type ServerResourceAnalytics struct {
 type ServerSetupInput struct {
 	ID                   uint      `json:"id"`
 	DockerUnixSocketPath string    `json:"dockerUnixSocketPath"`
+	AdvertiseIP          string    `json:"advertiseIP"`
 	SwarmMode            SwarmMode `json:"swarmMode"`
 }
 
