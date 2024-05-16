@@ -51,6 +51,7 @@ type Server {
 input ServerSetupInput {
     id: Uint!
     dockerUnixSocketPath: String!
+    advertiseIP: String!
     swarmMode: SwarmMode!
 }
 

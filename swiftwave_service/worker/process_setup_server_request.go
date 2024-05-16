@@ -181,7 +181,7 @@ func (m Manager) setupServerHelper(request SetupServerRequest, ctx context.Conte
 	// NOTE: From here, if `swarmManagerServer` is nil, then this new server can be initialized as first swarm manager
 	if swarmManagerServer == nil {
 		// Initialize as first swarm manager
-		err = dockerClient.InitializeAsManager()
+		err = dockerClient.InitializeAsManager(request.AdvertiseIP)
 		if err != nil {
 			logText += "Failed to initialize as first swarm manager\n"
 			logText += err.Error() + "\n"
@@ -221,7 +221,7 @@ func (m Manager) setupServerHelper(request SetupServerRequest, ctx context.Conte
 			joinToken = token
 		}
 		// Add node to swarm cluster
-		err = dockerClient.JoinSwarm(fmt.Sprintf("%s:2377", swarmManagerServer.IP), joinToken)
+		err = dockerClient.JoinSwarm(fmt.Sprintf("%s:2377", swarmManagerServer.IP), joinToken, request.AdvertiseIP)
 		if err != nil {
 			logText += "Failed to join swarm cluster\n"
 			logText += err.Error() + "\n"

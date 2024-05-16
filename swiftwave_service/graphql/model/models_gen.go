@@ -436,6 +436,7 @@ type ServerResourceAnalytics struct {
 type ServerSetupInput struct {
 	ID                   uint      `json:"id"`
 	DockerUnixSocketPath string    `json:"dockerUnixSocketPath"`
+	AdvertiseIP          string    `json:"advertiseIP"`
 	SwarmMode            SwarmMode `json:"swarmMode"`
 }
 

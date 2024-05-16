@@ -22791,7 +22791,7 @@ func (ec *executionContext) unmarshalInputServerSetupInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "dockerUnixSocketPath", "swarmMode"}
+	fieldsInOrder := [...]string{"id", "dockerUnixSocketPath", "advertiseIP", "swarmMode"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -22812,6 +22812,13 @@ func (ec *executionContext) unmarshalInputServerSetupInput(ctx context.Context, 
 				return it, err
 			}
 			it.DockerUnixSocketPath = data
+		case "advertiseIP":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("advertiseIP"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AdvertiseIP = data
 		case "swarmMode":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("swarmMode"))
 			data, err := ec.unmarshalNSwarmMode2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐSwarmMode(ctx, v)

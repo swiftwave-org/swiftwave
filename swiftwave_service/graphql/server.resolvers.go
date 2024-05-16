@@ -195,6 +195,11 @@ func (r *mutationResolver) SetupServer(ctx context.Context, input model.ServerSe
 		return false, err
 	}
 
+	// Check if advertise IP is valid ipv4
+	if net.ParseIP(input.AdvertiseIP) == nil || net.ParseIP(input.AdvertiseIP).To4() == nil {
+		return false, errors.New("invalid advertise IP")
+	}
+
 	// Check if all dependencies are installed
 	installedDependencies, err := r.CheckDependenciesOnServer(ctx, input.ID)
 	if err != nil {
@@ -277,7 +282,7 @@ func (r *mutationResolver) SetupServer(ctx context.Context, input model.ServerSe
 		return false, err
 	}
 	// Push the request to the queue
-	err = r.WorkerManager.EnqueueSetupServerRequest(input.ID, serverLog.ID)
+	err = r.WorkerManager.EnqueueSetupServerRequest(input.ID, serverLog.ID, input.AdvertiseIP)
 	if err != nil {
 		return false, err
 	}

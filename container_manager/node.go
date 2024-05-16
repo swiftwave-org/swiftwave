@@ -2,28 +2,31 @@ package containermanger
 
 import (
 	"errors"
+	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"strings"
 )
 
 // InitializeAsManager initializes the swarm as a manager
-func (m Manager) InitializeAsManager() error {
+func (m Manager) InitializeAsManager(advertiseIP string) error {
 	_, err := m.client.SwarmInit(m.ctx, swarm.InitRequest{
 		ForceNewCluster: true,
 		ListenAddr:      "0.0.0.0:2377",
+		AdvertiseAddr:   fmt.Sprintf("%s:2377", advertiseIP),
 	})
 	return err
 }
 
 // JoinSwarm joins the swarm
-func (m Manager) JoinSwarm(address string, token string) error {
+func (m Manager) JoinSwarm(address string, token string, advertiseIP string) error {
 	// Try to leave swarm if already joined
 	_ = m.client.SwarmLeave(m.ctx, true)
 	return m.client.SwarmJoin(m.ctx, swarm.JoinRequest{
-		JoinToken:   token,
-		ListenAddr:  "0.0.0.0:2377",
-		RemoteAddrs: []string{address},
+		JoinToken:     token,
+		ListenAddr:    "0.0.0.0:2377",
+		RemoteAddrs:   []string{address},
+		AdvertiseAddr: fmt.Sprintf("%s:2377", advertiseIP),
 	})
 }
 
