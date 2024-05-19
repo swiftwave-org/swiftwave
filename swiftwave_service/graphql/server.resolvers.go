@@ -685,7 +685,7 @@ func (r *queryResolver) NoOfServers(ctx context.Context) (int, error) {
 
 // NoOfPreparedServers is the resolver for the noOfPreparedServers field.
 func (r *queryResolver) NoOfPreparedServers(ctx context.Context) (int, error) {
-	panic(fmt.Errorf("not implemented: NoOfPreparedServers - noOfPreparedServers"))
+	return core.NoOfPreparedServers(&r.ServiceManager.DbClient)
 }
 
 // Servers is the resolver for the servers field.
