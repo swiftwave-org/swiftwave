@@ -37,7 +37,7 @@ func (gitCredential *GitCredential) Update(ctx context.Context, db gorm.DB) erro
 	}
 	if gitCredential.Type == GitSsh && strings.Compare(strings.TrimSpace(gitCredential.SshPrivateKey), "") == 0 {
 		gitCredential.SshPrivateKey = oldGitCredential.SshPrivateKey
-		gitCredential.SshPrivateKey = oldGitCredential.SshPrivateKey
+		gitCredential.SshPublicKey = oldGitCredential.SshPublicKey
 	} else if gitCredential.Type == GitHttp && strings.Compare(strings.TrimSpace(gitCredential.Password), "") == 0 {
 		gitCredential.Password = oldGitCredential.Password
 	}
