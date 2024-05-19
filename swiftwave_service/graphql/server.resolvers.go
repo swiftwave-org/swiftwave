@@ -678,6 +678,16 @@ func (r *mutationResolver) ChangeServerSSHPort(ctx context.Context, id uint, por
 	return true, nil
 }
 
+// NoOfServers is the resolver for the noOfServers field.
+func (r *queryResolver) NoOfServers(ctx context.Context) (int, error) {
+	return core.NoOfServers(&r.ServiceManager.DbClient)
+}
+
+// NoOfPreparedServers is the resolver for the noOfPreparedServers field.
+func (r *queryResolver) NoOfPreparedServers(ctx context.Context) (int, error) {
+	panic(fmt.Errorf("not implemented: NoOfPreparedServers - noOfPreparedServers"))
+}
+
 // Servers is the resolver for the servers field.
 func (r *queryResolver) Servers(ctx context.Context) ([]*model.Server, error) {
 	servers, err := core.FetchAllServers(&r.ServiceManager.DbClient)
