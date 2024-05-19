@@ -37,13 +37,13 @@ func gitCredentialToGraphqlObject(record *core.GitCredential) *model.GitCredenti
 }
 
 // gitCredentialInputToDatabaseObject : converts GitCredentialInput to GitCredentialDatabaseObject
-func gitCredentialInputToDatabaseObject(record *model.GitCredentialInput) *core.GitCredential {
+func gitCredentialInputToDatabaseObject(record *model.GitCredentialInput, createSSHKeysIfNotProvided bool) *core.GitCredential {
 	sshPrivateKey := ""
 	sshPublicKey := ""
 
 	record.SSHPrivateKey = strings.TrimSpace(record.SSHPrivateKey)
 
-	if record.Type == model.GitTypeSSH {
+	if record.Type == model.GitTypeSSH && createSSHKeysIfNotProvided {
 		if strings.Compare(record.SSHPrivateKey, "") == 0 {
 			// create ssh private key
 			pub, priv, err := ed25519.GenerateKey(nil)

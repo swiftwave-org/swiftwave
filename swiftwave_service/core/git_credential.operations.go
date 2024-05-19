@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"gorm.io/gorm"
+	"strings"
 )
 
 // This file contains the operations for the GitCredential model.
@@ -28,6 +29,18 @@ func (gitCredential *GitCredential) Create(ctx context.Context, db gorm.DB) erro
 }
 
 func (gitCredential *GitCredential) Update(ctx context.Context, db gorm.DB) error {
+	// fetch old record
+	var oldGitCredential = &GitCredential{}
+	err := oldGitCredential.FindById(ctx, db, gitCredential.ID)
+	if err != nil {
+		return err
+	}
+	if gitCredential.Type == GitSsh && strings.Compare(strings.TrimSpace(gitCredential.SshPrivateKey), "") == 0 {
+		gitCredential.SshPrivateKey = oldGitCredential.SshPrivateKey
+		gitCredential.SshPrivateKey = oldGitCredential.SshPrivateKey
+	} else if gitCredential.Type == GitHttp && strings.Compare(strings.TrimSpace(gitCredential.Password), "") == 0 {
+		gitCredential.Password = oldGitCredential.Password
+	}
 	tx := db.Save(&gitCredential)
 	return tx.Error
 }

@@ -31,7 +31,7 @@ func (r *gitCredentialResolver) Deployments(ctx context.Context, obj *model.GitC
 
 // CreateGitCredential is the resolver for the createGitCredential field.
 func (r *mutationResolver) CreateGitCredential(ctx context.Context, input model.GitCredentialInput) (*model.GitCredential, error) {
-	record := gitCredentialInputToDatabaseObject(&input)
+	record := gitCredentialInputToDatabaseObject(&input, true)
 	if record.Name == "" {
 		return nil, errors.New("name is required")
 	}
@@ -57,12 +57,9 @@ func (r *mutationResolver) UpdateGitCredential(ctx context.Context, id uint, inp
 		return nil, err
 	}
 	// update record
-	newRecord := gitCredentialInputToDatabaseObject(&input)
+	newRecord := gitCredentialInputToDatabaseObject(&input, false)
 	if newRecord.Name == "" {
 		return nil, errors.New("name is required")
-	}
-	if newRecord.Type == core.GitSsh && (strings.Compare(newRecord.SshPrivateKey, "") == 0 || strings.Compare(newRecord.SshPublicKey, "") == 0) {
-		return nil, errors.New("provide a valid ED25519 key in openssh format")
 	}
 	record.Name = input.Name
 	record.Type = newRecord.Type
