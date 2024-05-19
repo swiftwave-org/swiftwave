@@ -95,7 +95,7 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 	// + it will also set etag header to the file name
 	echoServer.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if strings.HasSuffix(c.Request().RequestURI, ".js") || strings.HasSuffix(c.Request().RequestURI, ".css") || strings.HasSuffix(c.Request().RequestURI, ".png") {
+			if strings.HasSuffix(c.Request().RequestURI, ".js") || strings.HasSuffix(c.Request().RequestURI, ".css") || strings.HasSuffix(c.Request().RequestURI, ".png") || strings.HasSuffix(c.Request().RequestURI, ".ttf") {
 				s := strings.Split(c.Request().RequestURI, "/")
 				etag := s[len(s)-1]
 				c.Response().Header().Set("Etag", etag)
