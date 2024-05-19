@@ -46,6 +46,26 @@ func UpdateServer(db *gorm.DB, server *Server) error {
 	return db.Save(server).Error
 }
 
+// NoOfServers returns the number of servers in the database
+func NoOfServers(db *gorm.DB) (int, error) {
+	var count int64
+	err := db.Model(&Server{}).Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	return int(count), nil
+}
+
+// NoOfPreparedServers returns the number of prepared servers in the database
+func NoOfPreparedServers(db *gorm.DB) (int, error) {
+	var count int64
+	err := db.Model(&Server{}).Where("status = ?", ServerOnline).Or("status = ?", ServerOffline).Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	return int(count), nil
+}
+
 // IsPreparedServerExists checks if a prepared server exists in the database
 func IsPreparedServerExists(db *gorm.DB) (bool, error) {
 	var count int64

@@ -89,6 +89,8 @@ type NetworkInterface {
 }
 
 extend type Query {
+    noOfServers: Int!
+    noOfPreparedServers: Int!
     servers: [Server!]
     server(id: Uint!): Server!
     publicSSHKey: String!
