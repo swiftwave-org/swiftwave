@@ -14,7 +14,7 @@ import (
 func FindAllDeploymentLogsByDeploymentId(ctx context.Context, db gorm.DB, id string) ([]DeploymentLog, error) {
 	// fetch all deployment logs
 	var deploymentLogs = make([]DeploymentLog, 0)
-	err := db.Where("deployment_id = ?", id).Order("created_at asc").Find(&deploymentLogs).Error
+	err := db.Where("deployment_id = ?", id).Order("id asc").Find(&deploymentLogs).Error
 	if err != nil {
 		return nil, err
 	}

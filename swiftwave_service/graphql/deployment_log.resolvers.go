@@ -23,7 +23,7 @@ func (r *subscriptionResolver) FetchDeploymentLog(ctx context.Context, id string
 		return nil, err
 	}
 	// create a channel
-	var channel = make(chan *model.DeploymentLog, 200)
+	var channel = make(chan *model.DeploymentLog, 1000)
 
 	go func() {
 		defer close(channel)
