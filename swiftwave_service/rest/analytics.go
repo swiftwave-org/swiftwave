@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"io"
 	"log"
 	"net/http"
@@ -24,15 +25,12 @@ func (server *Server) analytics(c echo.Context) error {
 	// Copy the response body to the buffer
 	_, err := io.Copy(&buf, c.Request().Body)
 	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return c.String(http.StatusBadRequest, "invalid request")
-	}
-	if err != nil {
-		fmt.Println(err.Error())
+		logger.HTTPLogger.Println("Error reading response body:", err.Error())
 		return c.String(http.StatusBadRequest, "invalid request")
 	}
 	var data ResourceStatsData
-	if err := json.Unmarshal(buf.Bytes(), &data); err != nil {
+	requestBytes := buf.Bytes()
+	if err := json.Unmarshal(requestBytes, &data); err != nil {
 		fmt.Println(err.Error())
 		return c.String(http.StatusBadRequest, "invalid request")
 	}
@@ -45,7 +43,7 @@ func (server *Server) analytics(c echo.Context) error {
 	// fetch server id from database
 	serverId, err := core.FetchServerIDByHostName(tx, serverHostName)
 	if err != nil {
-		log.Println(err.Error())
+		logger.HTTPLogger.Println(err.Error())
 		return c.String(http.StatusInternalServerError, "failed to fetch server id")
 	}
 	// create new host resource stat
@@ -58,6 +56,25 @@ func (server *Server) analytics(c echo.Context) error {
 			UsedGB:     diskStat.UsedGB,
 		}
 	}
+
+	recvKB := data.SystemStat.NetStat.RecvKB
+	sentKB := data.SystemStat.NetStat.SentKB
+
+	/*
+		Little hack -
+		sometimes wrong data can be reported, due to overflow issues
+		10000000000000000KB = 10000000000GB
+
+		We are assuming that in 1 minute a server can't have 10000000000GB of data transfer in Tx/Rx.
+		So if something reported, ignore that data.
+	*/
+
+	if recvKB > 10000000000000000 || sentKB > 10000000000000000 {
+		logger.HTTPLoggerError.Println("Ignoring data, because anomaly detected in net stats")
+		logger.HTTPLoggerError.Println(string(requestBytes))
+		return c.String(http.StatusBadRequest, "invalid request")
+	}
+
 	serverStat := core.ServerResourceStat{
 		ServerID:        serverId,
 		CpuUsagePercent: data.SystemStat.CpuUsagePercent,
