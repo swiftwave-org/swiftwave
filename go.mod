@@ -4,8 +4,8 @@ go 1.21.7
 
 require (
 	ariga.io/atlas-provider-gorm v0.3.4
-	github.com/99designs/gqlgen v0.17.46
-	github.com/aws/aws-sdk-go v1.53.4
+	github.com/99designs/gqlgen v0.17.47
+	github.com/aws/aws-sdk-go v1.53.5
 	github.com/docker/docker v26.1.3+incompatible
 	github.com/fatih/color v1.17.0
 	github.com/go-git/go-git/v5 v5.12.0
@@ -52,7 +52,7 @@ require (
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/skeema/knownhosts v1.2.2 // indirect
-	github.com/sosodev/duration v1.3.0 // indirect
+	github.com/sosodev/duration v1.3.1 // indirect
 	github.com/urfave/cli/v2 v2.27.2 // indirect
 	github.com/xrash/smetrics v0.0.0-20240312152122-5f08fbb34913 // indirect
 	golang.org/x/time v0.5.0 // indirect
@@ -109,7 +109,7 @@ require (
 	golang.org/x/sync v0.7.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231030173426-d783a09b4405 // indirect
 	google.golang.org/grpc v1.59.0 // indirect
-	google.golang.org/protobuf v1.34.0 // indirect
+	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gorm.io/driver/mysql v1.5.1 // indirect
 	gorm.io/driver/sqlite v1.5.2 // indirect
@@ -142,5 +142,5 @@ require (
 	golang.org/x/net v0.25.0
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
-	golang.org/x/tools v0.20.0 // indirect
+	golang.org/x/tools v0.21.0 // indirect
 )
