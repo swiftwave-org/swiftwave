@@ -26,9 +26,9 @@ func CreateApplicationServiceResourceStat(_ context.Context, db gorm.DB, appStat
 				return err
 			}
 		} else {
-			existingAppStat.ServiceCpuTime += appStat.ServiceCpuTime + existingAppStat.ServiceCpuTime
-			existingAppStat.SystemCpuTime += appStat.SystemCpuTime + existingAppStat.SystemCpuTime
-			existingAppStat.CpuUsagePercent = uint8((existingAppStat.ServiceCpuTime / existingAppStat.SystemCpuTime) * 100)
+			existingAppStat.ServiceCpuTime = appStat.ServiceCpuTime + existingAppStat.ServiceCpuTime
+			existingAppStat.SystemCpuTime = appStat.SystemCpuTime + existingAppStat.SystemCpuTime
+			existingAppStat.CpuUsagePercent = uint8(float64(existingAppStat.ServiceCpuTime) / float64(existingAppStat.SystemCpuTime) * 100)
 			existingAppStat.ReportingServerCount++
 			existingAppStat.UsedMemoryMB = appStat.UsedMemoryMB + existingAppStat.UsedMemoryMB
 			existingAppStat.NetStat = ApplicationServiceNetStat{
