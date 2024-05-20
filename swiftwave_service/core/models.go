@@ -293,6 +293,8 @@ type ServerResourceStat struct {
 type ApplicationServiceResourceStat struct {
 	ID                   uint                      `json:"id" gorm:"primaryKey"`
 	ApplicationID        string                    `json:"application_id"`
+	ServiceCpuTime       uint64                    `json:"service_cpu_time"`
+	SystemCpuTime        uint64                    `json:"system_cpu_time"`
 	CpuUsagePercent      uint8                     `json:"cpu_used_percent"`
 	ReportingServerCount uint                      `json:"reporting_server_count"` // to help in calculating average
 	UsedMemoryMB         uint64                    `json:"used_memory_mb"`

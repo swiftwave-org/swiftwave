@@ -87,11 +87,16 @@ type ComplexityRoot struct {
 	}
 
 	ApplicationResourceAnalytics struct {
-		CPUUsagePercent func(childComplexity int) int
-		MemoryUsedMb    func(childComplexity int) int
-		NetworkRecvKbps func(childComplexity int) int
-		NetworkSentKbps func(childComplexity int) int
-		Timestamp       func(childComplexity int) int
+		CPUUsagePercent      func(childComplexity int) int
+		MemoryUsedMb         func(childComplexity int) int
+		NetworkRecvKb        func(childComplexity int) int
+		NetworkRecvKbps      func(childComplexity int) int
+		NetworkSentKb        func(childComplexity int) int
+		NetworkSentKbps      func(childComplexity int) int
+		ReportingServerCount func(childComplexity int) int
+		ServiceCPUTime       func(childComplexity int) int
+		SystemCPUTime        func(childComplexity int) int
+		Timestamp            func(childComplexity int) int
 	}
 
 	BuildArg struct {
@@ -432,7 +437,9 @@ type ComplexityRoot struct {
 		MemoryCachedGb  func(childComplexity int) int
 		MemoryTotalGb   func(childComplexity int) int
 		MemoryUsedGb    func(childComplexity int) int
+		NetworkRecvKb   func(childComplexity int) int
 		NetworkRecvKbps func(childComplexity int) int
+		NetworkSentKb   func(childComplexity int) int
 		NetworkSentKbps func(childComplexity int) int
 		Timestamp       func(childComplexity int) int
 	}
@@ -790,6 +797,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ApplicationResourceAnalytics.MemoryUsedMb(childComplexity), true
 
+	case "ApplicationResourceAnalytics.network_recv_kb":
+		if e.complexity.ApplicationResourceAnalytics.NetworkRecvKb == nil {
+			break
+		}
+
+		return e.complexity.ApplicationResourceAnalytics.NetworkRecvKb(childComplexity), true
+
 	case "ApplicationResourceAnalytics.network_recv_kbps":
 		if e.complexity.ApplicationResourceAnalytics.NetworkRecvKbps == nil {
 			break
@@ -797,12 +811,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ApplicationResourceAnalytics.NetworkRecvKbps(childComplexity), true
 
+	case "ApplicationResourceAnalytics.network_sent_kb":
+		if e.complexity.ApplicationResourceAnalytics.NetworkSentKb == nil {
+			break
+		}
+
+		return e.complexity.ApplicationResourceAnalytics.NetworkSentKb(childComplexity), true
+
 	case "ApplicationResourceAnalytics.network_sent_kbps":
 		if e.complexity.ApplicationResourceAnalytics.NetworkSentKbps == nil {
 			break
 		}
 
 		return e.complexity.ApplicationResourceAnalytics.NetworkSentKbps(childComplexity), true
+
+	case "ApplicationResourceAnalytics.reporting_server_count":
+		if e.complexity.ApplicationResourceAnalytics.ReportingServerCount == nil {
+			break
+		}
+
+		return e.complexity.ApplicationResourceAnalytics.ReportingServerCount(childComplexity), true
+
+	case "ApplicationResourceAnalytics.service_cpu_time":
+		if e.complexity.ApplicationResourceAnalytics.ServiceCPUTime == nil {
+			break
+		}
+
+		return e.complexity.ApplicationResourceAnalytics.ServiceCPUTime(childComplexity), true
+
+	case "ApplicationResourceAnalytics.system_cpu_time":
+		if e.complexity.ApplicationResourceAnalytics.SystemCPUTime == nil {
+			break
+		}
+
+		return e.complexity.ApplicationResourceAnalytics.SystemCPUTime(childComplexity), true
 
 	case "ApplicationResourceAnalytics.timestamp":
 		if e.complexity.ApplicationResourceAnalytics.Timestamp == nil {
@@ -2992,12 +3034,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServerResourceAnalytics.MemoryUsedGb(childComplexity), true
 
+	case "ServerResourceAnalytics.network_recv_kb":
+		if e.complexity.ServerResourceAnalytics.NetworkRecvKb == nil {
+			break
+		}
+
+		return e.complexity.ServerResourceAnalytics.NetworkRecvKb(childComplexity), true
+
 	case "ServerResourceAnalytics.network_recv_kbps":
 		if e.complexity.ServerResourceAnalytics.NetworkRecvKbps == nil {
 			break
 		}
 
 		return e.complexity.ServerResourceAnalytics.NetworkRecvKbps(childComplexity), true
+
+	case "ServerResourceAnalytics.network_sent_kb":
+		if e.complexity.ServerResourceAnalytics.NetworkSentKb == nil {
+			break
+		}
+
+		return e.complexity.ServerResourceAnalytics.NetworkSentKb(childComplexity), true
 
 	case "ServerResourceAnalytics.network_sent_kbps":
 		if e.complexity.ServerResourceAnalytics.NetworkSentKbps == nil {
@@ -5827,6 +5883,138 @@ func (ec *executionContext) fieldContext_ApplicationResourceAnalytics_cpu_usage_
 	return fc, nil
 }
 
+func (ec *executionContext) _ApplicationResourceAnalytics_service_cpu_time(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationResourceAnalytics_service_cpu_time(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceCPUTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationResourceAnalytics_service_cpu_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationResourceAnalytics_system_cpu_time(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationResourceAnalytics_system_cpu_time(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SystemCPUTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationResourceAnalytics_system_cpu_time(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationResourceAnalytics_reporting_server_count(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationResourceAnalytics_reporting_server_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReportingServerCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationResourceAnalytics_reporting_server_count(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ApplicationResourceAnalytics_memory_used_mb(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationResourceAnalytics) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ApplicationResourceAnalytics_memory_used_mb(ctx, field)
 	if err != nil {
@@ -5859,6 +6047,94 @@ func (ec *executionContext) _ApplicationResourceAnalytics_memory_used_mb(ctx con
 }
 
 func (ec *executionContext) fieldContext_ApplicationResourceAnalytics_memory_used_mb(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationResourceAnalytics_network_sent_kb(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationResourceAnalytics_network_sent_kb(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NetworkSentKb, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationResourceAnalytics_network_sent_kb(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationResourceAnalytics_network_recv_kb(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationResourceAnalytics_network_recv_kb(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NetworkRecvKb, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationResourceAnalytics_network_recv_kb(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ApplicationResourceAnalytics",
 		Field:      field,
@@ -15019,8 +15295,18 @@ func (ec *executionContext) fieldContext_Query_applicationResourceAnalytics(ctx 
 			switch field.Name {
 			case "cpu_usage_percent":
 				return ec.fieldContext_ApplicationResourceAnalytics_cpu_usage_percent(ctx, field)
+			case "service_cpu_time":
+				return ec.fieldContext_ApplicationResourceAnalytics_service_cpu_time(ctx, field)
+			case "system_cpu_time":
+				return ec.fieldContext_ApplicationResourceAnalytics_system_cpu_time(ctx, field)
+			case "reporting_server_count":
+				return ec.fieldContext_ApplicationResourceAnalytics_reporting_server_count(ctx, field)
 			case "memory_used_mb":
 				return ec.fieldContext_ApplicationResourceAnalytics_memory_used_mb(ctx, field)
+			case "network_sent_kb":
+				return ec.fieldContext_ApplicationResourceAnalytics_network_sent_kb(ctx, field)
+			case "network_recv_kb":
+				return ec.fieldContext_ApplicationResourceAnalytics_network_recv_kb(ctx, field)
 			case "network_sent_kbps":
 				return ec.fieldContext_ApplicationResourceAnalytics_network_sent_kbps(ctx, field)
 			case "network_recv_kbps":
@@ -16832,6 +17118,10 @@ func (ec *executionContext) fieldContext_Query_serverResourceAnalytics(ctx conte
 				return ec.fieldContext_ServerResourceAnalytics_memory_used_gb(ctx, field)
 			case "memory_cached_gb":
 				return ec.fieldContext_ServerResourceAnalytics_memory_cached_gb(ctx, field)
+			case "network_sent_kb":
+				return ec.fieldContext_ServerResourceAnalytics_network_sent_kb(ctx, field)
+			case "network_recv_kb":
+				return ec.fieldContext_ServerResourceAnalytics_network_recv_kb(ctx, field)
 			case "network_sent_kbps":
 				return ec.fieldContext_ServerResourceAnalytics_network_sent_kbps(ctx, field)
 			case "network_recv_kbps":
@@ -16964,6 +17254,10 @@ func (ec *executionContext) fieldContext_Query_serverLatestResourceAnalytics(ctx
 				return ec.fieldContext_ServerResourceAnalytics_memory_used_gb(ctx, field)
 			case "memory_cached_gb":
 				return ec.fieldContext_ServerResourceAnalytics_memory_cached_gb(ctx, field)
+			case "network_sent_kb":
+				return ec.fieldContext_ServerResourceAnalytics_network_sent_kb(ctx, field)
+			case "network_recv_kb":
+				return ec.fieldContext_ServerResourceAnalytics_network_recv_kb(ctx, field)
 			case "network_sent_kbps":
 				return ec.fieldContext_ServerResourceAnalytics_network_sent_kbps(ctx, field)
 			case "network_recv_kbps":
@@ -19433,6 +19727,94 @@ func (ec *executionContext) fieldContext_ServerResourceAnalytics_memory_cached_g
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServerResourceAnalytics_network_sent_kb(ctx context.Context, field graphql.CollectedField, obj *model.ServerResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerResourceAnalytics_network_sent_kb(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NetworkSentKb, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerResourceAnalytics_network_sent_kb(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServerResourceAnalytics_network_recv_kb(ctx context.Context, field graphql.CollectedField, obj *model.ServerResourceAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServerResourceAnalytics_network_recv_kb(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NetworkRecvKb, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServerResourceAnalytics_network_recv_kb(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServerResourceAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -23415,8 +23797,33 @@ func (ec *executionContext) _ApplicationResourceAnalytics(ctx context.Context, s
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "service_cpu_time":
+			out.Values[i] = ec._ApplicationResourceAnalytics_service_cpu_time(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "system_cpu_time":
+			out.Values[i] = ec._ApplicationResourceAnalytics_system_cpu_time(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "reporting_server_count":
+			out.Values[i] = ec._ApplicationResourceAnalytics_reporting_server_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "memory_used_mb":
 			out.Values[i] = ec._ApplicationResourceAnalytics_memory_used_mb(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "network_sent_kb":
+			out.Values[i] = ec._ApplicationResourceAnalytics_network_sent_kb(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "network_recv_kb":
+			out.Values[i] = ec._ApplicationResourceAnalytics_network_recv_kb(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -27060,6 +27467,16 @@ func (ec *executionContext) _ServerResourceAnalytics(ctx context.Context, sel as
 			}
 		case "memory_cached_gb":
 			out.Values[i] = ec._ServerResourceAnalytics_memory_cached_gb(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "network_sent_kb":
+			out.Values[i] = ec._ServerResourceAnalytics_network_sent_kb(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "network_recv_kb":
+			out.Values[i] = ec._ServerResourceAnalytics_network_recv_kb(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

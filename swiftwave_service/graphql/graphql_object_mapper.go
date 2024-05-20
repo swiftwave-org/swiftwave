@@ -598,6 +598,8 @@ func serverResourceStatToGraphqlObject(record *core.ServerResourceStat) *model.S
 		MemoryTotalGb:   float64(record.MemStat.TotalGB),
 		MemoryUsedGb:    float64(record.MemStat.UsedGB),
 		MemoryCachedGb:  float64(record.MemStat.CachedGB),
+		NetworkSentKb:   record.NetStat.SentKB,
+		NetworkRecvKb:   record.NetStat.RecvKB,
 		NetworkSentKbps: record.NetStat.SentKBPS,
 		NetworkRecvKbps: record.NetStat.RecvKBPS,
 		Timestamp:       record.RecordedAt,
@@ -630,10 +632,15 @@ func severDisksStatToGraphqlObject(records core.ServerDiskStats, timestamp time.
 // applicationServiceResourceStatToGraphqlObject : converts ApplicationServiceResourceStat to ApplicationServiceResourceStatGraphqlObject
 func applicationServiceResourceStatToGraphqlObject(record *core.ApplicationServiceResourceStat) *model.ApplicationResourceAnalytics {
 	return &model.ApplicationResourceAnalytics{
-		CPUUsagePercent: int(record.CpuUsagePercent),
-		MemoryUsedMb:    record.UsedMemoryMB,
-		NetworkRecvKbps: record.NetStat.RecvKBPS,
-		NetworkSentKbps: record.NetStat.SentKBPS,
-		Timestamp:       record.RecordedAt,
+		CPUUsagePercent:      int(record.CpuUsagePercent),
+		ServiceCPUTime:       record.ServiceCpuTime,
+		SystemCPUTime:        record.SystemCpuTime,
+		MemoryUsedMb:         record.UsedMemoryMB,
+		NetworkRecvKb:        record.NetStat.RecvKB,
+		NetworkSentKb:        record.NetStat.SentKB,
+		NetworkRecvKbps:      record.NetStat.RecvKBPS,
+		NetworkSentKbps:      record.NetStat.SentKBPS,
+		ReportingServerCount: int(record.ReportingServerCount),
+		Timestamp:            record.RecordedAt,
 	}
 }
