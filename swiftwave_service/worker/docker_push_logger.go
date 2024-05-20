@@ -101,13 +101,3 @@ func (d *DockerPushLogger) content(forDB bool) string {
 	d.linesPrinted = d.noOflines
 	return content
 }
-
-func convertToUnicode(escapeSequence string) string {
-	var unicodeString strings.Builder
-
-	for i := 0; i < len(escapeSequence); i++ {
-		unicodeString.WriteString(fmt.Sprintf("\\u%04x", escapeSequence[i]))
-	}
-
-	return unicodeString.String()
-}
