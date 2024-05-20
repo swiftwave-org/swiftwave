@@ -42,7 +42,7 @@ func (m Manager) DeployApplication(request DeployApplicationRequest, _ context.C
 	if err != nil {
 		// mark as failed
 		ctx := context.Background()
-		addDeploymentLog(m.ServiceManager.DbClient, m.ServiceManager.PubSubClient, request.DeploymentId, "Deployment failed > \n"+err.Error()+"\n", false)
+		addPersistentDeploymentLog(m.ServiceManager.DbClient, m.ServiceManager.PubSubClient, request.DeploymentId, "Deployment failed > \n"+err.Error()+"\n", false)
 		deployment := &core.Deployment{}
 		deployment.ID = request.DeploymentId
 		err = deployment.UpdateStatus(ctx, m.ServiceManager.DbClient, core.DeploymentStatusFailed)
@@ -87,11 +87,11 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 		}
 	}
 	// log message
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment starting...\n", false)
+	addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment starting...\n", false)
 	// fetch environment variables
 	environmentVariables, err := core.FindEnvironmentVariablesByApplicationId(ctx, *db, request.AppId)
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch environment variables\n", false)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch environment variables\n", false)
 		return err
 	}
 	var environmentVariablesMap = make(map[string]string)
@@ -101,7 +101,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 	// fetch persistent volumes
 	persistentVolumeBindings, err := core.FindPersistentVolumeBindingsByApplicationId(ctx, *db, request.AppId)
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch persistent volumes\n", false)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch persistent volumes\n", false)
 		return err
 	}
 	var volumeMounts = make([]containermanger.VolumeMount, 0)
@@ -110,7 +110,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 		var persistentVolume core.PersistentVolume
 		err := persistentVolume.FindById(ctx, dbWithoutTx, persistentVolumeBinding.PersistentVolumeID)
 		if err != nil {
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch persistent volume\n", false)
+			addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch persistent volume\n", false)
 			return err
 		}
 		volumeMounts = append(volumeMounts, containermanger.VolumeMount{
@@ -142,7 +142,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 			var imageRegistryCredential core.ImageRegistryCredential
 			err := imageRegistryCredential.FindById(ctx, dbWithoutTx, *deployment.ImageRegistryCredentialID)
 			if err != nil {
-				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch image registry credential\n", false)
+				addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch image registry credential\n", false)
 				return err
 			}
 			imageRegistryUsername = imageRegistryCredential.Username
@@ -155,13 +155,13 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 	}
 
 	if refetchImage {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "[Notice] Image will be fetched from remote during deployment\n", false)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "[Notice] Image will be fetched from remote during deployment\n", false)
 	}
 	// prepare placement constraints
 	var placementConstraints = make([]string, 0)
 	disabledServerHostnames, err := core.FetchDisabledDeploymentServerHostNames(&m.ServiceManager.DbClient)
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch disabled deployment servers\nPlease check database connection\n", false)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch disabled deployment servers\nPlease check database connection\n", false)
 		return err
 	}
 	for _, hostname := range disabledServerHostnames {
@@ -208,15 +208,15 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 		if err != nil {
 			return err
 		}
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application deployed successfully\n", false)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application deployed successfully\n", false)
 	} else {
 		// update service
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application already exists, updating the application\n", false)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application already exists, updating the application\n", false)
 		err = dockerManager.UpdateService(service, imageRegistryUsername, imageRegistryPassword, refetchImage)
 		if err != nil {
 			return err
 		}
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application re-deployed successfully\n", true)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Application re-deployed successfully\n", true)
 	}
 	// commit the changes
 	err = db.Commit().Error
@@ -227,7 +227,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 		if err != nil {
 			// don't throw error as it will create an un-recoverable state
 			log.Println("failed to rollback service > "+service.Name, err)
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to rollback service\n", false)
+			addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to rollback service\n", false)
 		}
 	}
 
@@ -245,7 +245,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 				if err != nil {
 					isFailed = true
 					log.Println("failed to create new haproxy transaction", err)
-					addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to create new haproxy transaction\n", false)
+					addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to create new haproxy transaction\n", false)
 					break
 				} else {
 					transactionIdMap[haproxyManager] = haproxyTransactionId
@@ -259,7 +259,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 						if err != nil {
 							isFailed = true
 							log.Println("failed to check if backend exist", err)
-							addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to check if backend exist\n", false)
+							addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to check if backend exist\n", false)
 							continue
 						}
 						if isBackendExist {
@@ -268,7 +268,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 							if err != nil {
 								isFailed = true
 								log.Println("failed to fetch current replica count", err)
-								addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch current replica count\n", false)
+								addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch current replica count\n", false)
 								continue
 							}
 							// check if replica count changed
@@ -277,7 +277,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 								if err != nil {
 									isFailed = true
 									log.Println("failed to update replica count", err)
-									addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update replica count\n", false)
+									addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update replica count\n", false)
 								}
 							}
 						}
@@ -292,20 +292,20 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 				}
 				if isFailed || err != nil {
 					log.Println("failed to commit haproxy transaction", err)
-					addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to commit haproxy transaction\n", false)
+					addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to commit haproxy transaction\n", false)
 					err := haproxyManager.DeleteTransaction(haproxyTransactionId)
 					if err != nil {
 						log.Println("failed to rollback haproxy transaction", err)
-						addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to rollback haproxy transaction\n", false)
+						addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to rollback haproxy transaction\n", false)
 					}
 				}
 			}
 		} else {
 			log.Println("failed to update replica count", err)
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update replica count\n", false)
+			addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update replica count\n", false)
 		}
 	} else {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "[Notice] Ignoring proxy update as it's not requested\n", false)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "[Notice] Ignoring proxy update as it's not requested\n", false)
 	}
 	return nil
 }
