@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/google/uuid"
 	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	dockerconfiggenerator "github.com/swiftwave-org/swiftwave/docker_config_generator"
@@ -55,7 +54,7 @@ func (m Manager) BuildApplication(request BuildApplicationRequest, ctx context.C
 	err = m.buildApplicationHelper(request, ctx, cancelContext, dockerManager)
 	isHelperExited <- true
 	if err != nil {
-		addDeploymentLog(m.ServiceManager.DbClient, m.ServiceManager.PubSubClient, request.DeploymentId, "Failed to build application\n"+err.Error()+"\n", true)
+		addPersistentDeploymentLog(m.ServiceManager.DbClient, m.ServiceManager.PubSubClient, request.DeploymentId, "Failed to build application\n"+err.Error()+"\n", true)
 		// update status
 		deployment := &core.Deployment{}
 		deployment.ID = request.DeploymentId
@@ -129,13 +128,13 @@ func (m Manager) buildApplicationHelper(request BuildApplicationRequest, ctx con
 	// push task to queue for deployment
 	err = m.EnqueueDeployApplicationRequest(deployment.ApplicationID, deployment.ID)
 	if err == nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete\n", false)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Deployment has been triggered. Waiting for deployment to complete\n", false)
 	}
 	return err
 }
 
 func (m Manager) buildApplicationForDockerImage(deployment *core.Deployment, _ gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, _ context.Context, _ context.CancelFunc, _ *containermanger.Manager) error {
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "As the upstream type is image, no build is required\n", false)
+	addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "As the upstream type is image, no build is required\n", false)
 	return nil
 }
 
@@ -149,7 +148,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 		gitCredentials := &core.GitCredential{}
 		err := gitCredentials.FindById(ctx, db, *deployment.GitCredentialID)
 		if err != nil {
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch git credentials\n", true)
+			addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch git credentials\n", true)
 			return err
 		}
 		gitUsername = gitCredentials.Username
@@ -172,27 +171,27 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 	// fetch commit hash
 	commitHash, err := gitmanager.FetchLatestCommitHash(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitUsername, gitPassword, gitPrivateKey)
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch latest commit hash\n", true)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch latest commit hash\n", true)
 		return err
 	}
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Fetched latest commit hash > "+commitHash+"\n", false)
+	addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Fetched latest commit hash > "+commitHash+"\n", false)
 	deployment.CommitHash = commitHash
 	// update deployment
 	err = db.Model(&deployment).Update("commit_hash", commitHash).Error
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update commit hash\n", true)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update commit hash\n", true)
 		return err
 	}
 	// clone git repository
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Cloning git repository > "+deployment.GitRepositoryURL()+"\n", false)
+	addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Cloning git repository > "+deployment.GitRepositoryURL()+"\n", false)
 	err = gitmanager.CloneRepository(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitUsername, gitPassword, gitPrivateKey, tempDirectory)
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to clone git repository\n", true)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to clone git repository\n", true)
 		return err
 	}
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Cloned git repository successfully\n", false)
+	addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Cloned git repository successfully\n", false)
 	// build docker image
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Started building docker image\n", false)
+	addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Started building docker image\n", false)
 	// fetch build args
 	var buildArgs []*core.BuildArg
 	err = db.Where("deployment_id = ?", deployment.ID).Find(&buildArgs).Error
@@ -207,22 +206,23 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 	// start building docker image
 	scanner, err := dockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.CodePath, deployment.DeployableDockerImageURI(m.Config.ImageRegistryURI()))
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image\n", true)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image\n", true)
 		return err
 	}
 	isErrorEncountered := false
 	if scanner != nil {
 		var data map[string]interface{}
 		for scanner.Scan() {
-			err = json.Unmarshal(scanner.Bytes(), &data)
+			b := scanner.Bytes()
+			err = json.Unmarshal(b, &data)
 			if err != nil {
 				continue
 			}
 			if data["stream"] != nil {
-				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["stream"].(string), false)
+				addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["stream"].(string), false)
 			}
 			if data["error"] != nil {
-				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["error"].(string), false)
+				addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["error"].(string), false)
 				isErrorEncountered = true
 				break
 			}
@@ -230,14 +230,14 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 	}
 	select {
 	case <-ctx.Done():
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build cancelled !\n", true)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build cancelled !\n", true)
 		return errors.New("docker image build cancelled")
 	default:
 		if isErrorEncountered {
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed\n", true)
+			addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed\n", true)
 			return errors.New("docker image build failed\n")
 		}
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully\n", false)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully\n", false)
 		return nil
 	}
 }
@@ -267,7 +267,7 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm
 		return errors.New("failed to extract tarball")
 	}
 	// build docker image
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Started building docker image\n", false)
+	addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Started building docker image\n", false)
 	// fetch build args
 	var buildArgs []*core.BuildArg
 	err = db.Where("deployment_id = ?", deployment.ID).Find(&buildArgs).Error
@@ -282,7 +282,7 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm
 	// start building docker image
 	scanner, err := dockerManager.CreateImageWithContext(ctx, deployment.Dockerfile, buildArgsMap, tempDirectory, deployment.CodePath, deployment.DeployableDockerImageURI(m.Config.ImageRegistryURI()))
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image\n", true)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to build docker image\n", true)
 		return err
 	}
 
@@ -296,10 +296,10 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm
 				continue
 			}
 			if data["stream"] != nil {
-				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["stream"].(string), false)
+				addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["stream"].(string), false)
 			}
 			if data["error"] != nil {
-				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["error"].(string), false)
+				addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["error"].(string), false)
 				isErrorEncountered = true
 				break
 			}
@@ -307,55 +307,56 @@ func (m Manager) buildApplicationForTarball(deployment *core.Deployment, db gorm
 	}
 	select {
 	case <-ctx.Done():
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build cancelled !\n", true)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build cancelled !\n", true)
 		return errors.New("docker image build cancelled")
 	default:
 		if isErrorEncountered {
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed\n", true)
+			addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image build failed\n", true)
 			return errors.New("docker image build failed\n")
 		}
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully\n", false)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker image built successfully\n", false)
 		return nil
 	}
 }
 
 func (m Manager) pushImageToRegistry(deployment *core.Deployment, _ gorm.DB, dbWithoutTx gorm.DB, pubSubClient pubsub.Client, ctx context.Context, _ context.CancelFunc, dockerManager *containermanger.Manager) error {
-	addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image : "+deployment.DeployableDockerImageURI(m.Config.ImageRegistryURI())+"\n", false)
+	addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image : "+deployment.DeployableDockerImageURI(m.Config.ImageRegistryURI())+"\n", false)
 	scanner, err := dockerManager.PushImage(ctx, deployment.DeployableDockerImageURI(m.Config.ImageRegistryURI()), m.Config.ImageRegistryUsername(), m.Config.ImageRegistryPassword())
 	if err != nil {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to push image to registry\n", true)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to push image to registry\n", true)
 		return err
 	} else {
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Started pushing image to registry\n", false)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Started pushing image to registry\n", false)
 	}
 	isErrorEncountered := false
+	dockerPushLogger := newDockerPushLogger()
 	if scanner != nil {
 		var data map[string]interface{}
 		for scanner.Scan() {
-			err = json.Unmarshal(scanner.Bytes(), &data)
+			b := scanner.Bytes()
+			err = json.Unmarshal(b, &data)
 			if err != nil {
 				continue
 			}
-			if data["id"] != nil && data["progress"] != nil && data["status"] != nil {
-				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, fmt.Sprintf("%s %s %s\n", data["id"].(string), data["progress"].(string), data["status"].(string)), false)
-			}
 			if data["error"] != nil {
-				addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["error"].(string)+"\n", false)
+				addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, data["error"].(string)+"\n", false)
 				isErrorEncountered = true
 				break
 			}
+			addNonPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, dockerPushLogger.push(data), false)
 		}
 	}
+	addPersistentNonRealtimeDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, dockerPushLogger.content(true), false)
 	select {
 	case <-ctx.Done():
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image push cancelled !\n", true)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image push cancelled !\n", true)
 		return errors.New("image push cancelled")
 	default:
 		if isErrorEncountered {
-			addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image push failed\n", true)
+			addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image push failed\n", true)
 			return errors.New("image push failed\n")
 		}
-		addDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image pushed to registry successfully\n", false)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Image pushed to registry successfully\n", false)
 		return nil
 	}
 }
