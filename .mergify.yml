@@ -8,6 +8,16 @@ pull_request_rules:
           - develop
         assignees:
           - "{{ author }}"
+  
+  - name: backport to v2
+    conditions:
+      - label="backport-v2"
+    actions:
+      backport:
+        branches:
+          - v2
+        assignees:
+          - "{{ author }}"
 
   - name: backport to v1
     conditions:
