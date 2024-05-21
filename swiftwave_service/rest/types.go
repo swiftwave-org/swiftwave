@@ -50,9 +50,10 @@ type HostNetStat struct {
 
 // ServiceResourceStats : struct to hold service resource stats
 type ServiceResourceStats struct {
-	CpuUsagePercent uint8          `json:"cpu_used_percent"`
-	UsedMemoryMB    uint64         `json:"used_memory_mb"`
-	NetStat         ServiceNetStat `json:"network"`
+	ServiceCpuTime uint64         `json:"service_cpu_time"`
+	SystemCpuTime  uint64         `json:"system_cpu_time"`
+	UsedMemoryMB   uint64         `json:"used_memory_mb"`
+	NetStat        ServiceNetStat `json:"network"`
 }
 
 type ServiceNetStat struct {

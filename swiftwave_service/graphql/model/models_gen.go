@@ -58,11 +58,16 @@ type ApplicationInput struct {
 }
 
 type ApplicationResourceAnalytics struct {
-	CPUUsagePercent int       `json:"cpu_usage_percent"`
-	MemoryUsedMb    uint64    `json:"memory_used_mb"`
-	NetworkSentKbps uint64    `json:"network_sent_kbps"`
-	NetworkRecvKbps uint64    `json:"network_recv_kbps"`
-	Timestamp       time.Time `json:"timestamp"`
+	CPUUsagePercent      int       `json:"cpu_usage_percent"`
+	ServiceCPUTime       uint64    `json:"service_cpu_time"`
+	SystemCPUTime        uint64    `json:"system_cpu_time"`
+	ReportingServerCount int       `json:"reporting_server_count"`
+	MemoryUsedMb         uint64    `json:"memory_used_mb"`
+	NetworkSentKb        uint64    `json:"network_sent_kb"`
+	NetworkRecvKb        uint64    `json:"network_recv_kb"`
+	NetworkSentKbps      uint64    `json:"network_sent_kbps"`
+	NetworkRecvKbps      uint64    `json:"network_recv_kbps"`
+	Timestamp            time.Time `json:"timestamp"`
 }
 
 type BuildArg struct {
@@ -428,6 +433,8 @@ type ServerResourceAnalytics struct {
 	MemoryTotalGb   float64   `json:"memory_total_gb"`
 	MemoryUsedGb    float64   `json:"memory_used_gb"`
 	MemoryCachedGb  float64   `json:"memory_cached_gb"`
+	NetworkSentKb   uint64    `json:"network_sent_kb"`
+	NetworkRecvKb   uint64    `json:"network_recv_kb"`
 	NetworkSentKbps uint64    `json:"network_sent_kbps"`
 	NetworkRecvKbps uint64    `json:"network_recv_kbps"`
 	Timestamp       time.Time `json:"timestamp"`

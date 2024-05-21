@@ -26,16 +26,16 @@ func CreateApplicationServiceResourceStat(_ context.Context, db gorm.DB, appStat
 				return err
 			}
 		} else {
-			totalPercent := uint(existingAppStat.CpuUsagePercent) * existingAppStat.ReportingServerCount
-			totalPercent += uint(appStat.CpuUsagePercent) + totalPercent
-			existingAppStat.CpuUsagePercent = uint8(totalPercent / (existingAppStat.ReportingServerCount + 1))
+			existingAppStat.ServiceCpuTime = appStat.ServiceCpuTime + existingAppStat.ServiceCpuTime
+			existingAppStat.SystemCpuTime = appStat.SystemCpuTime + existingAppStat.SystemCpuTime
+			existingAppStat.CpuUsagePercent = uint8(float64(existingAppStat.ServiceCpuTime) / float64(existingAppStat.SystemCpuTime) * 100)
 			existingAppStat.ReportingServerCount++
 			existingAppStat.UsedMemoryMB = appStat.UsedMemoryMB + existingAppStat.UsedMemoryMB
 			existingAppStat.NetStat = ApplicationServiceNetStat{
 				RecvKB:   appStat.NetStat.RecvKB + existingAppStat.NetStat.RecvKB,
 				SentKB:   appStat.NetStat.SentKB + existingAppStat.NetStat.SentKB,
-				RecvKBPS: (appStat.NetStat.RecvKB + existingAppStat.NetStat.RecvKB) / 60,
-				SentKBPS: (appStat.NetStat.SentKB + existingAppStat.NetStat.SentKB) / 60,
+				RecvKBPS: uint64(appStat.NetStat.RecvKB+existingAppStat.NetStat.RecvKB) / 60,
+				SentKBPS: uint64(appStat.NetStat.SentKB+existingAppStat.NetStat.SentKB) / 60,
 			}
 			err = db.Where("id = ?", existingAppStat.ID).Save(&existingAppStat).Error
 			if err != nil {
@@ -97,6 +97,7 @@ func FetchServerResourceAnalytics(_ context.Context, db gorm.DB, serverId uint, 
 	var serverStats []*ServerResourceStat
 	err := db.Select("id", "server_id", "cpu_usage_percent",
 		"memory_total_gb", "memory_used_gb", "memory_cached_gb",
+		"network_sent_kb", "network_recv_kb",
 		"network_sent_kbps", "network_recv_kbps", "recorded_at").Where("server_id = ?", serverId).Where("recorded_at > ?", time.Unix(int64(tillTime), 0)).Order("recorded_at desc").Find(&serverStats).Error
 	return serverStats, err
 }

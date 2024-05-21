@@ -65,6 +65,8 @@ type ServerResourceAnalytics {
     memory_total_gb: Float!
     memory_used_gb: Float!
     memory_cached_gb: Float!
+    network_sent_kb: Uint64!
+    network_recv_kb: Uint64!
     network_sent_kbps: Uint64!
     network_recv_kbps: Uint64!
     timestamp: Time!

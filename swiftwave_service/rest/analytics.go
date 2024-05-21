@@ -106,9 +106,15 @@ func (server *Server) analytics(c echo.Context) error {
 		if err != nil {
 			continue
 		}
+		cpuUsagePercent := uint64(0)
+		if serviceStat.SystemCpuTime > 0 {
+			cpuUsagePercent = uint64(float64(serviceStat.ServiceCpuTime) / float64(serviceStat.SystemCpuTime) * 100)
+		}
 		appStats = append(appStats, &core.ApplicationServiceResourceStat{
 			ApplicationID:        application.ID,
-			CpuUsagePercent:      serviceStat.CpuUsagePercent,
+			ServiceCpuTime:       serviceStat.ServiceCpuTime,
+			SystemCpuTime:        serviceStat.SystemCpuTime,
+			CpuUsagePercent:      uint8(cpuUsagePercent),
 			ReportingServerCount: 1,
 			UsedMemoryMB:         serviceStat.UsedMemoryMB,
 			NetStat: core.ApplicationServiceNetStat{
