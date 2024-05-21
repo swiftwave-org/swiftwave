@@ -4,6 +4,7 @@ on:
     branches:
       - develop
       - v1
+      - v2
 permissions:
   contents: read
   pull-requests: read
