@@ -4,7 +4,7 @@ After=multi-user.target
 
 [Service]
 ExecStart=/bin/sh -c "/usr/bin/swiftwave update || true"
-Type=simple
+Type=oneshot
 
 [Install]
 WantedBy=multi-user.target

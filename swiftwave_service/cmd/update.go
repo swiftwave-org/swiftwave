@@ -40,8 +40,10 @@ var updateCmd = &cobra.Command{
 		if isUpdated {
 			fmt.Println("Swiftwave has been updated successfully")
 			fmt.Println("Trying to restart the service...")
-			_ = exec.Command("systemctl", "daemon-reload").Run()
-			_ = exec.Command("systemctl", "restart", "swiftwave.service").Run()
+			out, _ := exec.Command("systemctl", "daemon-reload").Output()
+			fmt.Println(string(out))
+			out, _ = exec.Command("systemctl", "restart", "swiftwave.service").Output()
+			fmt.Println(string(out))
 			os.Exit(0)
 		} else {
 			fmt.Println("Swiftwave is already up to date")
@@ -68,12 +70,16 @@ func detectDistro() (string, error) {
 
 func updateDebianPackage(packageName string) (bool, error) {
 	// run apt update first
-	output, err := exec.Command("apt", "update", "-y").Output()
+	cmd := exec.Command("apt", "update", "-y")
+	output, err := cmd.Output()
 	fmt.Println(string(output))
 	if err != nil {
 		return false, err
 	}
-	output, err = exec.Command("apt", "install", "--only-upgrade", packageName).Output()
+	cmd = exec.Command("apt", "install", "--only-upgrade", packageName)
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, "NEEDRESTART_SUSPEND=1")
+	output, err = cmd.Output()
 	fmt.Println(string(output))
 	if err != nil {
 		return false, err
@@ -87,7 +93,7 @@ func updateDebianPackage(packageName string) (bool, error) {
 }
 
 func updateRedHatPackage(packageName string) (bool, error) {
-	output, err := exec.Command("dnf", "update", packageName).Output()
+	output, err := exec.Command("dnf", "update", packageName, "-y").Output()
 	if err != nil {
 		return false, err
 	}
