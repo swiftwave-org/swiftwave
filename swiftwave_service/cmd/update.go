@@ -21,19 +21,17 @@ var updateCmd = &cobra.Command{
 			return
 		}
 		if strings.Contains(distro, "debian") {
-			err = updateDebianPackage("swiftwave")
+			isUpdated, err = updateDebianPackage("swiftwave")
 			if err != nil {
 				fmt.Println("Error: ", err)
 				return
 			}
-			isUpdated = true
 		} else if strings.Contains(distro, "redhat") {
-			err = updateRedHatPackage("swiftwave")
+			isUpdated, err = updateRedHatPackage("swiftwave")
 			if err != nil {
 				fmt.Println("Error: ", err)
 				return
 			}
-			isUpdated = true
 		} else {
 			fmt.Println("Error: unknown distribution")
 			return
@@ -67,18 +65,33 @@ func detectDistro() (string, error) {
 	return "", fmt.Errorf("unknown distribution")
 }
 
-func updateDebianPackage(packageName string) error {
-	cmd := exec.Command("apt", "install", "--only-upgrade", packageName)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+func updateDebianPackage(packageName string) (bool, error) {
+	// run apt update first
+	output, err := exec.Command("apt", "update", "-y").Output()
+	fmt.Println(string(output))
+	if err != nil {
+		return false, err
+	}
+	output, err = exec.Command("apt", "install", "--only-upgrade", packageName).Output()
+	fmt.Println(string(output))
+	if err != nil {
+		return false, err
+	}
+	// check if the package is already up to date
+	line := "swiftwave is already the newest version"
+	if strings.Contains(string(output), line) {
+		return false, nil
+	}
+	return true, nil
 }
 
-func updateRedHatPackage(packageName string) error {
-	cmd := exec.Command("dnf", "update", packageName)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+func updateRedHatPackage(packageName string) (bool, error) {
+	output, err := exec.Command("dnf", "update", packageName).Output()
+	if err != nil {
+		return false, err
+	}
+	if strings.Contains(string(output), "Nothing to do.") {
+		return false, nil
+	}
+	return true, nil
 }
