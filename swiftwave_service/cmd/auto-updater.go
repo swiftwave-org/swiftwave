@@ -21,7 +21,7 @@ func init() {
 
 var autoUpdateCmd = &cobra.Command{
 	Use:   "auto-update",
-	Short: "Check for updates each 20 min and update Swiftwave automatically",
+	Short: "Check for updates each 15 min and update Swiftwave automatically",
 	Run: func(cmd *cobra.Command, args []string) {
 		// print help
 		err := cmd.Help()
