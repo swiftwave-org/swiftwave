@@ -93,7 +93,7 @@ func updateDebianPackage(packageName string) (bool, error) {
 }
 
 func updateRedHatPackage(packageName string) (bool, error) {
-	output, err := exec.Command("dnf", "update", packageName, "-y").Output()
+	output, err := exec.Command("dnf", "update", "--refresh", packageName, "-y").Output()
 	if err != nil {
 		return false, err
 	}
