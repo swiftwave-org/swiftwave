@@ -40,6 +40,7 @@ var updateCmd = &cobra.Command{
 		if isUpdated {
 			fmt.Println("Swiftwave has been updated successfully")
 			fmt.Println("Trying to restart the service...")
+			_ = exec.Command("systemctl", "daemon-reload").Run()
 			_ = exec.Command("systemctl", "restart", "swiftwave.service").Run()
 			os.Exit(0)
 		} else {
