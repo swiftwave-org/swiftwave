@@ -68,6 +68,12 @@ func detectDistro() (string, error) {
 func updateDebianPackage(packageName string) (bool, error) {
 	// run apt update first
 	output, err := exec.Command("apt", "update", "-y").Output()
+	fmt.Println(string(output))
+	if err != nil {
+		return false, err
+	}
+	output, err = exec.Command("apt", "install", "--only-upgrade", packageName).Output()
+	fmt.Println(string(output))
 	if err != nil {
 		return false, err
 	}
@@ -76,11 +82,7 @@ func updateDebianPackage(packageName string) (bool, error) {
 	if strings.Contains(string(output), line) {
 		return false, nil
 	}
-	cmd := exec.Command("apt", "install", "--only-upgrade", packageName)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return true, cmd.Run()
+	return true, nil
 }
 
 func updateRedHatPackage(packageName string) (bool, error) {
