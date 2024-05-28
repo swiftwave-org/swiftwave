@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/fatih/color"
 	"github.com/moby/sys/user"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/cmd"
@@ -46,8 +47,58 @@ func main() {
 	_, err = exec.LookPath("docker")
 	if err != nil {
 		color.Red("Docker is not installed. Aborting.")
-		os.Exit(1)
+		isDockerInstalled := false
+		color.Blue("Run `curl -fsSL get.docker.com | bash -` to install docker.")
+		color.Blue("Do you want to install docker now? (y/n)")
+		var response string
+		_, err := fmt.Scanln(&response)
+		if err != nil {
+			color.Red("Error reading response. Aborting.")
+			os.Exit(1)
+		}
+		if strings.Compare(response, "y") == 0 || strings.Compare(response, "Y") == 0 {
+			color.Blue("Installing docker...")
+			// install curl
+			err = runCommand(exec.Command("bash", "-c", "apt update -y && apt install -y curl"))
+			if err != nil {
+				color.Red("Error installing curl. Aborting.")
+				os.Exit(1)
+			}
+			// install docker
+			err = runCommand(exec.Command("bash", "-c", "curl -fsSL get.docker.com | bash -"))
+			if err != nil {
+				color.Red("Error installing docker. Aborting.")
+				os.Exit(1)
+			}
+			// enable docker service
+			err = runCommand(exec.Command("systemctl", "enable", "docker"))
+			if err != nil {
+				color.Red("Error enabling docker. Aborting.")
+				os.Exit(1)
+			}
+			// start docker service
+			err = runCommand(exec.Command("systemctl", "start", "docker"))
+			if err != nil {
+				color.Red("Error starting docker. Aborting.")
+				os.Exit(1)
+			}
+			isDockerInstalled = true
+		}
+		if !isDockerInstalled {
+			color.Red("Docker is not installed. Aborting.")
+			os.Exit(1)
+		} else {
+			color.Green("Docker is installed.")
+		}
 	}
 	// Start the command line interface
 	cmd.Execute()
+}
+
+// private function
+func runCommand(command *exec.Cmd) error {
+	command.Stdout = os.Stdout
+	command.Stderr = os.Stderr
+	command.Stdin = os.Stdin
+	return command.Run()
 }
