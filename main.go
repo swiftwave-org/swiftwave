@@ -46,10 +46,11 @@ func main() {
 	// management node also needs docker for running postgres or registry at-least
 	_, err = exec.LookPath("docker")
 	if err != nil {
-		color.Red("Docker is not installed. Aborting.")
+		color.Red("Docker is not installed.")
 		isDockerInstalled := false
 		color.Blue("Run `curl -fsSL get.docker.com | bash -` to install docker.")
 		color.Blue("Do you want to install docker now? (y/n)")
+		fmt.Print("> ")
 		var response string
 		_, err := fmt.Scanln(&response)
 		if err != nil {
@@ -58,12 +59,6 @@ func main() {
 		}
 		if strings.Compare(response, "y") == 0 || strings.Compare(response, "Y") == 0 {
 			color.Blue("Installing docker...")
-			// install curl
-			err = runCommand(exec.Command("bash", "-c", "apt update -y && apt install -y curl"))
-			if err != nil {
-				color.Red("Error installing curl. Aborting.")
-				os.Exit(1)
-			}
 			// install docker
 			err = runCommand(exec.Command("bash", "-c", "curl -fsSL get.docker.com | bash -"))
 			if err != nil {
