@@ -12,12 +12,11 @@ SwiftWave is a self-hosted, lightweight PaaS solution designed to effortlessly d
 
 - [🌟 Introduction](https://swiftwave.org/docs/)
 - [🌊 Why SwiftWave ?](https://swiftwave.org/docs/why_swiftwave)
-- [🌱 Manifesto](https://swiftwave.org/docs/manifesto)
 
 ---
 
 ### 🚀 Getting Started
-Checkout [this guide](https://swiftwave.org/docs/getting_started) to install swiftwave on your VPS and deploy your applications.
+Checkout [this guide](https://swiftwave.org/docs/installation) to install swiftwave on your VPS and deploy your applications.
 
 ### 📢 Community
 We would love to hear from you and brainstorm on ideas! We communicate on Slack:
