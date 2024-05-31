@@ -8,6 +8,9 @@ You can install swiftwave in bare metal, Raspberry Pi, in any VPS(Hetzner, Digit
    <b>Checkout <a href="https://swiftwave.org/">swiftwave.org</a> to explore more</b>
 </div>
 
+### Why Swiftwave ?
+If you like to know why Swiftwave created and what is special in it, check this [swiftwave.org/docs/why_swiftwave](https://swiftwave.org/docs/why_swiftwave)
+
 ### Installation
 Checkout [this guide](https://swiftwave.org/docs/installation) to install swiftwave on your server and deploy your applications.
 
