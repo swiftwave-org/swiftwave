@@ -24,6 +24,23 @@ We would love to hear from you and brainstorm on ideas! Join our slack channel.
 - Give SwiftWave a ⭐ star on GitHub to make it more discoverable and to express your support.
 - Financial support is important in keeping the development momentum alive. You can sponsor usvia [Github Sponsors](https://github.com/sponsors/tanmoysrt).
 
+### Authors
+<div align="left">
+    <a href="https://github.com/swiftwave-org/swiftwave/graphs/contributors">
+        <img src="https://contrib.rocks/image?repo=swiftwave-org/swiftwave" />
+    </a>
+</div>
+
+Thank you to everyone who helped make Swiftwave better.
+
+### Sponsors
+<div align="left">
+   <a href="https://github.com/fredericalix"><img src="https://images.weserv.nl/?url=https://github.com/fredericalix.png&v=4&h=50&w=50&fit=cover&mask=circle&maxage=7d" /></a>
+</div>
+
+Many thanks to all of the sponsors who support Swiftwave.
+
+
 ### License
 
 [Apache-2.0](LICENSE)
