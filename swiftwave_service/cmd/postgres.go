@@ -47,18 +47,18 @@ func init() {
 
 var postgresCmd = &cobra.Command{
 	Use:   "postgres",
-	Short: "Manage local postgres database (Only for standalone installation) [Not recommended]",
-	Long:  "Manage local postgres database (Only for standalone installation) [Not recommended]",
+	Short: "Manage local postgres database",
+	Long:  "Manage local postgres database",
 }
 
 var postgresStartCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start local postgres database",
-	Long:  "Start local postgres database (Recommended only for standalone installations)",
+	Long:  "Start local postgres database",
 	Run: func(cmd *cobra.Command, args []string) {
 		if !config.LocalConfig.PostgresqlConfig.RunLocalPostgres {
 			printInfo("It seems that you have configured a remote postgres database.")
-			printInfo("If you don' want to start local postgres server, type CTRL+C to exit.")
+			printInfo("If you don't want to start local postgres server, type CTRL+C to exit.")
 			printInfo("Starting local postgres in 10 seconds...")
 			// Wait for 10 seconds
 			<-time.After(10 * time.Second)
@@ -116,7 +116,7 @@ var postgresStartCmd = &cobra.Command{
 var postgresStopCmd = &cobra.Command{
 	Use:   "stop",
 	Short: "Stop local postgres database",
-	Long:  "Stop local postgres database (Recommended only for standalone installations)",
+	Long:  "Stop local postgres database",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Check if postgres container is already running
 		if checkIfPostgresContainerIsRunning() {
@@ -139,7 +139,7 @@ var postgresStopCmd = &cobra.Command{
 var postgresStatusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Check status of local postgres database",
-	Long:  "Check status of local postgres database (Recommended only for standalone installations)",
+	Long:  "Check status of local postgres database",
 	Run: func(cmd *cobra.Command, args []string) {
 		if checkIfPostgresContainerIsRunning() {
 			printSuccess("Local postgres database is running")
