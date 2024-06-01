@@ -73,6 +73,13 @@ func (m Manager) GetService(serviceName string) (Service, error) {
 	} else {
 		service.DeploymentMode = DeploymentModeGlobal
 	}
+	// Set Resource data
+	service.ResourceLimit = Resource{
+		MemoryMB: serviceData.Spec.TaskTemplate.Resources.Limits.MemoryBytes / 1024 / 1024,
+	}
+	service.ReservedResource = Resource{
+		MemoryMB: serviceData.Spec.TaskTemplate.Resources.Reservations.MemoryBytes / 1024 / 1024,
+	}
 	return service, nil
 }
 
