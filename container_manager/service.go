@@ -504,6 +504,16 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 		panic("invalid deployment mode > ")
 	}
 
+	// memory bytes
+	var reservedMemoryBytes int64 = 0
+	if service.ReservedResource.MemoryMB >= 6 {
+		reservedMemoryBytes = service.ReservedResource.MemoryMB * 1024 * 1024
+	}
+	var limitMemoryBytes int64 = 0
+	if service.ResourceLimit.MemoryMB >= 6 {
+		limitMemoryBytes = service.ResourceLimit.MemoryMB * 1024 * 1024
+	}
+
 	// Build service spec
 	serviceSpec := swarm.ServiceSpec{
 		// Set name of the service
@@ -532,6 +542,14 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 			},
 			Placement: &swarm.Placement{
 				Constraints: service.PlacementConstraints,
+			},
+			Resources: &swarm.ResourceRequirements{
+				Reservations: &swarm.Resources{
+					MemoryBytes: reservedMemoryBytes,
+				},
+				Limits: &swarm.Limit{
+					MemoryBytes: limitMemoryBytes,
+				},
 			},
 			// Set network name
 			Networks: networkAttachmentConfigs,

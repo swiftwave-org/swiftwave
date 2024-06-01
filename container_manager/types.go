@@ -31,6 +31,8 @@ type Service struct {
 	DeploymentMode       DeploymentMode    `json:"deploymentmode"`
 	Replicas             uint64            `json:"replicas"`
 	PlacementConstraints []string          `json:"placementconstraints,omitempty"`
+	ReservedResource     Resource          `json:"reserved_resource,omitempty"`
+	ResourceLimit        Resource          `json:"resource_limit,omitempty"`
 }
 
 type ServiceRealtimeInfo struct {
@@ -59,4 +61,8 @@ type VolumeBind struct {
 	Target string `json:"target"`
 	// No need to specify readonly for volume bind
 	// VolumeBind is for special internal use, and need readwrite access all the time
+}
+
+type Resource struct {
+	MemoryMB int64 `json:"memory_mb,omitempty"`
 }
