@@ -1,4 +1,4 @@
-h1:3ZXqrQiI37gCC9zfM7K/kYzQkjfKiH3fz/YVe8Befi4=
+h1:kd52xMqdr3/dGaFeU2UgNdHq/gPmIAgy+ManVsUqpGE=
 20240413191732_init.down.sql h1:HoitObGwuKF/akF4qg3dol2FfNTLCEuf6wHYDuCez8I=
 20240413191732_init.up.sql h1:USKdQx/yTz1KJ0+mDwYGhKm3WzX7k+I9+6B6SxImwaE=
 20240414051823_server_custom_ssh_port_added.down.sql h1:IC1DFQBQceTPTRdZOo5/WqytH+ZbgcKrQuMCkhArF/0=
@@ -19,3 +19,5 @@ h1:3ZXqrQiI37gCC9zfM7K/kYzQkjfKiH3fz/YVe8Befi4=
 20240515053702_server_maintenance_mode_added.up.sql h1:eI7FY1eSGaUdZurfPZ9jffyX5nfg6MeAcveDuAbdeHY=
 20240520174246_added_cpu_time_in_stats.down.sql h1:1AUty7XMaHHQhuEG9r266fGE1WA/SEnQK0sSaCUt89I=
 20240520174246_added_cpu_time_in_stats.up.sql h1:8yIHQVQWTbjR6AuLOUGGOivEhGPqTNu9gBu7iSsqReE=
+20240601192429_add_resource_limits_to_application.down.sql h1:EKsf+F7Qt2MwnjE2KLzeE4fWG6FkcYfN/sLjyZiB5f0=
+20240601192429_add_resource_limits_to_application.up.sql h1:Vo01BuJO4x3R7VQoA2tmiQK8qOUzMxWN9Y0SJ6Sgy9A=

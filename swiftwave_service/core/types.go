@@ -332,3 +332,15 @@ type ApplicationServiceNetStat struct {
 	SentKBPS uint64 `json:"sent_kbps"`
 	RecvKBPS uint64 `json:"recv_kbps"`
 }
+
+// ************************************************************************************* //
+//                               	Application Related       		    		 	     //
+// ************************************************************************************* //
+
+type ApplicationResourceLimit struct {
+	MemoryMB int64 `json:"memory_mb"`
+}
+
+type ApplicationReservedResource struct {
+	MemoryMB int64 `json:"memory_mb"`
+}
