@@ -64,5 +64,5 @@ type VolumeBind struct {
 }
 
 type Resource struct {
-	MemoryMB int64 `json:"memory_mb,omitempty"`
+	MemoryMB int `json:"memory_mb,omitempty"`
 }

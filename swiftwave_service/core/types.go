@@ -338,9 +338,9 @@ type ApplicationServiceNetStat struct {
 // ************************************************************************************* //
 
 type ApplicationResourceLimit struct {
-	MemoryMB int64 `json:"memory_mb"`
+	MemoryMB int `json:"memory_mb"`
 }
 
 type ApplicationReservedResource struct {
-	MemoryMB int64 `json:"memory_mb"`
+	MemoryMB int `json:"memory_mb"`
 }

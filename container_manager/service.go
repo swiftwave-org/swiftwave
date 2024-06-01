@@ -75,10 +75,10 @@ func (m Manager) GetService(serviceName string) (Service, error) {
 	}
 	// Set Resource data
 	service.ResourceLimit = Resource{
-		MemoryMB: serviceData.Spec.TaskTemplate.Resources.Limits.MemoryBytes / 1024 / 1024,
+		MemoryMB: int(serviceData.Spec.TaskTemplate.Resources.Limits.MemoryBytes / 1024 / 1024),
 	}
 	service.ReservedResource = Resource{
-		MemoryMB: serviceData.Spec.TaskTemplate.Resources.Reservations.MemoryBytes / 1024 / 1024,
+		MemoryMB: int(serviceData.Spec.TaskTemplate.Resources.Reservations.MemoryBytes / 1024 / 1024),
 	}
 	return service, nil
 }
@@ -514,11 +514,11 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 	// memory bytes
 	var reservedMemoryBytes int64 = 0
 	if service.ReservedResource.MemoryMB >= 6 {
-		reservedMemoryBytes = service.ReservedResource.MemoryMB * 1024 * 1024
+		reservedMemoryBytes = int64(service.ReservedResource.MemoryMB * 1024 * 1024)
 	}
 	var limitMemoryBytes int64 = 0
 	if service.ResourceLimit.MemoryMB >= 6 {
-		limitMemoryBytes = service.ResourceLimit.MemoryMB * 1024 * 1024
+		limitMemoryBytes = int64(service.ResourceLimit.MemoryMB * 1024 * 1024)
 	}
 
 	// Build service spec

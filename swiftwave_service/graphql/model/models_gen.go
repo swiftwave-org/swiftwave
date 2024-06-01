@@ -16,6 +16,8 @@ type Application struct {
 	PersistentVolumeBindings []*PersistentVolumeBinding `json:"persistentVolumeBindings"`
 	Capabilities             []string                   `json:"capabilities"`
 	Sysctls                  []string                   `json:"sysctls"`
+	ResourceLimit            *ResourceLimit             `json:"resourceLimit"`
+	ReservedResource         *ReservedResource          `json:"reservedResource"`
 	RealtimeInfo             *RealtimeInfo              `json:"realtimeInfo"`
 	LatestDeployment         *Deployment                `json:"latestDeployment"`
 	Deployments              []*Deployment              `json:"deployments"`
@@ -45,6 +47,8 @@ type ApplicationInput struct {
 	BuildArgs                    []*BuildArgInput                `json:"buildArgs"`
 	DeploymentMode               DeploymentMode                  `json:"deploymentMode"`
 	Replicas                     *uint                           `json:"replicas,omitempty"`
+	ResourceLimit                *ResourceLimitInput             `json:"resourceLimit"`
+	ReservedResource             *ReservedResourceInput          `json:"reservedResource"`
 	UpstreamType                 UpstreamType                    `json:"upstreamType"`
 	Command                      string                          `json:"command"`
 	GitCredentialID              *uint                           `json:"gitCredentialID,omitempty"`
@@ -384,6 +388,22 @@ type RedirectRuleInput struct {
 	DomainID    uint         `json:"domainId"`
 	Protocol    ProtocolType `json:"protocol"`
 	RedirectURL string       `json:"redirectURL"`
+}
+
+type ReservedResource struct {
+	MemoryMb int `json:"memory_mb"`
+}
+
+type ReservedResourceInput struct {
+	MemoryMb int `json:"memory_mb"`
+}
+
+type ResourceLimit struct {
+	MemoryMb int `json:"memory_mb"`
+}
+
+type ResourceLimitInput struct {
+	MemoryMb int `json:"memory_mb"`
 }
 
 type RuntimeLog struct {

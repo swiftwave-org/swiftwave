@@ -76,6 +76,8 @@ type ComplexityRoot struct {
 		PersistentVolumeBindings func(childComplexity int) int
 		RealtimeInfo             func(childComplexity int) int
 		Replicas                 func(childComplexity int) int
+		ReservedResource         func(childComplexity int) int
+		ResourceLimit            func(childComplexity int) int
 		Sysctls                  func(childComplexity int) int
 		WebhookToken             func(childComplexity int) int
 	}
@@ -388,6 +390,14 @@ type ComplexityRoot struct {
 		RedirectURL func(childComplexity int) int
 		Status      func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
+	}
+
+	ReservedResource struct {
+		MemoryMb func(childComplexity int) int
+	}
+
+	ResourceLimit struct {
+		MemoryMb func(childComplexity int) int
 	}
 
 	RuntimeLog struct {
@@ -747,6 +757,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Application.Replicas(childComplexity), true
+
+	case "Application.reservedResource":
+		if e.complexity.Application.ReservedResource == nil {
+			break
+		}
+
+		return e.complexity.Application.ReservedResource(childComplexity), true
+
+	case "Application.resourceLimit":
+		if e.complexity.Application.ResourceLimit == nil {
+			break
+		}
+
+		return e.complexity.Application.ResourceLimit(childComplexity), true
 
 	case "Application.sysctls":
 		if e.complexity.Application.Sysctls == nil {
@@ -2817,6 +2841,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RedirectRule.UpdatedAt(childComplexity), true
 
+	case "ReservedResource.memory_mb":
+		if e.complexity.ReservedResource.MemoryMb == nil {
+			break
+		}
+
+		return e.complexity.ReservedResource.MemoryMb(childComplexity), true
+
+	case "ResourceLimit.memory_mb":
+		if e.complexity.ResourceLimit.MemoryMb == nil {
+			break
+		}
+
+		return e.complexity.ResourceLimit.MemoryMb(childComplexity), true
+
 	case "RuntimeLog.content":
 		if e.complexity.RuntimeLog.Content == nil {
 			break
@@ -3185,6 +3223,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputPersistentVolumeInput,
 		ec.unmarshalInputPersistentVolumeRestoreInput,
 		ec.unmarshalInputRedirectRuleInput,
+		ec.unmarshalInputReservedResourceInput,
+		ec.unmarshalInputResourceLimitInput,
 		ec.unmarshalInputServerSetupInput,
 		ec.unmarshalInputStackInput,
 		ec.unmarshalInputStackVariableType,
@@ -5052,6 +5092,102 @@ func (ec *executionContext) fieldContext_Application_sysctls(_ context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Application_resourceLimit(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_resourceLimit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ResourceLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ResourceLimit)
+	fc.Result = res
+	return ec.marshalNResourceLimit2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐResourceLimit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_resourceLimit(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "memory_mb":
+				return ec.fieldContext_ResourceLimit_memory_mb(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ResourceLimit", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Application_reservedResource(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_reservedResource(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReservedResource, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ReservedResource)
+	fc.Result = res
+	return ec.marshalNReservedResource2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐReservedResource(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_reservedResource(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "memory_mb":
+				return ec.fieldContext_ReservedResource_memory_mb(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ReservedResource", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Application_realtimeInfo(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Application_realtimeInfo(ctx, field)
 	if err != nil {
@@ -5810,6 +5946,10 @@ func (ec *executionContext) fieldContext_ApplicationDeployResult_application(_ c
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
 				return ec.fieldContext_Application_sysctls(ctx, field)
+			case "resourceLimit":
+				return ec.fieldContext_Application_resourceLimit(ctx, field)
+			case "reservedResource":
+				return ec.fieldContext_Application_reservedResource(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -6858,6 +6998,10 @@ func (ec *executionContext) fieldContext_Deployment_application(_ context.Contex
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
 				return ec.fieldContext_Application_sysctls(ctx, field)
+			case "resourceLimit":
+				return ec.fieldContext_Application_resourceLimit(ctx, field)
+			case "reservedResource":
+				return ec.fieldContext_Application_reservedResource(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -9861,6 +10005,10 @@ func (ec *executionContext) fieldContext_IngressRule_application(_ context.Conte
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
 				return ec.fieldContext_Application_sysctls(ctx, field)
+			case "resourceLimit":
+				return ec.fieldContext_Application_resourceLimit(ctx, field)
+			case "reservedResource":
+				return ec.fieldContext_Application_reservedResource(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -10161,6 +10309,10 @@ func (ec *executionContext) fieldContext_Mutation_createApplication(ctx context.
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
 				return ec.fieldContext_Application_sysctls(ctx, field)
+			case "resourceLimit":
+				return ec.fieldContext_Application_resourceLimit(ctx, field)
+			case "reservedResource":
+				return ec.fieldContext_Application_reservedResource(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -10252,6 +10404,10 @@ func (ec *executionContext) fieldContext_Mutation_updateApplication(ctx context.
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
 				return ec.fieldContext_Application_sysctls(ctx, field)
+			case "resourceLimit":
+				return ec.fieldContext_Application_resourceLimit(ctx, field)
+			case "reservedResource":
+				return ec.fieldContext_Application_reservedResource(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -14644,6 +14800,10 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_application(_ c
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
 				return ec.fieldContext_Application_sysctls(ctx, field)
+			case "resourceLimit":
+				return ec.fieldContext_Application_resourceLimit(ctx, field)
+			case "reservedResource":
+				return ec.fieldContext_Application_reservedResource(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -14988,6 +15148,10 @@ func (ec *executionContext) fieldContext_Query_application(ctx context.Context, 
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
 				return ec.fieldContext_Application_sysctls(ctx, field)
+			case "resourceLimit":
+				return ec.fieldContext_Application_resourceLimit(ctx, field)
+			case "reservedResource":
+				return ec.fieldContext_Application_reservedResource(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -15079,6 +15243,10 @@ func (ec *executionContext) fieldContext_Query_applications(_ context.Context, f
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
 				return ec.fieldContext_Application_sysctls(ctx, field)
+			case "resourceLimit":
+				return ec.fieldContext_Application_resourceLimit(ctx, field)
+			case "reservedResource":
+				return ec.fieldContext_Application_reservedResource(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -15159,6 +15327,10 @@ func (ec *executionContext) fieldContext_Query_applicationsByGroup(ctx context.C
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
 				return ec.fieldContext_Application_sysctls(ctx, field)
+			case "resourceLimit":
+				return ec.fieldContext_Application_resourceLimit(ctx, field)
+			case "reservedResource":
+				return ec.fieldContext_Application_reservedResource(ctx, field)
 			case "realtimeInfo":
 				return ec.fieldContext_Application_realtimeInfo(ctx, field)
 			case "latestDeployment":
@@ -18341,6 +18513,94 @@ func (ec *executionContext) fieldContext_RedirectRule_updatedAt(_ context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReservedResource_memory_mb(ctx context.Context, field graphql.CollectedField, obj *model.ReservedResource) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ReservedResource_memory_mb(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MemoryMb, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ReservedResource_memory_mb(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReservedResource",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ResourceLimit_memory_mb(ctx context.Context, field graphql.CollectedField, obj *model.ResourceLimit) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ResourceLimit_memory_mb(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MemoryMb, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ResourceLimit_memory_mb(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ResourceLimit",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -22278,7 +22538,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "capabilities", "sysctls", "dockerfile", "buildArgs", "deploymentMode", "replicas", "upstreamType", "command", "gitCredentialID", "repositoryUrl", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID", "group"}
+	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "capabilities", "sysctls", "dockerfile", "buildArgs", "deploymentMode", "replicas", "resourceLimit", "reservedResource", "upstreamType", "command", "gitCredentialID", "repositoryUrl", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID", "group"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -22348,6 +22608,20 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 				return it, err
 			}
 			it.Replicas = data
+		case "resourceLimit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resourceLimit"))
+			data, err := ec.unmarshalNResourceLimitInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐResourceLimitInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResourceLimit = data
+		case "reservedResource":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reservedResource"))
+			data, err := ec.unmarshalNReservedResourceInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐReservedResourceInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ReservedResource = data
 		case "upstreamType":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("upstreamType"))
 			data, err := ec.unmarshalNUpstreamType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐUpstreamType(ctx, v)
@@ -23272,6 +23546,60 @@ func (ec *executionContext) unmarshalInputRedirectRuleInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputReservedResourceInput(ctx context.Context, obj interface{}) (model.ReservedResourceInput, error) {
+	var it model.ReservedResourceInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"memory_mb"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "memory_mb":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memory_mb"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MemoryMb = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputResourceLimitInput(ctx context.Context, obj interface{}) (model.ResourceLimitInput, error) {
+	var it model.ResourceLimitInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"memory_mb"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "memory_mb":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memory_mb"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MemoryMb = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputServerSetupInput(ctx context.Context, obj interface{}) (model.ServerSetupInput, error) {
 	var it model.ServerSetupInput
 	asMap := map[string]interface{}{}
@@ -23530,6 +23858,16 @@ func (ec *executionContext) _Application(ctx context.Context, sel ast.SelectionS
 			}
 		case "sysctls":
 			out.Values[i] = ec._Application_sysctls(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "resourceLimit":
+			out.Values[i] = ec._Application_resourceLimit(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "reservedResource":
+			out.Values[i] = ec._Application_reservedResource(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
@@ -27072,6 +27410,84 @@ func (ec *executionContext) _RedirectRule(ctx context.Context, sel ast.Selection
 	return out
 }
 
+var reservedResourceImplementors = []string{"ReservedResource"}
+
+func (ec *executionContext) _ReservedResource(ctx context.Context, sel ast.SelectionSet, obj *model.ReservedResource) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, reservedResourceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ReservedResource")
+		case "memory_mb":
+			out.Values[i] = ec._ReservedResource_memory_mb(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var resourceLimitImplementors = []string{"ResourceLimit"}
+
+func (ec *executionContext) _ResourceLimit(ctx context.Context, sel ast.SelectionSet, obj *model.ResourceLimit) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, resourceLimitImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ResourceLimit")
+		case "memory_mb":
+			out.Values[i] = ec._ResourceLimit_memory_mb(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var runtimeLogImplementors = []string{"RuntimeLog"}
 
 func (ec *executionContext) _RuntimeLog(ctx context.Context, sel ast.SelectionSet, obj *model.RuntimeLog) graphql.Marshaler {
@@ -29276,6 +29692,36 @@ func (ec *executionContext) unmarshalNRedirectRuleStatus2githubᚗcomᚋswiftwav
 
 func (ec *executionContext) marshalNRedirectRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRuleStatus(ctx context.Context, sel ast.SelectionSet, v model.RedirectRuleStatus) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNReservedResource2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐReservedResource(ctx context.Context, sel ast.SelectionSet, v *model.ReservedResource) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ReservedResource(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNReservedResourceInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐReservedResourceInput(ctx context.Context, v interface{}) (*model.ReservedResourceInput, error) {
+	res, err := ec.unmarshalInputReservedResourceInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNResourceLimit2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐResourceLimit(ctx context.Context, sel ast.SelectionSet, v *model.ResourceLimit) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ResourceLimit(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNResourceLimitInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐResourceLimitInput(ctx context.Context, v interface{}) (*model.ResourceLimitInput, error) {
+	res, err := ec.unmarshalInputResourceLimitInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNRuntimeLog2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRuntimeLog(ctx context.Context, sel ast.SelectionSet, v model.RuntimeLog) graphql.Marshaler {
