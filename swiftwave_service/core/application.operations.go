@@ -144,6 +144,8 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		Command:          application.Command,
 		Capabilities:     application.Capabilities,
 		Sysctls:          application.Sysctls,
+		ResourceLimit:    application.ResourceLimit,
+		ReservedResource: application.ReservedResource,
 		ApplicationGroup: application.ApplicationGroup,
 	}
 	tx := db.Create(&createdApplication)
@@ -296,6 +298,11 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 		if err != nil {
 			return nil, err
 		}
+		// reload application
+		isReloadRequired = true
+	}
+	// check if Resource limits or reservations are changed
+	if applicationExistingFull.ResourceLimit.MemoryMB != application.ResourceLimit.MemoryMB || applicationExistingFull.ReservedResource.MemoryMB != application.ReservedResource.MemoryMB {
 		// reload application
 		isReloadRequired = true
 	}
