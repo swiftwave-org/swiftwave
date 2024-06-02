@@ -180,6 +180,12 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 		Capabilities:         application.Capabilities,
 		Sysctls:              sysctls,
 		PlacementConstraints: placementConstraints,
+		ResourceLimit: containermanger.Resource{
+			MemoryMB: application.ResourceLimit.MemoryMB,
+		},
+		ReservedResource: containermanger.Resource{
+			MemoryMB: application.ReservedResource.MemoryMB,
+		},
 	}
 	// find current deployment and mark it as stalled
 	currentDeployment, err := core.FindCurrentLiveDeploymentByApplicationId(ctx, *db, request.AppId)
