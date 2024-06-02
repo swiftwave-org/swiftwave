@@ -97,6 +97,13 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	if isExist {
 		return errors.New("application name not available")
 	}
+	// check resource limits and reserved resource
+	if application.ResourceLimit.MemoryMB != 0 && application.ResourceLimit.MemoryMB < 6 {
+		return errors.New("memory limit should be at least 6 MB or 0 for unlimited")
+	}
+	if application.ReservedResource.MemoryMB != 0 && application.ReservedResource.MemoryMB < 6 {
+		return errors.New("reserved memory should be at least 6 MB or 0 for unlimited")
+	}
 	// State
 	isGitCredentialExist := false
 	isImageRegistryCredentialExist := false
@@ -263,6 +270,13 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 	if isDeleted {
 		return nil, errors.New("application is deleted")
 	}
+	// check resource limits and reserved resource
+	if application.ResourceLimit.MemoryMB != 0 && application.ResourceLimit.MemoryMB < 6 {
+		return nil, errors.New("memory limit should be at least 6 MB or 0 for unlimited")
+	}
+	if application.ReservedResource.MemoryMB != 0 && application.ReservedResource.MemoryMB < 6 {
+		return nil, errors.New("reserved memory should be at least 6 MB or 0 for unlimited")
+	}
 	// status
 	isReloadRequired := false
 	// fetch application with environment variables and persistent volume bindings
@@ -303,6 +317,16 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 	}
 	// check if Resource limits or reservations are changed
 	if applicationExistingFull.ResourceLimit.MemoryMB != application.ResourceLimit.MemoryMB || applicationExistingFull.ReservedResource.MemoryMB != application.ReservedResource.MemoryMB {
+		// update resource limits
+		err = db.Model(&applicationExistingFull).Update("resource_limit_memory_mb", application.ResourceLimit.MemoryMB).Error
+		if err != nil {
+			return nil, err
+		}
+		// update reserved resource
+		err = db.Model(&applicationExistingFull).Update("reserved_resource_memory_mb", application.ReservedResource.MemoryMB).Error
+		if err != nil {
+			return nil, err
+		}
 		// reload application
 		isReloadRequired = true
 	}

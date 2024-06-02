@@ -2841,14 +2841,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RedirectRule.UpdatedAt(childComplexity), true
 
-	case "ReservedResource.memory_mb":
+	case "ReservedResource.memoryMb":
 		if e.complexity.ReservedResource.MemoryMb == nil {
 			break
 		}
 
 		return e.complexity.ReservedResource.MemoryMb(childComplexity), true
 
-	case "ResourceLimit.memory_mb":
+	case "ResourceLimit.memoryMb":
 		if e.complexity.ResourceLimit.MemoryMb == nil {
 			break
 		}
@@ -5131,8 +5131,8 @@ func (ec *executionContext) fieldContext_Application_resourceLimit(_ context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "memory_mb":
-				return ec.fieldContext_ResourceLimit_memory_mb(ctx, field)
+			case "memoryMb":
+				return ec.fieldContext_ResourceLimit_memoryMb(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ResourceLimit", field.Name)
 		},
@@ -5179,8 +5179,8 @@ func (ec *executionContext) fieldContext_Application_reservedResource(_ context.
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "memory_mb":
-				return ec.fieldContext_ReservedResource_memory_mb(ctx, field)
+			case "memoryMb":
+				return ec.fieldContext_ReservedResource_memoryMb(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ReservedResource", field.Name)
 		},
@@ -18518,8 +18518,8 @@ func (ec *executionContext) fieldContext_RedirectRule_updatedAt(_ context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _ReservedResource_memory_mb(ctx context.Context, field graphql.CollectedField, obj *model.ReservedResource) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ReservedResource_memory_mb(ctx, field)
+func (ec *executionContext) _ReservedResource_memoryMb(ctx context.Context, field graphql.CollectedField, obj *model.ReservedResource) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ReservedResource_memoryMb(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -18549,7 +18549,7 @@ func (ec *executionContext) _ReservedResource_memory_mb(ctx context.Context, fie
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ReservedResource_memory_mb(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ReservedResource_memoryMb(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ReservedResource",
 		Field:      field,
@@ -18562,8 +18562,8 @@ func (ec *executionContext) fieldContext_ReservedResource_memory_mb(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _ResourceLimit_memory_mb(ctx context.Context, field graphql.CollectedField, obj *model.ResourceLimit) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ResourceLimit_memory_mb(ctx, field)
+func (ec *executionContext) _ResourceLimit_memoryMb(ctx context.Context, field graphql.CollectedField, obj *model.ResourceLimit) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ResourceLimit_memoryMb(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -18593,7 +18593,7 @@ func (ec *executionContext) _ResourceLimit_memory_mb(ctx context.Context, field 
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ResourceLimit_memory_mb(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ResourceLimit_memoryMb(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ResourceLimit",
 		Field:      field,
@@ -23553,15 +23553,15 @@ func (ec *executionContext) unmarshalInputReservedResourceInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"memory_mb"}
+	fieldsInOrder := [...]string{"memoryMb"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "memory_mb":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memory_mb"))
+		case "memoryMb":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memoryMb"))
 			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
@@ -23580,15 +23580,15 @@ func (ec *executionContext) unmarshalInputResourceLimitInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"memory_mb"}
+	fieldsInOrder := [...]string{"memoryMb"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "memory_mb":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memory_mb"))
+		case "memoryMb":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memoryMb"))
 			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
@@ -27421,8 +27421,8 @@ func (ec *executionContext) _ReservedResource(ctx context.Context, sel ast.Selec
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ReservedResource")
-		case "memory_mb":
-			out.Values[i] = ec._ReservedResource_memory_mb(ctx, field, obj)
+		case "memoryMb":
+			out.Values[i] = ec._ReservedResource_memoryMb(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -27460,8 +27460,8 @@ func (ec *executionContext) _ResourceLimit(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ResourceLimit")
-		case "memory_mb":
-			out.Values[i] = ec._ResourceLimit_memory_mb(ctx, field, obj)
+		case "memoryMb":
+			out.Values[i] = ec._ResourceLimit_memoryMb(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

@@ -391,19 +391,19 @@ type RedirectRuleInput struct {
 }
 
 type ReservedResource struct {
-	MemoryMb int `json:"memory_mb"`
+	MemoryMb int `json:"memoryMb"`
 }
 
 type ReservedResourceInput struct {
-	MemoryMb int `json:"memory_mb"`
+	MemoryMb int `json:"memoryMb"`
 }
 
 type ResourceLimit struct {
-	MemoryMb int `json:"memory_mb"`
+	MemoryMb int `json:"memoryMb"`
 }
 
 type ResourceLimitInput struct {
-	MemoryMb int `json:"memory_mb"`
+	MemoryMb int `json:"memoryMb"`
 }
 
 type RuntimeLog struct {

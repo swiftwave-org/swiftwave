@@ -21,11 +21,11 @@ type RealtimeInfo {
 }
 
 type ResourceLimit {
-    memory_mb: Int!
+    memoryMb: Int!
 }
 
 type ReservedResource {
-    memory_mb: Int!
+    memoryMb: Int!
 }
 
 type Application {
@@ -64,11 +64,11 @@ type ApplicationResourceAnalytics {
 }
 
 input ResourceLimitInput {
-    memory_mb: Int!
+    memoryMb: Int!
 }
 
 input ReservedResourceInput {
-    memory_mb: Int!
+    memoryMb: Int!
 }
 
 input ApplicationInput {
