@@ -194,6 +194,10 @@ type Application struct {
 	Capabilities pq.StringArray `json:"capabilities" gorm:"type:text[]"`
 	// Sysctls
 	Sysctls pq.StringArray `json:"sysctls" gorm:"type:text[]"`
+	// Resource Limit
+	ResourceLimit ApplicationResourceLimit `json:"resource_limit" gorm:"embedded;embeddedPrefix:resource_limit_"`
+	// Reserved Resource
+	ReservedResource ApplicationReservedResource `json:"reserved_resource" gorm:"embedded;embeddedPrefix:reserved_resource_"`
 	// ConsoleTokens
 	ConsoleTokens []ConsoleToken `json:"console_tokens" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// Is deleted - soft delete - will be deleted from database in background

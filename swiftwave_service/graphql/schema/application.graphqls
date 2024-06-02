@@ -20,6 +20,14 @@ type RealtimeInfo {
     DeploymentMode: DeploymentMode!
 }
 
+type ResourceLimit {
+    memoryMb: Int!
+}
+
+type ReservedResource {
+    memoryMb: Int!
+}
+
 type Application {
     id: String!
     name: String!
@@ -27,6 +35,8 @@ type Application {
     persistentVolumeBindings: [PersistentVolumeBinding!]!
     capabilities: [String!]!
     sysctls: [String!]!
+    resourceLimit: ResourceLimit!
+    reservedResource: ReservedResource!
     realtimeInfo: RealtimeInfo!
     latestDeployment: Deployment!
     deployments: [Deployment!]!
@@ -53,6 +63,14 @@ type ApplicationResourceAnalytics {
     timestamp: Time!
 }
 
+input ResourceLimitInput {
+    memoryMb: Int!
+}
+
+input ReservedResourceInput {
+    memoryMb: Int!
+}
+
 input ApplicationInput {
     name: String!
     environmentVariables: [EnvironmentVariableInput!]! # dont change with each deployment
@@ -63,6 +81,8 @@ input ApplicationInput {
     buildArgs: [BuildArgInput!]!
     deploymentMode: DeploymentMode! # dont change with each deployment
     replicas: Uint # dont change with each deployment
+    resourceLimit: ResourceLimitInput!
+    reservedResource: ReservedResourceInput!
     upstreamType: UpstreamType!
     command: String! # docker run command (can be blank)
     # required for upstreamType = "git"
