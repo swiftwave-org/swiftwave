@@ -240,6 +240,34 @@ func buildArgToGraphqlObject(record *core.BuildArg) *model.BuildArg {
 	}
 }
 
+// resourceLimitInputToDatabaseObject : converts ResourceLimitInput to ResourceLimitDatabaseObject
+func resourceLimitInputToDatabaseObject(record *model.ResourceLimitInput) *core.ApplicationResourceLimit {
+	return &core.ApplicationResourceLimit{
+		MemoryMB: record.MemoryMb,
+	}
+}
+
+// resourceLimitToGraphqlObject : converts ResourceLimit to ResourceLimitGraphqlObject
+func resourceLimitToGraphqlObject(record *core.ApplicationResourceLimit) *model.ResourceLimit {
+	return &model.ResourceLimit{
+		MemoryMb: record.MemoryMB,
+	}
+}
+
+// reservedResourceInputToDatabaseObject : converts ReservedResourceInput to ReservedResourceDatabaseObject
+func reservedResourceInputToDatabaseObject(record *model.ReservedResourceInput) *core.ApplicationReservedResource {
+	return &core.ApplicationReservedResource{
+		MemoryMB: record.MemoryMb,
+	}
+}
+
+// reservedResourceToGraphqlObject : converts ReservedResource to ReservedResourceGraphqlObject
+func reservedResourceToGraphqlObject(record *core.ApplicationReservedResource) *model.ReservedResource {
+	return &model.ReservedResource{
+		MemoryMb: record.MemoryMB,
+	}
+}
+
 // applicationInputToDeploymentDatabaseObject : converts ApplicationInput to DeploymentDatabaseObject
 func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) *core.Deployment {
 	var buildArgs = make([]core.BuildArg, 0)
@@ -302,6 +330,8 @@ func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Appl
 		Command:                  record.Command,
 		Capabilities:             record.Capabilities,
 		Sysctls:                  record.Sysctls,
+		ReservedResource:         *reservedResourceInputToDatabaseObject(record.ReservedResource),
+		ResourceLimit:            *resourceLimitInputToDatabaseObject(record.ResourceLimit),
 		IsSleeping:               false,
 		ApplicationGroup:         record.Group,
 	}
@@ -310,17 +340,19 @@ func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Appl
 // applicationToGraphqlObject : converts Application to ApplicationGraphqlObject
 func applicationToGraphqlObject(record *core.Application) *model.Application {
 	return &model.Application{
-		ID:             record.ID,
-		Name:           record.Name,
-		DeploymentMode: model.DeploymentMode(record.DeploymentMode),
-		Replicas:       record.Replicas,
-		IsDeleted:      record.IsDeleted,
-		WebhookToken:   record.WebhookToken,
-		Capabilities:   record.Capabilities,
-		Sysctls:        record.Sysctls,
-		IsSleeping:     record.IsSleeping,
-		Command:        record.Command,
-		Group:          record.ApplicationGroup,
+		ID:               record.ID,
+		Name:             record.Name,
+		DeploymentMode:   model.DeploymentMode(record.DeploymentMode),
+		Replicas:         record.Replicas,
+		IsDeleted:        record.IsDeleted,
+		WebhookToken:     record.WebhookToken,
+		Capabilities:     record.Capabilities,
+		Sysctls:          record.Sysctls,
+		ResourceLimit:    resourceLimitToGraphqlObject(&record.ResourceLimit),
+		ReservedResource: reservedResourceToGraphqlObject(&record.ReservedResource),
+		IsSleeping:       record.IsSleeping,
+		Command:          record.Command,
+		Group:            record.ApplicationGroup,
 	}
 }
 

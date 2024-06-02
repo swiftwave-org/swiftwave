@@ -73,6 +73,18 @@ func (m Manager) GetService(serviceName string) (Service, error) {
 	} else {
 		service.DeploymentMode = DeploymentModeGlobal
 	}
+	// Set Resource data
+	if serviceData.Spec.TaskTemplate.Resources != nil && serviceData.Spec.TaskTemplate.Resources.Limits != nil {
+		service.ResourceLimit = Resource{
+			MemoryMB: int(serviceData.Spec.TaskTemplate.Resources.Limits.MemoryBytes / 1024 / 1024),
+		}
+	}
+	// Set reserved resource
+	if serviceData.Spec.TaskTemplate.Resources != nil && serviceData.Spec.TaskTemplate.Resources.Reservations != nil {
+		service.ReservedResource = Resource{
+			MemoryMB: int(serviceData.Spec.TaskTemplate.Resources.Reservations.MemoryBytes / 1024 / 1024),
+		}
+	}
 	return service, nil
 }
 
@@ -504,6 +516,16 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 		panic("invalid deployment mode > ")
 	}
 
+	// memory bytes
+	var reservedMemoryBytes int64 = 0
+	if service.ReservedResource.MemoryMB >= 6 {
+		reservedMemoryBytes = int64(service.ReservedResource.MemoryMB * 1024 * 1024)
+	}
+	var limitMemoryBytes int64 = 0
+	if service.ResourceLimit.MemoryMB >= 6 {
+		limitMemoryBytes = int64(service.ResourceLimit.MemoryMB * 1024 * 1024)
+	}
+
 	// Build service spec
 	serviceSpec := swarm.ServiceSpec{
 		// Set name of the service
@@ -532,6 +554,14 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 			},
 			Placement: &swarm.Placement{
 				Constraints: service.PlacementConstraints,
+			},
+			Resources: &swarm.ResourceRequirements{
+				Reservations: &swarm.Resources{
+					MemoryBytes: reservedMemoryBytes,
+				},
+				Limits: &swarm.Limit{
+					MemoryBytes: limitMemoryBytes,
+				},
 			},
 			// Set network name
 			Networks: networkAttachmentConfigs,
