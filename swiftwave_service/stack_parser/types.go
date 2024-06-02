@@ -160,8 +160,23 @@ const (
 )
 
 type Deploy struct {
-	Mode     DeploymentMode `yaml:"mode"`
-	Replicas uint           `yaml:"replicas"`
+	Mode      DeploymentMode `yaml:"mode"`
+	Replicas  uint           `yaml:"replicas"`
+	Resources Resources      `yaml:"resources"`
+}
+
+// Resources : Resources for the service
+type Resources struct {
+	Limits       ResourcesLimits       `yaml:"limits"`
+	Reservations ResourcesReservations `yaml:"reservations"`
+}
+
+type ResourcesLimits struct {
+	MemoryMB int `yaml:"memory"`
+}
+
+type ResourcesReservations struct {
+	MemoryMB int `yaml:"memory"`
 }
 
 // Docs : Documentation for the stack
