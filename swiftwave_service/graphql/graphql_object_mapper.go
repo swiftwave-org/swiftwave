@@ -551,15 +551,21 @@ func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db g
 		image := service.Image
 		replicas := service.Deploy.Replicas
 		app := model.ApplicationInput{
-			Name:                         serviceName,
-			EnvironmentVariables:         environmentVariables,
-			PersistentVolumeBindings:     persistentVolumeBindings,
-			Capabilities:                 service.CapAdd,
-			Sysctls:                      sysctls,
-			Dockerfile:                   nil,
-			BuildArgs:                    []*model.BuildArgInput{},
-			DeploymentMode:               model.DeploymentMode(service.Deploy.Mode),
-			Replicas:                     &replicas,
+			Name:                     serviceName,
+			EnvironmentVariables:     environmentVariables,
+			PersistentVolumeBindings: persistentVolumeBindings,
+			Capabilities:             service.CapAdd,
+			Sysctls:                  sysctls,
+			Dockerfile:               nil,
+			BuildArgs:                []*model.BuildArgInput{},
+			DeploymentMode:           model.DeploymentMode(service.Deploy.Mode),
+			Replicas:                 &replicas,
+			ResourceLimit: &model.ResourceLimitInput{
+				MemoryMb: service.Deploy.Resources.Limits.MemoryMB,
+			},
+			ReservedResource: &model.ReservedResourceInput{
+				MemoryMb: service.Deploy.Resources.Reservations.MemoryMB,
+			},
 			UpstreamType:                 model.UpstreamTypeImage,
 			DockerImage:                  &image,
 			ImageRegistryCredentialID:    nil,
