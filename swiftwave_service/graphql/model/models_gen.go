@@ -91,6 +91,8 @@ type CIFSConfig struct {
 	Password string `json:"password"`
 	FileMode string `json:"file_mode"`
 	DirMode  string `json:"dir_mode"`
+	UID      int    `json:"uid"`
+	Gid      int    `json:"gid"`
 }
 
 type CIFSConfigInput struct {
@@ -100,6 +102,8 @@ type CIFSConfigInput struct {
 	Password string `json:"password"`
 	FileMode string `json:"file_mode"`
 	DirMode  string `json:"dir_mode"`
+	UID      int    `json:"uid"`
+	Gid      int    `json:"gid"`
 }
 
 type CustomSSLInput struct {

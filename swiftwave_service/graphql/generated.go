@@ -109,9 +109,11 @@ type ComplexityRoot struct {
 	CIFSConfig struct {
 		DirMode  func(childComplexity int) int
 		FileMode func(childComplexity int) int
+		Gid      func(childComplexity int) int
 		Host     func(childComplexity int) int
 		Password func(childComplexity int) int
 		Share    func(childComplexity int) int
+		UID      func(childComplexity int) int
 		Username func(childComplexity int) int
 	}
 
@@ -905,6 +907,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CIFSConfig.FileMode(childComplexity), true
 
+	case "CIFSConfig.gid":
+		if e.complexity.CIFSConfig.Gid == nil {
+			break
+		}
+
+		return e.complexity.CIFSConfig.Gid(childComplexity), true
+
 	case "CIFSConfig.host":
 		if e.complexity.CIFSConfig.Host == nil {
 			break
@@ -925,6 +934,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CIFSConfig.Share(childComplexity), true
+
+	case "CIFSConfig.uid":
+		if e.complexity.CIFSConfig.UID == nil {
+			break
+		}
+
+		return e.complexity.CIFSConfig.UID(childComplexity), true
 
 	case "CIFSConfig.username":
 		if e.complexity.CIFSConfig.Username == nil {
@@ -6766,6 +6782,94 @@ func (ec *executionContext) fieldContext_CIFSConfig_dir_mode(_ context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CIFSConfig_uid(ctx context.Context, field graphql.CollectedField, obj *model.CIFSConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CIFSConfig_uid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CIFSConfig_uid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CIFSConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CIFSConfig_gid(ctx context.Context, field graphql.CollectedField, obj *model.CIFSConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CIFSConfig_gid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Gid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CIFSConfig_gid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CIFSConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -14112,6 +14216,10 @@ func (ec *executionContext) fieldContext_PersistentVolume_cifsConfig(_ context.C
 				return ec.fieldContext_CIFSConfig_file_mode(ctx, field)
 			case "dir_mode":
 				return ec.fieldContext_CIFSConfig_dir_mode(ctx, field)
+			case "uid":
+				return ec.fieldContext_CIFSConfig_uid(ctx, field)
+			case "gid":
+				return ec.fieldContext_CIFSConfig_gid(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CIFSConfig", field.Name)
 		},
@@ -22739,7 +22847,7 @@ func (ec *executionContext) unmarshalInputCIFSConfigInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"host", "share", "username", "password", "file_mode", "dir_mode"}
+	fieldsInOrder := [...]string{"host", "share", "username", "password", "file_mode", "dir_mode", "uid", "gid"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -22788,6 +22896,20 @@ func (ec *executionContext) unmarshalInputCIFSConfigInput(ctx context.Context, o
 				return it, err
 			}
 			it.DirMode = data
+		case "uid":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uid"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UID = data
+		case "gid":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gid"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Gid = data
 		}
 	}
 
@@ -24285,6 +24407,16 @@ func (ec *executionContext) _CIFSConfig(ctx context.Context, sel ast.SelectionSe
 			}
 		case "dir_mode":
 			out.Values[i] = ec._CIFSConfig_dir_mode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "uid":
+			out.Values[i] = ec._CIFSConfig_uid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "gid":
+			out.Values[i] = ec._CIFSConfig_gid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

@@ -245,7 +245,7 @@ func (m Manager) setupServerHelper(request SetupServerRequest, ctx context.Conte
 		} else if persistentVolume.Type == core.PersistentVolumeTypeNFS {
 			err = dockerClient.CreateNFSVolume(persistentVolume.Name, persistentVolume.NFSConfig.Host, persistentVolume.NFSConfig.Path, persistentVolume.NFSConfig.Version)
 		} else if persistentVolume.Type == core.PersistentVolumeTypeCIFS {
-			err = dockerClient.CreateCIFSVolume(persistentVolume.Name, persistentVolume.CIFSConfig.Host, persistentVolume.CIFSConfig.Share, persistentVolume.CIFSConfig.Username, persistentVolume.CIFSConfig.Password, persistentVolume.CIFSConfig.FileMode, persistentVolume.CIFSConfig.DirMode)
+			err = dockerClient.CreateCIFSVolume(persistentVolume.Name, persistentVolume.CIFSConfig.Host, persistentVolume.CIFSConfig.Share, persistentVolume.CIFSConfig.Username, persistentVolume.CIFSConfig.Password, persistentVolume.CIFSConfig.FileMode, persistentVolume.CIFSConfig.DirMode, persistentVolume.CIFSConfig.Uid, persistentVolume.CIFSConfig.Gid)
 		}
 		if err != nil {
 			logText += "Failed to add persistent volume " + persistentVolume.Name + "\n"

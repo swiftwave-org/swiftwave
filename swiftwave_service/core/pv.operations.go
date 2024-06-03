@@ -110,7 +110,7 @@ func (persistentVolume *PersistentVolume) Create(ctx context.Context, db gorm.DB
 		} else if persistentVolume.Type == PersistentVolumeTypeNFS {
 			err = dockerManager.CreateNFSVolume(persistentVolume.Name, persistentVolume.NFSConfig.Host, persistentVolume.NFSConfig.Path, persistentVolume.NFSConfig.Version)
 		} else if persistentVolume.Type == PersistentVolumeTypeCIFS {
-			err = dockerManager.CreateCIFSVolume(persistentVolume.Name, persistentVolume.CIFSConfig.Host, persistentVolume.CIFSConfig.Share, persistentVolume.CIFSConfig.Username, persistentVolume.CIFSConfig.Password, persistentVolume.CIFSConfig.FileMode, persistentVolume.CIFSConfig.DirMode)
+			err = dockerManager.CreateCIFSVolume(persistentVolume.Name, persistentVolume.CIFSConfig.Host, persistentVolume.CIFSConfig.Share, persistentVolume.CIFSConfig.Username, persistentVolume.CIFSConfig.Password, persistentVolume.CIFSConfig.FileMode, persistentVolume.CIFSConfig.DirMode, persistentVolume.CIFSConfig.Uid, persistentVolume.CIFSConfig.Gid)
 		} else {
 			transaction.Rollback()
 			return errors.New("invalid persistentVolume type")
