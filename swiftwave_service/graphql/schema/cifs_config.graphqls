@@ -5,6 +5,8 @@ type CIFSConfig {
     password: String!
     file_mode: String!
     dir_mode: String!
+    uid: Int!
+    gid: Int!
 }
 
 input CIFSConfigInput {
@@ -14,4 +16,6 @@ input CIFSConfigInput {
     password: String!
     file_mode: String!
     dir_mode: String!
+    uid: Int!
+    gid: Int!
 }
