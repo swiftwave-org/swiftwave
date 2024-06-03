@@ -121,6 +121,8 @@ func persistentVolumeToGraphqlObject(record *core.PersistentVolume) *model.Persi
 			Password: record.CIFSConfig.Password,
 			FileMode: record.CIFSConfig.FileMode,
 			DirMode:  record.CIFSConfig.DirMode,
+			UID:      record.CIFSConfig.Uid,
+			Gid:      record.CIFSConfig.Gid,
 		},
 	}
 }
@@ -144,6 +146,8 @@ func persistentVolumeInputToDatabaseObject(record *model.PersistentVolumeInput) 
 			Password: record.CifsConfig.Password,
 			FileMode: record.CifsConfig.FileMode,
 			DirMode:  record.CifsConfig.DirMode,
+			Uid:      record.CifsConfig.UID,
+			Gid:      record.CifsConfig.Gid,
 		}
 	}
 	return &core.PersistentVolume{
