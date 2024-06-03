@@ -221,6 +221,8 @@ type CIFSConfig struct {
 	Password string `json:"password"`
 	FileMode string `json:"file_mode"`
 	DirMode  string `json:"dir_mode"`
+	Uid      int    `json:"uid" gorm:"default:0"`
+	Gid      int    `json:"gid" gorm:"default:0"`
 }
 
 var RequiredServerDependencies = []string{
