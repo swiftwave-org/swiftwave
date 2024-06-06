@@ -257,7 +257,9 @@ type ComplexityRoot struct {
 		DemoteServerToWorker                               func(childComplexity int, id uint) int
 		DeployStack                                        func(childComplexity int, input model.StackInput) int
 		DisableProxyOnServer                               func(childComplexity int, id uint) int
+		DisableTotp                                        func(childComplexity int) int
 		EnableProxyOnServer                                func(childComplexity int, id uint, typeArg model.ProxyType) int
+		EnableTotp                                         func(childComplexity int, totp string) int
 		FetchAnalyticsServiceToken                         func(childComplexity int, id uint, rotate bool) int
 		InstallDependenciesOnServer                        func(childComplexity int, id uint) int
 		IssueSsl                                           func(childComplexity int, id uint) int
@@ -268,6 +270,7 @@ type ComplexityRoot struct {
 		RegenerateWebhookToken                             func(childComplexity int, id string) int
 		RemoveDomain                                       func(childComplexity int, id uint) int
 		RemoveServerFromSwarmCluster                       func(childComplexity int, id uint) int
+		RequestTotpEnable                                  func(childComplexity int) int
 		RestartApplication                                 func(childComplexity int, id string) int
 		RestartSystem                                      func(childComplexity int) int
 		RestrictDeploymentOnServer                         func(childComplexity int, id uint) int
@@ -394,6 +397,11 @@ type ComplexityRoot struct {
 		UpdatedAt   func(childComplexity int) int
 	}
 
+	RequestTotpEnable struct {
+		TotpProvisioningURI func(childComplexity int) int
+		TotpSecret          func(childComplexity int) int
+	}
+
 	ReservedResource struct {
 		MemoryMb func(childComplexity int) int
 	}
@@ -472,8 +480,9 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		ID       func(childComplexity int) int
-		Username func(childComplexity int) int
+		ID          func(childComplexity int) int
+		TotpEnabled func(childComplexity int) int
+		Username    func(childComplexity int) int
 	}
 }
 
@@ -564,6 +573,9 @@ type MutationResolver interface {
 	VerifyStack(ctx context.Context, input model.StackInput) (*model.StackVerifyResult, error)
 	DeployStack(ctx context.Context, input model.StackInput) ([]*model.ApplicationDeployResult, error)
 	RestartSystem(ctx context.Context) (bool, error)
+	RequestTotpEnable(ctx context.Context) (*model.RequestTotpEnable, error)
+	EnableTotp(ctx context.Context, totp string) (bool, error)
+	DisableTotp(ctx context.Context) (bool, error)
 	CreateUser(ctx context.Context, input *model.UserInput) (*model.User, error)
 	DeleteUser(ctx context.Context, id uint) (bool, error)
 	ChangePassword(ctx context.Context, input *model.PasswordUpdateInput) (bool, error)
@@ -1856,6 +1868,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DisableProxyOnServer(childComplexity, args["id"].(uint)), true
 
+	case "Mutation.disableTotp":
+		if e.complexity.Mutation.DisableTotp == nil {
+			break
+		}
+
+		return e.complexity.Mutation.DisableTotp(childComplexity), true
+
 	case "Mutation.enableProxyOnServer":
 		if e.complexity.Mutation.EnableProxyOnServer == nil {
 			break
@@ -1867,6 +1886,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EnableProxyOnServer(childComplexity, args["id"].(uint), args["type"].(model.ProxyType)), true
+
+	case "Mutation.enableTotp":
+		if e.complexity.Mutation.EnableTotp == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_enableTotp_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EnableTotp(childComplexity, args["totp"].(string)), true
 
 	case "Mutation.fetchAnalyticsServiceToken":
 		if e.complexity.Mutation.FetchAnalyticsServiceToken == nil {
@@ -1987,6 +2018,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RemoveServerFromSwarmCluster(childComplexity, args["id"].(uint)), true
+
+	case "Mutation.requestTotpEnable":
+		if e.complexity.Mutation.RequestTotpEnable == nil {
+			break
+		}
+
+		return e.complexity.Mutation.RequestTotpEnable(childComplexity), true
 
 	case "Mutation.restartApplication":
 		if e.complexity.Mutation.RestartApplication == nil {
@@ -2857,6 +2895,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RedirectRule.UpdatedAt(childComplexity), true
 
+	case "RequestTotpEnable.totpProvisioningUri":
+		if e.complexity.RequestTotpEnable.TotpProvisioningURI == nil {
+			break
+		}
+
+		return e.complexity.RequestTotpEnable.TotpProvisioningURI(childComplexity), true
+
+	case "RequestTotpEnable.totpSecret":
+		if e.complexity.RequestTotpEnable.TotpSecret == nil {
+			break
+		}
+
+		return e.complexity.RequestTotpEnable.TotpSecret(childComplexity), true
+
 	case "ReservedResource.memoryMb":
 		if e.complexity.ReservedResource.MemoryMb == nil {
 			break
@@ -3203,6 +3255,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.ID(childComplexity), true
 
+	case "User.totpEnabled":
+		if e.complexity.User.TotpEnabled == nil {
+			break
+		}
+
+		return e.complexity.User.TotpEnabled(childComplexity), true
+
 	case "User.username":
 		if e.complexity.User.Username == nil {
 			break
@@ -3358,7 +3417,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/user.graphqls.graphqls"
+//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/totp.graphqls" "schema/user.graphqls.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -3395,6 +3454,7 @@ var sources = []*ast.Source{
 	{Name: "schema/stack.graphqls", Input: sourceData("schema/stack.graphqls"), BuiltIn: false},
 	{Name: "schema/system.graphqls", Input: sourceData("schema/system.graphqls"), BuiltIn: false},
 	{Name: "schema/system_log.graphqls", Input: sourceData("schema/system_log.graphqls"), BuiltIn: false},
+	{Name: "schema/totp.graphqls", Input: sourceData("schema/totp.graphqls"), BuiltIn: false},
 	{Name: "schema/user.graphqls.graphqls", Input: sourceData("schema/user.graphqls.graphqls"), BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -3946,6 +4006,21 @@ func (ec *executionContext) field_Mutation_enableProxyOnServer_args(ctx context.
 		}
 	}
 	args["type"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_enableTotp_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["totp"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("totp"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["totp"] = arg0
 	return args, nil
 }
 
@@ -13593,6 +13668,155 @@ func (ec *executionContext) fieldContext_Mutation_restartSystem(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_requestTotpEnable(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_requestTotpEnable(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RequestTotpEnable(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.RequestTotpEnable)
+	fc.Result = res
+	return ec.marshalNRequestTotpEnable2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRequestTotpEnable(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_requestTotpEnable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "totpSecret":
+				return ec.fieldContext_RequestTotpEnable_totpSecret(ctx, field)
+			case "totpProvisioningUri":
+				return ec.fieldContext_RequestTotpEnable_totpProvisioningUri(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RequestTotpEnable", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_enableTotp(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_enableTotp(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EnableTotp(rctx, fc.Args["totp"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_enableTotp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_enableTotp_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_disableTotp(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_disableTotp(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DisableTotp(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_disableTotp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createUser(ctx, field)
 	if err != nil {
@@ -13633,6 +13857,8 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 				return ec.fieldContext_User_id(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
+			case "totpEnabled":
+				return ec.fieldContext_User_totpEnabled(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -17832,6 +18058,8 @@ func (ec *executionContext) fieldContext_Query_users(_ context.Context, field gr
 				return ec.fieldContext_User_id(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
+			case "totpEnabled":
+				return ec.fieldContext_User_totpEnabled(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -17879,6 +18107,8 @@ func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field g
 				return ec.fieldContext_User_id(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
+			case "totpEnabled":
+				return ec.fieldContext_User_totpEnabled(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -17940,6 +18170,8 @@ func (ec *executionContext) fieldContext_Query_currentUser(_ context.Context, fi
 				return ec.fieldContext_User_id(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
+			case "totpEnabled":
+				return ec.fieldContext_User_totpEnabled(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -18621,6 +18853,94 @@ func (ec *executionContext) fieldContext_RedirectRule_updatedAt(_ context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RequestTotpEnable_totpSecret(ctx context.Context, field graphql.CollectedField, obj *model.RequestTotpEnable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RequestTotpEnable_totpSecret(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotpSecret, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RequestTotpEnable_totpSecret(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RequestTotpEnable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RequestTotpEnable_totpProvisioningUri(ctx context.Context, field graphql.CollectedField, obj *model.RequestTotpEnable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RequestTotpEnable_totpProvisioningUri(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotpProvisioningURI, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RequestTotpEnable_totpProvisioningUri(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RequestTotpEnable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -20861,6 +21181,50 @@ func (ec *executionContext) fieldContext_User_username(_ context.Context, field 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_totpEnabled(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_totpEnabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotpEnabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_totpEnabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -25858,6 +26222,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "requestTotpEnable":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_requestTotpEnable(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "enableTotp":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_enableTotp(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "disableTotp":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_disableTotp(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createUser":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createUser(ctx, field)
@@ -27542,6 +27927,50 @@ func (ec *executionContext) _RedirectRule(ctx context.Context, sel ast.Selection
 	return out
 }
 
+var requestTotpEnableImplementors = []string{"RequestTotpEnable"}
+
+func (ec *executionContext) _RequestTotpEnable(ctx context.Context, sel ast.SelectionSet, obj *model.RequestTotpEnable) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, requestTotpEnableImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RequestTotpEnable")
+		case "totpSecret":
+			out.Values[i] = ec._RequestTotpEnable_totpSecret(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totpProvisioningUri":
+			out.Values[i] = ec._RequestTotpEnable_totpProvisioningUri(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var reservedResourceImplementors = []string{"ReservedResource"}
 
 func (ec *executionContext) _ReservedResource(ctx context.Context, sel ast.SelectionSet, obj *model.ReservedResource) graphql.Marshaler {
@@ -28175,6 +28604,11 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "username":
 			out.Values[i] = ec._User_username(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totpEnabled":
+			out.Values[i] = ec._User_totpEnabled(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -29824,6 +30258,20 @@ func (ec *executionContext) unmarshalNRedirectRuleStatus2githubᚗcomᚋswiftwav
 
 func (ec *executionContext) marshalNRedirectRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRuleStatus(ctx context.Context, sel ast.SelectionSet, v model.RedirectRuleStatus) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNRequestTotpEnable2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRequestTotpEnable(ctx context.Context, sel ast.SelectionSet, v model.RequestTotpEnable) graphql.Marshaler {
+	return ec._RequestTotpEnable(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRequestTotpEnable2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRequestTotpEnable(ctx context.Context, sel ast.SelectionSet, v *model.RequestTotpEnable) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RequestTotpEnable(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNReservedResource2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐReservedResource(ctx context.Context, sel ast.SelectionSet, v *model.ReservedResource) graphql.Marshaler {

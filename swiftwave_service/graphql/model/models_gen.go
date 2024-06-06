@@ -394,6 +394,11 @@ type RedirectRuleInput struct {
 	RedirectURL string       `json:"redirectURL"`
 }
 
+type RequestTotpEnable struct {
+	TotpSecret          string `json:"totpSecret"`
+	TotpProvisioningURI string `json:"totpProvisioningUri"`
+}
+
 type ReservedResource struct {
 	MemoryMb int `json:"memoryMb"`
 }
@@ -495,8 +500,9 @@ type Subscription struct {
 }
 
 type User struct {
-	ID       uint   `json:"id"`
-	Username string `json:"username"`
+	ID          uint   `json:"id"`
+	Username    string `json:"username"`
+	TotpEnabled bool   `json:"totpEnabled"`
 }
 
 type UserInput struct {
