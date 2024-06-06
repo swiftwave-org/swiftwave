@@ -500,8 +500,9 @@ type Subscription struct {
 }
 
 type User struct {
-	ID       uint   `json:"id"`
-	Username string `json:"username"`
+	ID          uint   `json:"id"`
+	Username    string `json:"username"`
+	TotpEnabled bool   `json:"totpEnabled"`
 }
 
 type UserInput struct {

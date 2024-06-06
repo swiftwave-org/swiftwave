@@ -515,8 +515,9 @@ func userToGraphqlObject(record *core.User) *model.User {
 		return nil
 	}
 	return &model.User{
-		ID:       record.ID,
-		Username: record.Username,
+		ID:          record.ID,
+		Username:    record.Username,
+		TotpEnabled: record.TotpEnabled,
 	}
 }
 

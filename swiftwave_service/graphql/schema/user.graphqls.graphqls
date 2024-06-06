@@ -1,6 +1,7 @@
 type User {
     id : Uint!
     username : String!
+    totpEnabled : Boolean!
 }
 
 input UserInput {
