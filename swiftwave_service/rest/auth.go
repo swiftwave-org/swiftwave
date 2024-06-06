@@ -1,11 +1,12 @@
 package rest
 
 import (
+	"strings"
+	"time"
+
 	"github.com/labstack/echo/v4"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/xlzd/gotp"
-	"strings"
-	"time"
 )
 
 // POST /auth/login
@@ -26,7 +27,7 @@ func (server *Server) login(c echo.Context) error {
 	}
 
 	// check if totp is enabled
-	if user.TotpEnabled && strings.Compare(totp, "") != 0 {
+	if user.TotpEnabled && strings.Compare(totp, "") == 0 {
 		return c.JSON(400, &LoginResponse{
 			Message:      "two factor authentication is enabled, but totp is not provided",
 			Token:        "",
@@ -46,11 +47,11 @@ func (server *Server) login(c echo.Context) error {
 	// Check totp
 	if user.TotpEnabled {
 		totpRecord := gotp.NewDefaultTOTP(user.TotpSecret)
-		if totpRecord.Verify(totp, time.Now().Unix()) == false {
+		if !totpRecord.Verify(totp, time.Now().Unix()) {
 			return c.JSON(400, &LoginResponse{
 				Message:      "invalid totp",
 				Token:        "",
-				TotpRequired: true,
+				TotpRequired: false,
 			})
 		}
 	}

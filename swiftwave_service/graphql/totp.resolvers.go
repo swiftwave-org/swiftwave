@@ -22,6 +22,10 @@ func (r *mutationResolver) RequestTotpEnable(ctx context.Context) (*model.Reques
 	if err != nil {
 		return nil, err
 	}
+	// if totp is already enabled
+	if user.TotpEnabled {
+		return nil, errors.New("totp is already enabled")
+	}
 	// create totp secret
 	totpSecret := gotp.RandomSecret(16)
 	totpRecord := gotp.NewDefaultTOTP(totpSecret)
@@ -45,7 +49,7 @@ func (r *mutationResolver) EnableTotp(ctx context.Context, totp string) (bool, e
 		return false, err
 	}
 	// check if secret generated
-	if strings.Compare(user.TotpSecret, totp) != 0 {
+	if strings.Compare(user.TotpSecret, "") == 0 {
 		return false, errors.New("raise totp enable request first")
 	}
 	// check if totp is enabled
