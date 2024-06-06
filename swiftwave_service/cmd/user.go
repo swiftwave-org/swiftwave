@@ -14,9 +14,11 @@ import (
 func init() {
 	userManagementCmd.AddCommand(createUserCmd)
 	userManagementCmd.AddCommand(deleteUserCmd)
+	userManagementCmd.AddCommand(disableTotpCmd)
 	createUserCmd.Flags().StringP("username", "u", "", "Username")
 	createUserCmd.Flags().StringP("password", "p", "", "Password [Optional]")
 	deleteUserCmd.Flags().StringP("username", "u", "", "Username")
+	disableTotpCmd.Flags().StringP("username", "u", "", "Username")
 }
 
 var userManagementCmd = &cobra.Command{
@@ -134,5 +136,36 @@ var deleteUserCmd = &cobra.Command{
 			return
 		}
 		printSuccess("Deleted user > " + username)
+	},
+}
+
+var disableTotpCmd = &cobra.Command{
+	Use:   "disable-totp",
+	Short: "Disable Totp for a user",
+	Long:  "Disable Totp for a user",
+	Run: func(cmd *cobra.Command, args []string) {
+		username := cmd.Flag("username").Value.String()
+		if username == "" {
+			printError("Username is required")
+			err := cmd.Help()
+			if err != nil {
+				return
+			}
+			return
+		}
+		// Initiating database client
+		dbClient, err := db.GetClient(config.LocalConfig, 10)
+		if err != nil {
+			printError("Failed to connect to database")
+			return
+		}
+		// Disable Totp
+		err = core.DisableTotp(context.Background(), *dbClient, username)
+		if err != nil {
+			printError("Failed to disable Totp")
+			printError("Reason: " + err.Error())
+			return
+		}
+		printSuccess("Disabled Totp for user > " + username)
 	},
 }

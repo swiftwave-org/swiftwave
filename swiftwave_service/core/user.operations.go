@@ -76,3 +76,15 @@ func ChangePassword(ctx context.Context, db gorm.DB, username string, oldPasswor
 	err = db.Save(&user).Error
 	return err
 }
+
+// DisableTotp : disable Totp for user
+func DisableTotp(ctx context.Context, db gorm.DB, username string) error {
+	user, err := FindUserByUsername(ctx, db, username)
+	if err != nil {
+		return errors.New("user not found")
+	}
+	// disable TOTP
+	user.TotpEnabled = false
+	err = db.Save(&user).Error
+	return err
+}
