@@ -257,6 +257,7 @@ type ComplexityRoot struct {
 		DemoteServerToWorker                               func(childComplexity int, id uint) int
 		DeployStack                                        func(childComplexity int, input model.StackInput) int
 		DisableProxyOnServer                               func(childComplexity int, id uint) int
+		Enable2fa                                          func(childComplexity int, totp string) int
 		EnableProxyOnServer                                func(childComplexity int, id uint, typeArg model.ProxyType) int
 		FetchAnalyticsServiceToken                         func(childComplexity int, id uint, rotate bool) int
 		InstallDependenciesOnServer                        func(childComplexity int, id uint) int
@@ -268,6 +269,7 @@ type ComplexityRoot struct {
 		RegenerateWebhookToken                             func(childComplexity int, id string) int
 		RemoveDomain                                       func(childComplexity int, id uint) int
 		RemoveServerFromSwarmCluster                       func(childComplexity int, id uint) int
+		Request2faEnable                                   func(childComplexity int) int
 		RestartApplication                                 func(childComplexity int, id string) int
 		RestartSystem                                      func(childComplexity int) int
 		RestrictDeploymentOnServer                         func(childComplexity int, id uint) int
@@ -394,6 +396,11 @@ type ComplexityRoot struct {
 		UpdatedAt   func(childComplexity int) int
 	}
 
+	Request2faEnable struct {
+		TotpProvisioningURI func(childComplexity int) int
+		TotpSecret          func(childComplexity int) int
+	}
+
 	ReservedResource struct {
 		MemoryMb func(childComplexity int) int
 	}
@@ -511,6 +518,8 @@ type IngressRuleResolver interface {
 	Application(ctx context.Context, obj *model.IngressRule) (*model.Application, error)
 }
 type MutationResolver interface {
+	Request2faEnable(ctx context.Context) (*model.Request2faEnable, error)
+	Enable2fa(ctx context.Context, totp string) (bool, error)
 	CreateApplication(ctx context.Context, input model.ApplicationInput) (*model.Application, error)
 	UpdateApplication(ctx context.Context, id string, input model.ApplicationInput) (*model.Application, error)
 	UpdateApplicationGroup(ctx context.Context, id string, group string) (bool, error)
@@ -1856,6 +1865,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DisableProxyOnServer(childComplexity, args["id"].(uint)), true
 
+	case "Mutation.enable2fa":
+		if e.complexity.Mutation.Enable2fa == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_enable2fa_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Enable2fa(childComplexity, args["totp"].(string)), true
+
 	case "Mutation.enableProxyOnServer":
 		if e.complexity.Mutation.EnableProxyOnServer == nil {
 			break
@@ -1987,6 +2008,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RemoveServerFromSwarmCluster(childComplexity, args["id"].(uint)), true
+
+	case "Mutation.request2faEnable":
+		if e.complexity.Mutation.Request2faEnable == nil {
+			break
+		}
+
+		return e.complexity.Mutation.Request2faEnable(childComplexity), true
 
 	case "Mutation.restartApplication":
 		if e.complexity.Mutation.RestartApplication == nil {
@@ -2857,6 +2885,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RedirectRule.UpdatedAt(childComplexity), true
 
+	case "Request2faEnable.totpProvisioningUri":
+		if e.complexity.Request2faEnable.TotpProvisioningURI == nil {
+			break
+		}
+
+		return e.complexity.Request2faEnable.TotpProvisioningURI(childComplexity), true
+
+	case "Request2faEnable.totpSecret":
+		if e.complexity.Request2faEnable.TotpSecret == nil {
+			break
+		}
+
+		return e.complexity.Request2faEnable.TotpSecret(childComplexity), true
+
 	case "ReservedResource.memoryMb":
 		if e.complexity.ReservedResource.MemoryMb == nil {
 			break
@@ -3358,7 +3400,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/user.graphqls.graphqls"
+//go:embed "schema/2fa.graphqls" "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/user.graphqls.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -3370,6 +3412,7 @@ func sourceData(filename string) string {
 }
 
 var sources = []*ast.Source{
+	{Name: "schema/2fa.graphqls", Input: sourceData("schema/2fa.graphqls"), BuiltIn: false},
 	{Name: "schema/application.graphqls", Input: sourceData("schema/application.graphqls"), BuiltIn: false},
 	{Name: "schema/base.graphqls", Input: sourceData("schema/base.graphqls"), BuiltIn: false},
 	{Name: "schema/build_arg.graphqls", Input: sourceData("schema/build_arg.graphqls"), BuiltIn: false},
@@ -3922,6 +3965,21 @@ func (ec *executionContext) field_Mutation_disableProxyOnServer_args(ctx context
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_enable2fa_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["totp"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("totp"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["totp"] = arg0
 	return args, nil
 }
 
@@ -10358,6 +10416,111 @@ func (ec *executionContext) fieldContext_IngressRule_updatedAt(_ context.Context
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_request2faEnable(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_request2faEnable(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Request2faEnable(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Request2faEnable)
+	fc.Result = res
+	return ec.marshalNRequest2faEnable2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRequest2faEnable(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_request2faEnable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "totpSecret":
+				return ec.fieldContext_Request2faEnable_totpSecret(ctx, field)
+			case "totpProvisioningUri":
+				return ec.fieldContext_Request2faEnable_totpProvisioningUri(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Request2faEnable", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_enable2fa(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_enable2fa(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Enable2fa(rctx, fc.Args["totp"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_enable2fa(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_enable2fa_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -18626,6 +18789,94 @@ func (ec *executionContext) fieldContext_RedirectRule_updatedAt(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Request2faEnable_totpSecret(ctx context.Context, field graphql.CollectedField, obj *model.Request2faEnable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Request2faEnable_totpSecret(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotpSecret, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Request2faEnable_totpSecret(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Request2faEnable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Request2faEnable_totpProvisioningUri(ctx context.Context, field graphql.CollectedField, obj *model.Request2faEnable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Request2faEnable_totpProvisioningUri(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotpProvisioningURI, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Request2faEnable_totpProvisioningUri(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Request2faEnable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ReservedResource_memoryMb(ctx context.Context, field graphql.CollectedField, obj *model.ReservedResource) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ReservedResource_memoryMb(ctx, field)
 	if err != nil {
@@ -25496,6 +25747,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "request2faEnable":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_request2faEnable(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "enable2fa":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_enable2fa(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createApplication":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createApplication(ctx, field)
@@ -27518,6 +27783,50 @@ func (ec *executionContext) _RedirectRule(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._RedirectRule_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var request2faEnableImplementors = []string{"Request2faEnable"}
+
+func (ec *executionContext) _Request2faEnable(ctx context.Context, sel ast.SelectionSet, obj *model.Request2faEnable) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, request2faEnableImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Request2faEnable")
+		case "totpSecret":
+			out.Values[i] = ec._Request2faEnable_totpSecret(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totpProvisioningUri":
+			out.Values[i] = ec._Request2faEnable_totpProvisioningUri(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -29824,6 +30133,20 @@ func (ec *executionContext) unmarshalNRedirectRuleStatus2githubᚗcomᚋswiftwav
 
 func (ec *executionContext) marshalNRedirectRuleStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRedirectRuleStatus(ctx context.Context, sel ast.SelectionSet, v model.RedirectRuleStatus) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNRequest2faEnable2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRequest2faEnable(ctx context.Context, sel ast.SelectionSet, v model.Request2faEnable) graphql.Marshaler {
+	return ec._Request2faEnable(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRequest2faEnable2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐRequest2faEnable(ctx context.Context, sel ast.SelectionSet, v *model.Request2faEnable) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Request2faEnable(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNReservedResource2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐReservedResource(ctx context.Context, sel ast.SelectionSet, v *model.ReservedResource) graphql.Marshaler {

@@ -1,0 +1,9 @@
+type Request2faEnable {
+    totpSecret: String!
+    totpProvisioningUri: String!
+}
+
+extend type Mutation {
+    request2faEnable: Request2faEnable!
+    enable2fa(totp: String!): Boolean!
+}
