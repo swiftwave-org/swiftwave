@@ -159,14 +159,8 @@ var disableTotpCmd = &cobra.Command{
 			printError("Failed to connect to database")
 			return
 		}
-		// Fetch user
-		user, err := core.FindUserByUsername(context.Background(), *dbClient, username)
-		if err != nil {
-			printError(fmt.Sprintf("User %s not found !", username))
-			return
-		}
 		// Disable Totp
-		err = core.DisableTotp(context.Background(), *dbClient, user.ID)
+		err = core.DisableTotp(context.Background(), *dbClient, username)
 		if err != nil {
 			printError("Failed to disable Totp")
 			printError("Reason: " + err.Error())

@@ -65,3 +65,12 @@ func (r *mutationResolver) EnableTotp(ctx context.Context, totp string) (bool, e
 	}
 	return true, nil
 }
+
+// DisableTotp is the resolver for the disableTotp field.
+func (r *mutationResolver) DisableTotp(ctx context.Context) (bool, error) {
+	err := core.DisableTotp(ctx, r.ServiceManager.DbClient, ctx.Value("username").(string))
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}

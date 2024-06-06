@@ -78,8 +78,8 @@ func ChangePassword(ctx context.Context, db gorm.DB, username string, oldPasswor
 }
 
 // DisableTotp : disable Totp for user
-func DisableTotp(ctx context.Context, db gorm.DB, id uint) error {
-	user, err := FindUserByID(ctx, db, id)
+func DisableTotp(ctx context.Context, db gorm.DB, username string) error {
+	user, err := FindUserByUsername(ctx, db, username)
 	if err != nil {
 		return errors.New("user not found")
 	}

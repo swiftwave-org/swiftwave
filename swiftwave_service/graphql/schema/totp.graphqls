@@ -6,4 +6,5 @@ type RequestTotpEnable {
 extend type Mutation {
     requestTotpEnable: RequestTotpEnable!
     enableTotp(totp: String!): Boolean!
+    disableTotp: Boolean!
 }
