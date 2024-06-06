@@ -7,6 +7,13 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/worker"
 )
 
+// LoginResponse : struct to hold login response
+type LoginResponse struct {
+	Message      string `json:"message"`
+	Token        string `json:"token"`
+	TotpRequired bool   `json:"totp_required"`
+}
+
 // Server : hold references to other components of service
 type Server struct {
 	EchoServer     *echo.Echo

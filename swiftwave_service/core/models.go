@@ -41,6 +41,8 @@ type User struct {
 	Username     string   `json:"username" gorm:"unique"`
 	Role         UserRole `json:"role" gorm:"default:'user'"`
 	PasswordHash string   `json:"password_hash"`
+	TotpEnabled  bool     `json:"totp_enabled" gorm:"default:false"`
+	TotpSecret   string   `json:"totp_secret"`
 }
 
 // ************************************************************************************* //
