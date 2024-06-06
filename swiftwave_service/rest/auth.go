@@ -48,7 +48,7 @@ func (server *Server) login(c echo.Context) error {
 		totpRecord := gotp.NewDefaultTOTP(user.TotpSecret)
 		if totpRecord.Verify(totp, time.Now().Unix()) == false {
 			return c.JSON(400, &LoginResponse{
-				Message:      "invalid two factor authentication code",
+				Message:      "invalid totp",
 				Token:        "",
 				TotpRequired: true,
 			})
