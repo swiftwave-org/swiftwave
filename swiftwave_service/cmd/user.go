@@ -14,9 +14,11 @@ import (
 func init() {
 	userManagementCmd.AddCommand(createUserCmd)
 	userManagementCmd.AddCommand(deleteUserCmd)
+	userManagementCmd.AddCommand(disable2FACmd)
 	createUserCmd.Flags().StringP("username", "u", "", "Username")
 	createUserCmd.Flags().StringP("password", "p", "", "Password [Optional]")
 	deleteUserCmd.Flags().StringP("username", "u", "", "Username")
+	disable2FACmd.Flags().StringP("username", "u", "", "Username")
 }
 
 var userManagementCmd = &cobra.Command{
@@ -134,5 +136,42 @@ var deleteUserCmd = &cobra.Command{
 			return
 		}
 		printSuccess("Deleted user > " + username)
+	},
+}
+
+var disable2FACmd = &cobra.Command{
+	Use:   "disable2fa",
+	Short: "Disable 2FA for a user",
+	Long:  "Disable 2FA for a user",
+	Run: func(cmd *cobra.Command, args []string) {
+		username := cmd.Flag("username").Value.String()
+		if username == "" {
+			printError("Username is required")
+			err := cmd.Help()
+			if err != nil {
+				return
+			}
+			return
+		}
+		// Initiating database client
+		dbClient, err := db.GetClient(config.LocalConfig, 10)
+		if err != nil {
+			printError("Failed to connect to database")
+			return
+		}
+		// Fetch user
+		user, err := core.FindUserByUsername(context.Background(), *dbClient, username)
+		if err != nil {
+			printError(fmt.Sprintf("User %s not found !", username))
+			return
+		}
+		// Disable 2FA
+		err = core.Disable2FA(context.Background(), *dbClient, user.ID)
+		if err != nil {
+			printError("Failed to disable 2FA")
+			printError("Reason: " + err.Error())
+			return
+		}
+		printSuccess("Disabled 2FA for user > " + username)
 	},
 }

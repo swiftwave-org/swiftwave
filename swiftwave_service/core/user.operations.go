@@ -76,3 +76,14 @@ func ChangePassword(ctx context.Context, db gorm.DB, username string, oldPasswor
 	err = db.Save(&user).Error
 	return err
 }
+
+// Disable2FA : disable 2FA for user
+func Disable2FA(ctx context.Context, db gorm.DB, id uint) error {
+	user, err := FindUserByID(ctx, db, id)
+	if err != nil {
+		return errors.New("user not found")
+	}
+	user.TotpEnabled = false
+	err = db.Save(&user).Error
+	return err
+}
