@@ -14,11 +14,11 @@ import (
 func init() {
 	userManagementCmd.AddCommand(createUserCmd)
 	userManagementCmd.AddCommand(deleteUserCmd)
-	userManagementCmd.AddCommand(disable2FACmd)
+	userManagementCmd.AddCommand(disableTotpCmd)
 	createUserCmd.Flags().StringP("username", "u", "", "Username")
 	createUserCmd.Flags().StringP("password", "p", "", "Password [Optional]")
 	deleteUserCmd.Flags().StringP("username", "u", "", "Username")
-	disable2FACmd.Flags().StringP("username", "u", "", "Username")
+	disableTotpCmd.Flags().StringP("username", "u", "", "Username")
 }
 
 var userManagementCmd = &cobra.Command{
@@ -139,10 +139,10 @@ var deleteUserCmd = &cobra.Command{
 	},
 }
 
-var disable2FACmd = &cobra.Command{
-	Use:   "disable2fa",
-	Short: "Disable 2FA for a user",
-	Long:  "Disable 2FA for a user",
+var disableTotpCmd = &cobra.Command{
+	Use:   "disable-totp",
+	Short: "Disable Totp for a user",
+	Long:  "Disable Totp for a user",
 	Run: func(cmd *cobra.Command, args []string) {
 		username := cmd.Flag("username").Value.String()
 		if username == "" {
@@ -165,13 +165,13 @@ var disable2FACmd = &cobra.Command{
 			printError(fmt.Sprintf("User %s not found !", username))
 			return
 		}
-		// Disable 2FA
-		err = core.Disable2FA(context.Background(), *dbClient, user.ID)
+		// Disable Totp
+		err = core.DisableTotp(context.Background(), *dbClient, user.ID)
 		if err != nil {
-			printError("Failed to disable 2FA")
+			printError("Failed to disable Totp")
 			printError("Reason: " + err.Error())
 			return
 		}
-		printSuccess("Disabled 2FA for user > " + username)
+		printSuccess("Disabled Totp for user > " + username)
 	},
 }
