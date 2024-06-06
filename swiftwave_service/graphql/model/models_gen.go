@@ -394,7 +394,7 @@ type RedirectRuleInput struct {
 	RedirectURL string       `json:"redirectURL"`
 }
 
-type Request2faEnable struct {
+type RequestTotpEnable struct {
 	TotpSecret          string `json:"totpSecret"`
 	TotpProvisioningURI string `json:"totpProvisioningUri"`
 }

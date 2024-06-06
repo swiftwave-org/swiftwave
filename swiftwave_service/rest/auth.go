@@ -25,7 +25,7 @@ func (server *Server) login(c echo.Context) error {
 		})
 	}
 
-	// check if 2fa is enabled
+	// check if totp is enabled
 	if user.TotpEnabled && strings.Compare(totp, "") != 0 {
 		return c.JSON(400, &LoginResponse{
 			Message:      "two factor authentication is enabled, but totp is not provided",
@@ -43,7 +43,7 @@ func (server *Server) login(c echo.Context) error {
 		})
 	}
 
-	// Check 2fa
+	// Check totp
 	if user.TotpEnabled {
 		totpRecord := gotp.NewDefaultTOTP(user.TotpSecret)
 		if totpRecord.Verify(totp, time.Now().Unix()) == false {

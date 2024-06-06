@@ -83,6 +83,7 @@ func Disable2FA(ctx context.Context, db gorm.DB, id uint) error {
 	if err != nil {
 		return errors.New("user not found")
 	}
+	// disable TOTP
 	user.TotpEnabled = false
 	err = db.Save(&user).Error
 	return err

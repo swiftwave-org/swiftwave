@@ -7,16 +7,16 @@ package graphql
 import (
 	"context"
 	"errors"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
-	"github.com/xlzd/gotp"
 	"strings"
 	"time"
 
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
+	"github.com/xlzd/gotp"
 )
 
-// Request2faEnable is the resolver for the request2faEnable field.
-func (r *mutationResolver) Request2faEnable(ctx context.Context) (*model.Request2faEnable, error) {
+// RequestTotpEnable is the resolver for the requestTotpEnable field.
+func (r *mutationResolver) RequestTotpEnable(ctx context.Context) (*model.RequestTotpEnable, error) {
 	username := ctx.Value("username").(string)
 	user, err := core.FindUserByUsername(ctx, r.ServiceManager.DbClient, username)
 	if err != nil {
@@ -31,14 +31,14 @@ func (r *mutationResolver) Request2faEnable(ctx context.Context) (*model.Request
 		return nil, err
 	}
 	// return result
-	return &model.Request2faEnable{
+	return &model.RequestTotpEnable{
 		TotpSecret:          totpSecret,
 		TotpProvisioningURI: totpRecord.ProvisioningUri(username, r.Config.LocalConfig.ManagementNodeAddressConsideringTunnelling()),
 	}, nil
 }
 
-// Enable2fa is the resolver for the enable2fa field.
-func (r *mutationResolver) Enable2fa(ctx context.Context, totp string) (bool, error) {
+// EnableTotp is the resolver for the enableTotp field.
+func (r *mutationResolver) EnableTotp(ctx context.Context, totp string) (bool, error) {
 	username := ctx.Value("username").(string)
 	user, err := core.FindUserByUsername(ctx, r.ServiceManager.DbClient, username)
 	if err != nil {

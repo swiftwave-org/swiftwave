@@ -1,0 +1,9 @@
+type RequestTotpEnable {
+    totpSecret: String!
+    totpProvisioningUri: String!
+}
+
+extend type Mutation {
+    requestTotpEnable: RequestTotpEnable!
+    enableTotp(totp: String!): Boolean!
+}
