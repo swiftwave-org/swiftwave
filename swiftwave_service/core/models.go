@@ -178,6 +178,9 @@ type ConfigMount struct {
 	ConfigID      string `json:"config_id"`
 	Content       string `json:"content"`
 	MountingPath  string `json:"mounting_path"`
+	Uid           uint   `json:"uid" gorm:"default:0"`
+	Gid           uint   `json:"gid" gorm:"default:0"`
+	FileMode      uint   `json:"file_mode" gorm:"default:444"`
 }
 
 // Application hold information about application
