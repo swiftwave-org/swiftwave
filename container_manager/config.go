@@ -9,14 +9,13 @@ import (
 )
 
 // CreateConfig creates a new config and returns the config id
-func (m Manager) CreateConfig(content string, applicationId string, deploymentId string) (configId string, err error) {
+func (m Manager) CreateConfig(content string, applicationId string) (configId string, err error) {
 	// encode base64 content
 	b64encodedContent := []byte(base64.StdEncoding.EncodeToString([]byte(content)))
 	response, err := m.client.ConfigCreate(m.ctx, swarm.ConfigSpec{
 		Annotations: swarm.Annotations{
 			Labels: map[string]string{
 				"applicationId": applicationId,
-				"deploymentId":  deploymentId,
 			},
 		},
 		Data: b64encodedContent,
