@@ -28,6 +28,8 @@ func (c *ConfigMount) Create(_ context.Context, db gorm.DB) error {
 }
 
 func (c *ConfigMount) Update(_ context.Context, db gorm.DB) error {
+	// make config id empty to ensure recreation of config in swarm
+	c.ConfigID = ""
 	tx := db.Save(c)
 	return tx.Error
 }

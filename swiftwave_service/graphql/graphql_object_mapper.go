@@ -342,10 +342,15 @@ func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Appl
 	for _, persistentVolumeBinding := range record.PersistentVolumeBindings {
 		persistentVolumeBindings = append(persistentVolumeBindings, *persistentVolumeBindingInputToDatabaseObject(persistentVolumeBinding))
 	}
+	var configMounts = make([]core.ConfigMount, 0)
+	for _, configMount := range record.ConfigMounts {
+		configMounts = append(configMounts, *configMountInputToDatabaseObject(configMount))
+	}
 	return &core.Application{
 		Name:                     record.Name,
 		EnvironmentVariables:     environmentVariables,
 		PersistentVolumeBindings: persistentVolumeBindings,
+		ConfigMounts:             configMounts,
 		DeploymentMode:           core.DeploymentMode(record.DeploymentMode),
 		Replicas:                 DefaultUint(record.Replicas, 0),
 		LatestDeployment:         *applicationInputToDeploymentDatabaseObject(record),

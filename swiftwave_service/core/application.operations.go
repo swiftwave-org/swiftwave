@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-set"
@@ -72,7 +73,7 @@ func FindApplicationsForForceUpdate(_ context.Context, db gorm.DB) ([]*Applicati
 	return applicationDeploymentInfos, nil
 }
 
-func (application *Application) FindById(ctx context.Context, db gorm.DB, id string) error {
+func (application *Application) FindById(_ context.Context, db gorm.DB, id string) error {
 	tx := db.Where("id = ?", id).First(&application)
 	if tx.Error != nil {
 		return tx.Error
@@ -80,7 +81,7 @@ func (application *Application) FindById(ctx context.Context, db gorm.DB, id str
 	return nil
 }
 
-func (application *Application) FindByName(ctx context.Context, db gorm.DB, name string) error {
+func (application *Application) FindByName(_ context.Context, db gorm.DB, name string) error {
 	tx := db.Where("name = ?", name).First(&application)
 	if tx.Error != nil {
 		return tx.Error
@@ -204,6 +205,25 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 			return tx.Error
 		}
 	}
+	// create config records
+	configMountRecords := make([]ConfigMount, 0)
+	configMountRecordsMountingPathSet := set.From[string](make([]string, 0))
+	for _, configMount := range application.ConfigMounts {
+		// check if mounting path is already used
+		if configMountRecordsMountingPathSet.Contains(configMount.MountingPath) {
+			return errors.New("mounting path already used")
+		} else {
+			configMountRecordsMountingPathSet.Insert(configMount.MountingPath)
+		}
+		configMountRecords = append(configMountRecords, configMount)
+	}
+	if len(configMountRecords) > 0 {
+		tx = db.Create(&configMountRecords)
+		if tx.Error != nil {
+			return tx.Error
+		}
+	}
+	// handle other stuffs
 	var gitCredentialID *uint = nil
 	if isGitCredentialExist {
 		gitCredentialID = application.LatestDeployment.GitCredentialID
@@ -260,7 +280,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	return nil
 }
 
-func (application *Application) Update(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) (*ApplicationUpdateResult, error) {
+func (application *Application) Update(ctx context.Context, db gorm.DB, _ containermanger.Manager) (*ApplicationUpdateResult, error) {
 	var err error
 	// ensure that application is not deleted
 	isDeleted, err := application.IsApplicationDeleted(ctx, db)
@@ -281,7 +301,7 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 	isReloadRequired := false
 	// fetch application with environment variables and persistent volume bindings
 	var applicationExistingFull = &Application{}
-	tx := db.Preload("EnvironmentVariables").Preload("PersistentVolumeBindings").Where("id = ?", application.ID).First(&applicationExistingFull)
+	tx := db.Preload("EnvironmentVariables").Preload("ConfigMounts").Preload("PersistentVolumeBindings").Where("id = ?", application.ID).First(&applicationExistingFull)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
@@ -381,6 +401,63 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 		// reload application
 		isReloadRequired = true
 	}
+	// create map of config mounts
+	var newConfigMountMap = make(map[string]ConfigMount)
+	for _, configMount := range application.ConfigMounts {
+		newConfigMountMap[configMount.MountingPath] = configMount
+	}
+	if applicationExistingFull.ConfigMounts != nil {
+		for _, configMount := range applicationExistingFull.ConfigMounts {
+			// check if config mount is present in new config mounts
+			if _, ok := newConfigMountMap[configMount.MountingPath]; ok {
+				// check if anything is changed
+				if strings.Compare(configMount.Content, newConfigMountMap[configMount.MountingPath].Content) != 0 ||
+					configMount.Uid != newConfigMountMap[configMount.MountingPath].Uid ||
+					configMount.Gid != newConfigMountMap[configMount.MountingPath].Gid {
+					// update config mount
+					configMount.Content = newConfigMountMap[configMount.MountingPath].Content
+					configMount.Uid = newConfigMountMap[configMount.MountingPath].Uid
+					configMount.Gid = newConfigMountMap[configMount.MountingPath].Gid
+					err = configMount.Update(ctx, db)
+					if err != nil {
+						return nil, err
+					}
+					// delete from newConfigMountMap
+					delete(newConfigMountMap, configMount.MountingPath)
+					// reload application
+					isReloadRequired = true
+				} else {
+					// delete from newConfigMountMap
+					delete(newConfigMountMap, configMount.MountingPath)
+				}
+			} else {
+				err = configMount.Delete(ctx, db)
+				if err != nil {
+					return nil, err
+				}
+				// reload application
+				isReloadRequired = true
+			}
+		}
+	}
+	// add new config mounts which are not present
+	for mountingPath, record := range newConfigMountMap {
+		configMount := ConfigMount{
+			ApplicationID: application.ID,
+			ConfigID:      "",
+			Content:       record.Content,
+			MountingPath:  mountingPath,
+			Uid:           record.Uid,
+			Gid:           record.Gid,
+			FileMode:      444,
+		}
+		err := configMount.Create(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+		// reload application
+		isReloadRequired = true
+	}
 	// create array of persistent volume bindings
 	var newPersistentVolumeBindingMap = make(map[string]uint)
 	newPersistentVolumeBindingMountingPathSet := set.From[string](make([]string, 0))
@@ -461,7 +538,7 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, dockerMa
 	}, nil
 }
 
-func (application *Application) SoftDelete(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
+func (application *Application) SoftDelete(ctx context.Context, db gorm.DB, _ containermanger.Manager) error {
 	// ensure that application is not deleted
 	isDeleted, err := application.IsApplicationDeleted(ctx, db)
 	if err != nil {
@@ -483,7 +560,7 @@ func (application *Application) SoftDelete(ctx context.Context, db gorm.DB, dock
 	return tx.Error
 }
 
-func (application *Application) HardDelete(ctx context.Context, db gorm.DB, dockerManager containermanger.Manager) error {
+func (application *Application) HardDelete(ctx context.Context, db gorm.DB, _ containermanger.Manager) error {
 	// ensure there is no ingress rule associated with this application
 	ingressRules, err := FindIngressRulesByApplicationID(ctx, db, application.ID)
 	if err != nil {
@@ -497,7 +574,7 @@ func (application *Application) HardDelete(ctx context.Context, db gorm.DB, dock
 	return tx.Error
 }
 
-func (application *Application) IsApplicationDeleted(ctx context.Context, db gorm.DB) (bool, error) {
+func (application *Application) IsApplicationDeleted(_ context.Context, db gorm.DB) (bool, error) {
 	// verify from database
 	var count int64
 	tx := db.Model(&Application{}).Where("id = ? AND is_deleted = ?", application.ID, true).Count(&count)
@@ -597,7 +674,7 @@ func (application *Application) UpdateGroup(ctx context.Context, db gorm.DB, gro
 	return db.Model(&application).Update("application_group", group).Error
 }
 
-func FetchApplicationGroups(ctx context.Context, db gorm.DB) ([]string, error) {
+func FetchApplicationGroups(_ context.Context, db gorm.DB) ([]string, error) {
 	var groups []string
 	err := db.Model(&Application{}).Select("application_group").Where("application_group IS NOT NULL").Group("application_group").Scan(&groups).Error
 	if err != nil {
