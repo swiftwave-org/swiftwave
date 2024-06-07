@@ -158,9 +158,6 @@ func (m Manager) RestartService(serviceName string) error {
 		version := swarm.Version{
 			Index: serviceData.Version.Index,
 		}
-		if err != nil {
-			return errors.New("error getting swarm server version")
-		}
 		spec := serviceData.Spec
 		spec.TaskTemplate.ForceUpdate++
 		_, err = m.client.ServiceUpdate(m.ctx, serviceName, version, spec, types.ServiceUpdateOptions{})
@@ -189,9 +186,6 @@ func (m Manager) RollbackService(serviceName string) error {
 		}
 		version := swarm.Version{
 			Index: serviceData.Version.Index,
-		}
-		if err != nil {
-			return errors.New("error getting swarm server version")
 		}
 		_, err = m.client.ServiceUpdate(m.ctx, serviceName, version, *serviceData.PreviousSpec, types.ServiceUpdateOptions{})
 		if err != nil {
@@ -227,9 +221,6 @@ func (m Manager) SetServiceReplicaCount(serviceName string, replicas int) error 
 		}
 		version := swarm.Version{
 			Index: serviceData.Version.Index,
-		}
-		if err != nil {
-			return errors.New("error getting swarm server version")
 		}
 		spec := serviceData.Spec
 		if spec.Mode.Replicated == nil {

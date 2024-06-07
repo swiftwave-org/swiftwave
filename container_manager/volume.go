@@ -129,9 +129,6 @@ func (m Manager) BackupVolume(volumeName string, backupFilePath string, host str
 		_ = ssh_toolkit.ExecCommandOverSSH(fmt.Sprintf("rm -rf %s", path), nil, nil, 10, host, port, user, privateKey)
 	}(path)
 	dumpFilePath := filepath.Join(path, "dump.tar.gz")
-	if err != nil {
-		return errors.New("failed to change permission of dump file " + err.Error())
-	}
 	// copy the backup file to the backupFilePath
 	err = ssh_toolkit.CopyFileFromRemoteServer(dumpFilePath, backupFilePath, host, port, user, privateKey)
 	if err != nil {
