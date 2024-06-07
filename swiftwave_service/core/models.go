@@ -177,7 +177,7 @@ type ConfigMount struct {
 	ApplicationID string `json:"application_id"`
 	ConfigID      string `json:"config_id"`
 	Content       string `json:"content"`
-	MountPath     string `json:"mount_path"`
+	MountingPath  string `json:"mounting_path"`
 }
 
 // Application hold information about application
