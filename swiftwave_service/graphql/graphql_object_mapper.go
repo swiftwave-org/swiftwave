@@ -25,7 +25,7 @@ import (
 // Why _ToDatabaseObject() dont adding ID field?
 // Because ID field is provided directly to Mutation or Query function
 
-// gitCredentialToGraphqlObject : converts GitCredential to GitCredentialGraphqlObject
+// gitCredentialToGraphqlObject converts GitCredential to GitCredentialGraphqlObject
 func gitCredentialToGraphqlObject(record *core.GitCredential) *model.GitCredential {
 	return &model.GitCredential{
 		ID:           record.ID,
@@ -36,7 +36,7 @@ func gitCredentialToGraphqlObject(record *core.GitCredential) *model.GitCredenti
 	}
 }
 
-// gitCredentialInputToDatabaseObject : converts GitCredentialInput to GitCredentialDatabaseObject
+// gitCredentialInputToDatabaseObject converts GitCredentialInput to GitCredentialDatabaseObject
 func gitCredentialInputToDatabaseObject(record *model.GitCredentialInput, createSSHKeysIfNotProvided bool) *core.GitCredential {
 	sshPrivateKey := ""
 	sshPublicKey := ""
@@ -84,7 +84,7 @@ func gitCredentialInputToDatabaseObject(record *model.GitCredentialInput, create
 	}
 }
 
-// imageRegistryCredentialToGraphqlObject : converts ImageRegistryCredential to ImageRegistryCredentialGraphqlObject
+// imageRegistryCredentialToGraphqlObject converts ImageRegistryCredential to ImageRegistryCredentialGraphqlObject
 func imageRegistryCredentialToGraphqlObject(record *core.ImageRegistryCredential) *model.ImageRegistryCredential {
 	return &model.ImageRegistryCredential{
 		ID:       record.ID,
@@ -94,7 +94,7 @@ func imageRegistryCredentialToGraphqlObject(record *core.ImageRegistryCredential
 	}
 }
 
-// imageRegistryCredentialInputToDatabaseObject : converts ImageRegistryCredentialInput to ImageRegistryCredentialDatabaseObject
+// imageRegistryCredentialInputToDatabaseObject converts ImageRegistryCredentialInput to ImageRegistryCredentialDatabaseObject
 func imageRegistryCredentialInputToDatabaseObject(record *model.ImageRegistryCredentialInput) *core.ImageRegistryCredential {
 	return &core.ImageRegistryCredential{
 		Url:      record.URL,
@@ -103,7 +103,7 @@ func imageRegistryCredentialInputToDatabaseObject(record *model.ImageRegistryCre
 	}
 }
 
-// persistentVolumeToGraphqlObject : converts PersistentVolume to PersistentVolumeGraphqlObject
+// persistentVolumeToGraphqlObject converts PersistentVolume to PersistentVolumeGraphqlObject
 func persistentVolumeToGraphqlObject(record *core.PersistentVolume) *model.PersistentVolume {
 	return &model.PersistentVolume{
 		ID:   record.ID,
@@ -127,7 +127,7 @@ func persistentVolumeToGraphqlObject(record *core.PersistentVolume) *model.Persi
 	}
 }
 
-// persistentVolumeInputToDatabaseObject : converts PersistentVolumeInput to PersistentVolumeDatabaseObject
+// persistentVolumeInputToDatabaseObject converts PersistentVolumeInput to PersistentVolumeDatabaseObject
 func persistentVolumeInputToDatabaseObject(record *model.PersistentVolumeInput) *core.PersistentVolume {
 	nfsConfig := core.NFSConfig{}
 	if record.Type == model.PersistentVolumeTypeNfs {
@@ -158,7 +158,7 @@ func persistentVolumeInputToDatabaseObject(record *model.PersistentVolumeInput) 
 	}
 }
 
-// persistentVolumeBindingInputToDatabaseObject : converts PersistentVolumeBindingInput to PersistentVolumeBindingDatabaseObject
+// persistentVolumeBindingInputToDatabaseObject converts PersistentVolumeBindingInput to PersistentVolumeBindingDatabaseObject
 func persistentVolumeBindingInputToDatabaseObject(record *model.PersistentVolumeBindingInput) *core.PersistentVolumeBinding {
 	return &core.PersistentVolumeBinding{
 		PersistentVolumeID: record.PersistentVolumeID,
@@ -166,7 +166,7 @@ func persistentVolumeBindingInputToDatabaseObject(record *model.PersistentVolume
 	}
 }
 
-// persistentVolumeBindingToGraphqlObject : converts PersistentVolumeBinding to PersistentVolumeBindingGraphqlObject
+// persistentVolumeBindingToGraphqlObject converts PersistentVolumeBinding to PersistentVolumeBindingGraphqlObject
 func persistentVolumeBindingToGraphqlObject(record *core.PersistentVolumeBinding) *model.PersistentVolumeBinding {
 	return &model.PersistentVolumeBinding{
 		ID:                 record.ID,
@@ -176,7 +176,7 @@ func persistentVolumeBindingToGraphqlObject(record *core.PersistentVolumeBinding
 	}
 }
 
-// persistentVolumeBackupToGraphqlObject : converts PersistentVolumeBackup to PersistentVolumeBackupGraphqlObject
+// persistentVolumeBackupToGraphqlObject converts PersistentVolumeBackup to PersistentVolumeBackupGraphqlObject
 func persistentVolumeBackupToGraphqlObject(record *core.PersistentVolumeBackup) *model.PersistentVolumeBackup {
 	return &model.PersistentVolumeBackup{
 		ID:          record.ID,
@@ -188,7 +188,7 @@ func persistentVolumeBackupToGraphqlObject(record *core.PersistentVolumeBackup) 
 	}
 }
 
-// persistentVolumeBackupInputToDatabaseObject : converts PersistentVolumeBackupInput to PersistentVolumeBackupDatabaseObject
+// persistentVolumeBackupInputToDatabaseObject converts PersistentVolumeBackupInput to PersistentVolumeBackupDatabaseObject
 func persistentVolumeBackupInputToDatabaseObject(record *model.PersistentVolumeBackupInput) *core.PersistentVolumeBackup {
 	return &core.PersistentVolumeBackup{
 		Type:               core.BackupType(record.Type),
@@ -201,7 +201,7 @@ func persistentVolumeBackupInputToDatabaseObject(record *model.PersistentVolumeB
 	}
 }
 
-// persistentVolumeRestoreToGraphqlObject : converts PersistentVolumeRestore to PersistentVolumeRestoreGraphqlObject
+// persistentVolumeRestoreToGraphqlObject converts PersistentVolumeRestore to PersistentVolumeRestoreGraphqlObject
 func persistentVolumeRestoreToGraphqlObject(record *core.PersistentVolumeRestore) *model.PersistentVolumeRestore {
 	return &model.PersistentVolumeRestore{
 		ID:          record.ID,
@@ -212,7 +212,7 @@ func persistentVolumeRestoreToGraphqlObject(record *core.PersistentVolumeRestore
 	}
 }
 
-// environmentVariableInputToDatabaseObject : converts EnvironmentVariableInput to EnvironmentVariableDatabaseObject
+// environmentVariableInputToDatabaseObject converts EnvironmentVariableInput to EnvironmentVariableDatabaseObject
 func environmentVariableInputToDatabaseObject(record *model.EnvironmentVariableInput) *core.EnvironmentVariable {
 	return &core.EnvironmentVariable{
 		Key:   record.Key,
@@ -220,7 +220,7 @@ func environmentVariableInputToDatabaseObject(record *model.EnvironmentVariableI
 	}
 }
 
-// environmentVariableToGraphqlObject : converts EnvironmentVariable to EnvironmentVariableGraphqlObject
+// environmentVariableToGraphqlObject converts EnvironmentVariable to EnvironmentVariableGraphqlObject
 func environmentVariableToGraphqlObject(record *core.EnvironmentVariable) *model.EnvironmentVariable {
 	return &model.EnvironmentVariable{
 		Key:   record.Key,
@@ -228,7 +228,7 @@ func environmentVariableToGraphqlObject(record *core.EnvironmentVariable) *model
 	}
 }
 
-// buildArgInputToDatabaseObject : converts BuildArgInput to BuildArgDatabaseObject
+// buildArgInputToDatabaseObject converts BuildArgInput to BuildArgDatabaseObject
 func buildArgInputToDatabaseObject(record *model.BuildArgInput) *core.BuildArg {
 	return &core.BuildArg{
 		Key:   record.Key,
@@ -236,7 +236,7 @@ func buildArgInputToDatabaseObject(record *model.BuildArgInput) *core.BuildArg {
 	}
 }
 
-// buildArgToGraphqlObject : converts BuildArg to BuildArgGraphqlObject
+// buildArgToGraphqlObject converts BuildArg to BuildArgGraphqlObject
 func buildArgToGraphqlObject(record *core.BuildArg) *model.BuildArg {
 	return &model.BuildArg{
 		Key:   record.Key,
@@ -244,7 +244,7 @@ func buildArgToGraphqlObject(record *core.BuildArg) *model.BuildArg {
 	}
 }
 
-// configMountInputToDatabaseObject : converts ConfigMountInput to ConfigMountDatabaseObject
+// configMountInputToDatabaseObject converts ConfigMountInput to ConfigMountDatabaseObject
 func configMountInputToDatabaseObject(record *model.ConfigMountInput) *core.ConfigMount {
 	return &core.ConfigMount{
 		Content:      record.Content,
@@ -254,7 +254,7 @@ func configMountInputToDatabaseObject(record *model.ConfigMountInput) *core.Conf
 	}
 }
 
-// configMountToGraphqlObject : converts ConfigMount to ConfigMountGraphqlObject
+// configMountToGraphqlObject converts ConfigMount to ConfigMountGraphqlObject
 func configMountToGraphqlObject(record *core.ConfigMount) *model.ConfigMount {
 	return &model.ConfigMount{
 		Content:      record.Content,
@@ -264,35 +264,35 @@ func configMountToGraphqlObject(record *core.ConfigMount) *model.ConfigMount {
 	}
 }
 
-// resourceLimitInputToDatabaseObject : converts ResourceLimitInput to ResourceLimitDatabaseObject
+// resourceLimitInputToDatabaseObject converts ResourceLimitInput to ResourceLimitDatabaseObject
 func resourceLimitInputToDatabaseObject(record *model.ResourceLimitInput) *core.ApplicationResourceLimit {
 	return &core.ApplicationResourceLimit{
 		MemoryMB: record.MemoryMb,
 	}
 }
 
-// resourceLimitToGraphqlObject : converts ResourceLimit to ResourceLimitGraphqlObject
+// resourceLimitToGraphqlObject converts ResourceLimit to ResourceLimitGraphqlObject
 func resourceLimitToGraphqlObject(record *core.ApplicationResourceLimit) *model.ResourceLimit {
 	return &model.ResourceLimit{
 		MemoryMb: record.MemoryMB,
 	}
 }
 
-// reservedResourceInputToDatabaseObject : converts ReservedResourceInput to ReservedResourceDatabaseObject
+// reservedResourceInputToDatabaseObject converts ReservedResourceInput to ReservedResourceDatabaseObject
 func reservedResourceInputToDatabaseObject(record *model.ReservedResourceInput) *core.ApplicationReservedResource {
 	return &core.ApplicationReservedResource{
 		MemoryMB: record.MemoryMb,
 	}
 }
 
-// reservedResourceToGraphqlObject : converts ReservedResource to ReservedResourceGraphqlObject
+// reservedResourceToGraphqlObject converts ReservedResource to ReservedResourceGraphqlObject
 func reservedResourceToGraphqlObject(record *core.ApplicationReservedResource) *model.ReservedResource {
 	return &model.ReservedResource{
 		MemoryMb: record.MemoryMB,
 	}
 }
 
-// applicationInputToDeploymentDatabaseObject : converts ApplicationInput to DeploymentDatabaseObject
+// applicationInputToDeploymentDatabaseObject converts ApplicationInput to DeploymentDatabaseObject
 func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) *core.Deployment {
 	var buildArgs = make([]core.BuildArg, 0)
 	for _, buildArg := range record.BuildArgs {
@@ -332,7 +332,7 @@ func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) 
 	}
 }
 
-// applicationInputToDatabaseObject : converts ApplicationInput to ApplicationDatabaseObject
+// applicationInputToDatabaseObject converts ApplicationInput to ApplicationDatabaseObject
 func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Application {
 	var environmentVariables = make([]core.EnvironmentVariable, 0)
 	for _, environmentVariable := range record.EnvironmentVariables {
@@ -361,7 +361,7 @@ func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Appl
 	}
 }
 
-// applicationToGraphqlObject : converts Application to ApplicationGraphqlObject
+// applicationToGraphqlObject converts Application to ApplicationGraphqlObject
 func applicationToGraphqlObject(record *core.Application) *model.Application {
 	return &model.Application{
 		ID:               record.ID,
@@ -380,7 +380,7 @@ func applicationToGraphqlObject(record *core.Application) *model.Application {
 	}
 }
 
-// deploymentToGraphqlObject : converts Deployment to DeploymentGraphqlObject
+// deploymentToGraphqlObject converts Deployment to DeploymentGraphqlObject
 func deploymentToGraphqlObject(record *core.Deployment) *model.Deployment {
 	gitCredentialId := uint(0)
 	if record.GitCredentialID != nil {
@@ -416,7 +416,7 @@ func deploymentToGraphqlObject(record *core.Deployment) *model.Deployment {
 	}
 }
 
-// domainInputToDatabaseObject : converts DomainInput to DomainDatabaseObject
+// domainInputToDatabaseObject converts DomainInput to DomainDatabaseObject
 func domainInputToDatabaseObject(record *model.DomainInput) *core.Domain {
 	return &core.Domain{
 		Name:         record.Name,
@@ -425,7 +425,7 @@ func domainInputToDatabaseObject(record *model.DomainInput) *core.Domain {
 	}
 }
 
-// domainToGraphqlObject : converts Domain to DomainGraphqlObject
+// domainToGraphqlObject converts Domain to DomainGraphqlObject
 func domainToGraphqlObject(record *core.Domain) *model.Domain {
 	return &model.Domain{
 		ID:            record.ID,
@@ -439,7 +439,7 @@ func domainToGraphqlObject(record *core.Domain) *model.Domain {
 	}
 }
 
-// ingressRuleInputToDatabaseObject : converts IngressRuleInput to IngressRuleDatabaseObject
+// ingressRuleInputToDatabaseObject converts IngressRuleInput to IngressRuleDatabaseObject
 func ingressRuleInputToDatabaseObject(record *model.IngressRuleInput) *core.IngressRule {
 	// unset domain id if protocol is tcp or udp
 	if record.Protocol == model.ProtocolTypeTCP || record.Protocol == model.ProtocolTypeUDP {
@@ -463,7 +463,7 @@ func ingressRuleInputToDatabaseObject(record *model.IngressRuleInput) *core.Ingr
 	}
 }
 
-// ingressRuleValidationInputToDatabaseObject : converts IngressRuleValidationInput to IngressRuleDatabaseObject
+// ingressRuleValidationInputToDatabaseObject converts IngressRuleValidationInput to IngressRuleDatabaseObject
 func ingressRuleValidationInputToDatabaseObject(record *model.IngressRuleValidationInput) *core.IngressRule {
 	return &core.IngressRule{
 		TargetType:      core.ExternalServiceIngressRule,
@@ -479,7 +479,7 @@ func ingressRuleValidationInputToDatabaseObject(record *model.IngressRuleValidat
 	}
 }
 
-// ingressRuleToGraphqlObject : converts IngressRule to IngressRuleGraphqlObject
+// ingressRuleToGraphqlObject converts IngressRule to IngressRuleGraphqlObject
 func ingressRuleToGraphqlObject(record *core.IngressRule) *model.IngressRule {
 	return &model.IngressRule{
 		ID:              record.ID,
@@ -496,7 +496,7 @@ func ingressRuleToGraphqlObject(record *core.IngressRule) *model.IngressRule {
 	}
 }
 
-// redirectRuleInputToDatabaseObject : converts RedirectRuleInput to RedirectRuleDatabaseObject
+// redirectRuleInputToDatabaseObject converts RedirectRuleInput to RedirectRuleDatabaseObject
 func redirectRuleInputToDatabaseObject(record *model.RedirectRuleInput) *core.RedirectRule {
 	return &core.RedirectRule{
 		DomainID:    record.DomainID,
@@ -508,7 +508,7 @@ func redirectRuleInputToDatabaseObject(record *model.RedirectRuleInput) *core.Re
 	}
 }
 
-// redirectRuleToGraphqlObject : converts RedirectRule to RedirectRuleGraphqlObject
+// redirectRuleToGraphqlObject converts RedirectRule to RedirectRuleGraphqlObject
 func redirectRuleToGraphqlObject(record *core.RedirectRule) *model.RedirectRule {
 	return &model.RedirectRule{
 		ID:          record.ID,
@@ -521,7 +521,7 @@ func redirectRuleToGraphqlObject(record *core.RedirectRule) *model.RedirectRule 
 	}
 }
 
-// deploymentLogToGraphqlObject : converts DeploymentLog to DeploymentLogGraphqlObject
+// deploymentLogToGraphqlObject converts DeploymentLog to DeploymentLogGraphqlObject
 func deploymentLogToGraphqlObject(record *core.DeploymentLog) *model.DeploymentLog {
 	return &model.DeploymentLog{
 		Content:   record.Content,
@@ -529,7 +529,7 @@ func deploymentLogToGraphqlObject(record *core.DeploymentLog) *model.DeploymentL
 	}
 }
 
-// userToGraphqlObject : converts User to UserGraphqlObject
+// userToGraphqlObject converts User to UserGraphqlObject
 func userToGraphqlObject(record *core.User) *model.User {
 	if record == nil {
 		return nil
@@ -541,7 +541,7 @@ func userToGraphqlObject(record *core.User) *model.User {
 	}
 }
 
-// stackToApplicationsInput : converts Stack to ApplicationInput
+// stackToApplicationsInput converts Stack to ApplicationInput
 func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db gorm.DB) ([]model.ApplicationInput, error) {
 	applications := make([]model.ApplicationInput, 0)
 	groupName := ""
@@ -607,7 +607,7 @@ func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db g
 	return applications, nil
 }
 
-// newServerInputToDatabaseObject : converts NewServerInput to ServerDatabaseObject
+// newServerInputToDatabaseObject converts NewServerInput to ServerDatabaseObject
 func newServerInputToDatabaseObject(record *model.NewServerInput) *core.Server {
 	return &core.Server{
 		IP:                   record.IP,
@@ -626,7 +626,7 @@ func newServerInputToDatabaseObject(record *model.NewServerInput) *core.Server {
 	}
 }
 
-// serverToGraphqlObject : converts Server to ServerGraphqlObject
+// serverToGraphqlObject converts Server to ServerGraphqlObject
 func serverToGraphqlObject(record *core.Server) *model.Server {
 	return &model.Server{
 		ID:                   record.ID,
@@ -644,7 +644,7 @@ func serverToGraphqlObject(record *core.Server) *model.Server {
 	}
 }
 
-// serverLogToGraphqlObject : converts ServerLog to ServerLogGraphqlObject
+// serverLogToGraphqlObject converts ServerLog to ServerLogGraphqlObject
 func serverLogToGraphqlObject(record *core.ServerLog) *model.ServerLog {
 	return &model.ServerLog{
 		ID:        record.ID,
@@ -654,7 +654,7 @@ func serverLogToGraphqlObject(record *core.ServerLog) *model.ServerLog {
 	}
 }
 
-// serverResourceStatToGraphqlObject : converts ServerResourceStat to ServerResourceStatGraphqlObject
+// serverResourceStatToGraphqlObject converts ServerResourceStat to ServerResourceStatGraphqlObject
 func serverResourceStatToGraphqlObject(record *core.ServerResourceStat) *model.ServerResourceAnalytics {
 	return &model.ServerResourceAnalytics{
 		CPUUsagePercent: int(record.CpuUsagePercent),
@@ -669,7 +669,7 @@ func serverResourceStatToGraphqlObject(record *core.ServerResourceStat) *model.S
 	}
 }
 
-// serverDiskStatToGraphqlObject : converts ServerDiskStat to ServerDiskStatGraphqlObject
+// serverDiskStatToGraphqlObject converts ServerDiskStat to ServerDiskStatGraphqlObject
 func serverDiskStatToGraphqlObject(record core.ServerDiskStat, timestamp time.Time) *model.ServerDiskUsage {
 	return &model.ServerDiskUsage{
 		Path:       record.Path,
@@ -680,7 +680,7 @@ func serverDiskStatToGraphqlObject(record core.ServerDiskStat, timestamp time.Ti
 	}
 }
 
-// severDisksStatToGraphqlObject : converts ServerDiskStat to ServerDiskStatGraphqlObject
+// severDisksStatToGraphqlObject converts ServerDiskStat to ServerDiskStatGraphqlObject
 func severDisksStatToGraphqlObject(records core.ServerDiskStats, timestamp time.Time) model.ServerDisksUsage {
 	disks := make([]*model.ServerDiskUsage, 0)
 	for _, disk := range records {
@@ -692,7 +692,7 @@ func severDisksStatToGraphqlObject(records core.ServerDiskStats, timestamp time.
 	}
 }
 
-// applicationServiceResourceStatToGraphqlObject : converts ApplicationServiceResourceStat to ApplicationServiceResourceStatGraphqlObject
+// applicationServiceResourceStatToGraphqlObject converts ApplicationServiceResourceStat to ApplicationServiceResourceStatGraphqlObject
 func applicationServiceResourceStatToGraphqlObject(record *core.ApplicationServiceResourceStat) *model.ApplicationResourceAnalytics {
 	return &model.ApplicationResourceAnalytics{
 		CPUUsagePercent:      int(record.CpuUsagePercent),
