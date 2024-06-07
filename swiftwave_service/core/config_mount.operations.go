@@ -17,11 +17,6 @@ func FindConfigMountsByApplicationId(_ context.Context, db gorm.DB, applicationI
 	return configMounts, tx.Error
 }
 
-func DeleteConfigMountsByApplicationId(_ context.Context, db gorm.DB, applicationId string) error {
-	tx := db.Delete(&ConfigMount{}, "application_id = ?", applicationId)
-	return tx.Error
-}
-
 func (c *ConfigMount) Create(_ context.Context, db gorm.DB) error {
 	tx := db.Create(c)
 	return tx.Error
