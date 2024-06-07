@@ -8,6 +8,19 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 )
 
+// FetchConfig fetches the config with the given id
+func (m Manager) FetchConfig(configId string) (string, error) {
+	config, _, err := m.client.ConfigInspectWithRaw(m.ctx, configId)
+	if err != nil {
+		return "", err
+	}
+	decodeBytes, err := base64.StdEncoding.DecodeString(string(config.Spec.Data))
+	if err != nil {
+		return "", err
+	}
+	return string(decodeBytes), nil
+}
+
 // CreateConfig creates a new config and returns the config id
 func (m Manager) CreateConfig(content string, applicationId string) (configId string, err error) {
 	// encode base64 content
