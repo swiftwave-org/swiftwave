@@ -1,4 +1,4 @@
-h1:MRdojbnoeAO6RPVZNvsQv+HbTbJc1JqIOUkC+XRGPDo=
+h1:JuQHmPM9RyMXBLKkbskS5ym3oPPq8vQDmdI+kwCJmW8=
 20240413191732_init.down.sql h1:HoitObGwuKF/akF4qg3dol2FfNTLCEuf6wHYDuCez8I=
 20240413191732_init.up.sql h1:USKdQx/yTz1KJ0+mDwYGhKm3WzX7k+I9+6B6SxImwaE=
 20240414051823_server_custom_ssh_port_added.down.sql h1:IC1DFQBQceTPTRdZOo5/WqytH+ZbgcKrQuMCkhArF/0=
@@ -25,3 +25,5 @@ h1:MRdojbnoeAO6RPVZNvsQv+HbTbJc1JqIOUkC+XRGPDo=
 20240603064438_add_uid_gid_in_cifs_pv.up.sql h1:eJqHJ0QQxzz21//f3iU9hvVavHxbPoUrKPGt914/0Ik=
 20240606063101_add_totp_support.down.sql h1:PaklVxao4OkfGMxp0x2AOeUBtZcVuY3aDl9BmQWOJE0=
 20240606063101_add_totp_support.up.sql h1:Ty6yz+Qd1xOMXMtYMDQAu8bJtBiqoG3B54djDinX4hE=
+20240607103022_application_config_mount_added.down.sql h1:MpTEuuk+gsoJ1+0y87dREQGsj5aPCGuiMQYsAyG17hA=
+20240607103022_application_config_mount_added.up.sql h1:wv7OJwcNj2kUoSDknVZ5Tt8GDYdsOA3WvrCw+Ez106s=

@@ -19,6 +19,7 @@ func main() {
 		&core.Domain{},
 		&core.RedirectRule{},
 		&core.PersistentVolume{},
+		&core.ConfigMount{},
 		&core.Application{},
 		&core.GitCredential{},
 		&core.ImageRegistryCredential{},
