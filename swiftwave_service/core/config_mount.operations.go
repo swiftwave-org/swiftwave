@@ -29,6 +29,12 @@ func (c *ConfigMount) Update(_ context.Context, db gorm.DB) error {
 	return tx.Error
 }
 
+func (c *ConfigMount) UpdateConfigID(_ context.Context, db gorm.DB, configID string) error {
+	c.ConfigID = configID
+	tx := db.Save(c)
+	return tx.Error
+}
+
 func (c *ConfigMount) Delete(_ context.Context, db gorm.DB) error {
 	tx := db.Delete(c)
 	return tx.Error

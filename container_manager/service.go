@@ -9,6 +9,8 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/swarm"
 	"io"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -507,6 +509,20 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 		panic("invalid deployment mode > ")
 	}
 
+	// config references
+	var configs = make([]*swarm.ConfigReference, 0)
+	for _, config := range service.ConfigMounts {
+		configs = append(configs, &swarm.ConfigReference{
+			ConfigID: config.ConfigID,
+			File: &swarm.ConfigReferenceFileTarget{
+				Name: config.MountingPath,
+				UID:  strconv.Itoa(int(config.Uid)),
+				GID:  strconv.Itoa(int(config.Gid)),
+				Mode: os.FileMode(config.FileMode),
+			},
+		})
+	}
+
 	// memory bytes
 	var reservedMemoryBytes int64 = 0
 	if service.ReservedResource.MemoryMB >= 6 {
@@ -531,6 +547,7 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 				Command: service.Command,
 				Env:     env,
 				Mounts:  volumeMounts,
+				Configs: configs,
 				Privileges: &swarm.Privileges{
 					NoNewPrivileges: true,
 					AppArmor: &swarm.AppArmorOpts{

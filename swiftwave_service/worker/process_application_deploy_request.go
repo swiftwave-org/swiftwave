@@ -50,6 +50,8 @@ func (m Manager) DeployApplication(request DeployApplicationRequest, _ context.C
 			log.Println("failed to update deployment status to failed", err)
 		}
 	}
+	// prune config mounts
+	dockerManager.PruneConfig(request.AppId)
 	return nil
 }
 
@@ -157,6 +159,39 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 	if refetchImage {
 		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "[Notice] Image will be fetched from remote during deployment\n", false)
 	}
+	// create the configs if required
+	configMountRecord, err := core.FindConfigMountsByApplicationId(ctx, *db, request.AppId)
+	if err != nil {
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch config mounts", false)
+		return err
+	}
+	for _, configMount := range configMountRecord {
+		if strings.Compare(configMount.ConfigID, "") == 0 {
+			// create config
+			configID, err := dockerManager.CreateConfig(configMount.Content, configMount.ApplicationID)
+			if err != nil {
+				addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to create config", false)
+				return err
+			}
+			// update config id
+			err = configMount.UpdateConfigID(ctx, *db, configID)
+			if err != nil {
+				addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update config id in database", false)
+				return err
+			}
+		}
+	}
+	// prepare config mounts
+	var configMounts = make([]containermanger.ConfigMount, 0)
+	for _, configMount := range configMountRecord {
+		configMounts = append(configMounts, containermanger.ConfigMount{
+			ConfigID:     configMount.ConfigID,
+			Uid:          configMount.Uid,
+			Gid:          configMount.Gid,
+			FileMode:     configMount.FileMode,
+			MountingPath: configMount.MountingPath,
+		})
+	}
 	// prepare placement constraints
 	var placementConstraints = make([]string, 0)
 	disabledServerHostnames, err := core.FetchDisabledDeploymentServerHostNames(&m.ServiceManager.DbClient)
@@ -177,6 +212,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 		DeploymentMode:       containermanger.DeploymentMode(application.DeploymentMode),
 		Replicas:             uint64(application.ReplicaCount()),
 		VolumeMounts:         volumeMounts,
+		ConfigMounts:         configMounts,
 		Capabilities:         application.Capabilities,
 		Sysctls:              sysctls,
 		PlacementConstraints: placementConstraints,
