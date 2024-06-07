@@ -163,12 +163,21 @@ type EnvironmentVariable struct {
 	Value         string `json:"value"`
 }
 
-// BuildArg : hold information about build args
+// BuildArg hold information about build args
 type BuildArg struct {
 	ID           uint   `json:"id" gorm:"primaryKey"`
 	DeploymentID string `json:"deployment_id"`
 	Key          string `json:"key"`
 	Value        string `json:"value"`
+}
+
+// ConfigMount hold information of config mount
+type ConfigMount struct {
+	ID            uint   `json:"id" gorm:"primaryKey"`
+	ApplicationID string `json:"application_id"`
+	ConfigID      string `json:"config_id"`
+	Content       string `json:"content"`
+	MountPath     string `json:"mount_path"`
 }
 
 // Application : hold information about application
@@ -178,6 +187,9 @@ type Application struct {
 	// Environment Variables
 	// On change of environment variables, deployment will be triggered by force update
 	EnvironmentVariables []EnvironmentVariable `json:"environment_variables" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	// Config Mounts
+	// On change of config mounts, deployment will be triggered by force update
+	ConfigMounts []ConfigMount `json:"config_mounts" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// Persistent Volumes
 	// On change of persistent volumes, deployment will be triggered by force update
 	PersistentVolumeBindings []PersistentVolumeBinding `json:"persistent_volume_bindings" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
