@@ -63,6 +63,7 @@ type ComplexityRoot struct {
 	Application struct {
 		Capabilities             func(childComplexity int) int
 		Command                  func(childComplexity int) int
+		ConfigMounts             func(childComplexity int) int
 		DeploymentMode           func(childComplexity int) int
 		Deployments              func(childComplexity int) int
 		EnvironmentVariables     func(childComplexity int) int
@@ -115,6 +116,13 @@ type ComplexityRoot struct {
 		Share    func(childComplexity int) int
 		UID      func(childComplexity int) int
 		Username func(childComplexity int) int
+	}
+
+	ConfigMount struct {
+		Content      func(childComplexity int) int
+		Gid          func(childComplexity int) int
+		MountingPath func(childComplexity int) int
+		UID          func(childComplexity int) int
 	}
 
 	Dependency struct {
@@ -681,6 +689,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Application.Command(childComplexity), true
 
+	case "Application.configMounts":
+		if e.complexity.Application.ConfigMounts == nil {
+			break
+		}
+
+		return e.complexity.Application.ConfigMounts(childComplexity), true
+
 	case "Application.deploymentMode":
 		if e.complexity.Application.DeploymentMode == nil {
 			break
@@ -960,6 +975,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CIFSConfig.Username(childComplexity), true
+
+	case "ConfigMount.content":
+		if e.complexity.ConfigMount.Content == nil {
+			break
+		}
+
+		return e.complexity.ConfigMount.Content(childComplexity), true
+
+	case "ConfigMount.gid":
+		if e.complexity.ConfigMount.Gid == nil {
+			break
+		}
+
+		return e.complexity.ConfigMount.Gid(childComplexity), true
+
+	case "ConfigMount.mountingPath":
+		if e.complexity.ConfigMount.MountingPath == nil {
+			break
+		}
+
+		return e.complexity.ConfigMount.MountingPath(childComplexity), true
+
+	case "ConfigMount.uid":
+		if e.complexity.ConfigMount.UID == nil {
+			break
+		}
+
+		return e.complexity.ConfigMount.UID(childComplexity), true
 
 	case "Dependency.available":
 		if e.complexity.Dependency.Available == nil {
@@ -3280,6 +3323,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputApplicationInput,
 		ec.unmarshalInputBuildArgInput,
 		ec.unmarshalInputCIFSConfigInput,
+		ec.unmarshalInputConfigMountInput,
 		ec.unmarshalInputCustomSSLInput,
 		ec.unmarshalInputDockerConfigGeneratorInput,
 		ec.unmarshalInputDomainInput,
@@ -3417,7 +3461,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/totp.graphqls" "schema/user.graphqls.graphqls"
+//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/config_mount.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/totp.graphqls" "schema/user.graphqls.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -3433,6 +3477,7 @@ var sources = []*ast.Source{
 	{Name: "schema/base.graphqls", Input: sourceData("schema/base.graphqls"), BuiltIn: false},
 	{Name: "schema/build_arg.graphqls", Input: sourceData("schema/build_arg.graphqls"), BuiltIn: false},
 	{Name: "schema/cifs_config.graphqls", Input: sourceData("schema/cifs_config.graphqls"), BuiltIn: false},
+	{Name: "schema/config_mount.graphqls", Input: sourceData("schema/config_mount.graphqls"), BuiltIn: false},
 	{Name: "schema/deployment.graphqls", Input: sourceData("schema/deployment.graphqls"), BuiltIn: false},
 	{Name: "schema/deployment_log.graphqls", Input: sourceData("schema/deployment_log.graphqls"), BuiltIn: false},
 	{Name: "schema/docker_config_generator.graphqls", Input: sourceData("schema/docker_config_generator.graphqls"), BuiltIn: false},
@@ -5095,6 +5140,60 @@ func (ec *executionContext) fieldContext_Application_persistentVolumeBindings(_ 
 	return fc, nil
 }
 
+func (ec *executionContext) _Application_configMounts(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_configMounts(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ConfigMounts, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ConfigMount)
+	fc.Result = res
+	return ec.marshalNConfigMount2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐConfigMountᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_configMounts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "content":
+				return ec.fieldContext_ConfigMount_content(ctx, field)
+			case "mountingPath":
+				return ec.fieldContext_ConfigMount_mountingPath(ctx, field)
+			case "uid":
+				return ec.fieldContext_ConfigMount_uid(ctx, field)
+			case "gid":
+				return ec.fieldContext_ConfigMount_gid(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigMount", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Application_capabilities(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Application_capabilities(ctx, field)
 	if err != nil {
@@ -6033,6 +6132,8 @@ func (ec *executionContext) fieldContext_ApplicationDeployResult_application(_ c
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "configMounts":
+				return ec.fieldContext_Application_configMounts(ctx, field)
 			case "capabilities":
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
@@ -6950,6 +7051,182 @@ func (ec *executionContext) fieldContext_CIFSConfig_gid(_ context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigMount_content(ctx context.Context, field graphql.CollectedField, obj *model.ConfigMount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigMount_content(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Content, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigMount_content(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigMount",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigMount_mountingPath(ctx context.Context, field graphql.CollectedField, obj *model.ConfigMount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigMount_mountingPath(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MountingPath, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigMount_mountingPath(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigMount",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigMount_uid(ctx context.Context, field graphql.CollectedField, obj *model.ConfigMount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigMount_uid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigMount_uid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigMount",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigMount_gid(ctx context.Context, field graphql.CollectedField, obj *model.ConfigMount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigMount_gid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Gid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigMount_gid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigMount",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Dependency_name(ctx context.Context, field graphql.CollectedField, obj *model.Dependency) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Dependency_name(ctx, field)
 	if err != nil {
@@ -7173,6 +7450,8 @@ func (ec *executionContext) fieldContext_Deployment_application(_ context.Contex
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "configMounts":
+				return ec.fieldContext_Application_configMounts(ctx, field)
 			case "capabilities":
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
@@ -10180,6 +10459,8 @@ func (ec *executionContext) fieldContext_IngressRule_application(_ context.Conte
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "configMounts":
+				return ec.fieldContext_Application_configMounts(ctx, field)
 			case "capabilities":
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
@@ -10484,6 +10765,8 @@ func (ec *executionContext) fieldContext_Mutation_createApplication(ctx context.
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "configMounts":
+				return ec.fieldContext_Application_configMounts(ctx, field)
 			case "capabilities":
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
@@ -10579,6 +10862,8 @@ func (ec *executionContext) fieldContext_Mutation_updateApplication(ctx context.
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "configMounts":
+				return ec.fieldContext_Application_configMounts(ctx, field)
 			case "capabilities":
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
@@ -15130,6 +15415,8 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_application(_ c
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "configMounts":
+				return ec.fieldContext_Application_configMounts(ctx, field)
 			case "capabilities":
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
@@ -15478,6 +15765,8 @@ func (ec *executionContext) fieldContext_Query_application(ctx context.Context, 
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "configMounts":
+				return ec.fieldContext_Application_configMounts(ctx, field)
 			case "capabilities":
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
@@ -15573,6 +15862,8 @@ func (ec *executionContext) fieldContext_Query_applications(_ context.Context, f
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "configMounts":
+				return ec.fieldContext_Application_configMounts(ctx, field)
 			case "capabilities":
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
@@ -15657,6 +15948,8 @@ func (ec *executionContext) fieldContext_Query_applicationsByGroup(ctx context.C
 				return ec.fieldContext_Application_environmentVariables(ctx, field)
 			case "persistentVolumeBindings":
 				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "configMounts":
+				return ec.fieldContext_Application_configMounts(ctx, field)
 			case "capabilities":
 				return ec.fieldContext_Application_capabilities(ctx, field)
 			case "sysctls":
@@ -23010,7 +23303,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "capabilities", "sysctls", "dockerfile", "buildArgs", "deploymentMode", "replicas", "resourceLimit", "reservedResource", "upstreamType", "command", "gitCredentialID", "repositoryUrl", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID", "group"}
+	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "configMounts", "capabilities", "sysctls", "dockerfile", "buildArgs", "deploymentMode", "replicas", "resourceLimit", "reservedResource", "upstreamType", "command", "gitCredentialID", "repositoryUrl", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID", "group"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -23038,6 +23331,13 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 				return it, err
 			}
 			it.PersistentVolumeBindings = data
+		case "configMounts":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configMounts"))
+			data, err := ec.unmarshalNConfigMountInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐConfigMountInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ConfigMounts = data
 		case "capabilities":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("capabilities"))
 			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
@@ -23270,6 +23570,54 @@ func (ec *executionContext) unmarshalInputCIFSConfigInput(ctx context.Context, o
 		case "gid":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gid"))
 			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Gid = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigMountInput(ctx context.Context, obj interface{}) (model.ConfigMountInput, error) {
+	var it model.ConfigMountInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"content", "mountingPath", "uid", "gid"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "content":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("content"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Content = data
+		case "mountingPath":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mountingPath"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MountingPath = data
+		case "uid":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uid"))
+			data, err := ec.unmarshalNUint2uint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UID = data
+		case "gid":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gid"))
+			data, err := ec.unmarshalNUint2uint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -24337,6 +24685,11 @@ func (ec *executionContext) _Application(ctx context.Context, sel ast.SelectionS
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "configMounts":
+			out.Values[i] = ec._Application_configMounts(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "capabilities":
 			out.Values[i] = ec._Application_capabilities(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -24781,6 +25134,60 @@ func (ec *executionContext) _CIFSConfig(ctx context.Context, sel ast.SelectionSe
 			}
 		case "gid":
 			out.Values[i] = ec._CIFSConfig_gid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configMountImplementors = []string{"ConfigMount"}
+
+func (ec *executionContext) _ConfigMount(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigMount) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configMountImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigMount")
+		case "content":
+			out.Values[i] = ec._ConfigMount_content(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mountingPath":
+			out.Values[i] = ec._ConfigMount_mountingPath(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "uid":
+			out.Values[i] = ec._ConfigMount_uid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "gid":
+			out.Values[i] = ec._ConfigMount_gid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -29245,6 +29652,82 @@ func (ec *executionContext) marshalNCIFSConfig2ᚖgithubᚗcomᚋswiftwaveᚑorg
 
 func (ec *executionContext) unmarshalNCIFSConfigInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐCIFSConfigInput(ctx context.Context, v interface{}) (*model.CIFSConfigInput, error) {
 	res, err := ec.unmarshalInputCIFSConfigInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNConfigMount2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐConfigMountᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ConfigMount) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNConfigMount2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐConfigMount(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNConfigMount2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐConfigMount(ctx context.Context, sel ast.SelectionSet, v *model.ConfigMount) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ConfigMount(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNConfigMountInput2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐConfigMountInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigMountInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigMountInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigMountInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐConfigMountInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNConfigMountInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐConfigMountInput(ctx context.Context, v interface{}) (*model.ConfigMountInput, error) {
+	res, err := ec.unmarshalInputConfigMountInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
