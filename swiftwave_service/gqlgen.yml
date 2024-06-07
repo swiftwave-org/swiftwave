@@ -48,6 +48,8 @@ models:
         resolver: true
       persistentVolumeBindings:
         resolver: true
+      configMounts:
+        resolver: true
       latestDeployment:
         resolver: true
       deployments:

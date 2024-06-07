@@ -244,6 +244,26 @@ func buildArgToGraphqlObject(record *core.BuildArg) *model.BuildArg {
 	}
 }
 
+// configMountInputToDatabaseObject : converts ConfigMountInput to ConfigMountDatabaseObject
+func configMountInputToDatabaseObject(record *model.ConfigMountInput) *core.ConfigMount {
+	return &core.ConfigMount{
+		Content:      record.Content,
+		Gid:          record.Gid,
+		Uid:          record.UID,
+		MountingPath: record.MountingPath,
+	}
+}
+
+// configMountToGraphqlObject : converts ConfigMount to ConfigMountGraphqlObject
+func configMountToGraphqlObject(record *core.ConfigMount) *model.ConfigMount {
+	return &model.ConfigMount{
+		Content:      record.Content,
+		Gid:          record.Gid,
+		UID:          record.Uid,
+		MountingPath: record.MountingPath,
+	}
+}
+
 // resourceLimitInputToDatabaseObject : converts ResourceLimitInput to ResourceLimitDatabaseObject
 func resourceLimitInputToDatabaseObject(record *model.ResourceLimitInput) *core.ApplicationResourceLimit {
 	return &core.ApplicationResourceLimit{

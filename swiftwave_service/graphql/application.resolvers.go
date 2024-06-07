@@ -44,6 +44,21 @@ func (r *applicationResolver) PersistentVolumeBindings(ctx context.Context, obj 
 	return result, nil
 }
 
+// ConfigMounts is the resolver for the configMounts field.
+func (r *applicationResolver) ConfigMounts(ctx context.Context, obj *model.Application) ([]*model.ConfigMount, error) {
+	// fetch record
+	records, err := core.FindConfigMountsByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	// convert to graphql object
+	var result = make([]*model.ConfigMount, 0)
+	for _, record := range records {
+		result = append(result, configMountToGraphqlObject(record))
+	}
+	return result, nil
+}
+
 // RealtimeInfo is the resolver for the realtimeInfo field.
 func (r *applicationResolver) RealtimeInfo(ctx context.Context, obj *model.Application) (*model.RealtimeInfo, error) {
 	dockerManager, err := FetchDockerManager(ctx, &r.ServiceManager.DbClient)
