@@ -215,6 +215,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		} else {
 			configMountRecordsMountingPathSet.Insert(configMount.MountingPath)
 		}
+		configMount.ApplicationID = createdApplication.ID
 		configMountRecords = append(configMountRecords, configMount)
 	}
 	if len(configMountRecords) > 0 {

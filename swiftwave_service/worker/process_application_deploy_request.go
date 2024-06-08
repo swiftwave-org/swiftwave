@@ -174,7 +174,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 				return err
 			}
 			// update config id
-			err = configMount.UpdateConfigID(ctx, *db, configID)
+			err = configMount.UpdateConfigID(ctx, dbWithoutTx, configID)
 			if err != nil {
 				addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update config id in database", false)
 				return err

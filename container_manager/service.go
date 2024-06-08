@@ -105,7 +105,11 @@ func (m Manager) CreateService(service Service, username string, password string
 			}
 		}
 	}
-	_, err = m.client.ServiceCreate(m.ctx, m.serviceToServiceSpec(service), types.ServiceCreateOptions{
+	serviceSpec, err := m.serviceToServiceSpec(service)
+	if err != nil {
+		return err
+	}
+	_, err = m.client.ServiceCreate(m.ctx, serviceSpec, types.ServiceCreateOptions{
 		EncodedRegistryAuth: authHeader,
 		QueryRegistry:       queryRegistry,
 	})
@@ -130,7 +134,11 @@ func (m Manager) UpdateService(service Service, username string, password string
 		version := swarm.Version{
 			Index: serviceData.Version.Index,
 		}
-		_, err = m.client.ServiceUpdate(m.ctx, service.Name, version, m.serviceToServiceSpec(service), types.ServiceUpdateOptions{
+		serviceSpec, err := m.serviceToServiceSpec(service)
+		if err != nil {
+			return err
+		}
+		_, err = m.client.ServiceUpdate(m.ctx, service.Name, version, serviceSpec, types.ServiceUpdateOptions{
 			EncodedRegistryAuth: authHeader,
 			QueryRegistry:       queryRegistry,
 		})
@@ -455,7 +463,7 @@ func (m Manager) LogsService(serviceName string, sinceMinutes int) (io.ReadClose
 }
 
 // Private functions
-func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
+func (m Manager) serviceToServiceSpec(service Service) (swarm.ServiceSpec, error) {
 	// Create swarm attachment config from network names array
 	var networkAttachmentConfigs []swarm.NetworkAttachmentConfig
 	for _, networkName := range service.Networks {
@@ -512,13 +520,18 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 	// config references
 	var configs = make([]*swarm.ConfigReference, 0)
 	for _, config := range service.ConfigMounts {
+		configId, err := m.FetchDockerConfigId(config.ConfigID)
+		if err != nil {
+			return swarm.ServiceSpec{}, err
+		}
 		configs = append(configs, &swarm.ConfigReference{
-			ConfigID: config.ConfigID,
+			ConfigName: config.ConfigID,
+			ConfigID:   configId,
 			File: &swarm.ConfigReferenceFileTarget{
 				Name: config.MountingPath,
 				UID:  strconv.Itoa(int(config.Uid)),
 				GID:  strconv.Itoa(int(config.Gid)),
-				Mode: os.FileMode(config.FileMode),
+				Mode: os.FileMode(uint32(config.FileMode)),
 			},
 		})
 	}
@@ -581,5 +594,5 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 			Mode: swarm.ResolutionModeDNSRR,
 		},
 	}
-	return serviceSpec
+	return serviceSpec, nil
 }
