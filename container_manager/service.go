@@ -9,6 +9,8 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/swarm"
 	"io"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -103,7 +105,11 @@ func (m Manager) CreateService(service Service, username string, password string
 			}
 		}
 	}
-	_, err = m.client.ServiceCreate(m.ctx, m.serviceToServiceSpec(service), types.ServiceCreateOptions{
+	serviceSpec, err := m.serviceToServiceSpec(service)
+	if err != nil {
+		return err
+	}
+	_, err = m.client.ServiceCreate(m.ctx, serviceSpec, types.ServiceCreateOptions{
 		EncodedRegistryAuth: authHeader,
 		QueryRegistry:       queryRegistry,
 	})
@@ -128,7 +134,11 @@ func (m Manager) UpdateService(service Service, username string, password string
 		version := swarm.Version{
 			Index: serviceData.Version.Index,
 		}
-		_, err = m.client.ServiceUpdate(m.ctx, service.Name, version, m.serviceToServiceSpec(service), types.ServiceUpdateOptions{
+		serviceSpec, err := m.serviceToServiceSpec(service)
+		if err != nil {
+			return err
+		}
+		_, err = m.client.ServiceUpdate(m.ctx, service.Name, version, serviceSpec, types.ServiceUpdateOptions{
 			EncodedRegistryAuth: authHeader,
 			QueryRegistry:       queryRegistry,
 		})
@@ -158,9 +168,6 @@ func (m Manager) RestartService(serviceName string) error {
 		version := swarm.Version{
 			Index: serviceData.Version.Index,
 		}
-		if err != nil {
-			return errors.New("error getting swarm server version")
-		}
 		spec := serviceData.Spec
 		spec.TaskTemplate.ForceUpdate++
 		_, err = m.client.ServiceUpdate(m.ctx, serviceName, version, spec, types.ServiceUpdateOptions{})
@@ -189,9 +196,6 @@ func (m Manager) RollbackService(serviceName string) error {
 		}
 		version := swarm.Version{
 			Index: serviceData.Version.Index,
-		}
-		if err != nil {
-			return errors.New("error getting swarm server version")
 		}
 		_, err = m.client.ServiceUpdate(m.ctx, serviceName, version, *serviceData.PreviousSpec, types.ServiceUpdateOptions{})
 		if err != nil {
@@ -227,9 +231,6 @@ func (m Manager) SetServiceReplicaCount(serviceName string, replicas int) error 
 		}
 		version := swarm.Version{
 			Index: serviceData.Version.Index,
-		}
-		if err != nil {
-			return errors.New("error getting swarm server version")
 		}
 		spec := serviceData.Spec
 		if spec.Mode.Replicated == nil {
@@ -462,7 +463,7 @@ func (m Manager) LogsService(serviceName string, sinceMinutes int) (io.ReadClose
 }
 
 // Private functions
-func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
+func (m Manager) serviceToServiceSpec(service Service) (swarm.ServiceSpec, error) {
 	// Create swarm attachment config from network names array
 	var networkAttachmentConfigs []swarm.NetworkAttachmentConfig
 	for _, networkName := range service.Networks {
@@ -516,6 +517,25 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 		panic("invalid deployment mode > ")
 	}
 
+	// config references
+	var configs = make([]*swarm.ConfigReference, 0)
+	for _, config := range service.ConfigMounts {
+		configId, err := m.FetchDockerConfigId(config.ConfigID)
+		if err != nil {
+			return swarm.ServiceSpec{}, err
+		}
+		configs = append(configs, &swarm.ConfigReference{
+			ConfigName: config.ConfigID,
+			ConfigID:   configId,
+			File: &swarm.ConfigReferenceFileTarget{
+				Name: config.MountingPath,
+				UID:  strconv.Itoa(int(config.Uid)),
+				GID:  strconv.Itoa(int(config.Gid)),
+				Mode: os.FileMode(uint32(config.FileMode)),
+			},
+		})
+	}
+
 	// memory bytes
 	var reservedMemoryBytes int64 = 0
 	if service.ReservedResource.MemoryMB >= 6 {
@@ -540,6 +560,7 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 				Command: service.Command,
 				Env:     env,
 				Mounts:  volumeMounts,
+				Configs: configs,
 				Privileges: &swarm.Privileges{
 					NoNewPrivileges: true,
 					AppArmor: &swarm.AppArmorOpts{
@@ -573,5 +594,5 @@ func (m Manager) serviceToServiceSpec(service Service) swarm.ServiceSpec {
 			Mode: swarm.ResolutionModeDNSRR,
 		},
 	}
-	return serviceSpec
+	return serviceSpec, nil
 }

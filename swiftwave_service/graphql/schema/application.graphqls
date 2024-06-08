@@ -33,6 +33,7 @@ type Application {
     name: String!
     environmentVariables: [EnvironmentVariable!]!
     persistentVolumeBindings: [PersistentVolumeBinding!]!
+    configMounts: [ConfigMount!]!
     capabilities: [String!]!
     sysctls: [String!]!
     resourceLimit: ResourceLimit!
@@ -75,6 +76,7 @@ input ApplicationInput {
     name: String!
     environmentVariables: [EnvironmentVariableInput!]! # dont change with each deployment
     persistentVolumeBindings: [PersistentVolumeBindingInput!]! # dont change with each deployment
+    configMounts: [ConfigMountInput!]!
     capabilities: [String!]! # dont change with each deployment
     sysctls: [String!]! # dont change with each deployment
     dockerfile: String # required for upstreamType = "git" or "SourceCode"

@@ -8,7 +8,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// KeyValuePair : Generic key-value pair
+// KeyValuePair Generic key-value pair
 // Support both map and slice of strings (key=value) formats
 type KeyValuePair map[string]string
 
@@ -51,7 +51,7 @@ func (p *KeyValuePair) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-// VolumeList : List of volumes
+// VolumeList List of volumes
 type VolumeList []Volume
 
 type Volume struct {
@@ -107,7 +107,7 @@ func (l *VolumeList) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-// Command : Command definition
+// Command Command definition
 type Command []string
 
 func (c *Command) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -133,13 +133,16 @@ func (c *Command) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-// Stack : Stack definition
+func (c *Command) String() string {
+	return strings.Join(*c, " ")
+}
+
+// Stack Stack definition
 type Stack struct {
 	Services map[string]Service `yaml:"services"`
 	Docs     *Docs              `yaml:"docs"`
 }
 
-// Service : Service definition
 type Service struct {
 	Image       string       `yaml:"image"`
 	Deploy      Deploy       `yaml:"deploy"`
@@ -148,9 +151,10 @@ type Service struct {
 	CapAdd      []string     `yaml:"cap_add"`
 	Sysctls     KeyValuePair `yaml:"sysctls"`
 	Command     Command      `yaml:"command"`
+	Configs     []Config     `yaml:"configs"`
 }
 
-// DeploymentMode : mode of deployment of application (replicated or global)
+// DeploymentMode mode of deployment of application (replicated or global)
 type DeploymentMode string
 
 const (
@@ -165,7 +169,7 @@ type Deploy struct {
 	Resources Resources      `yaml:"resources"`
 }
 
-// Resources : Resources for the service
+// Resources for the service
 type Resources struct {
 	Limits       ResourcesLimits       `yaml:"limits"`
 	Reservations ResourcesReservations `yaml:"reservations"`
@@ -179,7 +183,15 @@ type ResourcesReservations struct {
 	MemoryMB int `yaml:"memory"`
 }
 
-// Docs : Documentation for the stack
+// Config for the service
+type Config struct {
+	Content      string `yaml:"content"`
+	Uid          uint   `yaml:"uid"`
+	Gid          uint   `yaml:"gid"`
+	MountingPath string `yaml:"mounting_path"`
+}
+
+// Docs for the stack
 type Docs struct {
 	LogoURL           string                  `yaml:"logo_url"`
 	Name              string                  `yaml:"name"`

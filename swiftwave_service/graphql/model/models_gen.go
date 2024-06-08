@@ -14,6 +14,7 @@ type Application struct {
 	Name                     string                     `json:"name"`
 	EnvironmentVariables     []*EnvironmentVariable     `json:"environmentVariables"`
 	PersistentVolumeBindings []*PersistentVolumeBinding `json:"persistentVolumeBindings"`
+	ConfigMounts             []*ConfigMount             `json:"configMounts"`
 	Capabilities             []string                   `json:"capabilities"`
 	Sysctls                  []string                   `json:"sysctls"`
 	ResourceLimit            *ResourceLimit             `json:"resourceLimit"`
@@ -41,6 +42,7 @@ type ApplicationInput struct {
 	Name                         string                          `json:"name"`
 	EnvironmentVariables         []*EnvironmentVariableInput     `json:"environmentVariables"`
 	PersistentVolumeBindings     []*PersistentVolumeBindingInput `json:"persistentVolumeBindings"`
+	ConfigMounts                 []*ConfigMountInput             `json:"configMounts"`
 	Capabilities                 []string                        `json:"capabilities"`
 	Sysctls                      []string                        `json:"sysctls"`
 	Dockerfile                   *string                         `json:"dockerfile,omitempty"`
@@ -104,6 +106,20 @@ type CIFSConfigInput struct {
 	DirMode  string `json:"dir_mode"`
 	UID      int    `json:"uid"`
 	Gid      int    `json:"gid"`
+}
+
+type ConfigMount struct {
+	Content      string `json:"content"`
+	MountingPath string `json:"mountingPath"`
+	UID          uint   `json:"uid"`
+	Gid          uint   `json:"gid"`
+}
+
+type ConfigMountInput struct {
+	Content      string `json:"content"`
+	MountingPath string `json:"mountingPath"`
+	UID          uint   `json:"uid"`
+	Gid          uint   `json:"gid"`
 }
 
 type CustomSSLInput struct {
