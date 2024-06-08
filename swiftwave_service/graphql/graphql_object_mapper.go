@@ -162,7 +162,7 @@ func persistentVolumeInputToDatabaseObject(record *model.PersistentVolumeInput) 
 func persistentVolumeBindingInputToDatabaseObject(record *model.PersistentVolumeBindingInput) *core.PersistentVolumeBinding {
 	return &core.PersistentVolumeBinding{
 		PersistentVolumeID: record.PersistentVolumeID,
-		MountingPath:       record.MountingPath,
+		MountingPath:       strings.TrimSpace(record.MountingPath),
 	}
 }
 
@@ -215,8 +215,8 @@ func persistentVolumeRestoreToGraphqlObject(record *core.PersistentVolumeRestore
 // environmentVariableInputToDatabaseObject converts EnvironmentVariableInput to EnvironmentVariableDatabaseObject
 func environmentVariableInputToDatabaseObject(record *model.EnvironmentVariableInput) *core.EnvironmentVariable {
 	return &core.EnvironmentVariable{
-		Key:   record.Key,
-		Value: record.Value,
+		Key:   strings.TrimSpace(record.Key),
+		Value: strings.TrimSpace(record.Value),
 	}
 }
 
@@ -250,7 +250,7 @@ func configMountInputToDatabaseObject(record *model.ConfigMountInput) *core.Conf
 		Content:      record.Content,
 		Gid:          record.Gid,
 		Uid:          record.UID,
-		MountingPath: record.MountingPath,
+		MountingPath: strings.TrimSpace(record.MountingPath),
 	}
 }
 
