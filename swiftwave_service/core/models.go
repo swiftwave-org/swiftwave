@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Server : hold information about server
+// Server hold information about server
 type Server struct {
 	ID                    uint                   `json:"id" gorm:"primaryKey"`
 	IP                    string                 `json:"ip" gorm:"unique"`
@@ -26,7 +26,7 @@ type Server struct {
 	ResourceStats         []ServerResourceStat   `json:"resource_stats" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
-// ServerLog : hold logs of server
+// ServerLog hold logs of server
 type ServerLog struct {
 	*gorm.Model
 	ID       uint   `json:"id" gorm:"primaryKey"`
@@ -35,7 +35,7 @@ type ServerLog struct {
 	Content  string `json:"content"`
 }
 
-// User : hold information about user
+// User hold information about user
 type User struct {
 	ID           uint     `json:"id" gorm:"primaryKey"`
 	Username     string   `json:"username" gorm:"unique"`
@@ -49,7 +49,7 @@ type User struct {
 //                                Application Level Table       		   			     //
 // ************************************************************************************* //
 
-// GitCredential : credential for git client
+// GitCredential credential for git client
 type GitCredential struct {
 	ID            uint    `json:"id" gorm:"primaryKey"`
 	Name          string  `json:"name"`
@@ -62,7 +62,7 @@ type GitCredential struct {
 	Deployments []Deployment `json:"deployments" gorm:"foreignKey:GitCredentialID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" `
 }
 
-// ImageRegistryCredential : credential for docker image registry
+// ImageRegistryCredential credential for docker image registry
 type ImageRegistryCredential struct {
 	ID          uint         `json:"id" gorm:"primaryKey"`
 	Url         string       `json:"url"`
@@ -71,7 +71,7 @@ type ImageRegistryCredential struct {
 	Deployments []Deployment `json:"deployments" gorm:"foreignKey:ImageRegistryCredentialID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
-// Domain : hold information about domain
+// Domain hold information about domain
 type Domain struct {
 	ID            uint            `json:"id" gorm:"primaryKey"`
 	Name          string          `json:"name" gorm:"unique"`
@@ -86,7 +86,7 @@ type Domain struct {
 	RedirectRules []RedirectRule  `json:"redirect_rules" gorm:"foreignKey:DomainID"`
 }
 
-// IngressRule : hold information about Ingress rule for service
+// IngressRule hold information about Ingress rule for service
 type IngressRule struct {
 	ID              uint                  `json:"id" gorm:"primaryKey"`
 	DomainID        *uint                 `json:"domain_id,omitempty" gorm:"default:null"`
@@ -101,7 +101,7 @@ type IngressRule struct {
 	UpdatedAt       time.Time             `json:"updated_at"`
 }
 
-// RedirectRule : hold information about Redirect rules for domain
+// RedirectRule hold information about Redirect rules for domain
 type RedirectRule struct {
 	ID          uint               `json:"id" gorm:"primaryKey"`
 	DomainID    uint               `json:"domain_id"`
@@ -112,7 +112,7 @@ type RedirectRule struct {
 	UpdatedAt   time.Time          `json:"updated_at"`
 }
 
-// PersistentVolume : hold information about persistent volume
+// PersistentVolume hold information about persistent volume
 type PersistentVolume struct {
 	ID                       uint                      `json:"id" gorm:"primaryKey"`
 	Name                     string                    `json:"name" gorm:"unique"`
@@ -124,7 +124,7 @@ type PersistentVolume struct {
 	PersistentVolumeRestores []PersistentVolumeRestore `json:"persistent_volume_restores" gorm:"foreignKey:PersistentVolumeID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
-// PersistentVolumeBinding : hold information about persistent volume binding
+// PersistentVolumeBinding hold information about persistent volume binding
 type PersistentVolumeBinding struct {
 	ID                 uint   `json:"id" gorm:"primaryKey"`
 	ApplicationID      string `json:"application_id"`
@@ -132,7 +132,7 @@ type PersistentVolumeBinding struct {
 	MountingPath       string `json:"mounting_path"`
 }
 
-// PersistentVolumeBackup : hold information about persistent volume backup
+// PersistentVolumeBackup hold information about persistent volume backup
 type PersistentVolumeBackup struct {
 	ID                 uint         `json:"id" gorm:"primaryKey"`
 	Type               BackupType   `json:"type"`
@@ -144,7 +144,7 @@ type PersistentVolumeBackup struct {
 	CompletedAt        time.Time    `json:"completed_at"`
 }
 
-// PersistentVolumeRestore : hold information about persistent volume restore
+// PersistentVolumeRestore hold information about persistent volume restore
 type PersistentVolumeRestore struct {
 	ID                 uint          `json:"id" gorm:"primaryKey"`
 	Type               RestoreType   `json:"type"`
@@ -155,7 +155,7 @@ type PersistentVolumeRestore struct {
 	CompletedAt        time.Time     `json:"completed_at"`
 }
 
-// EnvironmentVariable : hold information about environment variable
+// EnvironmentVariable hold information about environment variable
 type EnvironmentVariable struct {
 	ID            uint   `json:"id" gorm:"primaryKey"`
 	ApplicationID string `json:"application_id"`
@@ -163,7 +163,7 @@ type EnvironmentVariable struct {
 	Value         string `json:"value"`
 }
 
-// BuildArg : hold information about build args
+// BuildArg hold information about build args
 type BuildArg struct {
 	ID           uint   `json:"id" gorm:"primaryKey"`
 	DeploymentID string `json:"deployment_id"`
@@ -171,13 +171,28 @@ type BuildArg struct {
 	Value        string `json:"value"`
 }
 
-// Application : hold information about application
+// ConfigMount hold information of config mount
+type ConfigMount struct {
+	ID            uint   `json:"id" gorm:"primaryKey"`
+	ApplicationID string `json:"application_id"`
+	ConfigID      string `json:"config_id"`
+	Content       string `json:"content"`
+	MountingPath  string `json:"mounting_path"`
+	Uid           uint   `json:"uid" gorm:"default:0"`
+	Gid           uint   `json:"gid" gorm:"default:0"`
+	FileMode      uint   `json:"file_mode" gorm:"default:444"`
+}
+
+// Application hold information about application
 type Application struct {
 	ID   string `json:"id" gorm:"primaryKey"`
 	Name string `json:"name" gorm:"unique"`
 	// Environment Variables
 	// On change of environment variables, deployment will be triggered by force update
 	EnvironmentVariables []EnvironmentVariable `json:"environment_variables" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	// Config Mounts
+	// On change of config mounts, deployment will be triggered by force update
+	ConfigMounts []ConfigMount `json:"config_mounts" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// Persistent Volumes
 	// On change of persistent volumes, deployment will be triggered by force update
 	PersistentVolumeBindings []PersistentVolumeBinding `json:"persistent_volume_bindings" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
@@ -214,7 +229,7 @@ type Application struct {
 	ApplicationGroup string `json:"application_group"`
 }
 
-// Deployment : hold information about deployment of application
+// Deployment hold information about deployment of application
 type Deployment struct {
 	ID            string       `json:"id" gorm:"primaryKey"`
 	ApplicationID string       `json:"application_id"`
@@ -246,7 +261,7 @@ type Deployment struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// DeploymentLog : hold logs of deployment
+// DeploymentLog hold logs of deployment
 type DeploymentLog struct {
 	ID           uint      `json:"id" gorm:"primaryKey"`
 	DeploymentID string    `json:"deployment_id"`
@@ -280,7 +295,7 @@ type AnalyticsServiceToken struct {
 //                                Server Related Stats       		   			         //
 // ************************************************************************************* //
 
-// ServerResourceStat : struct to hold host resource stats
+// ServerResourceStat struct to hold host resource stats
 type ServerResourceStat struct {
 	ID              uint             `json:"id" gorm:"primaryKey"`
 	ServerID        uint             `json:"server_id"`
@@ -295,7 +310,7 @@ type ServerResourceStat struct {
 //                                Server Related Stats       		   			         //
 // ************************************************************************************* //
 
-// ApplicationServiceResourceStat : struct to hold service resource stats
+// ApplicationServiceResourceStat struct to hold service resource stats
 type ApplicationServiceResourceStat struct {
 	ID                   uint                      `json:"id" gorm:"primaryKey"`
 	ApplicationID        string                    `json:"application_id"`
