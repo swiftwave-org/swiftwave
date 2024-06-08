@@ -25,6 +25,7 @@ type Service struct {
 	Env                  map[string]string `json:"env,omitempty"`
 	Capabilities         []string          `json:"capabilities,omitempty"`
 	Sysctls              map[string]string `json:"sysctl,omitempty"`
+	ConfigMounts         []ConfigMount     `json:"configmounts,omitempty"`
 	VolumeMounts         []VolumeMount     `json:"volumemounts,omitempty"`
 	VolumeBinds          []VolumeBind      `json:"volumebinds,omitempty"`
 	Networks             []string          `json:"networks,omitempty"`
@@ -61,6 +62,14 @@ type VolumeBind struct {
 	Target string `json:"target"`
 	// No need to specify readonly for volume bind
 	// VolumeBind is for special internal use, and need readwrite access all the time
+}
+
+type ConfigMount struct {
+	ConfigID     string `json:"config_id"`
+	Uid          uint   `json:"uid"`
+	Gid          uint   `json:"gid"`
+	FileMode     uint   `json:"file_mode"`
+	MountingPath string `json:"mounting_path"`
 }
 
 type Resource struct {

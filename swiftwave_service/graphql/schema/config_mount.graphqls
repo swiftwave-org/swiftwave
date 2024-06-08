@@ -1,0 +1,13 @@
+type ConfigMount {
+    content: String!
+    mountingPath: String!
+    uid: Uint!
+    gid: Uint!
+}
+
+input ConfigMountInput {
+    content: String!
+    mountingPath: String!
+    uid: Uint!
+    gid: Uint!
+}
