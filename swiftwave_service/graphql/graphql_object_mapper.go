@@ -578,12 +578,22 @@ func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db g
 		for key, val := range service.Sysctls {
 			sysctls = append(sysctls, fmt.Sprintf("%s=%s", key, val))
 		}
+		configs := make([]*model.ConfigMountInput, 0)
+		for _, config := range service.Configs {
+			configs = append(configs, &model.ConfigMountInput{
+				Content:      config.Content,
+				Gid:          config.Gid,
+				UID:          config.Uid,
+				MountingPath: config.MountingPath,
+			})
+		}
 		image := service.Image
 		replicas := service.Deploy.Replicas
 		app := model.ApplicationInput{
 			Name:                     serviceName,
 			EnvironmentVariables:     environmentVariables,
 			PersistentVolumeBindings: persistentVolumeBindings,
+			ConfigMounts:             configs,
 			Capabilities:             service.CapAdd,
 			Sysctls:                  sysctls,
 			Dockerfile:               nil,
