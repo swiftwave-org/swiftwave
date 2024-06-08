@@ -133,6 +133,10 @@ func (c *Command) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+func (c *Command) String() string {
+	return strings.Join(*c, " ")
+}
+
 // Stack Stack definition
 type Stack struct {
 	Services map[string]Service `yaml:"services"`

@@ -6,13 +6,14 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
+	"strings"
+	"time"
+
 	gitmanager "github.com/swiftwave-org/swiftwave/git_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/stack_parser"
 	"golang.org/x/crypto/ed25519"
 	"golang.org/x/crypto/ssh"
 	"gorm.io/gorm"
-	"strings"
-	"time"
 
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
@@ -589,6 +590,10 @@ func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db g
 		}
 		image := service.Image
 		replicas := service.Deploy.Replicas
+		command := ""
+		if service.Command != nil {
+			command = service.Command.String()
+		}
 		app := model.ApplicationInput{
 			Name:                     serviceName,
 			EnvironmentVariables:     environmentVariables,
@@ -615,6 +620,7 @@ func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db g
 			CodePath:                     nil,
 			SourceCodeCompressedFileName: nil,
 			Group:                        groupName,
+			Command:                      command,
 		}
 		applications = append(applications, app)
 	}
