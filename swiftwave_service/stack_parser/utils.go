@@ -100,6 +100,12 @@ func (s *Stack) FillAndVerifyVariables(variableMapping *map[string]string, servi
 			delete(service.Environment, key)
 			service.Environment[newKey] = newValue
 		}
+		// iterate over configs
+		for i, config := range service.Configs {
+			config.Content = variableFillerHelper(config.Content, variableMapping)
+			config.MountingPath = variableFillerHelper(config.MountingPath, variableMapping)
+			service.Configs[i] = config
+		}
 		// [IGNORE] CapAdd shouldn't have any variables
 		// [IGNORE] Sysctls shouldn't have any variables
 		// iterate over command
