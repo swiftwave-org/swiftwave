@@ -52,5 +52,7 @@ extend type Query {
 extend type Mutation {
     createIngressRule(input: IngressRuleInput!): IngressRule!
     recreateIngressRule(id: Uint!): Boolean!
+    enableHttpsRedirectIngressRule(id: Uint!): Boolean!
+    disableHttpsRedirectIngressRule(id: Uint!): Boolean!
     deleteIngressRule(id: Uint!): Boolean!
 }

@@ -7,6 +7,7 @@ package graphql
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
@@ -77,6 +78,18 @@ func (r *mutationResolver) RecreateIngressRule(ctx context.Context, id uint) (bo
 		return false, errors.New("failed to schedule task to apply ingress rule")
 	}
 	return true, nil
+}
+
+// EnableHTTPSRedirectIngressRule is the resolver for the enableHttpsRedirectIngressRule field.
+func (r *mutationResolver) EnableHTTPSRedirectIngressRule(ctx context.Context, id uint) (bool, error) {
+	// TODO implement the handler
+	panic(fmt.Errorf("not implemented: EnableHTTPSRedirectIngressRule - enableHttpsRedirectIngressRule"))
+}
+
+// DisableHTTPSRedirectIngressRule is the resolver for the disableHttpsRedirectIngressRule field.
+func (r *mutationResolver) DisableHTTPSRedirectIngressRule(ctx context.Context, id uint) (bool, error) {
+	// TODO implement the handler
+	panic(fmt.Errorf("not implemented: DisableHTTPSRedirectIngressRule - disableHttpsRedirectIngressRule"))
 }
 
 // DeleteIngressRule is the resolver for the deleteIngressRule field.
