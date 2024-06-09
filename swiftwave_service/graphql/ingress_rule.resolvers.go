@@ -61,6 +61,24 @@ func (r *mutationResolver) CreateIngressRule(ctx context.Context, input model.In
 	return ingressRuleToGraphqlObject(record), nil
 }
 
+// RecreateIngressRule is the resolver for the recreateIngressRule field.
+func (r *mutationResolver) RecreateIngressRule(ctx context.Context, id uint) (bool, error) {
+	record := core.IngressRule{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	if record.Status == core.IngressRuleStatusDeleting {
+		return false, errors.New("ingress rule is deleting")
+	}
+	// enqueue task
+	err = r.WorkerManager.EnqueueIngressRuleApplyRequest(record.ID)
+	if err != nil {
+		return false, errors.New("failed to schedule task to apply ingress rule")
+	}
+	return true, nil
+}
+
 // DeleteIngressRule is the resolver for the deleteIngressRule field.
 func (r *mutationResolver) DeleteIngressRule(ctx context.Context, id uint) (bool, error) {
 	record := core.IngressRule{}
