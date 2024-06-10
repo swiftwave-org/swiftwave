@@ -47,6 +47,13 @@ func (m Manager) EnqueueIngressRuleDeleteRequest(ingressRuleId uint) error {
 	})
 }
 
+func (m Manager) EnqueueIngressRuleHttpsRedirectRequest(ingressRuleId uint, enabled bool) error {
+	return m.ServiceManager.TaskQueueClient.EnqueueTask(ingressRuleHttpsRedirectQueueName, IngressRuleHttpsRedirectRequest{
+		Id:      ingressRuleId,
+		Enabled: enabled,
+	})
+}
+
 func (m Manager) EnqueueRedirectRuleApplyRequest(redirectRuleId uint) error {
 	return m.ServiceManager.TaskQueueClient.EnqueueTask(redirectRuleApplyQueueName, RedirectRuleApplyRequest{
 		Id: redirectRuleId,

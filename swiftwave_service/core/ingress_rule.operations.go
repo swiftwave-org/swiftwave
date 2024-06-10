@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"errors"
+
 	"gorm.io/gorm"
 )
 
@@ -113,6 +114,13 @@ func (ingressRule *IngressRule) IsValidNewIngressRule(ctx context.Context, db go
 			return errors.New("there is redirect rule with same domain and port")
 		}
 	}
+	// for http ingress at port 80, check there is no https ingress rule with httpRedirect enabled
+	if ingressRule.Protocol == HTTPProtocol && ingressRule.Port == 80 {
+		isIngressRuleExist := db.Where("domain_id = ? AND protocol = ? AND https_redirect = ?", ingressRule.DomainID, HTTPSProtocol, true).First(&IngressRule{}).RowsAffected > 0
+		if isIngressRuleExist {
+			return errors.New("there is https ingress rule with http redirect enabled")
+		}
+	}
 	return nil
 }
 
@@ -154,6 +162,32 @@ func (ingressRule *IngressRule) isDeleting() bool {
 
 func (ingressRule *IngressRule) UpdateStatus(ctx context.Context, db gorm.DB, status IngressRuleStatus) error {
 	tx := db.Model(&ingressRule).Update("status", status)
+	return tx.Error
+}
+
+func (ingressRule *IngressRule) ValidateForHttpsRedirectEnableRequest(ctx context.Context, db gorm.DB) (bool, error) {
+	if ingressRule.Status == IngressRuleStatusDeleting {
+		return false, errors.New("ingress rule is deleting")
+	}
+	// ingress rule should be HTTPS mode
+	if ingressRule.Protocol != HTTPSProtocol {
+		return false, errors.New("ingress rule should be HTTPS mode to enable https redirect")
+	}
+	// there should be no ingress rule at http port 80 for same domain
+	isIngressRuleExist := db.Where("domain_id = ? AND port = ? AND protocol = ?", ingressRule.DomainID, 80, HTTPProtocol).First(&IngressRule{}).RowsAffected > 0
+	if isIngressRuleExist {
+		return false, errors.New("existing http ingress rule available with same domain at port 80")
+	}
+	// there should be no redirect rule at http for same domain
+	isRedirectRuleExist := db.Where("domain_id = ? AND protocol = ?", ingressRule.DomainID, HTTPProtocol).First(&RedirectRule{}).RowsAffected > 0
+	if isRedirectRuleExist {
+		return false, errors.New("existing redirect rule available with same domain at port 80")
+	}
+	return true, nil
+}
+
+func (ingressRule *IngressRule) UpdateHttpsRedirectStatus(ctx context.Context, db gorm.DB, enabled bool) error {
+	tx := db.Model(&ingressRule).Update("https_redirect", enabled)
 	return tx.Error
 }
 

@@ -463,6 +463,7 @@ func ingressRuleInputToDatabaseObject(record *model.IngressRuleInput) *core.Ingr
 		Protocol:        core.ProtocolType(record.Protocol),
 		Port:            record.Port,
 		TargetPort:      record.TargetPort,
+		HttpsRedirect:   false,
 		Status:          core.IngressRuleStatusPending,
 		CreatedAt:       time.Now(),
 		UpdatedAt:       time.Now(),
@@ -497,6 +498,7 @@ func ingressRuleToGraphqlObject(record *core.IngressRule) *model.IngressRule {
 		Port:            record.Port,
 		TargetPort:      record.TargetPort,
 		Status:          model.IngressRuleStatus(record.Status),
+		HTTPSRedirect:   record.HttpsRedirect,
 		CreatedAt:       record.CreatedAt,
 		UpdatedAt:       record.UpdatedAt,
 	}

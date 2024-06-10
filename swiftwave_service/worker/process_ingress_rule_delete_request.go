@@ -3,12 +3,13 @@ package worker
 import (
 	"context"
 	"errors"
+	"log"
+
 	haproxymanager "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	udpproxymanager "github.com/swiftwave-org/swiftwave/udp_proxy_manager"
 	"gorm.io/gorm"
-	"log"
 )
 
 func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context.Context, _ context.CancelFunc) error {
@@ -113,6 +114,14 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 				// because `DeleteHTTPSLink` can fail only if haproxy not working
 				isFailed = true
 				break
+			}
+			// remove https redirection if required
+			if ingressRule.HttpsRedirect {
+				err = haproxyManager.DisableHTTPSRedirection(haproxyTransactionId, domain.Name)
+				if err != nil {
+					isFailed = true
+					break
+				}
 			}
 		} else if ingressRule.Protocol == core.HTTPProtocol {
 			if ingressRule.Port == 80 {

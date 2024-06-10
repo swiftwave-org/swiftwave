@@ -45,9 +45,17 @@ func (redirectRule *RedirectRule) Create(ctx context.Context, db gorm.DB) error 
 	 * For redirect rule with HTTP protocol, port will be anyhow 80
 	 * For redirect rule with HTTPS protocol, port will be anyhow 443
 	 * So, we can check if there is any ingress rule with same domain and port
+	 * For HTTP redirect rule, check there is no https ingress rule with https_redirect enabled
 	 */
 	if redirectRule.Protocol == HTTPProtocol {
 		isIngressRuleExist = db.Where("domain_id = ? AND protocol = ? AND port = ?", redirectRule.DomainID, redirectRule.Protocol, 80).First(&IngressRule{}).RowsAffected > 0
+		if !isIngressRuleExist {
+			// check if there is https ingress rule with https_redirect enabled
+			isHttpsIngressRuleExist := db.Where("domain_id = ? AND protocol = ? AND https_redirect = ?", redirectRule.DomainID, HTTPSProtocol, true).First(&IngressRule{}).RowsAffected > 0
+			if isHttpsIngressRuleExist {
+				return errors.New("there is https ingress rule with same domain having https Redirect enabled")
+			}
+		}
 	} else if redirectRule.Protocol == HTTPSProtocol {
 		isIngressRuleExist = db.Where("domain_id = ? AND protocol = ? AND port = ?", redirectRule.DomainID, redirectRule.Protocol, 443).First(&IngressRule{}).RowsAffected > 0
 	}

@@ -36,6 +36,7 @@ func (m Manager) registerWorkerFunctions() {
 	panicOnError(taskQueueClient.RegisterFunction(deleteApplicationQueueName, m.DeleteApplication))
 	panicOnError(taskQueueClient.RegisterFunction(ingressRuleApplyQueueName, m.IngressRuleApply))
 	panicOnError(taskQueueClient.RegisterFunction(ingressRuleDeleteQueueName, m.IngressRuleDelete))
+	panicOnError(taskQueueClient.RegisterFunction(ingressRuleHttpsRedirectQueueName, m.IngressRuleHttpsRedirect))
 	panicOnError(taskQueueClient.RegisterFunction(redirectRuleApplyQueueName, m.RedirectRuleApply))
 	panicOnError(taskQueueClient.RegisterFunction(redirectRuleDeleteQueueName, m.RedirectRuleDelete))
 	panicOnError(taskQueueClient.RegisterFunction(sslGenerateQueueName, m.SSLGenerate))
@@ -56,6 +57,7 @@ func Queues() []string {
 		deleteApplicationQueueName,
 		ingressRuleApplyQueueName,
 		ingressRuleDeleteQueueName,
+		ingressRuleHttpsRedirectQueueName,
 		redirectRuleApplyQueueName,
 		redirectRuleDeleteQueueName,
 		sslGenerateQueueName,

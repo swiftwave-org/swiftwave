@@ -146,6 +146,7 @@ func (m Manager) IngressRuleApply(request IngressRuleApplyRequest, ctx context.C
 			isFailed = true
 			break
 		}
+
 	}
 
 	for _, udpProxyManager := range udpProxyManagers {

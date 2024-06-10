@@ -96,6 +96,7 @@ type IngressRule struct {
 	TargetType      IngressRuleTargetType `json:"target_type" gorm:"default:'application'"`
 	ApplicationID   *string               `json:"application_id"`
 	ExternalService string                `json:"external_service"`
+	HttpsRedirect   bool                  `json:"https_redirect" gorm:"default:false"`
 	Status          IngressRuleStatus     `json:"status"`
 	CreatedAt       time.Time             `json:"created_at"`
 	UpdatedAt       time.Time             `json:"updated_at"`
