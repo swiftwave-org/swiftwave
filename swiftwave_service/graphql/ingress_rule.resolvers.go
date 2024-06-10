@@ -7,6 +7,7 @@ package graphql
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
@@ -59,6 +60,64 @@ func (r *mutationResolver) CreateIngressRule(ctx context.Context, input model.In
 		return nil, errors.New("failed to schedule task to apply ingress rule")
 	}
 	return ingressRuleToGraphqlObject(record), nil
+}
+
+// RecreateIngressRule is the resolver for the recreateIngressRule field.
+func (r *mutationResolver) RecreateIngressRule(ctx context.Context, id uint) (bool, error) {
+	record := core.IngressRule{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	if record.Status == core.IngressRuleStatusDeleting {
+		return false, errors.New("ingress rule is deleting")
+	}
+	// enqueue task
+	err = r.WorkerManager.EnqueueIngressRuleApplyRequest(record.ID)
+	if err != nil {
+		return false, errors.New("failed to schedule task to apply ingress rule")
+	}
+	return true, nil
+}
+
+// EnableHTTPSRedirectIngressRule is the resolver for the enableHttpsRedirectIngressRule field.
+func (r *mutationResolver) EnableHTTPSRedirectIngressRule(ctx context.Context, id uint) (bool, error) {
+	// fetch the ingress rule
+	record := core.IngressRule{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	isValid, err := record.ValidateForHttpsRedirectEnableRequest(ctx, r.ServiceManager.DbClient)
+	if !isValid {
+		return false, err
+	}
+	err = r.WorkerManager.EnqueueIngressRuleHttpsRedirectRequest(record.ID, true)
+	if err != nil {
+		return false, errors.New("failed to schedule task to enable https redirect")
+	}
+	return true, nil
+}
+
+// DisableHTTPSRedirectIngressRule is the resolver for the disableHttpsRedirectIngressRule field.
+func (r *mutationResolver) DisableHTTPSRedirectIngressRule(ctx context.Context, id uint) (bool, error) {
+	// fetch the ingress rule
+	record := core.IngressRule{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	if record.Protocol == core.HTTPSProtocol {
+		if !record.HttpsRedirect {
+			return false, fmt.Errorf("https redirect is not enabled for this ingress rule")
+		}
+		err = r.WorkerManager.EnqueueIngressRuleHttpsRedirectRequest(record.ID, false)
+		if err != nil {
+			return false, errors.New("failed to schedule task to disable https redirect")
+		}
+		return true, nil
+	}
+	return false, fmt.Errorf("https redirect is only available for https based ingress rule")
 }
 
 // DeleteIngressRule is the resolver for the deleteIngressRule field.

@@ -222,6 +222,7 @@ type ComplexityRoot struct {
 		Domain          func(childComplexity int) int
 		DomainID        func(childComplexity int) int
 		ExternalService func(childComplexity int) int
+		HTTPSRedirect   func(childComplexity int) int
 		ID              func(childComplexity int) int
 		Port            func(childComplexity int) int
 		Protocol        func(childComplexity int) int
@@ -264,8 +265,10 @@ type ComplexityRoot struct {
 		DeleteUser                                         func(childComplexity int, id uint) int
 		DemoteServerToWorker                               func(childComplexity int, id uint) int
 		DeployStack                                        func(childComplexity int, input model.StackInput) int
+		DisableHTTPSRedirectIngressRule                    func(childComplexity int, id uint) int
 		DisableProxyOnServer                               func(childComplexity int, id uint) int
 		DisableTotp                                        func(childComplexity int) int
+		EnableHTTPSRedirectIngressRule                     func(childComplexity int, id uint) int
 		EnableProxyOnServer                                func(childComplexity int, id uint, typeArg model.ProxyType) int
 		EnableTotp                                         func(childComplexity int, totp string) int
 		FetchAnalyticsServiceToken                         func(childComplexity int, id uint, rotate bool) int
@@ -275,6 +278,7 @@ type ComplexityRoot struct {
 		PutServerInMaintenanceMode                         func(childComplexity int, id uint) int
 		PutServerOutOfMaintenanceMode                      func(childComplexity int, id uint) int
 		RebuildApplication                                 func(childComplexity int, id string) int
+		RecreateIngressRule                                func(childComplexity int, id uint) int
 		RegenerateWebhookToken                             func(childComplexity int, id string) int
 		RemoveDomain                                       func(childComplexity int, id uint) int
 		RemoveServerFromSwarmCluster                       func(childComplexity int, id uint) int
@@ -550,6 +554,9 @@ type MutationResolver interface {
 	UpdateImageRegistryCredential(ctx context.Context, id uint, input model.ImageRegistryCredentialInput) (*model.ImageRegistryCredential, error)
 	DeleteImageRegistryCredential(ctx context.Context, id uint) (bool, error)
 	CreateIngressRule(ctx context.Context, input model.IngressRuleInput) (*model.IngressRule, error)
+	RecreateIngressRule(ctx context.Context, id uint) (bool, error)
+	EnableHTTPSRedirectIngressRule(ctx context.Context, id uint) (bool, error)
+	DisableHTTPSRedirectIngressRule(ctx context.Context, id uint) (bool, error)
 	DeleteIngressRule(ctx context.Context, id uint) (bool, error)
 	CreatePersistentVolume(ctx context.Context, input model.PersistentVolumeInput) (*model.PersistentVolume, error)
 	DeletePersistentVolume(ctx context.Context, id uint) (bool, error)
@@ -1467,6 +1474,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.IngressRule.ExternalService(childComplexity), true
 
+	case "IngressRule.httpsRedirect":
+		if e.complexity.IngressRule.HTTPSRedirect == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.HTTPSRedirect(childComplexity), true
+
 	case "IngressRule.id":
 		if e.complexity.IngressRule.ID == nil {
 			break
@@ -1900,6 +1914,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeployStack(childComplexity, args["input"].(model.StackInput)), true
 
+	case "Mutation.disableHttpsRedirectIngressRule":
+		if e.complexity.Mutation.DisableHTTPSRedirectIngressRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_disableHttpsRedirectIngressRule_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DisableHTTPSRedirectIngressRule(childComplexity, args["id"].(uint)), true
+
 	case "Mutation.disableProxyOnServer":
 		if e.complexity.Mutation.DisableProxyOnServer == nil {
 			break
@@ -1918,6 +1944,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DisableTotp(childComplexity), true
+
+	case "Mutation.enableHttpsRedirectIngressRule":
+		if e.complexity.Mutation.EnableHTTPSRedirectIngressRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_enableHttpsRedirectIngressRule_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EnableHTTPSRedirectIngressRule(childComplexity, args["id"].(uint)), true
 
 	case "Mutation.enableProxyOnServer":
 		if e.complexity.Mutation.EnableProxyOnServer == nil {
@@ -2026,6 +2064,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RebuildApplication(childComplexity, args["id"].(string)), true
+
+	case "Mutation.recreateIngressRule":
+		if e.complexity.Mutation.RecreateIngressRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_recreateIngressRule_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RecreateIngressRule(childComplexity, args["id"].(uint)), true
 
 	case "Mutation.regenerateWebhookToken":
 		if e.complexity.Mutation.RegenerateWebhookToken == nil {
@@ -4016,7 +4066,37 @@ func (ec *executionContext) field_Mutation_deployStack_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_disableHttpsRedirectIngressRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_disableProxyOnServer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_enableHttpsRedirectIngressRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 uint
@@ -4176,6 +4256,21 @@ func (ec *executionContext) field_Mutation_rebuildApplication_args(ctx context.C
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_recreateIngressRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5768,6 +5863,8 @@ func (ec *executionContext) fieldContext_Application_ingressRules(_ context.Cont
 				return ec.fieldContext_IngressRule_externalService(ctx, field)
 			case "targetPort":
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
+			case "httpsRedirect":
+				return ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
 			case "status":
 				return ec.fieldContext_IngressRule_status(ctx, field)
 			case "createdAt":
@@ -9254,6 +9351,8 @@ func (ec *executionContext) fieldContext_Domain_ingressRules(_ context.Context, 
 				return ec.fieldContext_IngressRule_externalService(ctx, field)
 			case "targetPort":
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
+			case "httpsRedirect":
+				return ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
 			case "status":
 				return ec.fieldContext_IngressRule_status(ctx, field)
 			case "createdAt":
@@ -10582,6 +10681,50 @@ func (ec *executionContext) fieldContext_IngressRule_targetPort(_ context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_httpsRedirect(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HTTPSRedirect, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_httpsRedirect(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -12080,6 +12223,8 @@ func (ec *executionContext) fieldContext_Mutation_createIngressRule(ctx context.
 				return ec.fieldContext_IngressRule_externalService(ctx, field)
 			case "targetPort":
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
+			case "httpsRedirect":
+				return ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
 			case "status":
 				return ec.fieldContext_IngressRule_status(ctx, field)
 			case "createdAt":
@@ -12098,6 +12243,171 @@ func (ec *executionContext) fieldContext_Mutation_createIngressRule(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createIngressRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_recreateIngressRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_recreateIngressRule(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RecreateIngressRule(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_recreateIngressRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_recreateIngressRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_enableHttpsRedirectIngressRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_enableHttpsRedirectIngressRule(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EnableHTTPSRedirectIngressRule(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_enableHttpsRedirectIngressRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_enableHttpsRedirectIngressRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_disableHttpsRedirectIngressRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_disableHttpsRedirectIngressRule(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DisableHTTPSRedirectIngressRule(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_disableHttpsRedirectIngressRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_disableHttpsRedirectIngressRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -17058,6 +17368,8 @@ func (ec *executionContext) fieldContext_Query_ingressRule(ctx context.Context, 
 				return ec.fieldContext_IngressRule_externalService(ctx, field)
 			case "targetPort":
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
+			case "httpsRedirect":
+				return ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
 			case "status":
 				return ec.fieldContext_IngressRule_status(ctx, field)
 			case "createdAt":
@@ -17141,6 +17453,8 @@ func (ec *executionContext) fieldContext_Query_ingressRules(_ context.Context, f
 				return ec.fieldContext_IngressRule_externalService(ctx, field)
 			case "targetPort":
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
+			case "httpsRedirect":
+				return ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
 			case "status":
 				return ec.fieldContext_IngressRule_status(ctx, field)
 			case "createdAt":
@@ -26242,6 +26556,11 @@ func (ec *executionContext) _IngressRule(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "httpsRedirect":
+			out.Values[i] = ec._IngressRule_httpsRedirect(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "status":
 			out.Values[i] = ec._IngressRule_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -26442,6 +26761,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "createIngressRule":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createIngressRule(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "recreateIngressRule":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_recreateIngressRule(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "enableHttpsRedirectIngressRule":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_enableHttpsRedirectIngressRule(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "disableHttpsRedirectIngressRule":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_disableHttpsRedirectIngressRule(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

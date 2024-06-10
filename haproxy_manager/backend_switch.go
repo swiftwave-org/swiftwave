@@ -3,6 +3,7 @@ package haproxymanager
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"strconv"
 	"strings"
@@ -50,7 +51,7 @@ func (s Manager) AddBackendSwitch(transactionId string, listenerMode ListenerMod
 	// Send request
 	addBackendSwitchRes, addBackendSwitchErr := s.postRequest("/services/haproxy/configuration/backend_switching_rules", params, bytes.NewReader(reqBodyBytes))
 	if addBackendSwitchErr != nil || !isValidStatusCode(addBackendSwitchRes.StatusCode) {
-		return addBackendSwitchErr
+		return errors.New("failed to add backend switch")
 	}
 	defer func(body io.ReadCloser) {
 		_ = body.Close()
@@ -66,7 +67,7 @@ func (s Manager) FetchBackendSwitchIndex(transactionId string, listenerMode List
 	// Send request
 	getBackendSwitchRes, getBackendSwitchErr := s.getRequest("/services/haproxy/configuration/backend_switching_rules", params)
 	if getBackendSwitchErr != nil || !isValidStatusCode(getBackendSwitchRes.StatusCode) {
-		return -1, getBackendSwitchErr
+		return -1, errors.New("failed to fetch backend switch index")
 	}
 	defer func(body io.ReadCloser) {
 		_ = body.Close()
@@ -121,7 +122,7 @@ func (s Manager) DeleteBackendSwitch(transactionId string, listenerMode Listener
 	params.add("frontend", s.GenerateFrontendName(listenerMode, bindPort))
 	deleteReq, err := s.deleteRequest("/services/haproxy/configuration/backend_switching_rules/"+strconv.Itoa(index), params)
 	if err != nil || !isValidStatusCode(deleteReq.StatusCode) {
-		return err
+		return errors.New("failed to delete backend switch")
 	}
 	defer func(body io.ReadCloser) {
 		_ = body.Close()
