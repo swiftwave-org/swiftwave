@@ -167,7 +167,7 @@ func (ingressRule *IngressRule) UpdateStatus(ctx context.Context, db gorm.DB, st
 
 func (ingressRule *IngressRule) ValidateForHttpsRedirectEnableRequest(ctx context.Context, db gorm.DB) (bool, error) {
 	// ingress rule should be HTTPS mode
-	if ingressRule.Protocol != HTTPProtocol {
+	if ingressRule.Protocol != HTTPSProtocol {
 		return false, errors.New("ingress rule should be HTTPS mode to enable https redirect")
 	}
 	// there should be no ingress rule at http port 80 for same domain

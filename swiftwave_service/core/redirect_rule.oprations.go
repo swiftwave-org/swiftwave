@@ -51,7 +51,7 @@ func (redirectRule *RedirectRule) Create(ctx context.Context, db gorm.DB) error 
 		isIngressRuleExist = db.Where("domain_id = ? AND protocol = ? AND port = ?", redirectRule.DomainID, redirectRule.Protocol, 80).First(&IngressRule{}).RowsAffected > 0
 		if !isIngressRuleExist {
 			// check if there is https ingress rule with https_redirect enabled
-			isHttpsIngressRuleExist := db.Where("domain_id = ? AND protocol = ? AND https_redirect = ?", redirectRule.DomainID, redirectRule.Protocol, true).First(&IngressRule{}).RowsAffected > 0
+			isHttpsIngressRuleExist := db.Where("domain_id = ? AND protocol = ? AND https_redirect = ?", redirectRule.DomainID, HTTPSProtocol, true).First(&IngressRule{}).RowsAffected > 0
 			if isHttpsIngressRuleExist {
 				return errors.New("there is https ingress rule with same domain having https Redirect enabled")
 			}
