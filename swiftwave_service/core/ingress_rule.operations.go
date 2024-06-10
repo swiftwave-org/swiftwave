@@ -166,6 +166,9 @@ func (ingressRule *IngressRule) UpdateStatus(ctx context.Context, db gorm.DB, st
 }
 
 func (ingressRule *IngressRule) ValidateForHttpsRedirectEnableRequest(ctx context.Context, db gorm.DB) (bool, error) {
+	if ingressRule.Status == IngressRuleStatusDeleting {
+		return false, errors.New("ingress rule is deleting")
+	}
 	// ingress rule should be HTTPS mode
 	if ingressRule.Protocol != HTTPSProtocol {
 		return false, errors.New("ingress rule should be HTTPS mode to enable https redirect")
