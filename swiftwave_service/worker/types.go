@@ -18,6 +18,7 @@ const (
 	deleteApplicationQueueName                                 = "delete_application"
 	ingressRuleApplyQueueName                                  = "ingress_rule_apply"
 	ingressRuleDeleteQueueName                                 = "ingress_rule_delete"
+	ingressRuleHttpsRedirectQueueName                          = "ingress_rule_https_redirect"
 	redirectRuleApplyQueueName                                 = "redirect_rule_apply"
 	redirectRuleDeleteQueueName                                = "redirect_rule_delete"
 	sslGenerateQueueName                                       = "ssl_generate"
@@ -63,6 +64,12 @@ type RedirectRuleApplyRequest struct {
 // RedirectRuleDeleteRequest : request payload for redirect rule delete
 type RedirectRuleDeleteRequest struct {
 	Id uint `json:"id"`
+}
+
+// IngressRuleHttpsRedirectRequest : request payload for ingress rule https redirect
+type IngressRuleHttpsRedirectRequest struct {
+	Id      uint `json:"id"`
+	Enabled bool `json:"enabled"`
 }
 
 // SSLGenerateRequest : request payload for ssl generate

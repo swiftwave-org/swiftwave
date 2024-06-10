@@ -26,7 +26,6 @@ input IngressRuleValidationInput {
     port: Uint!
 }
 
-
 type IngressRule {
     id: Uint!
     targetType: IngressRuleTargetType!
@@ -38,6 +37,7 @@ type IngressRule {
     application: Application!
     externalService: String!
     targetPort: Uint!
+    httpsRedirect: Boolean!
     status: IngressRuleStatus!
     createdAt: Time!
     updatedAt: Time!
@@ -51,5 +51,8 @@ extend type Query {
 
 extend type Mutation {
     createIngressRule(input: IngressRuleInput!): IngressRule!
+    recreateIngressRule(id: Uint!): Boolean!
+    enableHttpsRedirectIngressRule(id: Uint!): Boolean!
+    disableHttpsRedirectIngressRule(id: Uint!): Boolean!
     deleteIngressRule(id: Uint!): Boolean!
 }

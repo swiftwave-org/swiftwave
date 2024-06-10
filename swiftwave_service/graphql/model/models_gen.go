@@ -272,6 +272,7 @@ type IngressRule struct {
 	Application     *Application          `json:"application"`
 	ExternalService string                `json:"externalService"`
 	TargetPort      uint                  `json:"targetPort"`
+	HTTPSRedirect   bool                  `json:"httpsRedirect"`
 	Status          IngressRuleStatus     `json:"status"`
 	CreatedAt       time.Time             `json:"createdAt"`
 	UpdatedAt       time.Time             `json:"updatedAt"`
