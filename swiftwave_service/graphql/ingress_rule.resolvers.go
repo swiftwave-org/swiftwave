@@ -82,14 +82,42 @@ func (r *mutationResolver) RecreateIngressRule(ctx context.Context, id uint) (bo
 
 // EnableHTTPSRedirectIngressRule is the resolver for the enableHttpsRedirectIngressRule field.
 func (r *mutationResolver) EnableHTTPSRedirectIngressRule(ctx context.Context, id uint) (bool, error) {
-	// TODO implement the handler
-	panic(fmt.Errorf("not implemented: EnableHTTPSRedirectIngressRule - enableHttpsRedirectIngressRule"))
+	// fetch the ingress rule
+	record := core.IngressRule{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	isValid, err := record.ValidateForHttpsRedirectEnableRequest(ctx, r.ServiceManager.DbClient)
+	if !isValid {
+		return false, err
+	}
+	err = r.WorkerManager.EnqueueIngressRuleHttpsRedirectRequest(record.ID, true)
+	if err != nil {
+		return false, errors.New("failed to schedule task to enable https redirect")
+	}
+	return true, nil
 }
 
 // DisableHTTPSRedirectIngressRule is the resolver for the disableHttpsRedirectIngressRule field.
 func (r *mutationResolver) DisableHTTPSRedirectIngressRule(ctx context.Context, id uint) (bool, error) {
-	// TODO implement the handler
-	panic(fmt.Errorf("not implemented: DisableHTTPSRedirectIngressRule - disableHttpsRedirectIngressRule"))
+	// fetch the ingress rule
+	record := core.IngressRule{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	if record.Protocol == core.HTTPSProtocol {
+		if !record.HttpsRedirect {
+			return false, fmt.Errorf("https redirect is not enabled for this ingress rule")
+		}
+		err = r.WorkerManager.EnqueueIngressRuleHttpsRedirectRequest(record.ID, false)
+		if err != nil {
+			return false, errors.New("failed to schedule task to disable https redirect")
+		}
+		return true, nil
+	}
+	return false, fmt.Errorf("https redirect is only available for https based ingress rule")
 }
 
 // DeleteIngressRule is the resolver for the deleteIngressRule field.
