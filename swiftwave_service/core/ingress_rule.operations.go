@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"errors"
+
 	"gorm.io/gorm"
 )
 
@@ -154,6 +155,11 @@ func (ingressRule *IngressRule) isDeleting() bool {
 
 func (ingressRule *IngressRule) UpdateStatus(ctx context.Context, db gorm.DB, status IngressRuleStatus) error {
 	tx := db.Model(&ingressRule).Update("status", status)
+	return tx.Error
+}
+
+func (ingressRule *IngressRule) UpdateHttpsRedirectStatus(ctx context.Context, db gorm.DB, enabled bool) error {
+	tx := db.Model(&ingressRule).Update("https_redirect", enabled)
 	return tx.Error
 }
 
