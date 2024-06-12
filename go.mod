@@ -3,9 +3,9 @@ module github.com/swiftwave-org/swiftwave
 go 1.21.7
 
 require (
-	ariga.io/atlas-provider-gorm v0.4.0
+	ariga.io/atlas-provider-gorm v0.5.0
 	github.com/99designs/gqlgen v0.17.48
-	github.com/aws/aws-sdk-go v1.53.20
+	github.com/aws/aws-sdk-go v1.53.21
 	github.com/docker/docker v26.1.4+incompatible
 	github.com/fatih/color v1.17.0
 	github.com/go-git/go-git/v5 v5.12.0
@@ -22,7 +22,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/spf13/cobra v1.8.0
 	github.com/testcontainers/testcontainers-go v0.31.0
-	github.com/vektah/gqlparser/v2 v2.5.12
+	github.com/vektah/gqlparser/v2 v2.5.13
 	github.com/xlzd/gotp v0.1.0
 	golang.org/x/term v0.21.0
 	gopkg.in/yaml.v3 v3.0.1
