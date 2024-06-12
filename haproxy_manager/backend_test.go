@@ -149,7 +149,6 @@ func TestTCPBackend(t *testing.T) {
 			t.Fatal(err)
 		}
 		config := fetchConfig(transactionId)
-		t.Logf("config: %s", config)
 		assert.Check(t, strings.Contains(config, fmt.Sprintf("backend %s", backendName)), "backend name should be in config")
 		assert.Check(t, strings.Contains(config, fmt.Sprintf("server-template %s_container- %d %s:%d no-check init-addr none resolvers docker", serviceName, serviceReplicas, serviceName, servicePort)), "server template should be in config")
 		assert.Check(t, isExists == true, "backend does not exist [api]")
