@@ -88,7 +88,8 @@ func TestBasicAuthentication(t *testing.T) {
 		err := haproxyTestManager.AddUserList(transactionId, userListName)
 		assert.NoError(t, err, "add user list should not return error")
 
-		err = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, password)
+		encryptedPassword, _ := GenerateSecuredPasswordForBasicAuthentication(password)
+		err = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, encryptedPassword)
 		assert.NoError(t, err, "add user list should not return error")
 
 		config := fetchConfig(transactionId)
@@ -103,10 +104,11 @@ func TestBasicAuthentication(t *testing.T) {
 		err := haproxyTestManager.AddUserList(transactionId, userListName)
 		assert.NoError(t, err, "add user list should not return error")
 
-		err = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, password)
+		encryptedPassword, _ := GenerateSecuredPasswordForBasicAuthentication(password)
+		err = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, encryptedPassword)
 		assert.NoError(t, err, "add user in list should not return error")
 
-		err = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, password)
+		err = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, encryptedPassword)
 		assert.Error(t, err, "add duplicate user in list should return error")
 	})
 
@@ -121,7 +123,8 @@ func TestBasicAuthentication(t *testing.T) {
 		assert.NoError(t, err, "check if user exist in user list should not return error")
 		assert.False(t, isExist, "check if user exist in user list should be false")
 
-		err = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, password)
+		encryptedPassword, _ := GenerateSecuredPasswordForBasicAuthentication(password)
+		err = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, encryptedPassword)
 		assert.NoError(t, err, "add user in user list should not return error")
 
 		isExist, err = haproxyTestManager.IsUserExistInUserList(transactionId, userListName, username)
@@ -136,7 +139,8 @@ func TestBasicAuthentication(t *testing.T) {
 		err := haproxyTestManager.AddUserList(transactionId, userListName)
 		assert.NoError(t, err, "add user list should not return error")
 
-		err = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, password)
+		encryptedPassword, _ := GenerateSecuredPasswordForBasicAuthentication(password)
+		err = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, encryptedPassword)
 		assert.NoError(t, err, "add user in user list should not return error")
 
 		isExist, err := haproxyTestManager.IsUserExistInUserList(transactionId, userListName, username)
@@ -174,15 +178,16 @@ func TestBasicAuthentication(t *testing.T) {
 		defer deleteTransaction(transactionId)
 
 		_ = haproxyTestManager.AddUserList(transactionId, userListName)
-		_ = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, password)
+		encryptedPassword, _ := GenerateSecuredPasswordForBasicAuthentication(password)
+		_ = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, encryptedPassword)
 
 		config := fetchConfig(transactionId)
 		searchString := fmt.Sprintf("user %s password", username)
 		assert.Contains(t, config, searchString, "user should be present in config")
 
 		newPassword := "newpassword"
-
-		err := haproxyTestManager.ChangeUserPasswordInUserList(transactionId, userListName, username, newPassword)
+		encryptedNewPassword, _ := GenerateSecuredPasswordForBasicAuthentication(newPassword)
+		err := haproxyTestManager.ChangeUserPasswordInUserList(transactionId, userListName, username, encryptedNewPassword)
 		assert.NoError(t, err, "change user password in user list should not return error")
 
 		config = fetchConfig(transactionId)
@@ -197,7 +202,8 @@ func TestBasicAuthentication(t *testing.T) {
 		err := haproxyTestManager.AddUserList(transactionId, userListName)
 		assert.NoError(t, err, "add user list should not return error")
 
-		err = haproxyTestManager.ChangeUserPasswordInUserList(transactionId, userListName, username, password)
+		encryptedPassword, _ := GenerateSecuredPasswordForBasicAuthentication(password)
+		err = haproxyTestManager.ChangeUserPasswordInUserList(transactionId, userListName, username, encryptedPassword)
 		assert.Error(t, err, "updating non-exist user's password in user list should return error")
 	})
 
@@ -206,7 +212,8 @@ func TestBasicAuthentication(t *testing.T) {
 		defer deleteTransaction(transactionId)
 
 		_ = haproxyTestManager.AddUserList(transactionId, userListName)
-		_ = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, password)
+		encryptedPassword, _ := GenerateSecuredPasswordForBasicAuthentication(password)
+		_ = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, encryptedPassword)
 
 		err := haproxyTestManager.SetupBasicAuthentication(transactionId, HTTPMode, 80, protectedDomain, userListName)
 		assert.NoError(t, err, "setup basic authentication should not return error")
@@ -221,7 +228,8 @@ func TestBasicAuthentication(t *testing.T) {
 		defer deleteTransaction(transactionId)
 
 		_ = haproxyTestManager.AddUserList(transactionId, userListName)
-		_ = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, password)
+		encryptedPassword, _ := GenerateSecuredPasswordForBasicAuthentication(password)
+		_ = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, encryptedPassword)
 
 		err := haproxyTestManager.SetupBasicAuthentication(transactionId, HTTPMode, 443, protectedDomain, userListName)
 		assert.NoError(t, err, "setup basic authentication should not return error")
@@ -236,7 +244,8 @@ func TestBasicAuthentication(t *testing.T) {
 		defer deleteTransaction(transactionId)
 
 		_ = haproxyTestManager.AddUserList(transactionId, userListName)
-		_ = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, password)
+		encryptedPassword, _ := GenerateSecuredPasswordForBasicAuthentication(password)
+		_ = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, encryptedPassword)
 		_ = haproxyTestManager.AddFrontend(transactionId, HTTPMode, 8080, []int{})
 
 		err := haproxyTestManager.SetupBasicAuthentication(transactionId, HTTPMode, 8080, protectedDomain, userListName)
@@ -255,7 +264,8 @@ func TestBasicAuthentication(t *testing.T) {
 		defer deleteTransaction(transactionId)
 
 		_ = haproxyTestManager.AddUserList(transactionId, userListName)
-		_ = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, password)
+		encryptedPassword, _ := GenerateSecuredPasswordForBasicAuthentication(password)
+		_ = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, encryptedPassword)
 
 		err := haproxyTestManager.SetupBasicAuthentication(transactionId, TCPMode, 8080, protectedDomain, userListName)
 		assert.Error(t, err, "basic authentication is not supported for TCP mode")
@@ -266,7 +276,8 @@ func TestBasicAuthentication(t *testing.T) {
 		defer deleteTransaction(transactionId)
 		// add user list
 		_ = haproxyTestManager.AddUserList(transactionId, userListName)
-		_ = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, password)
+		encryptedPassword, _ := GenerateSecuredPasswordForBasicAuthentication(password)
+		_ = haproxyTestManager.AddUserInUserList(transactionId, userListName, username, encryptedPassword)
 		_ = haproxyTestManager.SetupBasicAuthentication(transactionId, HTTPMode, 80, protectedDomain, userListName)
 		// check if user list exist
 		conditionString := fmt.Sprintf("http-request auth if !{ http_auth(%s) } { hdr(host) -i %s } !letsencrypt-acl", userListName, protectedDomain)

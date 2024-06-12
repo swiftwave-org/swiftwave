@@ -79,7 +79,7 @@ func (s Manager) DeleteUserList(transactionId string, userListName string) error
 	return nil
 }
 
-func (s Manager) AddUserInUserList(transactionId string, userListName string, username string, password string) error {
+func (s Manager) AddUserInUserList(transactionId string, userListName string, username string, encryptedPassword string) error {
 	// Check if user exists in user list
 	isUserExist, err := s.IsUserExistInUserList(transactionId, userListName, username)
 	if err != nil {
@@ -92,10 +92,6 @@ func (s Manager) AddUserInUserList(transactionId string, userListName string, us
 	addUserInUserListRequestQueryParams := QueryParameters{}
 	addUserInUserListRequestQueryParams.add("transaction_id", transactionId)
 	addUserInUserListRequestQueryParams.add("userlist", userListName)
-	encryptedPassword, err := generateSHA256Hash(password)
-	if err != nil {
-		return errors.New("failed to generate encrypted password")
-	}
 	// Add user in user list request body
 	addUserInUserListRequestBody := map[string]interface{}{
 		"username":        username,
@@ -117,7 +113,7 @@ func (s Manager) AddUserInUserList(transactionId string, userListName string, us
 	return nil
 }
 
-func (s Manager) ChangeUserPasswordInUserList(transactionId string, userListName string, username string, password string) error {
+func (s Manager) ChangeUserPasswordInUserList(transactionId string, userListName string, username string, encryptedPassword string) error {
 	isUserExist, err := s.IsUserExistInUserList(transactionId, userListName, username)
 	if err != nil {
 		return err
@@ -129,10 +125,6 @@ func (s Manager) ChangeUserPasswordInUserList(transactionId string, userListName
 	changeUserPasswordInUserListRequestQueryParams := QueryParameters{}
 	changeUserPasswordInUserListRequestQueryParams.add("transaction_id", transactionId)
 	changeUserPasswordInUserListRequestQueryParams.add("userlist", userListName)
-	encryptedPassword, err := generateSHA256Hash(password)
-	if err != nil {
-		return errors.New("failed to generate encrypted password")
-	}
 	// Change user password in user list request body
 	changeUserPasswordInUserListRequestBody := map[string]interface{}{
 		"username":        username,
@@ -301,8 +293,7 @@ func (s Manager) RemoveBasicAuthentication(transactionId string, listenerMode Li
 	return nil
 }
 
-// private functions
-func generateSHA256Hash(password string) (string, error) {
+func GenerateSecuredPasswordForBasicAuthentication(password string) (string, error) {
 	c := crypt.New(crypt.SHA256)
 	s := sha256_crypt.GetSalt()
 	randomSalt := random.String(5)
