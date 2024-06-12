@@ -323,3 +323,20 @@ type ApplicationServiceResourceStat struct {
 	NetStat              ApplicationServiceNetStat `json:"network" gorm:"embedded;embeddedPrefix:network_"`
 	RecordedAt           time.Time                 `json:"recorded_at"`
 }
+
+// ************************************************************************************* //
+//                                App Authentication       		   			             //
+// ************************************************************************************* //
+
+type AppBasicAuthAccessControlList struct {
+	ID    uint                            `json:"id" gorm:"primaryKey"`
+	Name  string                          `json:"name"`
+	Users []AppBasicAuthAccessControlUser `json:"users" gorm:"foreignKey:AppBasicAuthAccessControlListID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
+
+type AppBasicAuthAccessControlUser struct {
+	ID                              uint   `json:"id" gorm:"primaryKey"`
+	Username                        string `json:"username"`
+	EncryptedPassword               string `json:"encrypted_password"`
+	AppBasicAuthAccessControlListID uint   `json:"app_basic_auth_access_control_list_id"`
+}
