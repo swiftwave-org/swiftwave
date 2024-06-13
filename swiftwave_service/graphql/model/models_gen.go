@@ -9,6 +9,28 @@ import (
 	"time"
 )
 
+type AppBasicAuthAccessControlList struct {
+	ID            uint                             `json:"id"`
+	Name          string                           `json:"name"`
+	GeneratedName string                           `json:"generatedName"`
+	Users         []*AppBasicAuthAccessControlUser `json:"users"`
+}
+
+type AppBasicAuthAccessControlListInput struct {
+	Name string `json:"name"`
+}
+
+type AppBasicAuthAccessControlUser struct {
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+}
+
+type AppBasicAuthAccessControlUserInput struct {
+	Username                        string `json:"username"`
+	Password                        string `json:"password"`
+	AppBasicAuthAccessControlListID uint   `json:"appBasicAuthAccessControlListID"`
+}
+
 type Application struct {
 	ID                       string                     `json:"id"`
 	Name                     string                     `json:"name"`

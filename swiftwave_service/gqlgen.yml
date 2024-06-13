@@ -58,6 +58,10 @@ models:
         resolver: true
       realtimeInfo:
         resolver: true
+  AppBasicAuthAccessControlList:
+    fields:
+      users:
+        resolver: true
   PersistentVolume:
     fields:
       persistentVolumeBindings:

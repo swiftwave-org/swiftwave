@@ -338,6 +338,7 @@ type AppBasicAuthAccessControlList struct {
 type AppBasicAuthAccessControlUser struct {
 	ID                              uint   `json:"id" gorm:"primaryKey"`
 	Username                        string `json:"username"`
+	PlainTextPassword               string `gorm:"-"`
 	EncryptedPassword               string `json:"encrypted_password"`
 	AppBasicAuthAccessControlListID uint   `json:"app_basic_auth_access_control_list_id"`
 }

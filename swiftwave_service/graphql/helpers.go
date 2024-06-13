@@ -6,6 +6,7 @@ import (
 	"fmt"
 	containermanger "github.com/swiftwave-org/swiftwave/container_manager"
 	dockerconfiggenerator "github.com/swiftwave-org/swiftwave/docker_config_generator"
+	haproxymanager "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
@@ -111,4 +112,62 @@ func AppendPublicSSHKeyLocally(pubKey string) error {
 	}
 
 	return nil
+}
+
+func (r *mutationResolver) RunActionsInAllHAProxyNodes(ctx context.Context, db *gorm.DB, innerFunction func(ctx context.Context, db *gorm.DB, transactionId string, manager *haproxymanager.Manager) error) error {
+	// fetch all proxy servers
+	proxyServers, err := core.FetchProxyActiveServers(&r.ServiceManager.DbClient)
+	if err != nil {
+		return err
+	}
+	// don't attempt if no proxy servers are active
+	if len(proxyServers) == 0 {
+		return errors.New("no proxy servers are active")
+	}
+	// fetch all haproxy managers
+	var haproxyManagers []*haproxymanager.Manager
+	haproxyManagers, err = manager.HAProxyClients(context.Background(), proxyServers)
+	if err != nil {
+		return err
+	}
+	// map of server ip and transaction id
+	transactionIdMap := make(map[*haproxymanager.Manager]string)
+	var isFailed bool
+
+	for _, haproxyManager := range haproxyManagers {
+		// create new haproxy transaction
+		haproxyTransactionId, err := haproxyManager.FetchNewTransactionId()
+		if err != nil {
+			isFailed = true
+			break
+		}
+		// add to map
+		transactionIdMap[haproxyManager] = haproxyTransactionId
+		// run the inner function
+		err = innerFunction(ctx, db, haproxyTransactionId, haproxyManager)
+		if err != nil {
+			isFailed = true
+			break
+		}
+	}
+
+	for haproxyManager, haproxyTransactionId := range transactionIdMap {
+		if !isFailed {
+			err = haproxyManager.CommitTransaction(haproxyTransactionId)
+		}
+		if isFailed || err != nil {
+			isFailed = true
+			log.Println("failed to commit haproxy transaction", err)
+			err := haproxyManager.DeleteTransaction(haproxyTransactionId)
+			if err != nil {
+				log.Println("failed to rollback haproxy transaction", err)
+			}
+		}
+	}
+
+	if isFailed {
+		return errors.New("failed to run actions in all haproxy nodes")
+	} else {
+		return nil
+	}
 }

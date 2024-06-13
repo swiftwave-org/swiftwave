@@ -1,0 +1,34 @@
+input AppBasicAuthAccessControlListInput {
+    name: String!
+}
+
+input AppBasicAuthAccessControlUserInput {
+    username: String!
+    password: String!
+    appBasicAuthAccessControlListID: Uint!
+}
+
+type AppBasicAuthAccessControlList {
+    id: Uint!
+    name: String!
+    generatedName: String!
+    users: [AppBasicAuthAccessControlUser!]!
+}
+
+type AppBasicAuthAccessControlUser {
+    id: Uint!
+    username: String!
+}
+
+extend type Query {
+    appBasicAuthAccessControlLists: [AppBasicAuthAccessControlList!]!
+    appBasicAuthAccessControlUsers(appBasicAuthAccessControlListID: Uint!): [AppBasicAuthAccessControlUser!]!
+}
+
+extend type Mutation {
+    createAppBasicAuthAccessControlList(input: AppBasicAuthAccessControlListInput!): AppBasicAuthAccessControlList!
+    deleteAppBasicAuthAccessControlList(id: Uint!): Boolean!
+    createAppBasicAuthAccessControlUser(input: AppBasicAuthAccessControlUserInput!): AppBasicAuthAccessControlUser!
+    updateAppBasicAuthAccessControlUserPassword(id: Uint!, password: String!): Boolean!
+    deleteAppBasicAuthAccessControlUser(id: Uint!): Boolean!
+}

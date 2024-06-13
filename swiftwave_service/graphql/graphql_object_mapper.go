@@ -730,3 +730,36 @@ func applicationServiceResourceStatToGraphqlObject(record *core.ApplicationServi
 		Timestamp:            record.RecordedAt,
 	}
 }
+
+// appBasicAuthAccessControlListToGraphqlObject converts AppBasicAuthAccessControlList to AppBasicAuthAccessControlListGraphqlObject
+func appBasicAuthAccessControlListToGraphqlObject(record *core.AppBasicAuthAccessControlList) *model.AppBasicAuthAccessControlList {
+	return &model.AppBasicAuthAccessControlList{
+		ID:            record.ID,
+		Name:          record.Name,
+		GeneratedName: record.GeneratedName,
+	}
+}
+
+// appBasicAuthAccessControlUserToGraphqlObject converts AppBasicAuthAccessControlUser to AppBasicAuthAccessControlUserGraphqlObject
+func appBasicAuthAccessControlUserToGraphqlObject(record *core.AppBasicAuthAccessControlUser) *model.AppBasicAuthAccessControlUser {
+	return &model.AppBasicAuthAccessControlUser{
+		ID:       record.ID,
+		Username: record.Username,
+	}
+}
+
+// appBasicAuthAccessControlListInputToDatabaseObject converts AppBasicAuthAccessControlListInput to AppBasicAuthAccessControlListDatabaseObject
+func appBasicAuthAccessControlListInputToDatabaseObject(record *model.AppBasicAuthAccessControlListInput) *core.AppBasicAuthAccessControlList {
+	return &core.AppBasicAuthAccessControlList{
+		Name: record.Name,
+	}
+}
+
+// appBasicAuthAccessControlUserInputToDatabaseObject converts AppBasicAuthAccessControlUserInput to AppBasicAuthAccessControlUserDatabaseObject
+func appBasicAuthAccessControlUserInputToDatabaseObject(record *model.AppBasicAuthAccessControlUserInput) *core.AppBasicAuthAccessControlUser {
+	return &core.AppBasicAuthAccessControlUser{
+		Username:                        record.Username,
+		PlainTextPassword:               record.Password,
+		AppBasicAuthAccessControlListID: record.AppBasicAuthAccessControlListID,
+	}
+}
