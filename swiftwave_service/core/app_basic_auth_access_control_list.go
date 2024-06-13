@@ -10,7 +10,19 @@ import (
 	"time"
 )
 
-func (l *AppBasicAuthAccessControlList) Create(_ context.Context, db gorm.DB) error {
+func FindAllAppBasicAuthAccessControlLists(_ context.Context, db *gorm.DB) ([]*AppBasicAuthAccessControlList, error) {
+	var l []*AppBasicAuthAccessControlList
+	if err := db.Find(&l).Error; err != nil {
+		return nil, err
+	}
+	return l, nil
+}
+
+func (l *AppBasicAuthAccessControlList) FindByID(_ context.Context, db *gorm.DB, id uint) error {
+	return db.First(l, id).Error
+}
+
+func (l *AppBasicAuthAccessControlList) Create(_ context.Context, db *gorm.DB) error {
 	l.Name = strings.TrimSpace(l.Name)
 	if strings.Compare(l.Name, "") == 0 {
 		return errors.New("name cannot be empty")
@@ -19,6 +31,7 @@ func (l *AppBasicAuthAccessControlList) Create(_ context.Context, db gorm.DB) er
 	return db.Create(l).Error
 }
 
-func (l *AppBasicAuthAccessControlList) Delete(_ context.Context, db gorm.DB) error {
+func (l *AppBasicAuthAccessControlList) Delete(_ context.Context, db *gorm.DB) error {
+	// TODO check if any app has been protected by this userlist
 	return db.Delete(l).Error
 }

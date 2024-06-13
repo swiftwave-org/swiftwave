@@ -365,7 +365,6 @@ type ComplexityRoot struct {
 
 	Query struct {
 		AppBasicAuthAccessControlLists     func(childComplexity int) int
-		AppBasicAuthAccessControlUsers     func(childComplexity int, appBasicAuthAccessControlListID uint) int
 		Application                        func(childComplexity int, id string) int
 		ApplicationGroups                  func(childComplexity int) int
 		ApplicationResourceAnalytics       func(childComplexity int, id string, timeframe model.ApplicationResourceAnalyticsTimeframe) int
@@ -636,7 +635,6 @@ type PersistentVolumeBindingResolver interface {
 }
 type QueryResolver interface {
 	AppBasicAuthAccessControlLists(ctx context.Context) ([]*model.AppBasicAuthAccessControlList, error)
-	AppBasicAuthAccessControlUsers(ctx context.Context, appBasicAuthAccessControlListID uint) ([]*model.AppBasicAuthAccessControlUser, error)
 	Application(ctx context.Context, id string) (*model.Application, error)
 	Applications(ctx context.Context) ([]*model.Application, error)
 	ApplicationsByGroup(ctx context.Context, group string) ([]*model.Application, error)
@@ -2607,18 +2605,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.AppBasicAuthAccessControlLists(childComplexity), true
-
-	case "Query.appBasicAuthAccessControlUsers":
-		if e.complexity.Query.AppBasicAuthAccessControlUsers == nil {
-			break
-		}
-
-		args, err := ec.field_Query_appBasicAuthAccessControlUsers_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.AppBasicAuthAccessControlUsers(childComplexity, args["appBasicAuthAccessControlListID"].(uint)), true
 
 	case "Query.application":
 		if e.complexity.Query.Application == nil {
@@ -4775,21 +4761,6 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_appBasicAuthAccessControlUsers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["appBasicAuthAccessControlListID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appBasicAuthAccessControlListID"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["appBasicAuthAccessControlListID"] = arg0
 	return args, nil
 }
 
@@ -16897,67 +16868,6 @@ func (ec *executionContext) fieldContext_Query_appBasicAuthAccessControlLists(_ 
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_appBasicAuthAccessControlUsers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_appBasicAuthAccessControlUsers(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AppBasicAuthAccessControlUsers(rctx, fc.Args["appBasicAuthAccessControlListID"].(uint))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.AppBasicAuthAccessControlUser)
-	fc.Result = res
-	return ec.marshalNAppBasicAuthAccessControlUser2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlUserᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_appBasicAuthAccessControlUsers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_AppBasicAuthAccessControlUser_id(ctx, field)
-			case "username":
-				return ec.fieldContext_AppBasicAuthAccessControlUser_username(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type AppBasicAuthAccessControlUser", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_appBasicAuthAccessControlUsers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_application(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_application(ctx, field)
 	if err != nil {
@@ -28762,28 +28672,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_appBasicAuthAccessControlLists(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "appBasicAuthAccessControlUsers":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_appBasicAuthAccessControlUsers(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

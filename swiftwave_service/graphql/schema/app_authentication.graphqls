@@ -22,7 +22,6 @@ type AppBasicAuthAccessControlUser {
 
 extend type Query {
     appBasicAuthAccessControlLists: [AppBasicAuthAccessControlList!]!
-    appBasicAuthAccessControlUsers(appBasicAuthAccessControlListID: Uint!): [AppBasicAuthAccessControlUser!]!
 }
 
 extend type Mutation {

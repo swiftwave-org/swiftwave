@@ -134,6 +134,8 @@ func (r *mutationResolver) RunActionsInAllHAProxyNodes(ctx context.Context, db *
 	transactionIdMap := make(map[*haproxymanager.Manager]string)
 	var isFailed bool
 
+	errString := ""
+
 	for _, haproxyManager := range haproxyManagers {
 		// create new haproxy transaction
 		haproxyTransactionId, err := haproxyManager.FetchNewTransactionId()
@@ -146,6 +148,7 @@ func (r *mutationResolver) RunActionsInAllHAProxyNodes(ctx context.Context, db *
 		// run the inner function
 		err = innerFunction(ctx, db, haproxyTransactionId, haproxyManager)
 		if err != nil {
+			errString += err.Error() + "\n"
 			isFailed = true
 			break
 		}
@@ -157,16 +160,18 @@ func (r *mutationResolver) RunActionsInAllHAProxyNodes(ctx context.Context, db *
 		}
 		if isFailed || err != nil {
 			isFailed = true
-			log.Println("failed to commit haproxy transaction", err)
-			err := haproxyManager.DeleteTransaction(haproxyTransactionId)
+			err = haproxyManager.DeleteTransaction(haproxyTransactionId)
 			if err != nil {
-				log.Println("failed to rollback haproxy transaction", err)
+				errString += err.Error() + "\n"
 			}
 		}
 	}
 
 	if isFailed {
-		return errors.New("failed to run actions in all haproxy nodes")
+		if strings.Compare(errString, "") != 0 {
+			return errors.New("failed to run actions in all haproxy nodes: " + errString)
+		}
+		return errors.New(errString)
 	} else {
 		return nil
 	}
