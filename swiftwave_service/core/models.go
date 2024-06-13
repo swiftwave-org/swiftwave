@@ -329,9 +329,10 @@ type ApplicationServiceResourceStat struct {
 // ************************************************************************************* //
 
 type AppBasicAuthAccessControlList struct {
-	ID    uint                            `json:"id" gorm:"primaryKey"`
-	Name  string                          `json:"name"`
-	Users []AppBasicAuthAccessControlUser `json:"users" gorm:"foreignKey:AppBasicAuthAccessControlListID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ID            uint                            `json:"id" gorm:"primaryKey"`
+	Name          string                          `json:"name"`
+	GeneratedName string                          `json:"generated_name" gorm:"unique"`
+	Users         []AppBasicAuthAccessControlUser `json:"users" gorm:"foreignKey:AppBasicAuthAccessControlListID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 type AppBasicAuthAccessControlUser struct {

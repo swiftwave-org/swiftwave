@@ -2,7 +2,9 @@
 CREATE TABLE "public"."app_basic_auth_access_control_lists" (
   "id" bigserial NOT NULL,
   "name" text NULL,
-  PRIMARY KEY ("id")
+  "generated_name" text NULL,
+  PRIMARY KEY ("id"),
+  CONSTRAINT "uni_app_basic_auth_access_control_lists_generated_name" UNIQUE ("generated_name")
 );
 -- create "app_basic_auth_access_control_users" table
 CREATE TABLE "public"."app_basic_auth_access_control_users" (
