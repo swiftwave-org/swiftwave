@@ -22,7 +22,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/spf13/cobra v1.8.0
 	github.com/testcontainers/testcontainers-go v0.31.0
-	github.com/vektah/gqlparser/v2 v2.5.13
+	github.com/vektah/gqlparser/v2 v2.5.16
 	github.com/xlzd/gotp v0.1.0
 	golang.org/x/term v0.21.0
 	gopkg.in/yaml.v3 v3.0.1
