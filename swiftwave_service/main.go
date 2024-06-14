@@ -168,8 +168,8 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 			if strings.HasPrefix(c.Request().URL.Path, "/graphql") &&
 				strings.Compare(c.Request().Method, http.MethodGet) == 0 &&
 				strings.Compare(c.Request().URL.RawQuery, "") == 0 &&
-				strings.Contains(c.Request().Header.Get("Connection"), "Upgrade") &&
-				strings.Compare(c.Request().Header.Get("Upgrade"), "websocket") == 0 {
+				strings.Contains(strings.ToLower(c.Request().Header.Get("Connection")), "upgrade") &&
+				strings.Compare(strings.ToLower(c.Request().Header.Get("Upgrade")), "websocket") == 0 {
 				return true
 			}
 
@@ -177,8 +177,8 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 			if strings.HasPrefix(c.Request().URL.Path, "/console/ws") &&
 				strings.Compare(c.Request().Method, http.MethodGet) == 0 &&
 				strings.Compare(c.Request().URL.RawQuery, "") == 0 &&
-				strings.Contains(c.Request().Header.Get("Connection"), "Upgrade") &&
-				strings.Compare(c.Request().Header.Get("Upgrade"), "websocket") == 0 {
+				strings.Contains(strings.ToLower(c.Request().Header.Get("Connection")), "upgrade") &&
+				strings.Compare(strings.ToLower(c.Request().Header.Get("Upgrade")), "websocket") == 0 {
 				return true
 			}
 
