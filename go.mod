@@ -23,12 +23,8 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.31.0
-<<<<<<< HEAD
-	github.com/vektah/gqlparser/v2 v2.5.13
-=======
 	github.com/tredoe/osutil v1.5.0
 	github.com/vektah/gqlparser/v2 v2.5.14
->>>>>>> 986a747 (feat: access list based basic authentication (#769))
 	github.com/xlzd/gotp v0.1.0
 	golang.org/x/term v0.21.0
 	gopkg.in/yaml.v3 v3.0.1
