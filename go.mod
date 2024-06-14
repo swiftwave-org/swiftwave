@@ -5,7 +5,7 @@ go 1.21.7
 require (
 	ariga.io/atlas-provider-gorm v0.5.0
 	github.com/99designs/gqlgen v0.17.48
-	github.com/aws/aws-sdk-go v1.53.21
+	github.com/aws/aws-sdk-go v1.54.1
 	github.com/docker/docker v26.1.4+incompatible
 	github.com/fatih/color v1.17.0
 	github.com/go-git/go-git/v5 v5.12.0
