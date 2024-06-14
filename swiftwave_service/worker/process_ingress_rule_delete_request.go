@@ -89,6 +89,19 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 	transactionIdMap := make(map[*haproxymanager.Manager]string)
 	isFailed := false
 
+	// auth info
+	authType := ingressRule.Authentication.AuthType
+	authBasicUserlist := ""
+
+	if authType == core.IngressRuleBasicAuthentication {
+		record := &core.AppBasicAuthAccessControlList{}
+		err = record.FindById(ctx, &dbWithoutTx, *ingressRule.Authentication.AppBasicAuthAccessControlListID)
+		if err != nil {
+			return err
+		}
+		authBasicUserlist = record.GeneratedName
+	}
+
 	for _, haproxyManager := range haproxyManagers {
 		// check if ingress rules is not udp based
 		if ingressRule.Protocol == core.UDPProtocol {
@@ -153,6 +166,17 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 		} else {
 			// unknown protocol
 			return nil
+		}
+
+		// disable basic auth if required
+		if ingressRule.Protocol == core.HTTPProtocol || ingressRule.Protocol == core.HTTPSProtocol {
+			if authType == core.IngressRuleBasicAuthentication {
+				err = haproxyManager.RemoveBasicAuthentication(haproxyTransactionId, haproxymanager.HTTPMode, int(ingressRule.Port), domain.Name, authBasicUserlist)
+				if err != nil {
+					isFailed = true
+					break
+				}
+			}
 		}
 
 		// delete backend

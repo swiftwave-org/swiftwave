@@ -133,6 +133,14 @@ const (
 	IngressRuleStatusDeleting IngressRuleStatus = "deleting"
 )
 
+// IngressRuleAuthenticationType type of authentication for ingress rule
+type IngressRuleAuthenticationType string
+
+const (
+	IngressRuleNoAuthentication    IngressRuleAuthenticationType = "none"
+	IngressRuleBasicAuthentication IngressRuleAuthenticationType = "basic"
+)
+
 // RedirectRuleStatus : status of the redirect rule
 type RedirectRuleStatus string
 
