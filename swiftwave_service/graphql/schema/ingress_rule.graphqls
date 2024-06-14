@@ -10,6 +10,11 @@ enum IngressRuleTargetType {
     externalService
 }
 
+enum IngressRuleAuthenticationType {
+    none
+    basic
+}
+
 input IngressRuleInput {
     domainId: Uint
     targetType: IngressRuleTargetType!
@@ -38,6 +43,9 @@ type IngressRule {
     externalService: String!
     targetPort: Uint!
     httpsRedirect: Boolean!
+    authenticationType: IngressRuleAuthenticationType!
+    basicAuthAccessControlListID: Uint!
+    basicAuthAccessControlListName: String!
     status: IngressRuleStatus!
     createdAt: Time!
     updatedAt: Time!

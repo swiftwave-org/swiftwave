@@ -106,6 +106,8 @@ models:
         resolver: true
       application:
         resolver: true
+      basicAuthAccessControlListName:
+        resolver: true
   RedirectRule:
     fields:
       domain:

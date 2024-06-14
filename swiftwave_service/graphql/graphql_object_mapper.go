@@ -464,9 +464,12 @@ func ingressRuleInputToDatabaseObject(record *model.IngressRuleInput) *core.Ingr
 		Port:            record.Port,
 		TargetPort:      record.TargetPort,
 		HttpsRedirect:   false,
-		Status:          core.IngressRuleStatusPending,
-		CreatedAt:       time.Now(),
-		UpdatedAt:       time.Now(),
+		Authentication: core.IngressRuleAuthentication{
+			AuthType: core.IngressRuleNoAuthentication,
+		},
+		Status:    core.IngressRuleStatusPending,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 }
 
@@ -489,18 +492,20 @@ func ingressRuleValidationInputToDatabaseObject(record *model.IngressRuleValidat
 // ingressRuleToGraphqlObject converts IngressRule to IngressRuleGraphqlObject
 func ingressRuleToGraphqlObject(record *core.IngressRule) *model.IngressRule {
 	return &model.IngressRule{
-		ID:              record.ID,
-		TargetType:      model.IngressRuleTargetType(record.TargetType),
-		ExternalService: record.ExternalService,
-		ApplicationID:   DefaultString(record.ApplicationID, ""),
-		DomainID:        record.DomainID,
-		Protocol:        model.ProtocolType(record.Protocol),
-		Port:            record.Port,
-		TargetPort:      record.TargetPort,
-		Status:          model.IngressRuleStatus(record.Status),
-		HTTPSRedirect:   record.HttpsRedirect,
-		CreatedAt:       record.CreatedAt,
-		UpdatedAt:       record.UpdatedAt,
+		ID:                           record.ID,
+		TargetType:                   model.IngressRuleTargetType(record.TargetType),
+		ExternalService:              record.ExternalService,
+		ApplicationID:                DefaultString(record.ApplicationID, ""),
+		DomainID:                     record.DomainID,
+		Protocol:                     model.ProtocolType(record.Protocol),
+		Port:                         record.Port,
+		TargetPort:                   record.TargetPort,
+		AuthenticationType:           model.IngressRuleAuthenticationType(record.Authentication.AuthType),
+		BasicAuthAccessControlListID: record.Authentication.AppBasicAuthAccessControlListID,
+		Status:                       model.IngressRuleStatus(record.Status),
+		HTTPSRedirect:                record.HttpsRedirect,
+		CreatedAt:                    record.CreatedAt,
+		UpdatedAt:                    record.UpdatedAt,
 	}
 }
 

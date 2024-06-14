@@ -8,12 +8,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	haproxymanager "github.com/swiftwave-org/swiftwave/haproxy_manager"
-	"gorm.io/gorm"
 	"strings"
 
+	haproxymanager "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
+	"gorm.io/gorm"
 )
 
 // Domain is the resolver for the domain field.
@@ -40,6 +40,20 @@ func (r *ingressRuleResolver) Application(ctx context.Context, obj *model.Ingres
 		return nil, err
 	}
 	return applicationToGraphqlObject(application), nil
+}
+
+// BasicAuthAccessControlListName is the resolver for the basicAuthAccessControlListName field.
+func (r *ingressRuleResolver) BasicAuthAccessControlListName(ctx context.Context, obj *model.IngressRule) (string, error) {
+	if obj.AuthenticationType == model.IngressRuleAuthenticationTypeBasic {
+		appBasicAuthAccessControlList := &core.AppBasicAuthAccessControlList{}
+		err := appBasicAuthAccessControlList.FindById(ctx, &r.ServiceManager.DbClient, obj.BasicAuthAccessControlListID)
+		if err != nil {
+			return "", err
+		}
+		return appBasicAuthAccessControlList.Name, nil
+	} else {
+		return "", nil
+	}
 }
 
 // CreateIngressRule is the resolver for the createIngressRule field.

@@ -284,20 +284,23 @@ type ImageRegistryCredentialInput struct {
 }
 
 type IngressRule struct {
-	ID              uint                  `json:"id"`
-	TargetType      IngressRuleTargetType `json:"targetType"`
-	DomainID        *uint                 `json:"domainId,omitempty"`
-	Domain          *Domain               `json:"domain,omitempty"`
-	Protocol        ProtocolType          `json:"protocol"`
-	Port            uint                  `json:"port"`
-	ApplicationID   string                `json:"applicationId"`
-	Application     *Application          `json:"application"`
-	ExternalService string                `json:"externalService"`
-	TargetPort      uint                  `json:"targetPort"`
-	HTTPSRedirect   bool                  `json:"httpsRedirect"`
-	Status          IngressRuleStatus     `json:"status"`
-	CreatedAt       time.Time             `json:"createdAt"`
-	UpdatedAt       time.Time             `json:"updatedAt"`
+	ID                             uint                          `json:"id"`
+	TargetType                     IngressRuleTargetType         `json:"targetType"`
+	DomainID                       *uint                         `json:"domainId,omitempty"`
+	Domain                         *Domain                       `json:"domain,omitempty"`
+	Protocol                       ProtocolType                  `json:"protocol"`
+	Port                           uint                          `json:"port"`
+	ApplicationID                  string                        `json:"applicationId"`
+	Application                    *Application                  `json:"application"`
+	ExternalService                string                        `json:"externalService"`
+	TargetPort                     uint                          `json:"targetPort"`
+	HTTPSRedirect                  bool                          `json:"httpsRedirect"`
+	AuthenticationType             IngressRuleAuthenticationType `json:"authenticationType"`
+	BasicAuthAccessControlListID   uint                          `json:"basicAuthAccessControlListID"`
+	BasicAuthAccessControlListName string                        `json:"basicAuthAccessControlListName"`
+	Status                         IngressRuleStatus             `json:"status"`
+	CreatedAt                      time.Time                     `json:"createdAt"`
+	UpdatedAt                      time.Time                     `json:"updatedAt"`
 }
 
 type IngressRuleInput struct {
@@ -818,6 +821,47 @@ func (e *GitType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e GitType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type IngressRuleAuthenticationType string
+
+const (
+	IngressRuleAuthenticationTypeNone  IngressRuleAuthenticationType = "none"
+	IngressRuleAuthenticationTypeBasic IngressRuleAuthenticationType = "basic"
+)
+
+var AllIngressRuleAuthenticationType = []IngressRuleAuthenticationType{
+	IngressRuleAuthenticationTypeNone,
+	IngressRuleAuthenticationTypeBasic,
+}
+
+func (e IngressRuleAuthenticationType) IsValid() bool {
+	switch e {
+	case IngressRuleAuthenticationTypeNone, IngressRuleAuthenticationTypeBasic:
+		return true
+	}
+	return false
+}
+
+func (e IngressRuleAuthenticationType) String() string {
+	return string(e)
+}
+
+func (e *IngressRuleAuthenticationType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = IngressRuleAuthenticationType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid IngressRuleAuthenticationType", str)
+	}
+	return nil
+}
+
+func (e IngressRuleAuthenticationType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

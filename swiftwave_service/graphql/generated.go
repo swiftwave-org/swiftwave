@@ -229,20 +229,23 @@ type ComplexityRoot struct {
 	}
 
 	IngressRule struct {
-		Application     func(childComplexity int) int
-		ApplicationID   func(childComplexity int) int
-		CreatedAt       func(childComplexity int) int
-		Domain          func(childComplexity int) int
-		DomainID        func(childComplexity int) int
-		ExternalService func(childComplexity int) int
-		HTTPSRedirect   func(childComplexity int) int
-		ID              func(childComplexity int) int
-		Port            func(childComplexity int) int
-		Protocol        func(childComplexity int) int
-		Status          func(childComplexity int) int
-		TargetPort      func(childComplexity int) int
-		TargetType      func(childComplexity int) int
-		UpdatedAt       func(childComplexity int) int
+		Application                    func(childComplexity int) int
+		ApplicationID                  func(childComplexity int) int
+		AuthenticationType             func(childComplexity int) int
+		BasicAuthAccessControlListID   func(childComplexity int) int
+		BasicAuthAccessControlListName func(childComplexity int) int
+		CreatedAt                      func(childComplexity int) int
+		Domain                         func(childComplexity int) int
+		DomainID                       func(childComplexity int) int
+		ExternalService                func(childComplexity int) int
+		HTTPSRedirect                  func(childComplexity int) int
+		ID                             func(childComplexity int) int
+		Port                           func(childComplexity int) int
+		Protocol                       func(childComplexity int) int
+		Status                         func(childComplexity int) int
+		TargetPort                     func(childComplexity int) int
+		TargetType                     func(childComplexity int) int
+		UpdatedAt                      func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -555,6 +558,8 @@ type IngressRuleResolver interface {
 	Domain(ctx context.Context, obj *model.IngressRule) (*model.Domain, error)
 
 	Application(ctx context.Context, obj *model.IngressRule) (*model.Application, error)
+
+	BasicAuthAccessControlListName(ctx context.Context, obj *model.IngressRule) (string, error)
 }
 type MutationResolver interface {
 	CreateAppBasicAuthAccessControlList(ctx context.Context, input model.AppBasicAuthAccessControlListInput) (*model.AppBasicAuthAccessControlList, error)
@@ -1519,6 +1524,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.IngressRule.ApplicationID(childComplexity), true
+
+	case "IngressRule.authenticationType":
+		if e.complexity.IngressRule.AuthenticationType == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.AuthenticationType(childComplexity), true
+
+	case "IngressRule.basicAuthAccessControlListID":
+		if e.complexity.IngressRule.BasicAuthAccessControlListID == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.BasicAuthAccessControlListID(childComplexity), true
+
+	case "IngressRule.basicAuthAccessControlListName":
+		if e.complexity.IngressRule.BasicAuthAccessControlListName == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.BasicAuthAccessControlListName(childComplexity), true
 
 	case "IngressRule.createdAt":
 		if e.complexity.IngressRule.CreatedAt == nil {
@@ -6426,6 +6452,12 @@ func (ec *executionContext) fieldContext_Application_ingressRules(_ context.Cont
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
 			case "httpsRedirect":
 				return ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
+			case "authenticationType":
+				return ec.fieldContext_IngressRule_authenticationType(ctx, field)
+			case "basicAuthAccessControlListID":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListID(ctx, field)
+			case "basicAuthAccessControlListName":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListName(ctx, field)
 			case "status":
 				return ec.fieldContext_IngressRule_status(ctx, field)
 			case "createdAt":
@@ -9914,6 +9946,12 @@ func (ec *executionContext) fieldContext_Domain_ingressRules(_ context.Context, 
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
 			case "httpsRedirect":
 				return ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
+			case "authenticationType":
+				return ec.fieldContext_IngressRule_authenticationType(ctx, field)
+			case "basicAuthAccessControlListID":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListID(ctx, field)
+			case "basicAuthAccessControlListName":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListName(ctx, field)
 			case "status":
 				return ec.fieldContext_IngressRule_status(ctx, field)
 			case "createdAt":
@@ -11286,6 +11324,138 @@ func (ec *executionContext) fieldContext_IngressRule_httpsRedirect(_ context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_authenticationType(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_authenticationType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AuthenticationType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.IngressRuleAuthenticationType)
+	fc.Result = res
+	return ec.marshalNIngressRuleAuthenticationType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleAuthenticationType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_authenticationType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type IngressRuleAuthenticationType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_basicAuthAccessControlListID(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_basicAuthAccessControlListID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BasicAuthAccessControlListID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_basicAuthAccessControlListID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_basicAuthAccessControlListName(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_basicAuthAccessControlListName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.IngressRule().BasicAuthAccessControlListName(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_basicAuthAccessControlListName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -13077,6 +13247,12 @@ func (ec *executionContext) fieldContext_Mutation_createIngressRule(ctx context.
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
 			case "httpsRedirect":
 				return ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
+			case "authenticationType":
+				return ec.fieldContext_IngressRule_authenticationType(ctx, field)
+			case "basicAuthAccessControlListID":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListID(ctx, field)
+			case "basicAuthAccessControlListName":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListName(ctx, field)
 			case "status":
 				return ec.fieldContext_IngressRule_status(ctx, field)
 			case "createdAt":
@@ -18386,6 +18562,12 @@ func (ec *executionContext) fieldContext_Query_ingressRule(ctx context.Context, 
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
 			case "httpsRedirect":
 				return ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
+			case "authenticationType":
+				return ec.fieldContext_IngressRule_authenticationType(ctx, field)
+			case "basicAuthAccessControlListID":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListID(ctx, field)
+			case "basicAuthAccessControlListName":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListName(ctx, field)
 			case "status":
 				return ec.fieldContext_IngressRule_status(ctx, field)
 			case "createdAt":
@@ -18471,6 +18653,12 @@ func (ec *executionContext) fieldContext_Query_ingressRules(_ context.Context, f
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
 			case "httpsRedirect":
 				return ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
+			case "authenticationType":
+				return ec.fieldContext_IngressRule_authenticationType(ctx, field)
+			case "basicAuthAccessControlListID":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListID(ctx, field)
+			case "basicAuthAccessControlListName":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListName(ctx, field)
 			case "status":
 				return ec.fieldContext_IngressRule_status(ctx, field)
 			case "createdAt":
@@ -27774,6 +27962,52 @@ func (ec *executionContext) _IngressRule(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "authenticationType":
+			out.Values[i] = ec._IngressRule_authenticationType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "basicAuthAccessControlListID":
+			out.Values[i] = ec._IngressRule_basicAuthAccessControlListID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "basicAuthAccessControlListName":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IngressRule_basicAuthAccessControlListName(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "status":
 			out.Values[i] = ec._IngressRule_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -32039,6 +32273,16 @@ func (ec *executionContext) marshalNIngressRule2ᚖgithubᚗcomᚋswiftwaveᚑor
 		return graphql.Null
 	}
 	return ec._IngressRule(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNIngressRuleAuthenticationType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleAuthenticationType(ctx context.Context, v interface{}) (model.IngressRuleAuthenticationType, error) {
+	var res model.IngressRuleAuthenticationType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNIngressRuleAuthenticationType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleAuthenticationType(ctx context.Context, sel ast.SelectionSet, v model.IngressRuleAuthenticationType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNIngressRuleInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleInput(ctx context.Context, v interface{}) (model.IngressRuleInput, error) {
