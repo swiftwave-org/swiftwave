@@ -41,6 +41,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	AppBasicAuthAccessControlList() AppBasicAuthAccessControlListResolver
 	Application() ApplicationResolver
 	Deployment() DeploymentResolver
 	Domain() DomainResolver
@@ -60,6 +61,18 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	AppBasicAuthAccessControlList struct {
+		GeneratedName func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Name          func(childComplexity int) int
+		Users         func(childComplexity int) int
+	}
+
+	AppBasicAuthAccessControlUser struct {
+		ID       func(childComplexity int) int
+		Username func(childComplexity int) int
+	}
+
 	Application struct {
 		Capabilities             func(childComplexity int) int
 		Command                  func(childComplexity int) int
@@ -216,20 +229,23 @@ type ComplexityRoot struct {
 	}
 
 	IngressRule struct {
-		Application     func(childComplexity int) int
-		ApplicationID   func(childComplexity int) int
-		CreatedAt       func(childComplexity int) int
-		Domain          func(childComplexity int) int
-		DomainID        func(childComplexity int) int
-		ExternalService func(childComplexity int) int
-		HTTPSRedirect   func(childComplexity int) int
-		ID              func(childComplexity int) int
-		Port            func(childComplexity int) int
-		Protocol        func(childComplexity int) int
-		Status          func(childComplexity int) int
-		TargetPort      func(childComplexity int) int
-		TargetType      func(childComplexity int) int
-		UpdatedAt       func(childComplexity int) int
+		Application                    func(childComplexity int) int
+		ApplicationID                  func(childComplexity int) int
+		AuthenticationType             func(childComplexity int) int
+		BasicAuthAccessControlListID   func(childComplexity int) int
+		BasicAuthAccessControlListName func(childComplexity int) int
+		CreatedAt                      func(childComplexity int) int
+		Domain                         func(childComplexity int) int
+		DomainID                       func(childComplexity int) int
+		ExternalService                func(childComplexity int) int
+		HTTPSRedirect                  func(childComplexity int) int
+		ID                             func(childComplexity int) int
+		Port                           func(childComplexity int) int
+		Protocol                       func(childComplexity int) int
+		Status                         func(childComplexity int) int
+		TargetPort                     func(childComplexity int) int
+		TargetType                     func(childComplexity int) int
+		UpdatedAt                      func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -243,6 +259,8 @@ type ComplexityRoot struct {
 		ChangeServerSSHPort                                func(childComplexity int, id uint, port int) int
 		CheckDependenciesOnServer                          func(childComplexity int, id uint) int
 		CleanupStack                                       func(childComplexity int, input model.StackInput) int
+		CreateAppBasicAuthAccessControlList                func(childComplexity int, input model.AppBasicAuthAccessControlListInput) int
+		CreateAppBasicAuthAccessControlUser                func(childComplexity int, input model.AppBasicAuthAccessControlUserInput) int
 		CreateApplication                                  func(childComplexity int, input model.ApplicationInput) int
 		CreateGitCredential                                func(childComplexity int, input model.GitCredentialInput) int
 		CreateImageRegistryCredential                      func(childComplexity int, input model.ImageRegistryCredentialInput) int
@@ -251,6 +269,8 @@ type ComplexityRoot struct {
 		CreateRedirectRule                                 func(childComplexity int, input model.RedirectRuleInput) int
 		CreateServer                                       func(childComplexity int, input model.NewServerInput) int
 		CreateUser                                         func(childComplexity int, input *model.UserInput) int
+		DeleteAppBasicAuthAccessControlList                func(childComplexity int, id uint) int
+		DeleteAppBasicAuthAccessControlUser                func(childComplexity int, id uint) int
 		DeleteApplication                                  func(childComplexity int, id string) int
 		DeleteGitCredential                                func(childComplexity int, id uint) int
 		DeleteImageRegistryCredential                      func(childComplexity int, id uint) int
@@ -266,6 +286,7 @@ type ComplexityRoot struct {
 		DemoteServerToWorker                               func(childComplexity int, id uint) int
 		DeployStack                                        func(childComplexity int, input model.StackInput) int
 		DisableHTTPSRedirectIngressRule                    func(childComplexity int, id uint) int
+		DisableIngressRuleProtection                       func(childComplexity int, id uint) int
 		DisableProxyOnServer                               func(childComplexity int, id uint) int
 		DisableTotp                                        func(childComplexity int) int
 		EnableHTTPSRedirectIngressRule                     func(childComplexity int, id uint) int
@@ -275,6 +296,7 @@ type ComplexityRoot struct {
 		InstallDependenciesOnServer                        func(childComplexity int, id uint) int
 		IssueSsl                                           func(childComplexity int, id uint) int
 		PromoteServerToManager                             func(childComplexity int, id uint) int
+		ProtectIngressRuleUsingBasicAuth                   func(childComplexity int, id uint, appBasicAuthAccessControlListID uint) int
 		PutServerInMaintenanceMode                         func(childComplexity int, id uint) int
 		PutServerOutOfMaintenanceMode                      func(childComplexity int, id uint) int
 		RebuildApplication                                 func(childComplexity int, id string) int
@@ -289,6 +311,7 @@ type ComplexityRoot struct {
 		SetupServer                                        func(childComplexity int, input model.ServerSetupInput) int
 		SleepApplication                                   func(childComplexity int, id string) int
 		TestSSHAccessToServer                              func(childComplexity int, id uint) int
+		UpdateAppBasicAuthAccessControlUserPassword        func(childComplexity int, id uint, password string) int
 		UpdateApplication                                  func(childComplexity int, id string, input model.ApplicationInput) int
 		UpdateApplicationGroup                             func(childComplexity int, id string, group string) int
 		UpdateGitCredential                                func(childComplexity int, id uint, input model.GitCredentialInput) int
@@ -346,6 +369,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		AppBasicAuthAccessControlLists     func(childComplexity int) int
 		Application                        func(childComplexity int, id string) int
 		ApplicationGroups                  func(childComplexity int) int
 		ApplicationResourceAnalytics       func(childComplexity int, id string, timeframe model.ApplicationResourceAnalyticsTimeframe) int
@@ -498,6 +522,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type AppBasicAuthAccessControlListResolver interface {
+	Users(ctx context.Context, obj *model.AppBasicAuthAccessControlList) ([]*model.AppBasicAuthAccessControlUser, error)
+}
 type ApplicationResolver interface {
 	EnvironmentVariables(ctx context.Context, obj *model.Application) ([]*model.EnvironmentVariable, error)
 	PersistentVolumeBindings(ctx context.Context, obj *model.Application) ([]*model.PersistentVolumeBinding, error)
@@ -531,8 +558,15 @@ type IngressRuleResolver interface {
 	Domain(ctx context.Context, obj *model.IngressRule) (*model.Domain, error)
 
 	Application(ctx context.Context, obj *model.IngressRule) (*model.Application, error)
+
+	BasicAuthAccessControlListName(ctx context.Context, obj *model.IngressRule) (string, error)
 }
 type MutationResolver interface {
+	CreateAppBasicAuthAccessControlList(ctx context.Context, input model.AppBasicAuthAccessControlListInput) (*model.AppBasicAuthAccessControlList, error)
+	DeleteAppBasicAuthAccessControlList(ctx context.Context, id uint) (bool, error)
+	CreateAppBasicAuthAccessControlUser(ctx context.Context, input model.AppBasicAuthAccessControlUserInput) (*model.AppBasicAuthAccessControlUser, error)
+	UpdateAppBasicAuthAccessControlUserPassword(ctx context.Context, id uint, password string) (bool, error)
+	DeleteAppBasicAuthAccessControlUser(ctx context.Context, id uint) (bool, error)
 	CreateApplication(ctx context.Context, input model.ApplicationInput) (*model.Application, error)
 	UpdateApplication(ctx context.Context, id string, input model.ApplicationInput) (*model.Application, error)
 	UpdateApplicationGroup(ctx context.Context, id string, group string) (bool, error)
@@ -558,6 +592,8 @@ type MutationResolver interface {
 	EnableHTTPSRedirectIngressRule(ctx context.Context, id uint) (bool, error)
 	DisableHTTPSRedirectIngressRule(ctx context.Context, id uint) (bool, error)
 	DeleteIngressRule(ctx context.Context, id uint) (bool, error)
+	ProtectIngressRuleUsingBasicAuth(ctx context.Context, id uint, appBasicAuthAccessControlListID uint) (bool, error)
+	DisableIngressRuleProtection(ctx context.Context, id uint) (bool, error)
 	CreatePersistentVolume(ctx context.Context, input model.PersistentVolumeInput) (*model.PersistentVolume, error)
 	DeletePersistentVolume(ctx context.Context, id uint) (bool, error)
 	BackupPersistentVolume(ctx context.Context, input model.PersistentVolumeBackupInput) (*model.PersistentVolumeBackup, error)
@@ -607,6 +643,7 @@ type PersistentVolumeBindingResolver interface {
 	Application(ctx context.Context, obj *model.PersistentVolumeBinding) (*model.Application, error)
 }
 type QueryResolver interface {
+	AppBasicAuthAccessControlLists(ctx context.Context) ([]*model.AppBasicAuthAccessControlList, error)
 	Application(ctx context.Context, id string) (*model.Application, error)
 	Applications(ctx context.Context) ([]*model.Application, error)
 	ApplicationsByGroup(ctx context.Context, group string) ([]*model.Application, error)
@@ -682,6 +719,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "AppBasicAuthAccessControlList.generatedName":
+		if e.complexity.AppBasicAuthAccessControlList.GeneratedName == nil {
+			break
+		}
+
+		return e.complexity.AppBasicAuthAccessControlList.GeneratedName(childComplexity), true
+
+	case "AppBasicAuthAccessControlList.id":
+		if e.complexity.AppBasicAuthAccessControlList.ID == nil {
+			break
+		}
+
+		return e.complexity.AppBasicAuthAccessControlList.ID(childComplexity), true
+
+	case "AppBasicAuthAccessControlList.name":
+		if e.complexity.AppBasicAuthAccessControlList.Name == nil {
+			break
+		}
+
+		return e.complexity.AppBasicAuthAccessControlList.Name(childComplexity), true
+
+	case "AppBasicAuthAccessControlList.users":
+		if e.complexity.AppBasicAuthAccessControlList.Users == nil {
+			break
+		}
+
+		return e.complexity.AppBasicAuthAccessControlList.Users(childComplexity), true
+
+	case "AppBasicAuthAccessControlUser.id":
+		if e.complexity.AppBasicAuthAccessControlUser.ID == nil {
+			break
+		}
+
+		return e.complexity.AppBasicAuthAccessControlUser.ID(childComplexity), true
+
+	case "AppBasicAuthAccessControlUser.username":
+		if e.complexity.AppBasicAuthAccessControlUser.Username == nil {
+			break
+		}
+
+		return e.complexity.AppBasicAuthAccessControlUser.Username(childComplexity), true
 
 	case "Application.capabilities":
 		if e.complexity.Application.Capabilities == nil {
@@ -1446,6 +1525,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.IngressRule.ApplicationID(childComplexity), true
 
+	case "IngressRule.authenticationType":
+		if e.complexity.IngressRule.AuthenticationType == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.AuthenticationType(childComplexity), true
+
+	case "IngressRule.basicAuthAccessControlListID":
+		if e.complexity.IngressRule.BasicAuthAccessControlListID == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.BasicAuthAccessControlListID(childComplexity), true
+
+	case "IngressRule.basicAuthAccessControlListName":
+		if e.complexity.IngressRule.BasicAuthAccessControlListName == nil {
+			break
+		}
+
+		return e.complexity.IngressRule.BasicAuthAccessControlListName(childComplexity), true
+
 	case "IngressRule.createdAt":
 		if e.complexity.IngressRule.CreatedAt == nil {
 			break
@@ -1650,6 +1750,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CleanupStack(childComplexity, args["input"].(model.StackInput)), true
 
+	case "Mutation.createAppBasicAuthAccessControlList":
+		if e.complexity.Mutation.CreateAppBasicAuthAccessControlList == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createAppBasicAuthAccessControlList_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateAppBasicAuthAccessControlList(childComplexity, args["input"].(model.AppBasicAuthAccessControlListInput)), true
+
+	case "Mutation.createAppBasicAuthAccessControlUser":
+		if e.complexity.Mutation.CreateAppBasicAuthAccessControlUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createAppBasicAuthAccessControlUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateAppBasicAuthAccessControlUser(childComplexity, args["input"].(model.AppBasicAuthAccessControlUserInput)), true
+
 	case "Mutation.createApplication":
 		if e.complexity.Mutation.CreateApplication == nil {
 			break
@@ -1745,6 +1869,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(*model.UserInput)), true
+
+	case "Mutation.deleteAppBasicAuthAccessControlList":
+		if e.complexity.Mutation.DeleteAppBasicAuthAccessControlList == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteAppBasicAuthAccessControlList_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteAppBasicAuthAccessControlList(childComplexity, args["id"].(uint)), true
+
+	case "Mutation.deleteAppBasicAuthAccessControlUser":
+		if e.complexity.Mutation.DeleteAppBasicAuthAccessControlUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteAppBasicAuthAccessControlUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteAppBasicAuthAccessControlUser(childComplexity, args["id"].(uint)), true
 
 	case "Mutation.deleteApplication":
 		if e.complexity.Mutation.DeleteApplication == nil {
@@ -1926,6 +2074,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DisableHTTPSRedirectIngressRule(childComplexity, args["id"].(uint)), true
 
+	case "Mutation.disableIngressRuleProtection":
+		if e.complexity.Mutation.DisableIngressRuleProtection == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_disableIngressRuleProtection_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DisableIngressRuleProtection(childComplexity, args["id"].(uint)), true
+
 	case "Mutation.disableProxyOnServer":
 		if e.complexity.Mutation.DisableProxyOnServer == nil {
 			break
@@ -2028,6 +2188,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.PromoteServerToManager(childComplexity, args["id"].(uint)), true
+
+	case "Mutation.protectIngressRuleUsingBasicAuth":
+		if e.complexity.Mutation.ProtectIngressRuleUsingBasicAuth == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_protectIngressRuleUsingBasicAuth_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ProtectIngressRuleUsingBasicAuth(childComplexity, args["id"].(uint), args["appBasicAuthAccessControlListId"].(uint)), true
 
 	case "Mutation.putServerInMaintenanceMode":
 		if e.complexity.Mutation.PutServerInMaintenanceMode == nil {
@@ -2186,6 +2358,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.TestSSHAccessToServer(childComplexity, args["id"].(uint)), true
+
+	case "Mutation.updateAppBasicAuthAccessControlUserPassword":
+		if e.complexity.Mutation.UpdateAppBasicAuthAccessControlUserPassword == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateAppBasicAuthAccessControlUserPassword_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateAppBasicAuthAccessControlUserPassword(childComplexity, args["id"].(uint), args["password"].(string)), true
 
 	case "Mutation.updateApplication":
 		if e.complexity.Mutation.UpdateApplication == nil {
@@ -2468,6 +2652,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PersistentVolumeRestore.Type(childComplexity), true
+
+	case "Query.appBasicAuthAccessControlLists":
+		if e.complexity.Query.AppBasicAuthAccessControlLists == nil {
+			break
+		}
+
+		return e.complexity.Query.AppBasicAuthAccessControlLists(childComplexity), true
 
 	case "Query.application":
 		if e.complexity.Query.Application == nil {
@@ -3371,6 +3562,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputAppBasicAuthAccessControlListInput,
+		ec.unmarshalInputAppBasicAuthAccessControlUserInput,
 		ec.unmarshalInputApplicationInput,
 		ec.unmarshalInputBuildArgInput,
 		ec.unmarshalInputCIFSConfigInput,
@@ -3512,7 +3705,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/config_mount.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/totp.graphqls" "schema/user.graphqls.graphqls"
+//go:embed "schema/app_authentication.graphqls" "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/config_mount.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/totp.graphqls" "schema/user.graphqls.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -3524,6 +3717,7 @@ func sourceData(filename string) string {
 }
 
 var sources = []*ast.Source{
+	{Name: "schema/app_authentication.graphqls", Input: sourceData("schema/app_authentication.graphqls"), BuiltIn: false},
 	{Name: "schema/application.graphqls", Input: sourceData("schema/application.graphqls"), BuiltIn: false},
 	{Name: "schema/base.graphqls", Input: sourceData("schema/base.graphqls"), BuiltIn: false},
 	{Name: "schema/build_arg.graphqls", Input: sourceData("schema/build_arg.graphqls"), BuiltIn: false},
@@ -3736,6 +3930,36 @@ func (ec *executionContext) field_Mutation_cleanupStack_args(ctx context.Context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createAppBasicAuthAccessControlList_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.AppBasicAuthAccessControlListInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNAppBasicAuthAccessControlListInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlListInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createAppBasicAuthAccessControlUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.AppBasicAuthAccessControlUserInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNAppBasicAuthAccessControlUserInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlUserInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createApplication_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3853,6 +4077,36 @@ func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, 
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteAppBasicAuthAccessControlList_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteAppBasicAuthAccessControlUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -4081,6 +4335,21 @@ func (ec *executionContext) field_Mutation_disableHttpsRedirectIngressRule_args(
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_disableIngressRuleProtection_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_disableProxyOnServer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4216,6 +4485,30 @@ func (ec *executionContext) field_Mutation_promoteServerToManager_args(ctx conte
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_protectIngressRuleUsingBasicAuth_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 uint
+	if tmp, ok := rawArgs["appBasicAuthAccessControlListId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appBasicAuthAccessControlListId"))
+		arg1, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["appBasicAuthAccessControlListId"] = arg1
 	return args, nil
 }
 
@@ -4396,6 +4689,30 @@ func (ec *executionContext) field_Mutation_testSSHAccessToServer_args(ctx contex
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateAppBasicAuthAccessControlUserPassword_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["password"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["password"] = arg1
 	return args, nil
 }
 
@@ -5039,6 +5356,276 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _AppBasicAuthAccessControlList_id(ctx context.Context, field graphql.CollectedField, obj *model.AppBasicAuthAccessControlList) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AppBasicAuthAccessControlList_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AppBasicAuthAccessControlList_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AppBasicAuthAccessControlList",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AppBasicAuthAccessControlList_name(ctx context.Context, field graphql.CollectedField, obj *model.AppBasicAuthAccessControlList) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AppBasicAuthAccessControlList_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AppBasicAuthAccessControlList_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AppBasicAuthAccessControlList",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AppBasicAuthAccessControlList_generatedName(ctx context.Context, field graphql.CollectedField, obj *model.AppBasicAuthAccessControlList) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AppBasicAuthAccessControlList_generatedName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GeneratedName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AppBasicAuthAccessControlList_generatedName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AppBasicAuthAccessControlList",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AppBasicAuthAccessControlList_users(ctx context.Context, field graphql.CollectedField, obj *model.AppBasicAuthAccessControlList) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AppBasicAuthAccessControlList_users(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AppBasicAuthAccessControlList().Users(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.AppBasicAuthAccessControlUser)
+	fc.Result = res
+	return ec.marshalNAppBasicAuthAccessControlUser2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlUserᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AppBasicAuthAccessControlList_users(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AppBasicAuthAccessControlList",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AppBasicAuthAccessControlUser_id(ctx, field)
+			case "username":
+				return ec.fieldContext_AppBasicAuthAccessControlUser_username(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AppBasicAuthAccessControlUser", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AppBasicAuthAccessControlUser_id(ctx context.Context, field graphql.CollectedField, obj *model.AppBasicAuthAccessControlUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AppBasicAuthAccessControlUser_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNUint2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AppBasicAuthAccessControlUser_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AppBasicAuthAccessControlUser",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AppBasicAuthAccessControlUser_username(ctx context.Context, field graphql.CollectedField, obj *model.AppBasicAuthAccessControlUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AppBasicAuthAccessControlUser_username(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Username, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AppBasicAuthAccessControlUser_username(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AppBasicAuthAccessControlUser",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Application_id(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Application_id(ctx, field)
@@ -5865,6 +6452,12 @@ func (ec *executionContext) fieldContext_Application_ingressRules(_ context.Cont
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
 			case "httpsRedirect":
 				return ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
+			case "authenticationType":
+				return ec.fieldContext_IngressRule_authenticationType(ctx, field)
+			case "basicAuthAccessControlListID":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListID(ctx, field)
+			case "basicAuthAccessControlListName":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListName(ctx, field)
 			case "status":
 				return ec.fieldContext_IngressRule_status(ctx, field)
 			case "createdAt":
@@ -9353,6 +9946,12 @@ func (ec *executionContext) fieldContext_Domain_ingressRules(_ context.Context, 
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
 			case "httpsRedirect":
 				return ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
+			case "authenticationType":
+				return ec.fieldContext_IngressRule_authenticationType(ctx, field)
+			case "basicAuthAccessControlListID":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListID(ctx, field)
+			case "basicAuthAccessControlListName":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListName(ctx, field)
 			case "status":
 				return ec.fieldContext_IngressRule_status(ctx, field)
 			case "createdAt":
@@ -10730,6 +11329,135 @@ func (ec *executionContext) fieldContext_IngressRule_httpsRedirect(_ context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _IngressRule_authenticationType(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_authenticationType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AuthenticationType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.IngressRuleAuthenticationType)
+	fc.Result = res
+	return ec.marshalNIngressRuleAuthenticationType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleAuthenticationType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_authenticationType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type IngressRuleAuthenticationType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_basicAuthAccessControlListID(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_basicAuthAccessControlListID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BasicAuthAccessControlListID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*uint)
+	fc.Result = res
+	return ec.marshalOUint2ᚖuint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_basicAuthAccessControlListID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngressRule_basicAuthAccessControlListName(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngressRule_basicAuthAccessControlListName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.IngressRule().BasicAuthAccessControlListName(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngressRule_basicAuthAccessControlListName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngressRule",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _IngressRule_status(ctx context.Context, field graphql.CollectedField, obj *model.IngressRule) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_IngressRule_status(ctx, field)
 	if err != nil {
@@ -10858,6 +11586,297 @@ func (ec *executionContext) fieldContext_IngressRule_updatedAt(_ context.Context
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createAppBasicAuthAccessControlList(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createAppBasicAuthAccessControlList(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateAppBasicAuthAccessControlList(rctx, fc.Args["input"].(model.AppBasicAuthAccessControlListInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.AppBasicAuthAccessControlList)
+	fc.Result = res
+	return ec.marshalNAppBasicAuthAccessControlList2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlList(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createAppBasicAuthAccessControlList(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AppBasicAuthAccessControlList_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AppBasicAuthAccessControlList_name(ctx, field)
+			case "generatedName":
+				return ec.fieldContext_AppBasicAuthAccessControlList_generatedName(ctx, field)
+			case "users":
+				return ec.fieldContext_AppBasicAuthAccessControlList_users(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AppBasicAuthAccessControlList", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createAppBasicAuthAccessControlList_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteAppBasicAuthAccessControlList(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteAppBasicAuthAccessControlList(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteAppBasicAuthAccessControlList(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteAppBasicAuthAccessControlList(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteAppBasicAuthAccessControlList_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createAppBasicAuthAccessControlUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createAppBasicAuthAccessControlUser(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateAppBasicAuthAccessControlUser(rctx, fc.Args["input"].(model.AppBasicAuthAccessControlUserInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.AppBasicAuthAccessControlUser)
+	fc.Result = res
+	return ec.marshalNAppBasicAuthAccessControlUser2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createAppBasicAuthAccessControlUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AppBasicAuthAccessControlUser_id(ctx, field)
+			case "username":
+				return ec.fieldContext_AppBasicAuthAccessControlUser_username(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AppBasicAuthAccessControlUser", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createAppBasicAuthAccessControlUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateAppBasicAuthAccessControlUserPassword(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateAppBasicAuthAccessControlUserPassword(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateAppBasicAuthAccessControlUserPassword(rctx, fc.Args["id"].(uint), fc.Args["password"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateAppBasicAuthAccessControlUserPassword(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateAppBasicAuthAccessControlUserPassword_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteAppBasicAuthAccessControlUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteAppBasicAuthAccessControlUser(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteAppBasicAuthAccessControlUser(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteAppBasicAuthAccessControlUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteAppBasicAuthAccessControlUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -12225,6 +13244,12 @@ func (ec *executionContext) fieldContext_Mutation_createIngressRule(ctx context.
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
 			case "httpsRedirect":
 				return ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
+			case "authenticationType":
+				return ec.fieldContext_IngressRule_authenticationType(ctx, field)
+			case "basicAuthAccessControlListID":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListID(ctx, field)
+			case "basicAuthAccessControlListName":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListName(ctx, field)
 			case "status":
 				return ec.fieldContext_IngressRule_status(ctx, field)
 			case "createdAt":
@@ -12463,6 +13488,116 @@ func (ec *executionContext) fieldContext_Mutation_deleteIngressRule(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteIngressRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_protectIngressRuleUsingBasicAuth(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_protectIngressRuleUsingBasicAuth(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ProtectIngressRuleUsingBasicAuth(rctx, fc.Args["id"].(uint), fc.Args["appBasicAuthAccessControlListId"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_protectIngressRuleUsingBasicAuth(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_protectIngressRuleUsingBasicAuth_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_disableIngressRuleProtection(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_disableIngressRuleProtection(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DisableIngressRuleProtection(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_disableIngressRuleProtection(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_disableIngressRuleProtection_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -16029,6 +17164,60 @@ func (ec *executionContext) fieldContext_PersistentVolumeRestore_completedAt(_ c
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_appBasicAuthAccessControlLists(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_appBasicAuthAccessControlLists(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AppBasicAuthAccessControlLists(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.AppBasicAuthAccessControlList)
+	fc.Result = res
+	return ec.marshalNAppBasicAuthAccessControlList2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlListᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_appBasicAuthAccessControlLists(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AppBasicAuthAccessControlList_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AppBasicAuthAccessControlList_name(ctx, field)
+			case "generatedName":
+				return ec.fieldContext_AppBasicAuthAccessControlList_generatedName(ctx, field)
+			case "users":
+				return ec.fieldContext_AppBasicAuthAccessControlList_users(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AppBasicAuthAccessControlList", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_application(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_application(ctx, field)
 	if err != nil {
@@ -17370,6 +18559,12 @@ func (ec *executionContext) fieldContext_Query_ingressRule(ctx context.Context, 
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
 			case "httpsRedirect":
 				return ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
+			case "authenticationType":
+				return ec.fieldContext_IngressRule_authenticationType(ctx, field)
+			case "basicAuthAccessControlListID":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListID(ctx, field)
+			case "basicAuthAccessControlListName":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListName(ctx, field)
 			case "status":
 				return ec.fieldContext_IngressRule_status(ctx, field)
 			case "createdAt":
@@ -17455,6 +18650,12 @@ func (ec *executionContext) fieldContext_Query_ingressRules(_ context.Context, f
 				return ec.fieldContext_IngressRule_targetPort(ctx, field)
 			case "httpsRedirect":
 				return ec.fieldContext_IngressRule_httpsRedirect(ctx, field)
+			case "authenticationType":
+				return ec.fieldContext_IngressRule_authenticationType(ctx, field)
+			case "basicAuthAccessControlListID":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListID(ctx, field)
+			case "basicAuthAccessControlListName":
+				return ec.fieldContext_IngressRule_basicAuthAccessControlListName(ctx, field)
 			case "status":
 				return ec.fieldContext_IngressRule_status(ctx, field)
 			case "createdAt":
@@ -23611,6 +24812,74 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(_ context.Context
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAppBasicAuthAccessControlListInput(ctx context.Context, obj interface{}) (model.AppBasicAuthAccessControlListInput, error) {
+	var it model.AppBasicAuthAccessControlListInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputAppBasicAuthAccessControlUserInput(ctx context.Context, obj interface{}) (model.AppBasicAuthAccessControlUserInput, error) {
+	var it model.AppBasicAuthAccessControlUserInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"username", "password", "appBasicAuthAccessControlListID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "username":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Username = data
+		case "password":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Password = data
+		case "appBasicAuthAccessControlListID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appBasicAuthAccessControlListID"))
+			data, err := ec.unmarshalNUint2uint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AppBasicAuthAccessControlListID = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, obj interface{}) (model.ApplicationInput, error) {
 	var it model.ApplicationInput
 	asMap := map[string]interface{}{}
@@ -24906,6 +26175,135 @@ func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj int
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var appBasicAuthAccessControlListImplementors = []string{"AppBasicAuthAccessControlList"}
+
+func (ec *executionContext) _AppBasicAuthAccessControlList(ctx context.Context, sel ast.SelectionSet, obj *model.AppBasicAuthAccessControlList) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, appBasicAuthAccessControlListImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AppBasicAuthAccessControlList")
+		case "id":
+			out.Values[i] = ec._AppBasicAuthAccessControlList_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "name":
+			out.Values[i] = ec._AppBasicAuthAccessControlList_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "generatedName":
+			out.Values[i] = ec._AppBasicAuthAccessControlList_generatedName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "users":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AppBasicAuthAccessControlList_users(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var appBasicAuthAccessControlUserImplementors = []string{"AppBasicAuthAccessControlUser"}
+
+func (ec *executionContext) _AppBasicAuthAccessControlUser(ctx context.Context, sel ast.SelectionSet, obj *model.AppBasicAuthAccessControlUser) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, appBasicAuthAccessControlUserImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AppBasicAuthAccessControlUser")
+		case "id":
+			out.Values[i] = ec._AppBasicAuthAccessControlUser_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "username":
+			out.Values[i] = ec._AppBasicAuthAccessControlUser_username(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
 
 var applicationImplementors = []string{"Application"}
 
@@ -26561,6 +27959,49 @@ func (ec *executionContext) _IngressRule(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "authenticationType":
+			out.Values[i] = ec._IngressRule_authenticationType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "basicAuthAccessControlListID":
+			out.Values[i] = ec._IngressRule_basicAuthAccessControlListID(ctx, field, obj)
+		case "basicAuthAccessControlListName":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IngressRule_basicAuthAccessControlListName(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "status":
 			out.Values[i] = ec._IngressRule_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -26618,6 +28059,41 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "createAppBasicAuthAccessControlList":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createAppBasicAuthAccessControlList(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteAppBasicAuthAccessControlList":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteAppBasicAuthAccessControlList(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createAppBasicAuthAccessControlUser":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createAppBasicAuthAccessControlUser(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateAppBasicAuthAccessControlUserPassword":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateAppBasicAuthAccessControlUserPassword(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteAppBasicAuthAccessControlUser":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteAppBasicAuthAccessControlUser(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createApplication":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createApplication(ctx, field)
@@ -26789,6 +28265,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "deleteIngressRule":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteIngressRule(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "protectIngressRuleUsingBasicAuth":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_protectIngressRuleUsingBasicAuth(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "disableIngressRuleProtection":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_disableIngressRuleProtection(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -27591,6 +29081,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "appBasicAuthAccessControlLists":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_appBasicAuthAccessControlLists(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "application":
 			field := field
 
@@ -29740,6 +31252,132 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) marshalNAppBasicAuthAccessControlList2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlList(ctx context.Context, sel ast.SelectionSet, v model.AppBasicAuthAccessControlList) graphql.Marshaler {
+	return ec._AppBasicAuthAccessControlList(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAppBasicAuthAccessControlList2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlListᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AppBasicAuthAccessControlList) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAppBasicAuthAccessControlList2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlList(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAppBasicAuthAccessControlList2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlList(ctx context.Context, sel ast.SelectionSet, v *model.AppBasicAuthAccessControlList) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AppBasicAuthAccessControlList(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNAppBasicAuthAccessControlListInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlListInput(ctx context.Context, v interface{}) (model.AppBasicAuthAccessControlListInput, error) {
+	res, err := ec.unmarshalInputAppBasicAuthAccessControlListInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAppBasicAuthAccessControlUser2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlUser(ctx context.Context, sel ast.SelectionSet, v model.AppBasicAuthAccessControlUser) graphql.Marshaler {
+	return ec._AppBasicAuthAccessControlUser(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAppBasicAuthAccessControlUser2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AppBasicAuthAccessControlUser) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAppBasicAuthAccessControlUser2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlUser(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAppBasicAuthAccessControlUser2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlUser(ctx context.Context, sel ast.SelectionSet, v *model.AppBasicAuthAccessControlUser) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AppBasicAuthAccessControlUser(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNAppBasicAuthAccessControlUserInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐAppBasicAuthAccessControlUserInput(ctx context.Context, v interface{}) (model.AppBasicAuthAccessControlUserInput, error) {
+	res, err := ec.unmarshalInputAppBasicAuthAccessControlUserInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNApplication2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplication(ctx context.Context, sel ast.SelectionSet, v model.Application) graphql.Marshaler {
 	return ec._Application(ctx, sel, &v)
 }
@@ -30629,6 +32267,16 @@ func (ec *executionContext) marshalNIngressRule2ᚖgithubᚗcomᚋswiftwaveᚑor
 		return graphql.Null
 	}
 	return ec._IngressRule(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNIngressRuleAuthenticationType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleAuthenticationType(ctx context.Context, v interface{}) (model.IngressRuleAuthenticationType, error) {
+	var res model.IngressRuleAuthenticationType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNIngressRuleAuthenticationType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleAuthenticationType(ctx context.Context, sel ast.SelectionSet, v model.IngressRuleAuthenticationType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNIngressRuleInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐIngressRuleInput(ctx context.Context, v interface{}) (model.IngressRuleInput, error) {
