@@ -283,6 +283,7 @@ type ComplexityRoot struct {
 		DemoteServerToWorker                               func(childComplexity int, id uint) int
 		DeployStack                                        func(childComplexity int, input model.StackInput) int
 		DisableHTTPSRedirectIngressRule                    func(childComplexity int, id uint) int
+		DisableIngressRuleProtection                       func(childComplexity int, id uint) int
 		DisableProxyOnServer                               func(childComplexity int, id uint) int
 		DisableTotp                                        func(childComplexity int) int
 		EnableHTTPSRedirectIngressRule                     func(childComplexity int, id uint) int
@@ -292,6 +293,7 @@ type ComplexityRoot struct {
 		InstallDependenciesOnServer                        func(childComplexity int, id uint) int
 		IssueSsl                                           func(childComplexity int, id uint) int
 		PromoteServerToManager                             func(childComplexity int, id uint) int
+		ProtectIngressRuleUsingBasicAuth                   func(childComplexity int, id uint, appBasicAuthAccessControlListID uint) int
 		PutServerInMaintenanceMode                         func(childComplexity int, id uint) int
 		PutServerOutOfMaintenanceMode                      func(childComplexity int, id uint) int
 		RebuildApplication                                 func(childComplexity int, id string) int
@@ -585,6 +587,8 @@ type MutationResolver interface {
 	EnableHTTPSRedirectIngressRule(ctx context.Context, id uint) (bool, error)
 	DisableHTTPSRedirectIngressRule(ctx context.Context, id uint) (bool, error)
 	DeleteIngressRule(ctx context.Context, id uint) (bool, error)
+	ProtectIngressRuleUsingBasicAuth(ctx context.Context, id uint, appBasicAuthAccessControlListID uint) (bool, error)
+	DisableIngressRuleProtection(ctx context.Context, id uint) (bool, error)
 	CreatePersistentVolume(ctx context.Context, input model.PersistentVolumeInput) (*model.PersistentVolume, error)
 	DeletePersistentVolume(ctx context.Context, id uint) (bool, error)
 	BackupPersistentVolume(ctx context.Context, input model.PersistentVolumeBackupInput) (*model.PersistentVolumeBackup, error)
@@ -2044,6 +2048,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DisableHTTPSRedirectIngressRule(childComplexity, args["id"].(uint)), true
 
+	case "Mutation.disableIngressRuleProtection":
+		if e.complexity.Mutation.DisableIngressRuleProtection == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_disableIngressRuleProtection_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DisableIngressRuleProtection(childComplexity, args["id"].(uint)), true
+
 	case "Mutation.disableProxyOnServer":
 		if e.complexity.Mutation.DisableProxyOnServer == nil {
 			break
@@ -2146,6 +2162,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.PromoteServerToManager(childComplexity, args["id"].(uint)), true
+
+	case "Mutation.protectIngressRuleUsingBasicAuth":
+		if e.complexity.Mutation.ProtectIngressRuleUsingBasicAuth == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_protectIngressRuleUsingBasicAuth_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ProtectIngressRuleUsingBasicAuth(childComplexity, args["id"].(uint), args["appBasicAuthAccessControlListId"].(uint)), true
 
 	case "Mutation.putServerInMaintenanceMode":
 		if e.complexity.Mutation.PutServerInMaintenanceMode == nil {
@@ -4281,6 +4309,21 @@ func (ec *executionContext) field_Mutation_disableHttpsRedirectIngressRule_args(
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_disableIngressRuleProtection_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_disableProxyOnServer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4416,6 +4459,30 @@ func (ec *executionContext) field_Mutation_promoteServerToManager_args(ctx conte
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_protectIngressRuleUsingBasicAuth_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 uint
+	if tmp, ok := rawArgs["appBasicAuthAccessControlListId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appBasicAuthAccessControlListId"))
+		arg1, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["appBasicAuthAccessControlListId"] = arg1
 	return args, nil
 }
 
@@ -13248,6 +13315,116 @@ func (ec *executionContext) fieldContext_Mutation_deleteIngressRule(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteIngressRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_protectIngressRuleUsingBasicAuth(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_protectIngressRuleUsingBasicAuth(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ProtectIngressRuleUsingBasicAuth(rctx, fc.Args["id"].(uint), fc.Args["appBasicAuthAccessControlListId"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_protectIngressRuleUsingBasicAuth(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_protectIngressRuleUsingBasicAuth_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_disableIngressRuleProtection(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_disableIngressRuleProtection(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DisableIngressRuleProtection(rctx, fc.Args["id"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_disableIngressRuleProtection(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_disableIngressRuleProtection_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -27860,6 +28037,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "deleteIngressRule":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteIngressRule(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "protectIngressRuleUsingBasicAuth":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_protectIngressRuleUsingBasicAuth(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "disableIngressRuleProtection":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_disableIngressRuleProtection(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

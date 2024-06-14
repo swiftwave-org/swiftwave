@@ -6,6 +6,7 @@ package graphql
 
 import (
 	"context"
+
 	haproxymanager "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
@@ -56,7 +57,7 @@ func (r *mutationResolver) DeleteAppBasicAuthAccessControlList(ctx context.Conte
 
 	// delete in db
 	record := &core.AppBasicAuthAccessControlList{}
-	err := record.FindByID(ctx, tx, id)
+	err := record.FindById(ctx, tx, id)
 	if err != nil {
 		return false, err
 	}
@@ -82,7 +83,7 @@ func (r *mutationResolver) CreateAppBasicAuthAccessControlUser(ctx context.Conte
 
 	// find in db
 	userList := &core.AppBasicAuthAccessControlList{}
-	err := userList.FindByID(ctx, tx, input.AppBasicAuthAccessControlListID)
+	err := userList.FindById(ctx, tx, input.AppBasicAuthAccessControlListID)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +124,7 @@ func (r *mutationResolver) UpdateAppBasicAuthAccessControlUserPassword(ctx conte
 
 	// find in db
 	record := &core.AppBasicAuthAccessControlUser{}
-	err := record.FindByID(ctx, tx, id)
+	err := record.FindById(ctx, tx, id)
 	if err != nil {
 		return false, err
 	}
@@ -142,7 +143,7 @@ func (r *mutationResolver) UpdateAppBasicAuthAccessControlUserPassword(ctx conte
 
 	// find user list in db
 	userList := &core.AppBasicAuthAccessControlList{}
-	err = userList.FindByID(ctx, tx, record.AppBasicAuthAccessControlListID)
+	err = userList.FindById(ctx, tx, record.AppBasicAuthAccessControlListID)
 	if err != nil {
 		return false, err
 	}
@@ -171,13 +172,13 @@ func (r *mutationResolver) DeleteAppBasicAuthAccessControlUser(ctx context.Conte
 	defer tx.Rollback()
 
 	record := &core.AppBasicAuthAccessControlUser{}
-	err := record.FindByID(ctx, tx, id)
+	err := record.FindById(ctx, tx, id)
 	if err != nil {
 		return false, err
 	}
 
 	userList := &core.AppBasicAuthAccessControlList{}
-	err = userList.FindByID(ctx, tx, record.AppBasicAuthAccessControlListID)
+	err = userList.FindById(ctx, tx, record.AppBasicAuthAccessControlListID)
 	if err != nil {
 		return false, err
 	}

@@ -18,7 +18,7 @@ func FindAllAppBasicAuthAccessControlLists(_ context.Context, db *gorm.DB) ([]*A
 	return l, nil
 }
 
-func (l *AppBasicAuthAccessControlList) FindByID(_ context.Context, db *gorm.DB, id uint) error {
+func (l *AppBasicAuthAccessControlList) FindById(_ context.Context, db *gorm.DB, id uint) error {
 	return db.First(l, id).Error
 }
 
@@ -32,6 +32,13 @@ func (l *AppBasicAuthAccessControlList) Create(_ context.Context, db *gorm.DB) e
 }
 
 func (l *AppBasicAuthAccessControlList) Delete(_ context.Context, db *gorm.DB) error {
-	// TODO check if any app has been protected by this userlist
+	var noOfIngressRulesUsingAppBasicAuthAccessControlList int64 = 0
+	err := db.Model(&IngressRule{}).Where("authentication_auth_type = ? AND authentication_app_basic_auth_access_control_list_id", IngressRuleBasicAuthentication, l.ID).Count(&noOfIngressRulesUsingAppBasicAuthAccessControlList).Error
+	if err != nil {
+		return err
+	}
+	if noOfIngressRulesUsingAppBasicAuthAccessControlList > 0 {
+		return errors.New("there are ingress rules using app basic auth access control list, please disable those first")
+	}
 	return db.Delete(l).Error
 }

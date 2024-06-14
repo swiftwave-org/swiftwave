@@ -55,4 +55,6 @@ extend type Mutation {
     enableHttpsRedirectIngressRule(id: Uint!): Boolean!
     disableHttpsRedirectIngressRule(id: Uint!): Boolean!
     deleteIngressRule(id: Uint!): Boolean!
+    protectIngressRuleUsingBasicAuth(id: Uint!, appBasicAuthAccessControlListId: Uint!): Boolean!
+    disableIngressRuleProtection(id: Uint!): Boolean!
 }

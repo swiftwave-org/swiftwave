@@ -15,7 +15,7 @@ func FetchAppBasicAuthAccessControlUsers(_ context.Context, db *gorm.DB, appBasi
 	return users, nil
 }
 
-func (u *AppBasicAuthAccessControlUser) FindByID(_ context.Context, db *gorm.DB, id uint) error {
+func (u *AppBasicAuthAccessControlUser) FindById(_ context.Context, db *gorm.DB, id uint) error {
 	return db.Where("id = ?", id).First(u).Error
 }
 

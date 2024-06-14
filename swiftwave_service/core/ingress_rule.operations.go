@@ -216,3 +216,23 @@ func FetchAllExposedUDPPorts(ctx context.Context, db gorm.DB) ([]int, error) {
 	}
 	return ports, nil
 }
+
+func (ingressRule *IngressRule) ProtectUsingBasicAuth(ctx context.Context, db gorm.DB, appBasicAuthAccessControlListID uint) error {
+	if ingressRule.Protocol == TCPProtocol || ingressRule.Protocol == UDPProtocol {
+		return errors.New("basic authentication is not supported for TCP/UDP mode")
+	}
+	// check if ingress rule is already protected
+	if ingressRule.Authentication.AuthType != IngressRuleNoAuthentication {
+		return errors.New("ingress rule is already protected, please disable it first")
+	}
+	// fetch app basic auth access control list
+	appBasicAuthAccessControlList := &AppBasicAuthAccessControlList{}
+	err := appBasicAuthAccessControlList.FindById(ctx, &db, appBasicAuthAccessControlListID)
+	if err != nil {
+		return err
+	}
+	// update record
+	ingressRule.Authentication.AuthType = IngressRuleBasicAuthentication
+	ingressRule.Authentication.AppBasicAuthAccessControlListID = appBasicAuthAccessControlList.ID
+	return db.Save(ingressRule).Error
+}
