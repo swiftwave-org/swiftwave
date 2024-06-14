@@ -4,7 +4,7 @@ go 1.21.7
 
 require (
 	ariga.io/atlas-provider-gorm v0.5.0
-	github.com/99designs/gqlgen v0.17.48
+	github.com/99designs/gqlgen v0.17.49
 	github.com/aws/aws-sdk-go v1.53.21
 	github.com/docker/docker v26.1.4+incompatible
 	github.com/fatih/color v1.17.0
@@ -22,7 +22,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/spf13/cobra v1.8.0
 	github.com/testcontainers/testcontainers-go v0.31.0
-	github.com/vektah/gqlparser/v2 v2.5.14
+	github.com/vektah/gqlparser/v2 v2.5.16
 	github.com/xlzd/gotp v0.1.0
 	golang.org/x/term v0.21.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -139,9 +139,9 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.24.0
-	golang.org/x/mod v0.17.0 // indirect
+	golang.org/x/mod v0.18.0 // indirect
 	golang.org/x/net v0.26.0
 	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
-	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
+	golang.org/x/tools v0.22.0 // indirect
 )
