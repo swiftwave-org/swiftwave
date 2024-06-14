@@ -233,6 +233,19 @@ func (ingressRule *IngressRule) ProtectUsingBasicAuth(ctx context.Context, db go
 	}
 	// update record
 	ingressRule.Authentication.AuthType = IngressRuleBasicAuthentication
-	ingressRule.Authentication.AppBasicAuthAccessControlListID = appBasicAuthAccessControlList.ID
+	ingressRule.Authentication.AppBasicAuthAccessControlListID = &appBasicAuthAccessControlList.ID
 	return db.Save(ingressRule).Error
+}
+
+func (ingressRule *IngressRule) DisableAuthentication(ctx context.Context, db gorm.DB) error {
+	// do deep copy
+	var ingressRuleCopy IngressRule
+	err := db.Model(&IngressRule{}).Where("id = ?", ingressRule.ID).First(&ingressRuleCopy).Error
+	if err != nil {
+		return err
+	}
+	// update record
+	ingressRuleCopy.Authentication.AuthType = IngressRuleNoAuthentication
+	ingressRuleCopy.Authentication.AppBasicAuthAccessControlListID = nil
+	return db.Save(&ingressRuleCopy).Error
 }

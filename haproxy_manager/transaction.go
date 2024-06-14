@@ -65,14 +65,8 @@ func (s Manager) CommitTransaction(transactionId string) error {
 	queryParams.add("force_reload", "true")
 	res, err := s.putRequest("/services/haproxy/transactions/"+transactionId, queryParams, nil)
 	if err != nil || !isValidStatusCode(res.StatusCode) {
-		return errors.New("error while committing transaction: " + transactionId)
+		return errors.New("error while committing transaction")
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			log.Println("[haproxy_manager] CommitTransaction: ", err)
-		}
-	}(res.Body)
 	return nil
 }
 

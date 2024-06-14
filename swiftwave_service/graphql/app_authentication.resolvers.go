@@ -62,6 +62,11 @@ func (r *mutationResolver) DeleteAppBasicAuthAccessControlList(ctx context.Conte
 		return false, err
 	}
 
+	err = record.Delete(ctx, tx)
+	if err != nil {
+		return false, err
+	}
+
 	// delete in haproxy + commit
 	ctx = context.WithValue(ctx, "access_control_user_list_name", record.GeneratedName)
 	err = r.RunActionsInAllHAProxyNodes(ctx, tx, func(ctx context.Context, db *gorm.DB, transactionId string, manager *haproxymanager.Manager) error {

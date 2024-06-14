@@ -95,7 +95,7 @@ func (m Manager) IngressRuleDelete(request IngressRuleDeleteRequest, ctx context
 
 	if authType == core.IngressRuleBasicAuthentication {
 		record := &core.AppBasicAuthAccessControlList{}
-		err = record.FindById(ctx, &dbWithoutTx, ingressRule.Authentication.AppBasicAuthAccessControlListID)
+		err = record.FindById(ctx, &dbWithoutTx, *ingressRule.Authentication.AppBasicAuthAccessControlListID)
 		if err != nil {
 			return err
 		}

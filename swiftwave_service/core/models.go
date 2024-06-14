@@ -109,7 +109,7 @@ type Domain struct {
 // IngressRuleAuthentication hold information about ingress rule authentication
 type IngressRuleAuthentication struct {
 	AuthType                        IngressRuleAuthenticationType `json:"auth_type" gorm:"default:'none'"`
-	AppBasicAuthAccessControlListID uint                          `json:"app_basic_auth_access_control_list_id"`
+	AppBasicAuthAccessControlListID *uint                         `json:"app_basic_auth_access_control_list_id" gorm:"default:null"`
 }
 
 // IngressRule hold information about Ingress rule for service

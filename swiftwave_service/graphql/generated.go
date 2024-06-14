@@ -11394,14 +11394,11 @@ func (ec *executionContext) _IngressRule_basicAuthAccessControlListID(ctx contex
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(uint)
+	res := resTmp.(*uint)
 	fc.Result = res
-	return ec.marshalNUint2uint(ctx, field.Selections, res)
+	return ec.marshalOUint2ᚖuint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_IngressRule_basicAuthAccessControlListID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -27969,9 +27966,6 @@ func (ec *executionContext) _IngressRule(ctx context.Context, sel ast.SelectionS
 			}
 		case "basicAuthAccessControlListID":
 			out.Values[i] = ec._IngressRule_basicAuthAccessControlListID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "basicAuthAccessControlListName":
 			field := field
 

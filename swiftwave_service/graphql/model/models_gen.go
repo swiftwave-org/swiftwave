@@ -296,7 +296,7 @@ type IngressRule struct {
 	TargetPort                     uint                          `json:"targetPort"`
 	HTTPSRedirect                  bool                          `json:"httpsRedirect"`
 	AuthenticationType             IngressRuleAuthenticationType `json:"authenticationType"`
-	BasicAuthAccessControlListID   uint                          `json:"basicAuthAccessControlListID"`
+	BasicAuthAccessControlListID   *uint                         `json:"basicAuthAccessControlListID,omitempty"`
 	BasicAuthAccessControlListName string                        `json:"basicAuthAccessControlListName"`
 	Status                         IngressRuleStatus             `json:"status"`
 	CreatedAt                      time.Time                     `json:"createdAt"`

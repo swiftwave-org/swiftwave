@@ -155,14 +155,15 @@ func (r *mutationResolver) RunActionsInAllHAProxyNodes(ctx context.Context, db *
 	}
 
 	for haproxyManager, haproxyTransactionId := range transactionIdMap {
+		var err error
 		if !isFailed {
 			err = haproxyManager.CommitTransaction(haproxyTransactionId)
 		}
 		if isFailed || err != nil {
 			isFailed = true
-			err = haproxyManager.DeleteTransaction(haproxyTransactionId)
-			if err != nil {
-				errString += err.Error() + "\n"
+			err2 := haproxyManager.DeleteTransaction(haproxyTransactionId)
+			if err2 != nil {
+				errString += err2.Error() + "\n"
 			}
 		}
 	}
@@ -171,7 +172,7 @@ func (r *mutationResolver) RunActionsInAllHAProxyNodes(ctx context.Context, db *
 		if strings.Compare(errString, "") != 0 {
 			return errors.New("failed to run actions in all haproxy nodes: " + errString)
 		}
-		return errors.New(errString)
+		return errors.New("failed to run actions in all haproxy nodes due to unknown error")
 	} else {
 		return nil
 	}

@@ -33,7 +33,7 @@ func (l *AppBasicAuthAccessControlList) Create(_ context.Context, db *gorm.DB) e
 
 func (l *AppBasicAuthAccessControlList) Delete(_ context.Context, db *gorm.DB) error {
 	var noOfIngressRulesUsingAppBasicAuthAccessControlList int64 = 0
-	err := db.Model(&IngressRule{}).Where("authentication_auth_type = ? AND authentication_app_basic_auth_access_control_list_id", IngressRuleBasicAuthentication, l.ID).Count(&noOfIngressRulesUsingAppBasicAuthAccessControlList).Error
+	err := db.Model(&IngressRule{}).Where("authentication_auth_type = ? AND authentication_app_basic_auth_access_control_list_id = ?", IngressRuleBasicAuthentication, l.ID).Count(&noOfIngressRulesUsingAppBasicAuthAccessControlList).Error
 	if err != nil {
 		return err
 	}

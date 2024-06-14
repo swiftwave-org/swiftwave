@@ -44,7 +44,7 @@ type IngressRule {
     targetPort: Uint!
     httpsRedirect: Boolean!
     authenticationType: IngressRuleAuthenticationType!
-    basicAuthAccessControlListID: Uint!
+    basicAuthAccessControlListID: Uint
     basicAuthAccessControlListName: String!
     status: IngressRuleStatus!
     createdAt: Time!

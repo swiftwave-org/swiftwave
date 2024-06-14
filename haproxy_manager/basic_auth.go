@@ -183,7 +183,7 @@ func (s Manager) DeleteUserFromUserList(transactionId string, userListName strin
 }
 
 func createHttpRequestAuthCondition(bindPort int, domain string, userListName string) string {
-	rule := fmt.Sprintf("http-request auth if !{ http_auth(%s) } { hdr(host) -i %s }", userListName, domain)
+	rule := fmt.Sprintf("!{ http_auth(%s) } { hdr(host) -i %s }", userListName, domain)
 	if bindPort == 80 || bindPort == 443 {
 		return rule + " !letsencrypt-acl"
 	}
@@ -268,9 +268,12 @@ func (s Manager) RemoveBasicAuthentication(transactionId string, listenerMode Li
 	foundIndex := -1
 	for _, rule := range httpRequestRulesData["data"].([]interface{}) {
 		httpRequestRule = rule.(map[string]interface{})
-		if httpRequestRule["cond_test"].(string) == createHttpRequestAuthCondition(bindPort, domain, userListName) &&
-			httpRequestRule["cond"].(string) == "if" &&
-			httpRequestRule["type"].(string) == "auth" {
+		if interfaceToString(httpRequestRule["cond_test"]) == createHttpRequestAuthCondition(bindPort, domain, userListName) &&
+			interfaceToString(httpRequestRule["cond"]) == "if" &&
+			interfaceToString(httpRequestRule["type"]) == "auth" {
+			if httpRequestRule["index"] == nil {
+				continue
+			}
 			foundIndex = int(httpRequestRule["index"].(float64))
 			break
 		}
@@ -299,4 +302,12 @@ func GenerateSecuredPasswordForBasicAuthentication(password string) (string, err
 	randomSalt := random.String(5)
 	saltString := fmt.Sprintf("%s%s", s.MagicPrefix, randomSalt)
 	return c.Generate([]byte(password), []byte(saltString))
+}
+
+// private function
+func interfaceToString(i interface{}) string {
+	if i == nil {
+		return ""
+	}
+	return i.(string)
 }

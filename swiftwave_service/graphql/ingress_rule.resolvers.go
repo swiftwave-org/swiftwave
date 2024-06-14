@@ -45,8 +45,11 @@ func (r *ingressRuleResolver) Application(ctx context.Context, obj *model.Ingres
 // BasicAuthAccessControlListName is the resolver for the basicAuthAccessControlListName field.
 func (r *ingressRuleResolver) BasicAuthAccessControlListName(ctx context.Context, obj *model.IngressRule) (string, error) {
 	if obj.AuthenticationType == model.IngressRuleAuthenticationTypeBasic {
+		if obj.BasicAuthAccessControlListID == nil {
+			return "", nil
+		}
 		appBasicAuthAccessControlList := &core.AppBasicAuthAccessControlList{}
-		err := appBasicAuthAccessControlList.FindById(ctx, &r.ServiceManager.DbClient, obj.BasicAuthAccessControlListID)
+		err := appBasicAuthAccessControlList.FindById(ctx, &r.ServiceManager.DbClient, *obj.BasicAuthAccessControlListID)
 		if err != nil {
 			return "", err
 		}
@@ -179,7 +182,7 @@ func (r *mutationResolver) ProtectIngressRuleUsingBasicAuth(ctx context.Context,
 	}
 
 	domainRecord := core.Domain{}
-	err = domainRecord.FindById(ctx, *tx, record.ID)
+	err = domainRecord.FindById(ctx, *tx, *record.DomainID)
 	if err != nil {
 		return false, err
 	}
@@ -195,10 +198,11 @@ func (r *mutationResolver) ProtectIngressRuleUsingBasicAuth(ctx context.Context,
 	ctx = context.WithValue(ctx, "access_control_user_list_name", appBasicAuthAccessControlList.GeneratedName)
 	err = r.RunActionsInAllHAProxyNodes(ctx, tx, func(ctx context.Context, db *gorm.DB, transactionId string, manager *haproxymanager.Manager) error {
 		domain := ctx.Value("domain").(string)
-		port := ctx.Value("bind_port").(int)
+		port := int(ctx.Value("bind_port").(uint))
 		userListName := ctx.Value("access_control_user_list_name").(string)
 		return manager.SetupBasicAuthentication(transactionId, haproxymanager.HTTPMode, port, domain, userListName)
 	})
+
 	if err != nil {
 		return false, err
 	}
@@ -223,15 +227,21 @@ func (r *mutationResolver) DisableIngressRuleProtection(ctx context.Context, id 
 		return false, errors.New("ingress rule is not protected")
 	}
 
+	// disable authentication
+	err = record.DisableAuthentication(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return false, err
+	}
+
 	if record.Authentication.AuthType == core.IngressRuleBasicAuthentication {
 		appBasicAuthAccessControlList := core.AppBasicAuthAccessControlList{}
-		err = appBasicAuthAccessControlList.FindById(ctx, tx, record.Authentication.AppBasicAuthAccessControlListID)
+		err = appBasicAuthAccessControlList.FindById(ctx, tx, *record.Authentication.AppBasicAuthAccessControlListID)
 		if err != nil {
 			return false, err
 		}
 
 		domainRecord := core.Domain{}
-		err = domainRecord.FindById(ctx, *tx, record.ID)
+		err = domainRecord.FindById(ctx, *tx, *record.DomainID)
 		if err != nil {
 			return false, err
 		}
@@ -242,7 +252,7 @@ func (r *mutationResolver) DisableIngressRuleProtection(ctx context.Context, id 
 		ctx = context.WithValue(ctx, "access_control_user_list_name", appBasicAuthAccessControlList.GeneratedName)
 		err = r.RunActionsInAllHAProxyNodes(ctx, tx, func(ctx context.Context, db *gorm.DB, transactionId string, manager *haproxymanager.Manager) error {
 			domain := ctx.Value("domain").(string)
-			port := ctx.Value("bind_port").(int)
+			port := int(ctx.Value("bind_port").(uint))
 			userListName := ctx.Value("access_control_user_list_name").(string)
 			return manager.RemoveBasicAuthentication(transactionId, haproxymanager.HTTPMode, port, domain, userListName)
 		})
