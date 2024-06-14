@@ -46,6 +46,26 @@ type User struct {
 }
 
 // ************************************************************************************* //
+//                                App Authentication       		   			             //
+// ************************************************************************************* //
+
+type AppBasicAuthAccessControlList struct {
+	ID            uint                            `json:"id" gorm:"primaryKey"`
+	Name          string                          `json:"name"`
+	GeneratedName string                          `json:"generated_name" gorm:"unique"`
+	Users         []AppBasicAuthAccessControlUser `json:"users" gorm:"foreignKey:AppBasicAuthAccessControlListID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	IngressRules  []IngressRule                   `json:"ingress_rules" gorm:"foreignKey:AppBasicAuthAccessControlListID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
+
+type AppBasicAuthAccessControlUser struct {
+	ID                              uint   `json:"id" gorm:"primaryKey"`
+	Username                        string `json:"username"`
+	PlainTextPassword               string `gorm:"-"`
+	EncryptedPassword               string `json:"encrypted_password"`
+	AppBasicAuthAccessControlListID uint   `json:"app_basic_auth_access_control_list_id"`
+}
+
+// ************************************************************************************* //
 //                                Application Level Table       		   			     //
 // ************************************************************************************* //
 
@@ -86,20 +106,27 @@ type Domain struct {
 	RedirectRules []RedirectRule  `json:"redirect_rules" gorm:"foreignKey:DomainID"`
 }
 
+// IngressRuleAuthentication hold information about ingress rule authentication
+type IngressRuleAuthentication struct {
+	AuthType                        IngressRuleAuthenticationType `json:"auth_type" gorm:"default:'none'"`
+	AppBasicAuthAccessControlListID *uint                         `json:"app_basic_auth_access_control_list_id" gorm:"default:null"`
+}
+
 // IngressRule hold information about Ingress rule for service
 type IngressRule struct {
-	ID              uint                  `json:"id" gorm:"primaryKey"`
-	DomainID        *uint                 `json:"domain_id,omitempty" gorm:"default:null"`
-	Protocol        ProtocolType          `json:"protocol"`
-	Port            uint                  `json:"port"`        // external port
-	TargetPort      uint                  `json:"target_port"` // port of the application
-	TargetType      IngressRuleTargetType `json:"target_type" gorm:"default:'application'"`
-	ApplicationID   *string               `json:"application_id"`
-	ExternalService string                `json:"external_service"`
-	HttpsRedirect   bool                  `json:"https_redirect" gorm:"default:false"`
-	Status          IngressRuleStatus     `json:"status"`
-	CreatedAt       time.Time             `json:"created_at"`
-	UpdatedAt       time.Time             `json:"updated_at"`
+	ID              uint                      `json:"id" gorm:"primaryKey"`
+	DomainID        *uint                     `json:"domain_id,omitempty" gorm:"default:null"`
+	Protocol        ProtocolType              `json:"protocol"`
+	Port            uint                      `json:"port"`        // external port
+	TargetPort      uint                      `json:"target_port"` // port of the application
+	TargetType      IngressRuleTargetType     `json:"target_type" gorm:"default:'application'"`
+	ApplicationID   *string                   `json:"application_id"`
+	ExternalService string                    `json:"external_service"`
+	HttpsRedirect   bool                      `json:"https_redirect" gorm:"default:false"`
+	Authentication  IngressRuleAuthentication `json:"authentication" gorm:"embedded;embeddedPrefix:authentication_"`
+	Status          IngressRuleStatus         `json:"status"`
+	CreatedAt       time.Time                 `json:"created_at"`
+	UpdatedAt       time.Time                 `json:"updated_at"`
 }
 
 // RedirectRule hold information about Redirect rules for domain

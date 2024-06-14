@@ -464,9 +464,12 @@ func ingressRuleInputToDatabaseObject(record *model.IngressRuleInput) *core.Ingr
 		Port:            record.Port,
 		TargetPort:      record.TargetPort,
 		HttpsRedirect:   false,
-		Status:          core.IngressRuleStatusPending,
-		CreatedAt:       time.Now(),
-		UpdatedAt:       time.Now(),
+		Authentication: core.IngressRuleAuthentication{
+			AuthType: core.IngressRuleNoAuthentication,
+		},
+		Status:    core.IngressRuleStatusPending,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 }
 
@@ -489,18 +492,20 @@ func ingressRuleValidationInputToDatabaseObject(record *model.IngressRuleValidat
 // ingressRuleToGraphqlObject converts IngressRule to IngressRuleGraphqlObject
 func ingressRuleToGraphqlObject(record *core.IngressRule) *model.IngressRule {
 	return &model.IngressRule{
-		ID:              record.ID,
-		TargetType:      model.IngressRuleTargetType(record.TargetType),
-		ExternalService: record.ExternalService,
-		ApplicationID:   DefaultString(record.ApplicationID, ""),
-		DomainID:        record.DomainID,
-		Protocol:        model.ProtocolType(record.Protocol),
-		Port:            record.Port,
-		TargetPort:      record.TargetPort,
-		Status:          model.IngressRuleStatus(record.Status),
-		HTTPSRedirect:   record.HttpsRedirect,
-		CreatedAt:       record.CreatedAt,
-		UpdatedAt:       record.UpdatedAt,
+		ID:                           record.ID,
+		TargetType:                   model.IngressRuleTargetType(record.TargetType),
+		ExternalService:              record.ExternalService,
+		ApplicationID:                DefaultString(record.ApplicationID, ""),
+		DomainID:                     record.DomainID,
+		Protocol:                     model.ProtocolType(record.Protocol),
+		Port:                         record.Port,
+		TargetPort:                   record.TargetPort,
+		AuthenticationType:           model.IngressRuleAuthenticationType(record.Authentication.AuthType),
+		BasicAuthAccessControlListID: record.Authentication.AppBasicAuthAccessControlListID,
+		Status:                       model.IngressRuleStatus(record.Status),
+		HTTPSRedirect:                record.HttpsRedirect,
+		CreatedAt:                    record.CreatedAt,
+		UpdatedAt:                    record.UpdatedAt,
 	}
 }
 
@@ -728,5 +733,38 @@ func applicationServiceResourceStatToGraphqlObject(record *core.ApplicationServi
 		NetworkSentKbps:      record.NetStat.SentKBPS,
 		ReportingServerCount: int(record.ReportingServerCount),
 		Timestamp:            record.RecordedAt,
+	}
+}
+
+// appBasicAuthAccessControlListToGraphqlObject converts AppBasicAuthAccessControlList to AppBasicAuthAccessControlListGraphqlObject
+func appBasicAuthAccessControlListToGraphqlObject(record *core.AppBasicAuthAccessControlList) *model.AppBasicAuthAccessControlList {
+	return &model.AppBasicAuthAccessControlList{
+		ID:            record.ID,
+		Name:          record.Name,
+		GeneratedName: record.GeneratedName,
+	}
+}
+
+// appBasicAuthAccessControlUserToGraphqlObject converts AppBasicAuthAccessControlUser to AppBasicAuthAccessControlUserGraphqlObject
+func appBasicAuthAccessControlUserToGraphqlObject(record *core.AppBasicAuthAccessControlUser) *model.AppBasicAuthAccessControlUser {
+	return &model.AppBasicAuthAccessControlUser{
+		ID:       record.ID,
+		Username: record.Username,
+	}
+}
+
+// appBasicAuthAccessControlListInputToDatabaseObject converts AppBasicAuthAccessControlListInput to AppBasicAuthAccessControlListDatabaseObject
+func appBasicAuthAccessControlListInputToDatabaseObject(record *model.AppBasicAuthAccessControlListInput) *core.AppBasicAuthAccessControlList {
+	return &core.AppBasicAuthAccessControlList{
+		Name: record.Name,
+	}
+}
+
+// appBasicAuthAccessControlUserInputToDatabaseObject converts AppBasicAuthAccessControlUserInput to AppBasicAuthAccessControlUserDatabaseObject
+func appBasicAuthAccessControlUserInputToDatabaseObject(record *model.AppBasicAuthAccessControlUserInput) *core.AppBasicAuthAccessControlUser {
+	return &core.AppBasicAuthAccessControlUser{
+		Username:                        record.Username,
+		PlainTextPassword:               record.Password,
+		AppBasicAuthAccessControlListID: record.AppBasicAuthAccessControlListID,
 	}
 }

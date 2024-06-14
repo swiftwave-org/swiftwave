@@ -121,9 +121,29 @@ func FetchSwarmManagerExceptServer(db *gorm.DB, serverId uint) (Server, error) {
 
 // FetchProxyActiveServers fetches all active servers from the database
 func FetchProxyActiveServers(db *gorm.DB) ([]Server, error) {
+	isAnyActiveProxyServerOffline, err := IsAnyActiveProxyServerOffline(db)
+	if err != nil {
+		return nil, err
+	}
+	if isAnyActiveProxyServerOffline {
+		// PS: This has been done to mitigate security risks
+		// Suppose we are adding authentication for an app to proxy
+		// We failed to apply that on a specific proxy because the proxy was offline
+		// But think that, the proxy become online after a while and it has no authentication for specific app
+		// So, any user can access the app via that specific proxy
+		// To mitigate this, we will abort the operation if any active proxy is offline
+		return nil, errors.New("all proxy servers need to be online to perform this action")
+	}
 	var servers []Server
-	err := db.Where("status = ?", ServerOnline).Where("proxy_enabled = ?", true).Where("proxy_type = ?", ActiveProxy).Find(&servers).Error
+	err = db.Where("status = ?", ServerOnline).Where("proxy_enabled = ?", true).Where("proxy_type = ?", ActiveProxy).Find(&servers).Error
 	return servers, err
+}
+
+// IsAnyActiveProxyServerOffline checks if any active proxy server is offline
+func IsAnyActiveProxyServerOffline(db *gorm.DB) (bool, error) {
+	var count int64
+	err := db.Model(&Server{}).Where("status = ?", ServerOffline).Where("proxy_enabled = ?", true).Where("proxy_type = ?", ActiveProxy).Count(&count).Error
+	return count > 0, err
 }
 
 // FetchRandomActiveProxyServer fetches a random active server from the database

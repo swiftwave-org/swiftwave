@@ -10,8 +10,10 @@ import (
 	"fmt"
 	"strings"
 
+	haproxymanager "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
+	"gorm.io/gorm"
 )
 
 // Domain is the resolver for the domain field.
@@ -38,6 +40,23 @@ func (r *ingressRuleResolver) Application(ctx context.Context, obj *model.Ingres
 		return nil, err
 	}
 	return applicationToGraphqlObject(application), nil
+}
+
+// BasicAuthAccessControlListName is the resolver for the basicAuthAccessControlListName field.
+func (r *ingressRuleResolver) BasicAuthAccessControlListName(ctx context.Context, obj *model.IngressRule) (string, error) {
+	if obj.AuthenticationType == model.IngressRuleAuthenticationTypeBasic {
+		if obj.BasicAuthAccessControlListID == nil {
+			return "", nil
+		}
+		appBasicAuthAccessControlList := &core.AppBasicAuthAccessControlList{}
+		err := appBasicAuthAccessControlList.FindById(ctx, &r.ServiceManager.DbClient, *obj.BasicAuthAccessControlListID)
+		if err != nil {
+			return "", err
+		}
+		return appBasicAuthAccessControlList.Name, nil
+	} else {
+		return "", nil
+	}
 }
 
 // CreateIngressRule is the resolver for the createIngressRule field.
@@ -140,6 +159,112 @@ func (r *mutationResolver) DeleteIngressRule(ctx context.Context, id uint) (bool
 		return false, errors.New("failed to schedule task to delete ingress rule")
 	}
 	return true, nil
+}
+
+// ProtectIngressRuleUsingBasicAuth is the resolver for the protectIngressRuleUsingBasicAuth field.
+func (r *mutationResolver) ProtectIngressRuleUsingBasicAuth(ctx context.Context, id uint, appBasicAuthAccessControlListID uint) (bool, error) {
+	tx := r.ServiceManager.DbClient.Begin()
+	defer tx.Rollback()
+
+	record := core.IngressRule{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+	if record.Protocol != core.HTTPProtocol && record.Protocol != core.HTTPSProtocol {
+		return false, errors.New("basic authentication is supported only for HTTP/HTTPS mode")
+	}
+
+	appBasicAuthAccessControlList := core.AppBasicAuthAccessControlList{}
+	err = appBasicAuthAccessControlList.FindById(ctx, tx, appBasicAuthAccessControlListID)
+	if err != nil {
+		return false, err
+	}
+
+	domainRecord := core.Domain{}
+	err = domainRecord.FindById(ctx, *tx, *record.DomainID)
+	if err != nil {
+		return false, err
+	}
+
+	err = record.ProtectUsingBasicAuth(ctx, *tx, appBasicAuthAccessControlList.ID)
+	if err != nil {
+		return false, err
+	}
+
+	// apply to haproxy + commit
+	ctx = context.WithValue(ctx, "domain", domainRecord.Name)
+	ctx = context.WithValue(ctx, "bind_port", record.Port)
+	ctx = context.WithValue(ctx, "access_control_user_list_name", appBasicAuthAccessControlList.GeneratedName)
+	err = r.RunActionsInAllHAProxyNodes(ctx, tx, func(ctx context.Context, db *gorm.DB, transactionId string, manager *haproxymanager.Manager) error {
+		domain := ctx.Value("domain").(string)
+		port := int(ctx.Value("bind_port").(uint))
+		userListName := ctx.Value("access_control_user_list_name").(string)
+		return manager.SetupBasicAuthentication(transactionId, haproxymanager.HTTPMode, port, domain, userListName)
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	// commit to db
+	err = tx.Commit().Error
+	return err == nil, err
+}
+
+// DisableIngressRuleProtection is the resolver for the disableIngressRuleProtection field.
+func (r *mutationResolver) DisableIngressRuleProtection(ctx context.Context, id uint) (bool, error) {
+	tx := r.ServiceManager.DbClient.Begin()
+	defer tx.Rollback()
+
+	record := core.IngressRule{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return false, err
+	}
+
+	if record.Authentication.AuthType == core.IngressRuleNoAuthentication {
+		return false, errors.New("ingress rule is not protected")
+	}
+
+	// disable authentication
+	err = record.DisableAuthentication(ctx, r.ServiceManager.DbClient)
+	if err != nil {
+		return false, err
+	}
+
+	if record.Authentication.AuthType == core.IngressRuleBasicAuthentication {
+		appBasicAuthAccessControlList := core.AppBasicAuthAccessControlList{}
+		err = appBasicAuthAccessControlList.FindById(ctx, tx, *record.Authentication.AppBasicAuthAccessControlListID)
+		if err != nil {
+			return false, err
+		}
+
+		domainRecord := core.Domain{}
+		err = domainRecord.FindById(ctx, *tx, *record.DomainID)
+		if err != nil {
+			return false, err
+		}
+
+		// delete from haproxy + commit
+		ctx = context.WithValue(ctx, "domain", domainRecord.Name)
+		ctx = context.WithValue(ctx, "bind_port", record.Port)
+		ctx = context.WithValue(ctx, "access_control_user_list_name", appBasicAuthAccessControlList.GeneratedName)
+		err = r.RunActionsInAllHAProxyNodes(ctx, tx, func(ctx context.Context, db *gorm.DB, transactionId string, manager *haproxymanager.Manager) error {
+			domain := ctx.Value("domain").(string)
+			port := int(ctx.Value("bind_port").(uint))
+			userListName := ctx.Value("access_control_user_list_name").(string)
+			return manager.RemoveBasicAuthentication(transactionId, haproxymanager.HTTPMode, port, domain, userListName)
+		})
+		if err != nil {
+			return false, err
+		}
+	} else {
+		return false, errors.New("invalid ingress rule")
+	}
+
+	err = tx.Commit().Error
+	return err == nil, err
 }
 
 // IngressRule is the resolver for the ingressRule field.
