@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/lib/pq"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
@@ -29,6 +30,26 @@ func Fetch() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// add swiftwave, registry and db port in restricted ports if not configured
+	if systemConfig != nil && localConfig != nil {
+		if localConfig.ServiceConfig.BindPort != 80 && localConfig.ServiceConfig.BindPort != 443 {
+			if !isPortAdded(localConfig.ServiceConfig.BindPort, systemConfig.RestrictedPorts) {
+				systemConfig.RestrictedPorts = append(systemConfig.RestrictedPorts, int64(localConfig.ServiceConfig.BindPort))
+			}
+		}
+		if localConfig.PostgresqlConfig.RunLocalPostgres {
+			if !isPortAdded(localConfig.PostgresqlConfig.Port, systemConfig.RestrictedPorts) {
+				systemConfig.RestrictedPorts = append(systemConfig.RestrictedPorts, int64(localConfig.PostgresqlConfig.Port))
+			}
+		}
+		if !systemConfig.ImageRegistryConfig.IsConfigured() {
+			if !isPortAdded(localConfig.LocalImageRegistryConfig.Port, systemConfig.RestrictedPorts) {
+				systemConfig.RestrictedPorts = append(systemConfig.RestrictedPorts, int64(localConfig.LocalImageRegistryConfig.Port))
+			}
+		}
+	}
+
 	return &Config{
 		LocalConfig:  localConfig,
 		SystemConfig: systemConfig,
@@ -54,4 +75,14 @@ func (config *Config) ImageRegistryPassword() string {
 		return config.SystemConfig.ImageRegistryConfig.Password
 	}
 	return config.LocalConfig.LocalImageRegistryConfig.Password
+}
+
+// private functions
+func isPortAdded(port int, ports pq.Int64Array) bool {
+	for _, p := range ports {
+		if int(p) == port {
+			return true
+		}
+	}
+	return false
 }

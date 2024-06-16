@@ -119,7 +119,7 @@ var initCmd = &cobra.Command{
 			},
 			PostgresqlConfig: local_config.PostgresqlConfig{
 				Host:             defaultString(currentPostgresHost, "127.0.0.1"),
-				Port:             defaultInt(currentPostgresPort, 5432),
+				Port:             defaultInt(currentPostgresPort, 3335),
 				User:             defaultString(currentPostgresUser, "user_"+generateRandomString(8)),
 				Password:         defaultString(currentPostgresPassword, generateRandomString(20)),
 				Database:         defaultString(currentPostgresDatabase, "db_"+generateRandomString(8)),
