@@ -20,7 +20,7 @@ require (
 	github.com/moby/sys/user v0.1.0
 	github.com/oklog/ulid v1.3.1
 	github.com/rabbitmq/amqp091-go v1.10.0
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.31.0
 	github.com/tredoe/osutil v1.5.0
