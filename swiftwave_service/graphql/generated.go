@@ -44,6 +44,7 @@ type ResolverRoot interface {
 	AppBasicAuthAccessControlList() AppBasicAuthAccessControlListResolver
 	Application() ApplicationResolver
 	Deployment() DeploymentResolver
+	DockerProxyConfig() DockerProxyConfigResolver
 	Domain() DomainResolver
 	GitCredential() GitCredentialResolver
 	ImageRegistryCredential() ImageRegistryCredentialResolver
@@ -578,6 +579,9 @@ type DeploymentResolver interface {
 
 	ImageRegistryCredential(ctx context.Context, obj *model.Deployment) (*model.ImageRegistryCredential, error)
 	BuildArgs(ctx context.Context, obj *model.Deployment) ([]*model.BuildArg, error)
+}
+type DockerProxyConfigResolver interface {
+	SpecificServer(ctx context.Context, obj *model.DockerProxyConfig) (*model.Server, error)
 }
 type DomainResolver interface {
 	IngressRules(ctx context.Context, obj *model.Domain) ([]*model.IngressRule, error)
@@ -9977,7 +9981,7 @@ func (ec *executionContext) _DockerProxyConfig_specificServer(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.SpecificServer, nil
+		return ec.resolvers.DockerProxyConfig().SpecificServer(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9995,8 +9999,8 @@ func (ec *executionContext) fieldContext_DockerProxyConfig_specificServer(_ cont
 	fc = &graphql.FieldContext{
 		Object:     "DockerProxyConfig",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -29292,21 +29296,52 @@ func (ec *executionContext) _DockerProxyConfig(ctx context.Context, sel ast.Sele
 		case "enabled":
 			out.Values[i] = ec._DockerProxyConfig_enabled(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "serverPreference":
 			out.Values[i] = ec._DockerProxyConfig_serverPreference(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "specificServerID":
 			out.Values[i] = ec._DockerProxyConfig_specificServerID(ctx, field, obj)
 		case "specificServer":
-			out.Values[i] = ec._DockerProxyConfig_specificServer(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._DockerProxyConfig_specificServer(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "permission":
 			out.Values[i] = ec._DockerProxyConfig_permission(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
