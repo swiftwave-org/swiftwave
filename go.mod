@@ -5,7 +5,7 @@ go 1.21.7
 require (
 	ariga.io/atlas-provider-gorm v0.5.0
 	github.com/99designs/gqlgen v0.17.48
-	github.com/aws/aws-sdk-go v1.53.21
+	github.com/aws/aws-sdk-go v1.54.2
 	github.com/docker/docker v26.1.4+incompatible
 	github.com/fatih/color v1.17.0
 	github.com/go-git/go-git/v5 v5.12.0
@@ -20,7 +20,7 @@ require (
 	github.com/moby/sys/user v0.1.0
 	github.com/oklog/ulid v1.3.1
 	github.com/rabbitmq/amqp091-go v1.10.0
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.31.0
 	github.com/tredoe/osutil v1.5.0
