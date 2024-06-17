@@ -362,14 +362,14 @@ type ApplicationReservedResource struct {
 type DockerProxyServerPreferenceType string
 
 const (
-	// AnyServer any online server will be used
-	AnyServer DockerProxyServerPreferenceType = "any"
-	// AnySwarmManagerServer any online swarm manager server will be used
-	AnySwarmManagerServer DockerProxyServerPreferenceType = "any_swarm_manager"
-	// AnySwarmWorkerServer any online swarm worker server will be used
-	AnySwarmWorkerServer DockerProxyServerPreferenceType = "any_swarm_worker"
-	// SpecificServer specific server will be used (ref DockerProxyConfig.SpecificServerID)
-	SpecificServer DockerProxyServerPreferenceType = "specific"
+	// DockerProxyPreferenceAnyServer any online server will be used
+	DockerProxyPreferenceAnyServer DockerProxyServerPreferenceType = "any"
+	// DockerProxyPreferenceAnySwarmManagerServer any online swarm manager server will be used
+	DockerProxyPreferenceAnySwarmManagerServer DockerProxyServerPreferenceType = "any_swarm_manager"
+	// DockerProxyPreferenceAnySwarmWorkerServer any online swarm worker server will be used
+	DockerProxyPreferenceAnySwarmWorkerServer DockerProxyServerPreferenceType = "any_swarm_worker"
+	// DockerProxyPreferenceSpecificServer specific server will be used (ref DockerProxyConfig.SpecificServerID)
+	DockerProxyPreferenceSpecificServer DockerProxyServerPreferenceType = "specific"
 )
 
 type DockerProxyConfig struct {

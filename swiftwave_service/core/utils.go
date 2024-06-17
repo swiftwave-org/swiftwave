@@ -5,6 +5,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -54,8 +55,38 @@ func (domain *Domain) IsIPv4() bool {
 	return regex.MatchString(domain.Name)
 }
 
-// IsLocalhost : check if the domain is localhost
+// IsLocalhost check if the domain is localhost
 func (server *Server) IsLocalhost() bool {
 	// if `localhost` or `127.0.0.1` or `0.0.0.0`
 	return server.IP == "localhost" || server.IP == "127.0.0.1" || server.IP == "0.0.0.0"
+}
+
+func (d *DockerProxyConfig) Equal(other *DockerProxyConfig) bool {
+	return d.Enabled == other.Enabled &&
+		d.ServerPreference == other.ServerPreference &&
+		d.SpecificServerID == other.SpecificServerID &&
+		strings.Compare(d.AuthenticationToken, other.AuthenticationToken) == 0 &&
+		d.Permission.Ping == other.Permission.Ping &&
+		d.Permission.Version == other.Permission.Version &&
+		d.Permission.Info == other.Permission.Info &&
+		d.Permission.Events == other.Permission.Events &&
+		d.Permission.Auth == other.Permission.Auth &&
+		d.Permission.Secrets == other.Permission.Secrets &&
+		d.Permission.Build == other.Permission.Build &&
+		d.Permission.Commit == other.Permission.Commit &&
+		d.Permission.Configs == other.Permission.Configs &&
+		d.Permission.Containers == other.Permission.Containers &&
+		d.Permission.Distribution == other.Permission.Distribution &&
+		d.Permission.Exec == other.Permission.Exec &&
+		d.Permission.Grpc == other.Permission.Grpc &&
+		d.Permission.Images == other.Permission.Images &&
+		d.Permission.Networks == other.Permission.Networks &&
+		d.Permission.Nodes == other.Permission.Nodes &&
+		d.Permission.Plugins == other.Permission.Plugins &&
+		d.Permission.Services == other.Permission.Services &&
+		d.Permission.Session == other.Permission.Session &&
+		d.Permission.Swarm == other.Permission.Swarm &&
+		d.Permission.System == other.Permission.System &&
+		d.Permission.Tasks == other.Permission.Tasks &&
+		d.Permission.Volumes == other.Permission.Volumes
 }

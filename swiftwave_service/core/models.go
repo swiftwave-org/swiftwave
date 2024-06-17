@@ -257,7 +257,7 @@ type Application struct {
 	// Application ApplicationGroup
 	ApplicationGroup string `json:"application_group"`
 	// DockerProxy configuration
-	DockerProxy DockerProxyConfig `json:"docker_proxy_config" gorm:"embedded;embeddedPrefix:docker_proxy_"`
+	DockerProxy DockerProxyConfig `json:"docker_proxy" gorm:"embedded;embeddedPrefix:docker_proxy_"`
 }
 
 // Deployment hold information about deployment of application

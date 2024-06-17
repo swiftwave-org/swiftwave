@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"errors"
+	"github.com/labstack/gommon/random"
 	"os"
 	"path/filepath"
 	"strings"
@@ -142,6 +143,20 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 			return errors.New("source code not found")
 		}
 	}
+	// Validate DockerProxy configuration
+	if application.DockerProxy.ServerPreference == DockerProxyPreferenceSpecificServer {
+		// check if server id is valid
+		if application.DockerProxy.SpecificServerID == nil {
+			return errors.New("invalid docker proxy server provided")
+		}
+		_, err := FetchServerByID(&db, *application.DockerProxy.SpecificServerID)
+		if err != nil {
+			return err
+		}
+	} else {
+		application.DockerProxy.SpecificServerID = nil
+	}
+	application.DockerProxy.AuthenticationToken = random.String(32)
 	// create application
 	createdApplication := Application{
 		ID:               uuid.NewString(),
@@ -155,6 +170,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		ResourceLimit:    application.ResourceLimit,
 		ReservedResource: application.ReservedResource,
 		ApplicationGroup: application.ApplicationGroup,
+		DockerProxy:      application.DockerProxy,
 	}
 	tx := db.Create(&createdApplication)
 	if tx.Error != nil {
@@ -306,6 +322,24 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
+	// validate docker proxy configuration
+	application.DockerProxy.AuthenticationToken = applicationExistingFull.DockerProxy.AuthenticationToken
+	if strings.Compare(application.DockerProxy.AuthenticationToken, "") == 0 {
+		application.DockerProxy.AuthenticationToken = random.String(32)
+	}
+	if application.DockerProxy.ServerPreference == DockerProxyPreferenceSpecificServer {
+		// check if server id is valid
+		if application.DockerProxy.SpecificServerID == nil {
+			return nil, errors.New("invalid docker proxy server provided")
+		}
+		_, err := FetchServerByID(&db, *application.DockerProxy.SpecificServerID)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		application.DockerProxy.SpecificServerID = nil
+	}
+
 	// check if DeploymentMode is changed
 	if applicationExistingFull.DeploymentMode != application.DeploymentMode {
 		// update deployment mode
@@ -514,6 +548,11 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 		if err != nil {
 			return nil, err
 		}
+		// reload application
+		isReloadRequired = true
+	}
+	// check for changes in docker proxy configuration
+	if !application.DockerProxy.Equal(&applicationExistingFull.DockerProxy) {
 		// reload application
 		isReloadRequired = true
 	}

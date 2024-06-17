@@ -93,6 +93,9 @@ func FetchAllServers(db *gorm.DB) ([]Server, error) {
 func FetchServerByID(db *gorm.DB, id uint) (*Server, error) {
 	var server Server
 	err := db.First(&server, id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, errors.New("server not found")
+	}
 	return &server, err
 }
 

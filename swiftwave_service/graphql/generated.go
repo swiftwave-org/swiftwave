@@ -79,6 +79,7 @@ type ComplexityRoot struct {
 		ConfigMounts             func(childComplexity int) int
 		DeploymentMode           func(childComplexity int) int
 		Deployments              func(childComplexity int) int
+		DockerProxyConfig        func(childComplexity int) int
 		EnvironmentVariables     func(childComplexity int) int
 		Group                    func(childComplexity int) int
 		ID                       func(childComplexity int) int
@@ -186,6 +187,40 @@ type ComplexityRoot struct {
 		DetectedServiceName func(childComplexity int) int
 		DockerBuildArgs     func(childComplexity int) int
 		DockerFile          func(childComplexity int) int
+	}
+
+	DockerProxyConfig struct {
+		Enabled          func(childComplexity int) int
+		Permission       func(childComplexity int) int
+		ServerPreference func(childComplexity int) int
+		SpecificServer   func(childComplexity int) int
+		SpecificServerID func(childComplexity int) int
+	}
+
+	DockerProxyPermission struct {
+		Auth         func(childComplexity int) int
+		Build        func(childComplexity int) int
+		Commit       func(childComplexity int) int
+		Configs      func(childComplexity int) int
+		Containers   func(childComplexity int) int
+		Distribution func(childComplexity int) int
+		Events       func(childComplexity int) int
+		Exec         func(childComplexity int) int
+		Grpc         func(childComplexity int) int
+		Images       func(childComplexity int) int
+		Info         func(childComplexity int) int
+		Networks     func(childComplexity int) int
+		Nodes        func(childComplexity int) int
+		Ping         func(childComplexity int) int
+		Plugins      func(childComplexity int) int
+		Secrets      func(childComplexity int) int
+		Services     func(childComplexity int) int
+		Session      func(childComplexity int) int
+		Swarm        func(childComplexity int) int
+		System       func(childComplexity int) int
+		Tasks        func(childComplexity int) int
+		Version      func(childComplexity int) int
+		Volumes      func(childComplexity int) int
 	}
 
 	Domain struct {
@@ -797,6 +832,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Application.Deployments(childComplexity), true
 
+	case "Application.dockerProxyConfig":
+		if e.complexity.Application.DockerProxyConfig == nil {
+			break
+		}
+
+		return e.complexity.Application.DockerProxyConfig(childComplexity), true
+
 	case "Application.environmentVariables":
 		if e.complexity.Application.EnvironmentVariables == nil {
 			break
@@ -1335,6 +1377,202 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DockerConfigGeneratorOutput.DockerFile(childComplexity), true
+
+	case "DockerProxyConfig.enabled":
+		if e.complexity.DockerProxyConfig.Enabled == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyConfig.Enabled(childComplexity), true
+
+	case "DockerProxyConfig.permission":
+		if e.complexity.DockerProxyConfig.Permission == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyConfig.Permission(childComplexity), true
+
+	case "DockerProxyConfig.serverPreference":
+		if e.complexity.DockerProxyConfig.ServerPreference == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyConfig.ServerPreference(childComplexity), true
+
+	case "DockerProxyConfig.specificServer":
+		if e.complexity.DockerProxyConfig.SpecificServer == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyConfig.SpecificServer(childComplexity), true
+
+	case "DockerProxyConfig.specificServerID":
+		if e.complexity.DockerProxyConfig.SpecificServerID == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyConfig.SpecificServerID(childComplexity), true
+
+	case "DockerProxyPermission.auth":
+		if e.complexity.DockerProxyPermission.Auth == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Auth(childComplexity), true
+
+	case "DockerProxyPermission.build":
+		if e.complexity.DockerProxyPermission.Build == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Build(childComplexity), true
+
+	case "DockerProxyPermission.commit":
+		if e.complexity.DockerProxyPermission.Commit == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Commit(childComplexity), true
+
+	case "DockerProxyPermission.configs":
+		if e.complexity.DockerProxyPermission.Configs == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Configs(childComplexity), true
+
+	case "DockerProxyPermission.containers":
+		if e.complexity.DockerProxyPermission.Containers == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Containers(childComplexity), true
+
+	case "DockerProxyPermission.distribution":
+		if e.complexity.DockerProxyPermission.Distribution == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Distribution(childComplexity), true
+
+	case "DockerProxyPermission.events":
+		if e.complexity.DockerProxyPermission.Events == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Events(childComplexity), true
+
+	case "DockerProxyPermission.exec":
+		if e.complexity.DockerProxyPermission.Exec == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Exec(childComplexity), true
+
+	case "DockerProxyPermission.grpc":
+		if e.complexity.DockerProxyPermission.Grpc == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Grpc(childComplexity), true
+
+	case "DockerProxyPermission.images":
+		if e.complexity.DockerProxyPermission.Images == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Images(childComplexity), true
+
+	case "DockerProxyPermission.info":
+		if e.complexity.DockerProxyPermission.Info == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Info(childComplexity), true
+
+	case "DockerProxyPermission.networks":
+		if e.complexity.DockerProxyPermission.Networks == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Networks(childComplexity), true
+
+	case "DockerProxyPermission.nodes":
+		if e.complexity.DockerProxyPermission.Nodes == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Nodes(childComplexity), true
+
+	case "DockerProxyPermission.ping":
+		if e.complexity.DockerProxyPermission.Ping == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Ping(childComplexity), true
+
+	case "DockerProxyPermission.plugins":
+		if e.complexity.DockerProxyPermission.Plugins == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Plugins(childComplexity), true
+
+	case "DockerProxyPermission.secrets":
+		if e.complexity.DockerProxyPermission.Secrets == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Secrets(childComplexity), true
+
+	case "DockerProxyPermission.services":
+		if e.complexity.DockerProxyPermission.Services == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Services(childComplexity), true
+
+	case "DockerProxyPermission.session":
+		if e.complexity.DockerProxyPermission.Session == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Session(childComplexity), true
+
+	case "DockerProxyPermission.swarm":
+		if e.complexity.DockerProxyPermission.Swarm == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Swarm(childComplexity), true
+
+	case "DockerProxyPermission.system":
+		if e.complexity.DockerProxyPermission.System == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.System(childComplexity), true
+
+	case "DockerProxyPermission.tasks":
+		if e.complexity.DockerProxyPermission.Tasks == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Tasks(childComplexity), true
+
+	case "DockerProxyPermission.version":
+		if e.complexity.DockerProxyPermission.Version == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Version(childComplexity), true
+
+	case "DockerProxyPermission.volumes":
+		if e.complexity.DockerProxyPermission.Volumes == nil {
+			break
+		}
+
+		return e.complexity.DockerProxyPermission.Volumes(childComplexity), true
 
 	case "Domain.id":
 		if e.complexity.Domain.ID == nil {
@@ -3570,6 +3808,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigMountInput,
 		ec.unmarshalInputCustomSSLInput,
 		ec.unmarshalInputDockerConfigGeneratorInput,
+		ec.unmarshalInputDockerProxyConfigInput,
+		ec.unmarshalInputDockerProxyPermissionInput,
 		ec.unmarshalInputDomainInput,
 		ec.unmarshalInputEnvironmentVariableInput,
 		ec.unmarshalInputGitBranchesQueryInput,
@@ -3705,7 +3945,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/app_authentication.graphqls" "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/config_mount.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/totp.graphqls" "schema/user.graphqls.graphqls"
+//go:embed "schema/app_authentication.graphqls" "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/config_mount.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/docker_proxy_config.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/totp.graphqls" "schema/user.graphqls.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -3726,6 +3966,7 @@ var sources = []*ast.Source{
 	{Name: "schema/deployment.graphqls", Input: sourceData("schema/deployment.graphqls"), BuiltIn: false},
 	{Name: "schema/deployment_log.graphqls", Input: sourceData("schema/deployment_log.graphqls"), BuiltIn: false},
 	{Name: "schema/docker_config_generator.graphqls", Input: sourceData("schema/docker_config_generator.graphqls"), BuiltIn: false},
+	{Name: "schema/docker_proxy_config.graphqls", Input: sourceData("schema/docker_proxy_config.graphqls"), BuiltIn: false},
 	{Name: "schema/domain.graphqls", Input: sourceData("schema/domain.graphqls"), BuiltIn: false},
 	{Name: "schema/environment_variable.graphqls", Input: sourceData("schema/environment_variable.graphqls"), BuiltIn: false},
 	{Name: "schema/git.graphqls", Input: sourceData("schema/git.graphqls"), BuiltIn: false},
@@ -6691,6 +6932,62 @@ func (ec *executionContext) fieldContext_Application_group(_ context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Application_dockerProxyConfig(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_dockerProxyConfig(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DockerProxyConfig, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.DockerProxyConfig)
+	fc.Result = res
+	return ec.marshalNDockerProxyConfig2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyConfig(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_dockerProxyConfig(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "enabled":
+				return ec.fieldContext_DockerProxyConfig_enabled(ctx, field)
+			case "serverPreference":
+				return ec.fieldContext_DockerProxyConfig_serverPreference(ctx, field)
+			case "specificServerID":
+				return ec.fieldContext_DockerProxyConfig_specificServerID(ctx, field)
+			case "specificServer":
+				return ec.fieldContext_DockerProxyConfig_specificServer(ctx, field)
+			case "permission":
+				return ec.fieldContext_DockerProxyConfig_permission(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DockerProxyConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ApplicationDeployResult_success(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationDeployResult) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ApplicationDeployResult_success(ctx, field)
 	if err != nil {
@@ -6855,6 +7152,8 @@ func (ec *executionContext) fieldContext_ApplicationDeployResult_application(_ c
 				return ec.fieldContext_Application_command(ctx, field)
 			case "group":
 				return ec.fieldContext_Application_group(ctx, field)
+			case "dockerProxyConfig":
+				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -8173,6 +8472,8 @@ func (ec *executionContext) fieldContext_Deployment_application(_ context.Contex
 				return ec.fieldContext_Application_command(ctx, field)
 			case "group":
 				return ec.fieldContext_Application_group(ctx, field)
+			case "dockerProxyConfig":
+				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -9528,6 +9829,1310 @@ func (ec *executionContext) fieldContext_DockerConfigGeneratorOutput_dockerBuild
 				return ec.fieldContext_DockerConfigBuildArg_defaultValue(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DockerConfigBuildArg", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyConfig_enabled(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyConfig_enabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Enabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyConfig_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyConfig_serverPreference(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyConfig_serverPreference(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServerPreference, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyServerPreferenceType)
+	fc.Result = res
+	return ec.marshalNDockerProxyServerPreferenceType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyServerPreferenceType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyConfig_serverPreference(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyServerPreferenceType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyConfig_specificServerID(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyConfig_specificServerID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SpecificServerID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*uint)
+	fc.Result = res
+	return ec.marshalOUint2ᚖuint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyConfig_specificServerID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyConfig_specificServer(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyConfig_specificServer(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SpecificServer, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Server)
+	fc.Result = res
+	return ec.marshalOServer2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServer(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyConfig_specificServer(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Server_id(ctx, field)
+			case "ip":
+				return ec.fieldContext_Server_ip(ctx, field)
+			case "hostname":
+				return ec.fieldContext_Server_hostname(ctx, field)
+			case "user":
+				return ec.fieldContext_Server_user(ctx, field)
+			case "ssh_port":
+				return ec.fieldContext_Server_ssh_port(ctx, field)
+			case "swarmMode":
+				return ec.fieldContext_Server_swarmMode(ctx, field)
+			case "swarmNodeStatus":
+				return ec.fieldContext_Server_swarmNodeStatus(ctx, field)
+			case "scheduleDeployments":
+				return ec.fieldContext_Server_scheduleDeployments(ctx, field)
+			case "maintenanceMode":
+				return ec.fieldContext_Server_maintenanceMode(ctx, field)
+			case "dockerUnixSocketPath":
+				return ec.fieldContext_Server_dockerUnixSocketPath(ctx, field)
+			case "proxyEnabled":
+				return ec.fieldContext_Server_proxyEnabled(ctx, field)
+			case "proxyType":
+				return ec.fieldContext_Server_proxyType(ctx, field)
+			case "status":
+				return ec.fieldContext_Server_status(ctx, field)
+			case "logs":
+				return ec.fieldContext_Server_logs(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Server", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyConfig_permission(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyConfig_permission(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Permission, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.DockerProxyPermission)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermission2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermission(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyConfig_permission(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ping":
+				return ec.fieldContext_DockerProxyPermission_ping(ctx, field)
+			case "version":
+				return ec.fieldContext_DockerProxyPermission_version(ctx, field)
+			case "info":
+				return ec.fieldContext_DockerProxyPermission_info(ctx, field)
+			case "events":
+				return ec.fieldContext_DockerProxyPermission_events(ctx, field)
+			case "auth":
+				return ec.fieldContext_DockerProxyPermission_auth(ctx, field)
+			case "secrets":
+				return ec.fieldContext_DockerProxyPermission_secrets(ctx, field)
+			case "build":
+				return ec.fieldContext_DockerProxyPermission_build(ctx, field)
+			case "commit":
+				return ec.fieldContext_DockerProxyPermission_commit(ctx, field)
+			case "configs":
+				return ec.fieldContext_DockerProxyPermission_configs(ctx, field)
+			case "containers":
+				return ec.fieldContext_DockerProxyPermission_containers(ctx, field)
+			case "distribution":
+				return ec.fieldContext_DockerProxyPermission_distribution(ctx, field)
+			case "exec":
+				return ec.fieldContext_DockerProxyPermission_exec(ctx, field)
+			case "grpc":
+				return ec.fieldContext_DockerProxyPermission_grpc(ctx, field)
+			case "images":
+				return ec.fieldContext_DockerProxyPermission_images(ctx, field)
+			case "networks":
+				return ec.fieldContext_DockerProxyPermission_networks(ctx, field)
+			case "nodes":
+				return ec.fieldContext_DockerProxyPermission_nodes(ctx, field)
+			case "plugins":
+				return ec.fieldContext_DockerProxyPermission_plugins(ctx, field)
+			case "services":
+				return ec.fieldContext_DockerProxyPermission_services(ctx, field)
+			case "session":
+				return ec.fieldContext_DockerProxyPermission_session(ctx, field)
+			case "swarm":
+				return ec.fieldContext_DockerProxyPermission_swarm(ctx, field)
+			case "system":
+				return ec.fieldContext_DockerProxyPermission_system(ctx, field)
+			case "tasks":
+				return ec.fieldContext_DockerProxyPermission_tasks(ctx, field)
+			case "volumes":
+				return ec.fieldContext_DockerProxyPermission_volumes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DockerProxyPermission", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_ping(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_ping(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Ping, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_ping(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_version(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_version(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Version, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_version(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_info(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_info(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Info, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_info(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_events(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_events(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Events, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_events(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_auth(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_auth(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Auth, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_auth(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_secrets(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_secrets(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Secrets, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_secrets(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_build(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_build(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Build, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_build(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_commit(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_commit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Commit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_commit(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_configs(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_configs(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Configs, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_configs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_containers(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_containers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Containers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_containers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_distribution(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_distribution(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Distribution, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_distribution(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_exec(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_exec(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Exec, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_exec(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_grpc(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_grpc(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Grpc, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_grpc(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_images(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_images(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Images, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_images(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_networks(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_networks(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Networks, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_networks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_nodes(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_nodes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nodes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_nodes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_plugins(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_plugins(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Plugins, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_plugins(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_services(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_services(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Services, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_services(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_session(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_session(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Session, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_session(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_swarm(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_swarm(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Swarm, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_swarm(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_system(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_system(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.System, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_system(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_tasks(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_tasks(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tasks, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_tasks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DockerProxyPermission_volumes(ctx context.Context, field graphql.CollectedField, obj *model.DockerProxyPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DockerProxyPermission_volumes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Volumes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.DockerProxyPermissionType)
+	fc.Result = res
+	return ec.marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DockerProxyPermission_volumes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DockerProxyPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DockerProxyPermissionType does not have child fields")
 		},
 	}
 	return fc, nil
@@ -11190,6 +12795,8 @@ func (ec *executionContext) fieldContext_IngressRule_application(_ context.Conte
 				return ec.fieldContext_Application_command(ctx, field)
 			case "group":
 				return ec.fieldContext_Application_group(ctx, field)
+			case "dockerProxyConfig":
+				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -11960,6 +13567,8 @@ func (ec *executionContext) fieldContext_Mutation_createApplication(ctx context.
 				return ec.fieldContext_Application_command(ctx, field)
 			case "group":
 				return ec.fieldContext_Application_group(ctx, field)
+			case "dockerProxyConfig":
+				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -12057,6 +13666,8 @@ func (ec *executionContext) fieldContext_Mutation_updateApplication(ctx context.
 				return ec.fieldContext_Application_command(ctx, field)
 			case "group":
 				return ec.fieldContext_Application_group(ctx, field)
+			case "dockerProxyConfig":
+				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -16893,6 +18504,8 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_application(_ c
 				return ec.fieldContext_Application_command(ctx, field)
 			case "group":
 				return ec.fieldContext_Application_group(ctx, field)
+			case "dockerProxyConfig":
+				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -17297,6 +18910,8 @@ func (ec *executionContext) fieldContext_Query_application(ctx context.Context, 
 				return ec.fieldContext_Application_command(ctx, field)
 			case "group":
 				return ec.fieldContext_Application_group(ctx, field)
+			case "dockerProxyConfig":
+				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -17394,6 +19009,8 @@ func (ec *executionContext) fieldContext_Query_applications(_ context.Context, f
 				return ec.fieldContext_Application_command(ctx, field)
 			case "group":
 				return ec.fieldContext_Application_group(ctx, field)
+			case "dockerProxyConfig":
+				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -17480,6 +19097,8 @@ func (ec *executionContext) fieldContext_Query_applicationsByGroup(ctx context.C
 				return ec.fieldContext_Application_command(ctx, field)
 			case "group":
 				return ec.fieldContext_Application_group(ctx, field)
+			case "dockerProxyConfig":
+				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -24887,7 +26506,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "configMounts", "capabilities", "sysctls", "dockerfile", "buildArgs", "deploymentMode", "replicas", "resourceLimit", "reservedResource", "upstreamType", "command", "gitCredentialID", "repositoryUrl", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID", "group"}
+	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "configMounts", "capabilities", "sysctls", "dockerfile", "buildArgs", "deploymentMode", "replicas", "resourceLimit", "reservedResource", "upstreamType", "command", "gitCredentialID", "repositoryUrl", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID", "group", "dockerProxyConfig"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -25048,6 +26667,13 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 				return it, err
 			}
 			it.Group = data
+		case "dockerProxyConfig":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dockerProxyConfig"))
+			data, err := ec.unmarshalNDockerProxyConfigInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyConfigInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DockerProxyConfig = data
 		}
 	}
 
@@ -25316,6 +26942,235 @@ func (ec *executionContext) unmarshalInputDockerConfigGeneratorInput(ctx context
 				return it, err
 			}
 			it.CustomDockerFile = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputDockerProxyConfigInput(ctx context.Context, obj interface{}) (model.DockerProxyConfigInput, error) {
+	var it model.DockerProxyConfigInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"enabled", "serverPreference", "specificServerID", "permission"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		case "serverPreference":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serverPreference"))
+			data, err := ec.unmarshalNDockerProxyServerPreferenceType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyServerPreferenceType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ServerPreference = data
+		case "specificServerID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("specificServerID"))
+			data, err := ec.unmarshalOUint2ᚖuint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SpecificServerID = data
+		case "permission":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
+			data, err := ec.unmarshalNDockerProxyPermissionInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Permission = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputDockerProxyPermissionInput(ctx context.Context, obj interface{}) (model.DockerProxyPermissionInput, error) {
+	var it model.DockerProxyPermissionInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"ping", "version", "info", "events", "auth", "secrets", "build", "commit", "configs", "containers", "distribution", "exec", "grpc", "images", "networks", "nodes", "plugins", "services", "session", "swarm", "system", "tasks", "volumes"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "ping":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ping"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Ping = data
+		case "version":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("version"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Version = data
+		case "info":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("info"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Info = data
+		case "events":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("events"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Events = data
+		case "auth":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("auth"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Auth = data
+		case "secrets":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secrets"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Secrets = data
+		case "build":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("build"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Build = data
+		case "commit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("commit"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Commit = data
+		case "configs":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configs"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Configs = data
+		case "containers":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("containers"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Containers = data
+		case "distribution":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("distribution"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Distribution = data
+		case "exec":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exec"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Exec = data
+		case "grpc":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("grpc"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Grpc = data
+		case "images":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("images"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Images = data
+		case "networks":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("networks"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Networks = data
+		case "nodes":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nodes"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Nodes = data
+		case "plugins":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("plugins"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Plugins = data
+		case "services":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("services"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Services = data
+		case "session":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Session = data
+		case "swarm":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("swarm"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Swarm = data
+		case "system":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("system"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.System = data
+		case "tasks":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tasks"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Tasks = data
+		case "volumes":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("volumes"))
+			data, err := ec.unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Volumes = data
 		}
 	}
 
@@ -26633,6 +28488,11 @@ func (ec *executionContext) _Application(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "dockerProxyConfig":
+			out.Values[i] = ec._Application_dockerProxyConfig(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -27395,6 +29255,208 @@ func (ec *executionContext) _DockerConfigGeneratorOutput(ctx context.Context, se
 			out.Values[i] = ec._DockerConfigGeneratorOutput_dockerFile(ctx, field, obj)
 		case "dockerBuildArgs":
 			out.Values[i] = ec._DockerConfigGeneratorOutput_dockerBuildArgs(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var dockerProxyConfigImplementors = []string{"DockerProxyConfig"}
+
+func (ec *executionContext) _DockerProxyConfig(ctx context.Context, sel ast.SelectionSet, obj *model.DockerProxyConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, dockerProxyConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DockerProxyConfig")
+		case "enabled":
+			out.Values[i] = ec._DockerProxyConfig_enabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "serverPreference":
+			out.Values[i] = ec._DockerProxyConfig_serverPreference(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "specificServerID":
+			out.Values[i] = ec._DockerProxyConfig_specificServerID(ctx, field, obj)
+		case "specificServer":
+			out.Values[i] = ec._DockerProxyConfig_specificServer(ctx, field, obj)
+		case "permission":
+			out.Values[i] = ec._DockerProxyConfig_permission(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var dockerProxyPermissionImplementors = []string{"DockerProxyPermission"}
+
+func (ec *executionContext) _DockerProxyPermission(ctx context.Context, sel ast.SelectionSet, obj *model.DockerProxyPermission) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, dockerProxyPermissionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DockerProxyPermission")
+		case "ping":
+			out.Values[i] = ec._DockerProxyPermission_ping(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "version":
+			out.Values[i] = ec._DockerProxyPermission_version(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "info":
+			out.Values[i] = ec._DockerProxyPermission_info(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "events":
+			out.Values[i] = ec._DockerProxyPermission_events(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "auth":
+			out.Values[i] = ec._DockerProxyPermission_auth(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "secrets":
+			out.Values[i] = ec._DockerProxyPermission_secrets(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "build":
+			out.Values[i] = ec._DockerProxyPermission_build(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "commit":
+			out.Values[i] = ec._DockerProxyPermission_commit(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "configs":
+			out.Values[i] = ec._DockerProxyPermission_configs(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "containers":
+			out.Values[i] = ec._DockerProxyPermission_containers(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "distribution":
+			out.Values[i] = ec._DockerProxyPermission_distribution(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "exec":
+			out.Values[i] = ec._DockerProxyPermission_exec(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "grpc":
+			out.Values[i] = ec._DockerProxyPermission_grpc(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "images":
+			out.Values[i] = ec._DockerProxyPermission_images(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "networks":
+			out.Values[i] = ec._DockerProxyPermission_networks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "nodes":
+			out.Values[i] = ec._DockerProxyPermission_nodes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "plugins":
+			out.Values[i] = ec._DockerProxyPermission_plugins(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "services":
+			out.Values[i] = ec._DockerProxyPermission_services(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "session":
+			out.Values[i] = ec._DockerProxyPermission_session(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "swarm":
+			out.Values[i] = ec._DockerProxyPermission_swarm(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "system":
+			out.Values[i] = ec._DockerProxyPermission_system(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "tasks":
+			out.Values[i] = ec._DockerProxyPermission_tasks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "volumes":
+			out.Values[i] = ec._DockerProxyPermission_volumes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -31863,6 +33925,56 @@ func (ec *executionContext) marshalNDockerConfigSourceType2githubᚗcomᚋswiftw
 	return v
 }
 
+func (ec *executionContext) marshalNDockerProxyConfig2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyConfig(ctx context.Context, sel ast.SelectionSet, v *model.DockerProxyConfig) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DockerProxyConfig(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNDockerProxyConfigInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyConfigInput(ctx context.Context, v interface{}) (*model.DockerProxyConfigInput, error) {
+	res, err := ec.unmarshalInputDockerProxyConfigInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDockerProxyPermission2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermission(ctx context.Context, sel ast.SelectionSet, v *model.DockerProxyPermission) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DockerProxyPermission(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNDockerProxyPermissionInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionInput(ctx context.Context, v interface{}) (*model.DockerProxyPermissionInput, error) {
+	res, err := ec.unmarshalInputDockerProxyPermissionInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx context.Context, v interface{}) (model.DockerProxyPermissionType, error) {
+	var res model.DockerProxyPermissionType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDockerProxyPermissionType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyPermissionType(ctx context.Context, sel ast.SelectionSet, v model.DockerProxyPermissionType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNDockerProxyServerPreferenceType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyServerPreferenceType(ctx context.Context, v interface{}) (model.DockerProxyServerPreferenceType, error) {
+	var res model.DockerProxyServerPreferenceType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDockerProxyServerPreferenceType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDockerProxyServerPreferenceType(ctx context.Context, sel ast.SelectionSet, v model.DockerProxyServerPreferenceType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNDomain2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐDomain(ctx context.Context, sel ast.SelectionSet, v model.Domain) graphql.Marshaler {
 	return ec._Domain(ctx, sel, &v)
 }
@@ -33809,6 +35921,13 @@ func (ec *executionContext) marshalOServer2ᚕᚖgithubᚗcomᚋswiftwaveᚑorg�
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalOServer2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐServer(ctx context.Context, sel ast.SelectionSet, v *model.Server) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Server(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
