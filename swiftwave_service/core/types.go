@@ -354,3 +354,65 @@ type ApplicationResourceLimit struct {
 type ApplicationReservedResource struct {
 	MemoryMB int `json:"memory_mb" gorm:"default:0"`
 }
+
+// ************************************************************************************* //
+//                                Docker Proxy Related     		       		 	 	     //
+// ************************************************************************************* //
+
+type DockerProxyServerPreferenceType string
+
+const (
+	// AnyServer any online server will be used
+	AnyServer DockerProxyServerPreferenceType = "any"
+	// AnySwarmManagerServer any online swarm manager server will be used
+	AnySwarmManagerServer DockerProxyServerPreferenceType = "any_swarm_manager"
+	// AnySwarmWorkerServer any online swarm worker server will be used
+	AnySwarmWorkerServer DockerProxyServerPreferenceType = "any_swarm_worker"
+	// SpecificServer specific server will be used (ref DockerProxyConfig.SpecificServerID)
+	SpecificServer DockerProxyServerPreferenceType = "specific"
+)
+
+type DockerProxyConfig struct {
+	Enabled             bool                            `json:"enabled" gorm:"default:false"`
+	ServerPreference    DockerProxyServerPreferenceType `json:"server_preference" gorm:"default:any"`
+	SpecificServerID    *uint                           `json:"specific_server_id" gorm:"default:null"`
+	AuthenticationToken string                          `json:"authentication_token"`
+	Permission          DockerProxyPermission           `json:"permissions" gorm:"embedded;embeddedPrefix:permission_"`
+}
+
+type DockerProxyPermissionType string
+
+const (
+	// DockerProxyNoPermission no request will be allowed
+	DockerProxyNoPermission DockerProxyPermissionType = "none"
+	// DockerProxyReadPermission only [GET, HEAD] requests will be allowed
+	DockerProxyReadPermission DockerProxyPermissionType = "read"
+	// DockerProxyReadWritePermission all requests will be allowed [GET, HEAD, POST, PUT, DELETE, OPTIONS]
+	DockerProxyReadWritePermission DockerProxyPermissionType = "read_write"
+)
+
+type DockerProxyPermission struct {
+	Ping         DockerProxyPermissionType `json:"ping" gorm:"default:read"`
+	Version      DockerProxyPermissionType `json:"version" gorm:"default:none"`
+	Info         DockerProxyPermissionType `json:"info" gorm:"default:none"`
+	Events       DockerProxyPermissionType `json:"events" gorm:"default:none"`
+	Auth         DockerProxyPermissionType `json:"auth" gorm:"default:none"`
+	Secrets      DockerProxyPermissionType `json:"secrets" gorm:"default:none"`
+	Build        DockerProxyPermissionType `json:"build" gorm:"default:none"`
+	Commit       DockerProxyPermissionType `json:"commit" gorm:"default:none"`
+	Configs      DockerProxyPermissionType `json:"configs" gorm:"default:none"`
+	Containers   DockerProxyPermissionType `json:"containers" gorm:"default:none"`
+	Distribution DockerProxyPermissionType `json:"distribution" gorm:"default:none"`
+	Exec         DockerProxyPermissionType `json:"exec" gorm:"default:none"`
+	Grpc         DockerProxyPermissionType `json:"grpc" gorm:"default:none"`
+	Images       DockerProxyPermissionType `json:"images" gorm:"default:none"`
+	Networks     DockerProxyPermissionType `json:"networks" gorm:"default:none"`
+	Nodes        DockerProxyPermissionType `json:"nodes" gorm:"default:none"`
+	Plugins      DockerProxyPermissionType `json:"plugins" gorm:"default:none"`
+	Services     DockerProxyPermissionType `json:"services" gorm:"default:none"`
+	Session      DockerProxyPermissionType `json:"session" gorm:"default:none"`
+	Swarm        DockerProxyPermissionType `json:"swarm" gorm:"default:none"`
+	System       DockerProxyPermissionType `json:"system" gorm:"default:none"`
+	Tasks        DockerProxyPermissionType `json:"tasks" gorm:"default:none"`
+	Volumes      DockerProxyPermissionType `json:"volumes" gorm:"default:none"`
+}
