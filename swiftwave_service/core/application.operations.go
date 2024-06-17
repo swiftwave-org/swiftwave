@@ -553,6 +553,19 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 	}
 	// check for changes in docker proxy configuration
 	if !application.DockerProxy.Equal(&applicationExistingFull.DockerProxy) {
+		// store docker proxy configuration
+		err = db.Model(&applicationExistingFull).Select("docker_proxy_enabled", "docker_proxy_server_preference", "docker_proxy_specific_server_id",
+			"docker_proxy_authentication_token", "docker_proxy_permission_ping", "docker_proxy_permission_version",
+			"docker_proxy_permission_info", "docker_proxy_permission_events", "docker_proxy_permission_auth",
+			"docker_proxy_permission_secrets", "docker_proxy_permission_build", "docker_proxy_permission_commit",
+			"docker_proxy_permission_configs", "docker_proxy_permission_containers", "docker_proxy_permission_distribution",
+			"docker_proxy_permission_exec", "docker_proxy_permission_grpc", "docker_proxy_permission_images",
+			"docker_proxy_permission_networks", "docker_proxy_permission_nodes", "docker_proxy_permission_plugins",
+			"docker_proxy_permission_services", "docker_proxy_permission_session", "docker_proxy_permission_swarm",
+			"docker_proxy_permission_system", "docker_proxy_permission_tasks", "docker_proxy_permission_volumes").Updates(application).Error
+		if err != nil {
+			return nil, err
+		}
 		// reload application
 		isReloadRequired = true
 	}
