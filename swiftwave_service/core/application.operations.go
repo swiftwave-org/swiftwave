@@ -559,9 +559,10 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 		// reload application
 		isReloadRequired = true
 	}
+	isPreferredServerHostnameChanged := false
 	// check if preferred servers a changed
 	if len(application.PreferredServerHostnames) != len(applicationExistingFull.PreferredServerHostnames) {
-		isReloadRequired = true
+		isPreferredServerHostnameChanged = true
 	} else {
 		// check if elements are changed
 		for _, preferredServerHostname := range application.PreferredServerHostnames {
@@ -573,9 +574,18 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 				}
 			}
 			if !isFound {
-				isReloadRequired = true
+				isPreferredServerHostnameChanged = true
 			}
 		}
+	}
+	if isPreferredServerHostnameChanged {
+		// update preferred server hostnames
+		err = db.Model(&applicationExistingFull).Update("preferred_server_hostnames", application.PreferredServerHostnames).Error
+		if err != nil {
+			return nil, err
+		}
+		// reload application
+		isReloadRequired = true
 	}
 	// check for changes in docker proxy configuration
 	if !application.DockerProxy.Equal(&applicationExistingFull.DockerProxy) {
