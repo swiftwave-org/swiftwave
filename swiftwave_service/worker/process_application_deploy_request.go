@@ -202,6 +202,19 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 	for _, hostname := range disabledServerHostnames {
 		placementConstraints = append(placementConstraints, "node.hostname!="+hostname)
 	}
+	for _, preferredServerHostName := range application.PreferredServerHostnames {
+		// if it's not a disabled server, add it to the placement constraints
+		isDisabled := false
+		for _, hostname := range disabledServerHostnames {
+			if strings.Compare(hostname, preferredServerHostName) == 0 {
+				isDisabled = true
+				break
+			}
+		}
+		if !isDisabled {
+			placementConstraints = append(placementConstraints, "node.hostname=="+preferredServerHostName)
+		}
+	}
 	// create service
 	service := containermanger.Service{
 		Name:                 application.Name,
