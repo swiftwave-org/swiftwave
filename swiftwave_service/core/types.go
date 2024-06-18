@@ -359,25 +359,10 @@ type ApplicationReservedResource struct {
 //                                Docker Proxy Related     		       		 	 	     //
 // ************************************************************************************* //
 
-type DockerProxyServerPreferenceType string
-
-const (
-	// DockerProxyPreferenceAnyServer any online server will be used
-	DockerProxyPreferenceAnyServer DockerProxyServerPreferenceType = "any"
-	// DockerProxyPreferenceAnySwarmManagerServer any online swarm manager server will be used
-	DockerProxyPreferenceAnySwarmManagerServer DockerProxyServerPreferenceType = "any_swarm_manager"
-	// DockerProxyPreferenceAnySwarmWorkerServer any online swarm worker server will be used
-	DockerProxyPreferenceAnySwarmWorkerServer DockerProxyServerPreferenceType = "any_swarm_worker"
-	// DockerProxyPreferenceSpecificServer specific server will be used (ref DockerProxyConfig.SpecificServerID)
-	DockerProxyPreferenceSpecificServer DockerProxyServerPreferenceType = "specific"
-)
-
 type DockerProxyConfig struct {
-	Enabled             bool                            `json:"enabled" gorm:"default:false"`
-	ServerPreference    DockerProxyServerPreferenceType `json:"server_preference" gorm:"default:any"`
-	SpecificServerID    *uint                           `json:"specific_server_id" gorm:"default:null"`
-	AuthenticationToken string                          `json:"authentication_token"`
-	Permission          DockerProxyPermission           `json:"permissions" gorm:"embedded;embeddedPrefix:permission_"`
+	Enabled             bool                  `json:"enabled" gorm:"default:false"`
+	AuthenticationToken string                `json:"authentication_token"`
+	Permission          DockerProxyPermission `json:"permissions" gorm:"embedded;embeddedPrefix:permission_"`
 }
 
 type DockerProxyPermissionType string

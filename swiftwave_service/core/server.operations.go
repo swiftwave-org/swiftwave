@@ -2,7 +2,6 @@ package core
 
 import (
 	"errors"
-	"fmt"
 	"gorm.io/gorm"
 	"net"
 	"time"
@@ -22,14 +21,7 @@ func CreateServer(db *gorm.DB, server *Server) error {
 
 // DeleteServer deletes a server from the database
 func DeleteServer(db *gorm.DB, id uint) error {
-	var dockerProxyCount int64 = 0
-	err := db.Model(&Application{}).Where("docker_proxy_specific_server_id = ?", id).Count(&dockerProxyCount).Error
-	if err != nil {
-		return err
-	}
-	if dockerProxyCount > 0 {
-		return fmt.Errorf("%d apps are configured to use this server's docker. Please visit each app and disable docker proxy for this server", dockerProxyCount)
-	}
+	// TODO: any app has preferred server?
 	server, err := FetchServerByID(db, id)
 	if err != nil {
 		return err

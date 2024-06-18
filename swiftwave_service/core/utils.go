@@ -63,8 +63,6 @@ func (server *Server) IsLocalhost() bool {
 
 func (d *DockerProxyConfig) Equal(other *DockerProxyConfig) bool {
 	return d.Enabled == other.Enabled &&
-		d.ServerPreference == other.ServerPreference &&
-		d.SpecificServerID == other.SpecificServerID &&
 		strings.Compare(d.AuthenticationToken, other.AuthenticationToken) == 0 &&
 		d.Permission.Ping == other.Permission.Ping &&
 		d.Permission.Version == other.Permission.Version &&

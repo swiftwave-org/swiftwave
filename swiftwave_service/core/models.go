@@ -8,23 +8,22 @@ import (
 
 // Server hold information about server
 type Server struct {
-	ID                       uint                   `json:"id" gorm:"primaryKey"`
-	IP                       string                 `json:"ip" gorm:"unique"`
-	HostName                 string                 `json:"host_name"`
-	User                     string                 `json:"user"`
-	SSHPort                  int                    `json:"ssh_port" gorm:"default:22"`
-	MaintenanceMode          bool                   `json:"maintenance_mode" gorm:"default:false"`
-	ScheduleDeployments      bool                   `json:"schedule_deployments" gorm:"default:true"`
-	DockerUnixSocketPath     string                 `json:"docker_unix_socket_path"`
-	SwarmMode                SwarmMode              `json:"swarm_mode"`
-	ProxyConfig              ProxyConfig            `json:"proxy_config" gorm:"embedded;embeddedPrefix:proxy_"`
-	Status                   ServerStatus           `json:"status"`
-	LastPing                 time.Time              `json:"last_ping"`
-	Logs                     []ServerLog            `json:"logs" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	ConsoleTokens            []ConsoleToken         `json:"console_tokens" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	AnalyticsServiceToken    *AnalyticsServiceToken `json:"analytics_service_token" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	ResourceStats            []ServerResourceStat   `json:"resource_stats" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	ApplicationDockerProxies []Application          `json:"application_docker_proxies" gorm:"foreignKey:SpecificServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ID                    uint                   `json:"id" gorm:"primaryKey"`
+	IP                    string                 `json:"ip" gorm:"unique"`
+	HostName              string                 `json:"host_name"`
+	User                  string                 `json:"user"`
+	SSHPort               int                    `json:"ssh_port" gorm:"default:22"`
+	MaintenanceMode       bool                   `json:"maintenance_mode" gorm:"default:false"`
+	ScheduleDeployments   bool                   `json:"schedule_deployments" gorm:"default:true"`
+	DockerUnixSocketPath  string                 `json:"docker_unix_socket_path"`
+	SwarmMode             SwarmMode              `json:"swarm_mode"`
+	ProxyConfig           ProxyConfig            `json:"proxy_config" gorm:"embedded;embeddedPrefix:proxy_"`
+	Status                ServerStatus           `json:"status"`
+	LastPing              time.Time              `json:"last_ping"`
+	Logs                  []ServerLog            `json:"logs" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ConsoleTokens         []ConsoleToken         `json:"console_tokens" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	AnalyticsServiceToken *AnalyticsServiceToken `json:"analytics_service_token" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ResourceStats         []ServerResourceStat   `json:"resource_stats" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 // ServerLog hold logs of server
@@ -256,6 +255,8 @@ type Application struct {
 	ResourceStats []ApplicationServiceResourceStat `json:"resource_stats" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// Application ApplicationGroup
 	ApplicationGroup string `json:"application_group"`
+	// PreferredServerHostnames - if set, we will schedule deployments to this server
+	PreferredServerHostnames pq.StringArray `json:"preferred_server_hostnames" gorm:"type:varchar(254)"`
 	// DockerProxy configuration
 	DockerProxy DockerProxyConfig `json:"docker_proxy" gorm:"embedded;embeddedPrefix:docker_proxy_"`
 }

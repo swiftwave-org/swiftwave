@@ -13,9 +13,6 @@ enum DockerProxyPermissionType {
 
 type DockerProxyConfig {
     enabled: Boolean!
-    serverPreference: DockerProxyServerPreferenceType!
-    specificServerID: Uint
-    specificServer: Server
     permission: DockerProxyPermission!
 }
 
@@ -47,8 +44,6 @@ type DockerProxyPermission {
 
 input DockerProxyConfigInput {
     enabled: Boolean!
-    serverPreference: DockerProxyServerPreferenceType!
-    specificServerID: Uint
     permission: DockerProxyPermissionInput!
 }
 

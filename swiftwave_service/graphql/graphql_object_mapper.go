@@ -364,6 +364,7 @@ func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Appl
 		ResourceLimit:            *resourceLimitInputToDatabaseObject(record.ResourceLimit),
 		IsSleeping:               false,
 		ApplicationGroup:         record.Group,
+		PreferredServerHostnames: record.PreferredServerHostnames,
 		DockerProxy:              *dockerProxyConfigToDatabaseObject(record.DockerProxyConfig),
 	}
 }
@@ -371,20 +372,21 @@ func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Appl
 // applicationToGraphqlObject converts Application to ApplicationGraphqlObject
 func applicationToGraphqlObject(record *core.Application) *model.Application {
 	return &model.Application{
-		ID:                record.ID,
-		Name:              record.Name,
-		DeploymentMode:    model.DeploymentMode(record.DeploymentMode),
-		Replicas:          record.Replicas,
-		IsDeleted:         record.IsDeleted,
-		WebhookToken:      record.WebhookToken,
-		Capabilities:      record.Capabilities,
-		Sysctls:           record.Sysctls,
-		ResourceLimit:     resourceLimitToGraphqlObject(&record.ResourceLimit),
-		ReservedResource:  reservedResourceToGraphqlObject(&record.ReservedResource),
-		IsSleeping:        record.IsSleeping,
-		Command:           record.Command,
-		Group:             record.ApplicationGroup,
-		DockerProxyConfig: dockerProxyConfigToGraphqlObject(&record.DockerProxy),
+		ID:                       record.ID,
+		Name:                     record.Name,
+		DeploymentMode:           model.DeploymentMode(record.DeploymentMode),
+		Replicas:                 record.Replicas,
+		IsDeleted:                record.IsDeleted,
+		WebhookToken:             record.WebhookToken,
+		Capabilities:             record.Capabilities,
+		Sysctls:                  record.Sysctls,
+		ResourceLimit:            resourceLimitToGraphqlObject(&record.ResourceLimit),
+		ReservedResource:         reservedResourceToGraphqlObject(&record.ReservedResource),
+		IsSleeping:               record.IsSleeping,
+		Command:                  record.Command,
+		Group:                    record.ApplicationGroup,
+		PreferredServerHostnames: record.PreferredServerHostnames,
+		DockerProxyConfig:        dockerProxyConfigToGraphqlObject(&record.DockerProxy),
 	}
 }
 
@@ -450,24 +452,16 @@ func domainToGraphqlObject(record *core.Domain) *model.Domain {
 // dockerProxyConfigToGraphqlObject converts DockerProxyConfig to DockerProxyConfigGraphqlObject
 func dockerProxyConfigToGraphqlObject(record *core.DockerProxyConfig) *model.DockerProxyConfig {
 	return &model.DockerProxyConfig{
-		Enabled:          record.Enabled,
-		ServerPreference: model.DockerProxyServerPreferenceType(record.ServerPreference),
-		SpecificServerID: record.SpecificServerID,
-		Permission:       dockerProxyPermissionToGraphqlObject(&record.Permission),
+		Enabled:    record.Enabled,
+		Permission: dockerProxyPermissionToGraphqlObject(&record.Permission),
 	}
 }
 
 // dockerProxyConfigToDatabaseObject converts DockerProxyConfig to DockerProxyConfigDatabaseObject
 func dockerProxyConfigToDatabaseObject(record *model.DockerProxyConfigInput) *core.DockerProxyConfig {
-	if record.ServerPreference != model.DockerProxyServerPreferenceTypeSpecific {
-		record.SpecificServerID = nil
-	}
-
 	return &core.DockerProxyConfig{
-		Enabled:          record.Enabled,
-		ServerPreference: core.DockerProxyServerPreferenceType(record.ServerPreference),
-		SpecificServerID: record.SpecificServerID,
-		Permission:       *dockerProxyPermissionInputToDatabaseObject(record.Permission),
+		Enabled:    record.Enabled,
+		Permission: *dockerProxyPermissionInputToDatabaseObject(record.Permission),
 	}
 }
 

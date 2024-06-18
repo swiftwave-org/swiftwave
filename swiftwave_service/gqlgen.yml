@@ -58,10 +58,6 @@ models:
         resolver: true
       realtimeInfo:
         resolver: true
-  DockerProxyConfig:
-    fields:
-      specificServer:
-        resolver: true
   AppBasicAuthAccessControlList:
     fields:
       users:

@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/labstack/gommon/random"
 	"os"
 	"path/filepath"
@@ -106,6 +107,18 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	if application.ReservedResource.MemoryMB != 0 && application.ReservedResource.MemoryMB < 6 {
 		return errors.New("reserved memory should be at least 6 MB or 0 for unlimited")
 	}
+	// Verify the PreferredServerHostnames
+	if len(application.PreferredServerHostnames) > 0 {
+		for _, preferredServerHostname := range application.PreferredServerHostnames {
+			_, err := FetchServerIDByHostName(&db, preferredServerHostname)
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return fmt.Errorf("invalid hostname %s provided for preferred server", preferredServerHostname)
+				}
+				return err
+			}
+		}
+	}
 	// State
 	isGitCredentialExist := false
 	isImageRegistryCredentialExist := false
@@ -144,17 +157,8 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		}
 	}
 	// Validate DockerProxy configuration
-	if application.DockerProxy.ServerPreference == DockerProxyPreferenceSpecificServer {
-		// check if server id is valid
-		if application.DockerProxy.SpecificServerID == nil {
-			return errors.New("invalid docker proxy server provided")
-		}
-		_, err := FetchServerByID(&db, *application.DockerProxy.SpecificServerID)
-		if err != nil {
-			return err
-		}
-	} else {
-		application.DockerProxy.SpecificServerID = nil
+	if application.DockerProxy.Enabled && len(application.PreferredServerHostnames) == 0 {
+		return errors.New("you must select preferred servers for deployment to get access to docker proxy")
 	}
 	application.DockerProxy.AuthenticationToken = random.String(32)
 	// create application
@@ -314,6 +318,22 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 	if application.ReservedResource.MemoryMB != 0 && application.ReservedResource.MemoryMB < 6 {
 		return nil, errors.New("reserved memory should be at least 6 MB or 0 for unlimited")
 	}
+	// Verify the PreferredServerHostnames
+	if len(application.PreferredServerHostnames) > 0 {
+		for _, preferredServerHostname := range application.PreferredServerHostnames {
+			_, err := FetchServerIDByHostName(&db, preferredServerHostname)
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return nil, fmt.Errorf("invalid hostname %s provided for preferred server", preferredServerHostname)
+				}
+				return nil, err
+			}
+		}
+	}
+	// check if docker proxy is enabled and preferred servers are not provided
+	if application.DockerProxy.Enabled && len(application.PreferredServerHostnames) == 0 {
+		return nil, errors.New("you must select preferred servers for deployment to get access to docker proxy")
+	}
 	// status
 	isReloadRequired := false
 	// fetch application with environment variables and persistent volume bindings
@@ -326,18 +346,6 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 	application.DockerProxy.AuthenticationToken = applicationExistingFull.DockerProxy.AuthenticationToken
 	if strings.Compare(application.DockerProxy.AuthenticationToken, "") == 0 {
 		application.DockerProxy.AuthenticationToken = random.String(32)
-	}
-	if application.DockerProxy.ServerPreference == DockerProxyPreferenceSpecificServer {
-		// check if server id is valid
-		if application.DockerProxy.SpecificServerID == nil {
-			return nil, errors.New("invalid docker proxy server provided")
-		}
-		_, err := FetchServerByID(&db, *application.DockerProxy.SpecificServerID)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		application.DockerProxy.SpecificServerID = nil
 	}
 
 	// check if DeploymentMode is changed
@@ -551,10 +559,28 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 		// reload application
 		isReloadRequired = true
 	}
+	// check if preferred servers a changed
+	if len(application.PreferredServerHostnames) != len(applicationExistingFull.PreferredServerHostnames) {
+		isReloadRequired = true
+	} else {
+		// check if elements are changed
+		for _, preferredServerHostname := range application.PreferredServerHostnames {
+			isFound := false
+			for _, preferredServerHostnameExisting := range applicationExistingFull.PreferredServerHostnames {
+				if strings.Compare(preferredServerHostname, preferredServerHostnameExisting) == 0 {
+					isFound = true
+					break
+				}
+			}
+			if !isFound {
+				isReloadRequired = true
+			}
+		}
+	}
 	// check for changes in docker proxy configuration
 	if !application.DockerProxy.Equal(&applicationExistingFull.DockerProxy) {
 		// store docker proxy configuration
-		err = db.Model(&applicationExistingFull).Select("docker_proxy_enabled", "docker_proxy_server_preference", "docker_proxy_specific_server_id",
+		err = db.Model(&applicationExistingFull).Select("docker_proxy_enabled",
 			"docker_proxy_authentication_token", "docker_proxy_permission_ping", "docker_proxy_permission_version",
 			"docker_proxy_permission_info", "docker_proxy_permission_events", "docker_proxy_permission_auth",
 			"docker_proxy_permission_secrets", "docker_proxy_permission_build", "docker_proxy_permission_commit",

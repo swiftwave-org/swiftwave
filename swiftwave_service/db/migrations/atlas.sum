@@ -1,4 +1,4 @@
-h1:DJ4EezqPlC8u5H6rznKJH5k8l8rqvd7c3rhl3wmYfpA=
+h1:fMh58DaRIvkHIN8dWzxDNFpmP6sCk2d7KW7YYEA8vFM=
 20240413191732_init.down.sql h1:HoitObGwuKF/akF4qg3dol2FfNTLCEuf6wHYDuCez8I=
 20240413191732_init.up.sql h1:USKdQx/yTz1KJ0+mDwYGhKm3WzX7k+I9+6B6SxImwaE=
 20240414051823_server_custom_ssh_port_added.down.sql h1:IC1DFQBQceTPTRdZOo5/WqytH+ZbgcKrQuMCkhArF/0=
@@ -35,3 +35,5 @@ h1:DJ4EezqPlC8u5H6rznKJH5k8l8rqvd7c3rhl3wmYfpA=
 20240613162432_basic_auth_in_ingress_rule.up.sql h1:Fckral8AieJiNQYiSbkbhfiAni2Tm46wf1Zbt9eJ8Yc=
 20240617103309_docker_proxy_config_added.down.sql h1:4ic0PtgGFz5qXMkCzkVqH0trpHMfF+QMqG8ZAQH40fY=
 20240617103309_docker_proxy_config_added.up.sql h1:k5IZcRsEN4HcZTGaFPUxj6Chy1R74IRaKpSbVGv19iY=
+20240618171645_remove_docker_proxy_preference.down.sql h1:7Dfa76cIm+Ibdi6UaL/iGxNy4JRjoVHydeSj0q7gxzo=
+20240618171645_remove_docker_proxy_preference.up.sql h1:hTkf/6+nvZwkThdymNuMxVb8yhsW293SmxaUhdXuSrA=

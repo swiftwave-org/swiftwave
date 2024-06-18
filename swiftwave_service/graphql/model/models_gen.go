@@ -52,6 +52,7 @@ type Application struct {
 	IsSleeping               bool                       `json:"isSleeping"`
 	Command                  string                     `json:"command"`
 	Group                    string                     `json:"group"`
+	PreferredServerHostnames []string                   `json:"preferredServerHostnames"`
 	DockerProxyConfig        *DockerProxyConfig         `json:"dockerProxyConfig"`
 }
 
@@ -84,6 +85,7 @@ type ApplicationInput struct {
 	DockerImage                  *string                         `json:"dockerImage,omitempty"`
 	ImageRegistryCredentialID    *uint                           `json:"imageRegistryCredentialID,omitempty"`
 	Group                        string                          `json:"group"`
+	PreferredServerHostnames     []string                        `json:"preferredServerHostnames"`
 	DockerProxyConfig            *DockerProxyConfigInput         `json:"dockerProxyConfig"`
 }
 
@@ -213,18 +215,13 @@ type DockerConfigGeneratorOutput struct {
 }
 
 type DockerProxyConfig struct {
-	Enabled          bool                            `json:"enabled"`
-	ServerPreference DockerProxyServerPreferenceType `json:"serverPreference"`
-	SpecificServerID *uint                           `json:"specificServerID,omitempty"`
-	SpecificServer   *Server                         `json:"specificServer,omitempty"`
-	Permission       *DockerProxyPermission          `json:"permission"`
+	Enabled    bool                   `json:"enabled"`
+	Permission *DockerProxyPermission `json:"permission"`
 }
 
 type DockerProxyConfigInput struct {
-	Enabled          bool                            `json:"enabled"`
-	ServerPreference DockerProxyServerPreferenceType `json:"serverPreference"`
-	SpecificServerID *uint                           `json:"specificServerID,omitempty"`
-	Permission       *DockerProxyPermissionInput     `json:"permission"`
+	Enabled    bool                        `json:"enabled"`
+	Permission *DockerProxyPermissionInput `json:"permission"`
 }
 
 type DockerProxyPermission struct {
