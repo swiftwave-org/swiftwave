@@ -157,22 +157,23 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	}
 	// Validate DockerProxy configuration
 	if application.DockerProxy.Enabled && len(application.PreferredServerHostnames) == 0 {
-		return errors.New("you must select preferred servers for deployment to get access to docker proxy")
+		return errors.New("you need to select exactly one preferred server for getting access to docker socket proxy")
 	}
 	// create application
 	createdApplication := Application{
-		ID:               uuid.NewString(),
-		Name:             application.Name,
-		DeploymentMode:   application.DeploymentMode,
-		Replicas:         application.Replicas,
-		WebhookToken:     uuid.NewString(),
-		Command:          application.Command,
-		Capabilities:     application.Capabilities,
-		Sysctls:          application.Sysctls,
-		ResourceLimit:    application.ResourceLimit,
-		ReservedResource: application.ReservedResource,
-		ApplicationGroup: application.ApplicationGroup,
-		DockerProxy:      application.DockerProxy,
+		ID:                       uuid.NewString(),
+		Name:                     application.Name,
+		DeploymentMode:           application.DeploymentMode,
+		Replicas:                 application.Replicas,
+		WebhookToken:             uuid.NewString(),
+		Command:                  application.Command,
+		Capabilities:             application.Capabilities,
+		Sysctls:                  application.Sysctls,
+		ResourceLimit:            application.ResourceLimit,
+		ReservedResource:         application.ReservedResource,
+		ApplicationGroup:         application.ApplicationGroup,
+		DockerProxy:              application.DockerProxy,
+		PreferredServerHostnames: application.PreferredServerHostnames,
 	}
 	tx := db.Create(&createdApplication)
 	if tx.Error != nil {
