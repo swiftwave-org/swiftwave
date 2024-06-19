@@ -583,7 +583,7 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 	if !application.DockerProxy.Equal(&applicationExistingFull.DockerProxy) {
 		// store docker proxy configuration
 		err = db.Model(&applicationExistingFull).Select("docker_proxy_enabled",
-			"docker_proxy_authentication_token", "docker_proxy_permission_ping", "docker_proxy_permission_version",
+			"docker_proxy_permission_ping", "docker_proxy_permission_version",
 			"docker_proxy_permission_info", "docker_proxy_permission_events", "docker_proxy_permission_auth",
 			"docker_proxy_permission_secrets", "docker_proxy_permission_build", "docker_proxy_permission_commit",
 			"docker_proxy_permission_configs", "docker_proxy_permission_containers", "docker_proxy_permission_distribution",
