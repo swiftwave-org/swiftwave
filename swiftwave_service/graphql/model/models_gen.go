@@ -847,51 +847,6 @@ func (e DockerProxyPermissionType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type DockerProxyServerPreferenceType string
-
-const (
-	DockerProxyServerPreferenceTypeAny             DockerProxyServerPreferenceType = "any"
-	DockerProxyServerPreferenceTypeAnySwarmManager DockerProxyServerPreferenceType = "any_swarm_manager"
-	DockerProxyServerPreferenceTypeAnySwarmWorker  DockerProxyServerPreferenceType = "any_swarm_worker"
-	DockerProxyServerPreferenceTypeSpecific        DockerProxyServerPreferenceType = "specific"
-)
-
-var AllDockerProxyServerPreferenceType = []DockerProxyServerPreferenceType{
-	DockerProxyServerPreferenceTypeAny,
-	DockerProxyServerPreferenceTypeAnySwarmManager,
-	DockerProxyServerPreferenceTypeAnySwarmWorker,
-	DockerProxyServerPreferenceTypeSpecific,
-}
-
-func (e DockerProxyServerPreferenceType) IsValid() bool {
-	switch e {
-	case DockerProxyServerPreferenceTypeAny, DockerProxyServerPreferenceTypeAnySwarmManager, DockerProxyServerPreferenceTypeAnySwarmWorker, DockerProxyServerPreferenceTypeSpecific:
-		return true
-	}
-	return false
-}
-
-func (e DockerProxyServerPreferenceType) String() string {
-	return string(e)
-}
-
-func (e *DockerProxyServerPreferenceType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = DockerProxyServerPreferenceType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid DockerProxyServerPreferenceType", str)
-	}
-	return nil
-}
-
-func (e DockerProxyServerPreferenceType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
 type DomainSSLStatus string
 
 const (

@@ -1,10 +1,3 @@
-enum DockerProxyServerPreferenceType {
-    any
-    any_swarm_manager
-    any_swarm_worker
-    specific
-}
-
 enum DockerProxyPermissionType {
     none
     read
