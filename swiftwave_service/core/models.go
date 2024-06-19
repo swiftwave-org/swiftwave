@@ -256,7 +256,7 @@ type Application struct {
 	// Application ApplicationGroup
 	ApplicationGroup string `json:"application_group"`
 	// PreferredServerHostnames - if set, we will schedule deployments to this server
-	PreferredServerHostnames pq.StringArray `json:"preferred_server_hostnames" gorm:"type:varchar(254)"`
+	PreferredServerHostnames pq.StringArray `json:"preferred_server_hostnames" gorm:"type:text[]"`
 	// DockerProxy configuration
 	DockerProxy DockerProxyConfig `json:"docker_proxy" gorm:"embedded;embeddedPrefix:docker_proxy_"`
 }
