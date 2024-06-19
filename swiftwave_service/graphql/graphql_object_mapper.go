@@ -386,6 +386,7 @@ func applicationToGraphqlObject(record *core.Application) *model.Application {
 		Command:                  record.Command,
 		Group:                    record.ApplicationGroup,
 		PreferredServerHostnames: record.PreferredServerHostnames,
+		DockerProxyHost:          record.DockerProxyServiceName(),
 		DockerProxyConfig:        dockerProxyConfigToGraphqlObject(&record.DockerProxy),
 	}
 }

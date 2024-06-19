@@ -53,6 +53,7 @@ type Application struct {
 	Command                  string                     `json:"command"`
 	Group                    string                     `json:"group"`
 	PreferredServerHostnames []string                   `json:"preferredServerHostnames"`
+	DockerProxyHost          string                     `json:"dockerProxyHost"`
 	DockerProxyConfig        *DockerProxyConfig         `json:"dockerProxyConfig"`
 }
 

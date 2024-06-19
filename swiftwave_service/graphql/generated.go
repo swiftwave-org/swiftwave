@@ -80,6 +80,7 @@ type ComplexityRoot struct {
 		DeploymentMode           func(childComplexity int) int
 		Deployments              func(childComplexity int) int
 		DockerProxyConfig        func(childComplexity int) int
+		DockerProxyHost          func(childComplexity int) int
 		EnvironmentVariables     func(childComplexity int) int
 		Group                    func(childComplexity int) int
 		ID                       func(childComplexity int) int
@@ -836,6 +837,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Application.DockerProxyConfig(childComplexity), true
+
+	case "Application.dockerProxyHost":
+		if e.complexity.Application.DockerProxyHost == nil {
+			break
+		}
+
+		return e.complexity.Application.DockerProxyHost(childComplexity), true
 
 	case "Application.environmentVariables":
 		if e.complexity.Application.EnvironmentVariables == nil {
@@ -6960,6 +6968,50 @@ func (ec *executionContext) fieldContext_Application_preferredServerHostnames(_ 
 	return fc, nil
 }
 
+func (ec *executionContext) _Application_dockerProxyHost(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_dockerProxyHost(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DockerProxyHost, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_dockerProxyHost(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Application_dockerProxyConfig(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 	if err != nil {
@@ -7176,6 +7228,8 @@ func (ec *executionContext) fieldContext_ApplicationDeployResult_application(_ c
 				return ec.fieldContext_Application_group(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
+			case "dockerProxyHost":
+				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
@@ -8498,6 +8552,8 @@ func (ec *executionContext) fieldContext_Deployment_application(_ context.Contex
 				return ec.fieldContext_Application_group(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
+			case "dockerProxyHost":
+				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
@@ -12667,6 +12723,8 @@ func (ec *executionContext) fieldContext_IngressRule_application(_ context.Conte
 				return ec.fieldContext_Application_group(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
+			case "dockerProxyHost":
+				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
@@ -13441,6 +13499,8 @@ func (ec *executionContext) fieldContext_Mutation_createApplication(ctx context.
 				return ec.fieldContext_Application_group(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
+			case "dockerProxyHost":
+				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
@@ -13542,6 +13602,8 @@ func (ec *executionContext) fieldContext_Mutation_updateApplication(ctx context.
 				return ec.fieldContext_Application_group(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
+			case "dockerProxyHost":
+				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
@@ -18382,6 +18444,8 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_application(_ c
 				return ec.fieldContext_Application_group(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
+			case "dockerProxyHost":
+				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
@@ -18790,6 +18854,8 @@ func (ec *executionContext) fieldContext_Query_application(ctx context.Context, 
 				return ec.fieldContext_Application_group(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
+			case "dockerProxyHost":
+				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
@@ -18891,6 +18957,8 @@ func (ec *executionContext) fieldContext_Query_applications(_ context.Context, f
 				return ec.fieldContext_Application_group(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
+			case "dockerProxyHost":
+				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
@@ -18981,6 +19049,8 @@ func (ec *executionContext) fieldContext_Query_applicationsByGroup(ctx context.C
 				return ec.fieldContext_Application_group(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
+			case "dockerProxyHost":
+				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
 			}
@@ -28367,6 +28437,11 @@ func (ec *executionContext) _Application(ctx context.Context, sel ast.SelectionS
 			}
 		case "preferredServerHostnames":
 			out.Values[i] = ec._Application_preferredServerHostnames(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "dockerProxyHost":
+			out.Values[i] = ec._Application_dockerProxyHost(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

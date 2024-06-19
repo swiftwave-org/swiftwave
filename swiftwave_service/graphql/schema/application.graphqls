@@ -50,6 +50,7 @@ type Application {
     command: String!
     group: String!
     preferredServerHostnames: [String!]!
+    dockerProxyHost: String!
     dockerProxyConfig: DockerProxyConfig!
 }
 
