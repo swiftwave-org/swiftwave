@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/labstack/gommon/random"
 	"os"
 	"path/filepath"
 	"strings"
@@ -160,7 +159,6 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	if application.DockerProxy.Enabled && len(application.PreferredServerHostnames) == 0 {
 		return errors.New("you must select preferred servers for deployment to get access to docker proxy")
 	}
-	application.DockerProxy.AuthenticationToken = random.String(32)
 	// create application
 	createdApplication := Application{
 		ID:               uuid.NewString(),
@@ -342,12 +340,6 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
-	// validate docker proxy configuration
-	application.DockerProxy.AuthenticationToken = applicationExistingFull.DockerProxy.AuthenticationToken
-	if strings.Compare(application.DockerProxy.AuthenticationToken, "") == 0 {
-		application.DockerProxy.AuthenticationToken = random.String(32)
-	}
-
 	// check if DeploymentMode is changed
 	if applicationExistingFull.DeploymentMode != application.DeploymentMode {
 		// update deployment mode

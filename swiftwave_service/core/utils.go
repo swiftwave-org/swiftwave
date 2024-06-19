@@ -5,7 +5,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -29,7 +28,7 @@ func (user *User) CheckPassword(password string) bool {
 func (user *User) GenerateJWT(jwtSecret string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"nbf":      time.Now().Unix(),
-		"exp":      time.Now().Add(time.Hour * 6).Unix(),
+		"exp":      time.Now().Add(time.Hour * 24).Unix(),
 		"iat":      time.Now().Unix(),
 		"username": user.Username,
 	})
@@ -63,7 +62,6 @@ func (server *Server) IsLocalhost() bool {
 
 func (d *DockerProxyConfig) Equal(other *DockerProxyConfig) bool {
 	return d.Enabled == other.Enabled &&
-		strings.Compare(d.AuthenticationToken, other.AuthenticationToken) == 0 &&
 		d.Permission.Ping == other.Permission.Ping &&
 		d.Permission.Version == other.Permission.Version &&
 		d.Permission.Info == other.Permission.Info &&
@@ -87,4 +85,8 @@ func (d *DockerProxyConfig) Equal(other *DockerProxyConfig) bool {
 		d.Permission.System == other.Permission.System &&
 		d.Permission.Tasks == other.Permission.Tasks &&
 		d.Permission.Volumes == other.Permission.Volumes
+}
+
+func (application *Application) DockerProxyServiceName() string {
+	return application.ID + "-dp"
 }

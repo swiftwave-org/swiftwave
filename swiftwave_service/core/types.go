@@ -360,9 +360,8 @@ type ApplicationReservedResource struct {
 // ************************************************************************************* //
 
 type DockerProxyConfig struct {
-	Enabled             bool                  `json:"enabled" gorm:"default:false"`
-	AuthenticationToken string                `json:"authentication_token"`
-	Permission          DockerProxyPermission `json:"permissions" gorm:"embedded;embeddedPrefix:permission_"`
+	Enabled    bool                  `json:"enabled" gorm:"default:false"`
+	Permission DockerProxyPermission `json:"permissions" gorm:"embedded;embeddedPrefix:permission_"`
 }
 
 type DockerProxyPermissionType string
