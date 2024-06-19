@@ -36,6 +36,29 @@ func ParseStackYaml(yamlStr string) (Stack, error) {
 		} else {
 			return Stack{}, errors.New("invalid deploy mode")
 		}
+		service.DockerProxyConfig.Permission.Ping = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Ping)
+		service.DockerProxyConfig.Permission.Version = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Version)
+		service.DockerProxyConfig.Permission.Info = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Info)
+		service.DockerProxyConfig.Permission.Events = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Events)
+		service.DockerProxyConfig.Permission.Auth = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Auth)
+		service.DockerProxyConfig.Permission.Secrets = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Secrets)
+		service.DockerProxyConfig.Permission.Build = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Build)
+		service.DockerProxyConfig.Permission.Commit = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Commit)
+		service.DockerProxyConfig.Permission.Configs = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Configs)
+		service.DockerProxyConfig.Permission.Containers = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Containers)
+		service.DockerProxyConfig.Permission.Distribution = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Distribution)
+		service.DockerProxyConfig.Permission.Exec = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Exec)
+		service.DockerProxyConfig.Permission.Grpc = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Grpc)
+		service.DockerProxyConfig.Permission.Images = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Images)
+		service.DockerProxyConfig.Permission.Networks = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Networks)
+		service.DockerProxyConfig.Permission.Nodes = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Nodes)
+		service.DockerProxyConfig.Permission.Plugins = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Plugins)
+		service.DockerProxyConfig.Permission.Services = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Services)
+		service.DockerProxyConfig.Permission.Session = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Session)
+		service.DockerProxyConfig.Permission.Swarm = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Swarm)
+		service.DockerProxyConfig.Permission.System = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.System)
+		service.DockerProxyConfig.Permission.Tasks = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Tasks)
+		service.DockerProxyConfig.Permission.Volumes = fillDefaultDockerProxyPermissionIfNotPresent(service.DockerProxyConfig.Permission.Volumes)
 		stack.Services[serviceName] = service
 	}
 	// Append Stack Name Variable {{STACK_NAME}} to the services
@@ -329,4 +352,11 @@ func generateRandomNumber(length int) string {
 
 func stringToInteger(str string) (int, error) {
 	return strconv.Atoi(str)
+}
+
+func fillDefaultDockerProxyPermissionIfNotPresent(val DockerProxyPermissionType) DockerProxyPermissionType {
+	if val == DockerProxyNoPermission || val == DockerProxyReadPermission || val == DockerProxyReadWritePermission {
+		return val
+	}
+	return DockerProxyNoPermission
 }

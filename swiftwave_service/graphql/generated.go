@@ -535,13 +535,15 @@ type ComplexityRoot struct {
 	}
 
 	StackVerifyResult struct {
-		Error           func(childComplexity int) int
-		InvalidServices func(childComplexity int) int
-		InvalidVolumes  func(childComplexity int) int
-		Message         func(childComplexity int) int
-		Success         func(childComplexity int) int
-		ValidServices   func(childComplexity int) int
-		ValidVolumes    func(childComplexity int) int
+		Error                   func(childComplexity int) int
+		InvalidPreferredServers func(childComplexity int) int
+		InvalidServices         func(childComplexity int) int
+		InvalidVolumes          func(childComplexity int) int
+		Message                 func(childComplexity int) int
+		Success                 func(childComplexity int) int
+		ValidPreferredServers   func(childComplexity int) int
+		ValidServices           func(childComplexity int) int
+		ValidVolumes            func(childComplexity int) int
 	}
 
 	Subscription struct {
@@ -3697,6 +3699,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StackVerifyResult.Error(childComplexity), true
 
+	case "StackVerifyResult.invalidPreferredServers":
+		if e.complexity.StackVerifyResult.InvalidPreferredServers == nil {
+			break
+		}
+
+		return e.complexity.StackVerifyResult.InvalidPreferredServers(childComplexity), true
+
 	case "StackVerifyResult.invalidServices":
 		if e.complexity.StackVerifyResult.InvalidServices == nil {
 			break
@@ -3724,6 +3733,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.StackVerifyResult.Success(childComplexity), true
+
+	case "StackVerifyResult.validPreferredServers":
+		if e.complexity.StackVerifyResult.ValidPreferredServers == nil {
+			break
+		}
+
+		return e.complexity.StackVerifyResult.ValidPreferredServers(childComplexity), true
 
 	case "StackVerifyResult.validServices":
 		if e.complexity.StackVerifyResult.ValidServices == nil {
@@ -16823,6 +16839,10 @@ func (ec *executionContext) fieldContext_Mutation_verifyStack(ctx context.Contex
 				return ec.fieldContext_StackVerifyResult_validServices(ctx, field)
 			case "invalidServices":
 				return ec.fieldContext_StackVerifyResult_invalidServices(ctx, field)
+			case "validPreferredServers":
+				return ec.fieldContext_StackVerifyResult_validPreferredServers(ctx, field)
+			case "invalidPreferredServers":
+				return ec.fieldContext_StackVerifyResult_invalidPreferredServers(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StackVerifyResult", field.Name)
 		},
@@ -24318,6 +24338,94 @@ func (ec *executionContext) _StackVerifyResult_invalidServices(ctx context.Conte
 }
 
 func (ec *executionContext) fieldContext_StackVerifyResult_invalidServices(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StackVerifyResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StackVerifyResult_validPreferredServers(ctx context.Context, field graphql.CollectedField, obj *model.StackVerifyResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StackVerifyResult_validPreferredServers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ValidPreferredServers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StackVerifyResult_validPreferredServers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StackVerifyResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StackVerifyResult_invalidPreferredServers(ctx context.Context, field graphql.CollectedField, obj *model.StackVerifyResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StackVerifyResult_invalidPreferredServers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InvalidPreferredServers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StackVerifyResult_invalidPreferredServers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "StackVerifyResult",
 		Field:      field,
@@ -32839,6 +32947,16 @@ func (ec *executionContext) _StackVerifyResult(ctx context.Context, sel ast.Sele
 			}
 		case "invalidServices":
 			out.Values[i] = ec._StackVerifyResult_invalidServices(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "validPreferredServers":
+			out.Values[i] = ec._StackVerifyResult_validPreferredServers(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "invalidPreferredServers":
+			out.Values[i] = ec._StackVerifyResult_invalidPreferredServers(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

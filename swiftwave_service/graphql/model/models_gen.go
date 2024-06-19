@@ -596,13 +596,15 @@ type StackVariableType struct {
 }
 
 type StackVerifyResult struct {
-	Success         bool     `json:"success"`
-	Message         string   `json:"message"`
-	Error           string   `json:"error"`
-	ValidVolumes    []string `json:"validVolumes"`
-	InvalidVolumes  []string `json:"invalidVolumes"`
-	ValidServices   []string `json:"validServices"`
-	InvalidServices []string `json:"invalidServices"`
+	Success                 bool     `json:"success"`
+	Message                 string   `json:"message"`
+	Error                   string   `json:"error"`
+	ValidVolumes            []string `json:"validVolumes"`
+	InvalidVolumes          []string `json:"invalidVolumes"`
+	ValidServices           []string `json:"validServices"`
+	InvalidServices         []string `json:"invalidServices"`
+	ValidPreferredServers   []string `json:"validPreferredServers"`
+	InvalidPreferredServers []string `json:"invalidPreferredServers"`
 }
 
 type Subscription struct {

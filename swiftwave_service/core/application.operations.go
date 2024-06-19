@@ -21,6 +21,10 @@ import (
 // context used to pass some data to the function e.g. user id, auth info, etc.
 
 func IsExistApplicationName(_ context.Context, db gorm.DB, dockerManager containermanger.Manager, name string) (bool, error) {
+	// name cannot contain any special characters at the end
+	if strings.Contains(name, "/") || strings.Contains(name, "\\") || strings.Contains(name, ":") || strings.Contains(name, "*") || strings.Contains(name, "?") || strings.Contains(name, "\"") || strings.Contains(name, "<") || strings.Contains(name, ">") || strings.Contains(name, "|") || strings.Contains(name, "&") || strings.Contains(name, "_") {
+		return false, errors.New("application name cannot contain any special characters at the end")
+	}
 	// verify from database
 	var count int64
 	tx := db.Model(&Application{}).Where("name = ?", name).Count(&count)
@@ -330,7 +334,7 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 		}
 	}
 	// check if docker proxy is enabled and preferred servers are not provided
-	if application.DockerProxy.Enabled && len(application.PreferredServerHostnames) == 0 {
+	if application.DockerProxy.Enabled && len(application.PreferredServerHostnames) != 1 {
 		return nil, errors.New("you must select preferred servers for deployment to get access to docker proxy")
 	}
 	// status

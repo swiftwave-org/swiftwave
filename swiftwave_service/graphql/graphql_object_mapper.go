@@ -680,6 +680,8 @@ func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db g
 		if service.Command != nil {
 			command = service.Command.String()
 		}
+		// docker proxy config
+
 		app := model.ApplicationInput{
 			Name:                     serviceName,
 			EnvironmentVariables:     environmentVariables,
@@ -707,6 +709,35 @@ func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db g
 			SourceCodeCompressedFileName: nil,
 			Group:                        groupName,
 			Command:                      command,
+			PreferredServerHostnames:     service.PreferredServerHostnames,
+			DockerProxyConfig: &model.DockerProxyConfigInput{
+				Enabled: service.DockerProxyConfig.Enabled,
+				Permission: &model.DockerProxyPermissionInput{
+					Ping:         model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Ping),
+					Version:      model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Version),
+					Info:         model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Info),
+					Events:       model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Events),
+					Auth:         model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Auth),
+					Secrets:      model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Secrets),
+					Build:        model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Build),
+					Commit:       model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Commit),
+					Configs:      model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Configs),
+					Containers:   model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Containers),
+					Distribution: model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Distribution),
+					Exec:         model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Exec),
+					Grpc:         model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Grpc),
+					Images:       model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Images),
+					Networks:     model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Networks),
+					Nodes:        model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Nodes),
+					Plugins:      model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Plugins),
+					Services:     model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Services),
+					Session:      model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Session),
+					Swarm:        model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Swarm),
+					System:       model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.System),
+					Tasks:        model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Tasks),
+					Volumes:      model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Volumes),
+				},
+			},
 		}
 		applications = append(applications, app)
 	}
