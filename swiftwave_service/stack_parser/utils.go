@@ -195,6 +195,12 @@ func (s *Stack) FillAndVerifyVariables(variableMapping *map[string]string, servi
 					if !isExist {
 						return nil, errors.New("application " + val + " doesn't exist. Create it or choose another application")
 					}
+				} else if variable.Type == DocsVariableTypeServer {
+					val := (*variableMapping)[variableKey]
+					_, err := core.FetchServerIDByHostName(&serviceManager.DbClient, val)
+					if err != nil {
+						return nil, errors.New("invalid server " + val + " provided")
+					}
 				} else {
 					return nil, errors.New("invalid variable type")
 				}

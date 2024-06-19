@@ -226,6 +226,7 @@ const (
 	DocsVariableTypeOptions     DocsVariableType = "options"
 	DocsVariableTypeVolume      DocsVariableType = "volume"
 	DocsVariableTypeApplication DocsVariableType = "application"
+	DocsVariableTypeServer      DocsVariableType = "server"
 )
 
 // DockerProxyConfig is the configuration for the docker proxy
