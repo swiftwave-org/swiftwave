@@ -1,0 +1,2 @@
+-- modify "applications" table
+ALTER TABLE "public"."applications" ADD COLUMN "custom_health_check_enabled" boolean NULL DEFAULT false, ADD COLUMN "custom_health_check_test_command" text NULL, ADD COLUMN "custom_health_check_interval_seconds" bigint NULL DEFAULT 10, ADD COLUMN "custom_health_check_timeout_seconds" bigint NULL DEFAULT 5, ADD COLUMN "custom_health_check_start_period_seconds" bigint NULL DEFAULT 5, ADD COLUMN "custom_health_check_start_interval_seconds" bigint NULL DEFAULT 5, ADD COLUMN "custom_health_check_retries" bigint NULL DEFAULT 0;

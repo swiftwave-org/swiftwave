@@ -153,6 +153,7 @@ type Service struct {
 	Sysctls                  KeyValuePair      `yaml:"sysctls"`
 	Command                  Command           `yaml:"command"`
 	Configs                  []Config          `yaml:"configs"`
+	CustomHealthCheck        CustomHealthCheck `yaml:"custom_health_check"`
 	PreferredServerHostnames []string          `yaml:"preferred_server_hostnames"`
 	DockerProxyConfig        DockerProxyConfig `yaml:"docker_proxy_config"`
 }
@@ -271,6 +272,16 @@ type DockerProxyPermission struct {
 	System       DockerProxyPermissionType `yaml:"system"`
 	Tasks        DockerProxyPermissionType `yaml:"tasks"`
 	Volumes      DockerProxyPermissionType `yaml:"volumes"`
+}
+
+type CustomHealthCheck struct {
+	Enabled              bool   `yaml:"enabled"`
+	TestCommand          string `yaml:"test_command"`
+	IntervalSeconds      uint64 `yaml:"interval_seconds"`       // Time between running the check in seconds
+	TimeoutSeconds       uint64 `yaml:"timeout_seconds"`        // Maximum time to allow one check to run in seconds
+	StartPeriodSeconds   uint64 `yaml:"start_period_seconds"`   // Start period for the container to initialize before counting retries towards unstable
+	StartIntervalSeconds uint64 `yaml:"start_interval_seconds"` // Time between running the check during the start period
+	Retries              uint64 `yaml:"retries"`                // Consecutive failures needed to report unhealthy
 }
 
 func (s *Stack) deepCopy() (*Stack, error) {

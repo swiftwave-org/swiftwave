@@ -1,0 +1,2 @@
+-- reverse: modify "applications" table
+ALTER TABLE "public"."applications" DROP COLUMN "custom_health_check_retries", DROP COLUMN "custom_health_check_start_interval_seconds", DROP COLUMN "custom_health_check_start_period_seconds", DROP COLUMN "custom_health_check_timeout_seconds", DROP COLUMN "custom_health_check_interval_seconds", DROP COLUMN "custom_health_check_test_command", DROP COLUMN "custom_health_check_enabled";
