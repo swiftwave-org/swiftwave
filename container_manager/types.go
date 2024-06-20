@@ -34,6 +34,17 @@ type Service struct {
 	PlacementConstraints []string          `json:"placementconstraints,omitempty"`
 	ReservedResource     Resource          `json:"reserved_resource,omitempty"`
 	ResourceLimit        Resource          `json:"resource_limit,omitempty"`
+	CustomHealthCheck    CustomHealthCheck `json:"custom_health_check,omitempty"`
+}
+
+type CustomHealthCheck struct {
+	Enabled              bool   `json:"enabled"`
+	TestCommand          string `json:"test_command"`
+	IntervalSeconds      uint64 `json:"interval_seconds"`       // Time between running the check in seconds
+	TimeoutSeconds       uint64 `json:"timeout_seconds"`        // Maximum time to allow one check to run in seconds
+	StartPeriodSeconds   uint64 `json:"start_period_seconds"`   // Start period for the container to initialize before counting retries towards unstable
+	StartIntervalSeconds uint64 `json:"start_interval_seconds"` // Time between running the check during the start period
+	Retries              uint64 `json:"retries"`                // Consecutive failures needed to report unhealthy
 }
 
 type ServiceRealtimeInfo struct {

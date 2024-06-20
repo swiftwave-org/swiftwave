@@ -136,9 +136,12 @@ func (s *Stack) FillAndVerifyVariables(variableMapping *map[string]string, servi
 			newCommand := variableFillerHelper(command, variableMapping)
 			service.Command[i] = newCommand
 		}
+		// inject variable in healthcheck if required
+		newHealthCheckTestCommand := variableFillerHelper(service.CustomHealthCheck.TestCommand, variableMapping)
+		service.CustomHealthCheck.TestCommand = newHealthCheckTestCommand
 		stackCopy.Services[serviceName] = service
 	}
-	// check if docs is present
+	// check if docs present
 	if stackCopy.Docs != nil {
 		// fetch a swarm manager server
 		server, err := core.FetchSwarmManager(&serviceManager.DbClient)
