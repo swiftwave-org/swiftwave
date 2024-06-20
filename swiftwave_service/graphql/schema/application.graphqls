@@ -49,6 +49,9 @@ type Application {
     isSleeping: Boolean!
     command: String!
     group: String!
+    preferredServerHostnames: [String!]!
+    dockerProxyHost: String!
+    dockerProxyConfig: DockerProxyConfig!
 }
 
 type ApplicationResourceAnalytics {
@@ -98,6 +101,8 @@ input ApplicationInput {
     dockerImage: String
     imageRegistryCredentialID: Uint
     group: String!
+    preferredServerHostnames: [String!]!
+    dockerProxyConfig: DockerProxyConfigInput!
 }
 
 extend type Query {

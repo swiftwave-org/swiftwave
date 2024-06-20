@@ -364,25 +364,30 @@ func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Appl
 		ResourceLimit:            *resourceLimitInputToDatabaseObject(record.ResourceLimit),
 		IsSleeping:               false,
 		ApplicationGroup:         record.Group,
+		PreferredServerHostnames: record.PreferredServerHostnames,
+		DockerProxy:              *dockerProxyConfigToDatabaseObject(record.DockerProxyConfig),
 	}
 }
 
 // applicationToGraphqlObject converts Application to ApplicationGraphqlObject
 func applicationToGraphqlObject(record *core.Application) *model.Application {
 	return &model.Application{
-		ID:               record.ID,
-		Name:             record.Name,
-		DeploymentMode:   model.DeploymentMode(record.DeploymentMode),
-		Replicas:         record.Replicas,
-		IsDeleted:        record.IsDeleted,
-		WebhookToken:     record.WebhookToken,
-		Capabilities:     record.Capabilities,
-		Sysctls:          record.Sysctls,
-		ResourceLimit:    resourceLimitToGraphqlObject(&record.ResourceLimit),
-		ReservedResource: reservedResourceToGraphqlObject(&record.ReservedResource),
-		IsSleeping:       record.IsSleeping,
-		Command:          record.Command,
-		Group:            record.ApplicationGroup,
+		ID:                       record.ID,
+		Name:                     record.Name,
+		DeploymentMode:           model.DeploymentMode(record.DeploymentMode),
+		Replicas:                 record.Replicas,
+		IsDeleted:                record.IsDeleted,
+		WebhookToken:             record.WebhookToken,
+		Capabilities:             record.Capabilities,
+		Sysctls:                  record.Sysctls,
+		ResourceLimit:            resourceLimitToGraphqlObject(&record.ResourceLimit),
+		ReservedResource:         reservedResourceToGraphqlObject(&record.ReservedResource),
+		IsSleeping:               record.IsSleeping,
+		Command:                  record.Command,
+		Group:                    record.ApplicationGroup,
+		PreferredServerHostnames: record.PreferredServerHostnames,
+		DockerProxyHost:          record.DockerProxyServiceName(),
+		DockerProxyConfig:        dockerProxyConfigToGraphqlObject(&record.DockerProxy),
 	}
 }
 
@@ -442,6 +447,80 @@ func domainToGraphqlObject(record *core.Domain) *model.Domain {
 		SslIssuedAt:   record.SSLIssuedAt,
 		SslIssuer:     record.SSLIssuer,
 		SslAutoRenew:  record.SslAutoRenew,
+	}
+}
+
+// dockerProxyConfigToGraphqlObject converts DockerProxyConfig to DockerProxyConfigGraphqlObject
+func dockerProxyConfigToGraphqlObject(record *core.DockerProxyConfig) *model.DockerProxyConfig {
+	return &model.DockerProxyConfig{
+		Enabled:    record.Enabled,
+		Permission: dockerProxyPermissionToGraphqlObject(&record.Permission),
+	}
+}
+
+// dockerProxyConfigToDatabaseObject converts DockerProxyConfig to DockerProxyConfigDatabaseObject
+func dockerProxyConfigToDatabaseObject(record *model.DockerProxyConfigInput) *core.DockerProxyConfig {
+	return &core.DockerProxyConfig{
+		Enabled:    record.Enabled,
+		Permission: *dockerProxyPermissionInputToDatabaseObject(record.Permission),
+	}
+}
+
+// dockerProxyPermissionToGraphqlObject converts DockerProxyPermission to DockerProxyPermissionGraphqlObject
+func dockerProxyPermissionToGraphqlObject(record *core.DockerProxyPermission) *model.DockerProxyPermission {
+	return &model.DockerProxyPermission{
+		Ping:         model.DockerProxyPermissionType(record.Ping),
+		Version:      model.DockerProxyPermissionType(record.Version),
+		Info:         model.DockerProxyPermissionType(record.Info),
+		Events:       model.DockerProxyPermissionType(record.Events),
+		Auth:         model.DockerProxyPermissionType(record.Auth),
+		Secrets:      model.DockerProxyPermissionType(record.Secrets),
+		Build:        model.DockerProxyPermissionType(record.Build),
+		Commit:       model.DockerProxyPermissionType(record.Commit),
+		Configs:      model.DockerProxyPermissionType(record.Configs),
+		Containers:   model.DockerProxyPermissionType(record.Containers),
+		Distribution: model.DockerProxyPermissionType(record.Distribution),
+		Exec:         model.DockerProxyPermissionType(record.Exec),
+		Grpc:         model.DockerProxyPermissionType(record.Grpc),
+		Images:       model.DockerProxyPermissionType(record.Images),
+		Networks:     model.DockerProxyPermissionType(record.Networks),
+		Nodes:        model.DockerProxyPermissionType(record.Nodes),
+		Plugins:      model.DockerProxyPermissionType(record.Plugins),
+		Services:     model.DockerProxyPermissionType(record.Services),
+		Session:      model.DockerProxyPermissionType(record.Session),
+		Swarm:        model.DockerProxyPermissionType(record.Swarm),
+		System:       model.DockerProxyPermissionType(record.System),
+		Tasks:        model.DockerProxyPermissionType(record.Tasks),
+		Volumes:      model.DockerProxyPermissionType(record.Volumes),
+	}
+}
+
+// dockerProxyPermissionInputToDatabaseObject converts DockerProxyPermissionInput to DockerProxyPermissionDatabaseObject
+func dockerProxyPermissionInputToDatabaseObject(record *model.DockerProxyPermissionInput) *core.DockerProxyPermission {
+	return &core.DockerProxyPermission{
+		Ping:         core.DockerProxyPermissionType(record.Ping),
+		Version:      core.DockerProxyPermissionType(record.Version),
+		Info:         core.DockerProxyPermissionType(record.Info),
+		Events:       core.DockerProxyPermissionType(record.Events),
+		Auth:         core.DockerProxyPermissionType(record.Auth),
+		Secrets:      core.DockerProxyPermissionType(record.Secrets),
+		Build:        core.DockerProxyPermissionType(record.Build),
+		Commit:       core.DockerProxyPermissionType(record.Commit),
+		Configs:      core.DockerProxyPermissionType(record.Configs),
+		Containers:   core.DockerProxyPermissionType(record.Containers),
+		Distribution: core.DockerProxyPermissionType(record.Distribution),
+		Exec:         core.DockerProxyPermissionType(record.Exec),
+		Grpc:         core.DockerProxyPermissionType(record.Grpc),
+		Images:       core.DockerProxyPermissionType(record.Images),
+		Networks:     core.DockerProxyPermissionType(record.Networks),
+		Nodes:        core.DockerProxyPermissionType(record.Nodes),
+		Plugins:      core.DockerProxyPermissionType(record.Plugins),
+		Services:     core.DockerProxyPermissionType(record.Services),
+		Session:      core.DockerProxyPermissionType(record.Session),
+		Swarm:        core.DockerProxyPermissionType(record.Swarm),
+		System:       core.DockerProxyPermissionType(record.System),
+		Tasks:        core.DockerProxyPermissionType(record.Tasks),
+		Volumes:      core.DockerProxyPermissionType(record.Volumes),
 	}
 }
 
@@ -601,6 +680,8 @@ func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db g
 		if service.Command != nil {
 			command = service.Command.String()
 		}
+		// docker proxy config
+
 		app := model.ApplicationInput{
 			Name:                     serviceName,
 			EnvironmentVariables:     environmentVariables,
@@ -628,6 +709,35 @@ func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db g
 			SourceCodeCompressedFileName: nil,
 			Group:                        groupName,
 			Command:                      command,
+			PreferredServerHostnames:     service.PreferredServerHostnames,
+			DockerProxyConfig: &model.DockerProxyConfigInput{
+				Enabled: service.DockerProxyConfig.Enabled,
+				Permission: &model.DockerProxyPermissionInput{
+					Ping:         model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Ping),
+					Version:      model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Version),
+					Info:         model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Info),
+					Events:       model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Events),
+					Auth:         model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Auth),
+					Secrets:      model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Secrets),
+					Build:        model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Build),
+					Commit:       model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Commit),
+					Configs:      model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Configs),
+					Containers:   model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Containers),
+					Distribution: model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Distribution),
+					Exec:         model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Exec),
+					Grpc:         model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Grpc),
+					Images:       model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Images),
+					Networks:     model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Networks),
+					Nodes:        model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Nodes),
+					Plugins:      model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Plugins),
+					Services:     model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Services),
+					Session:      model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Session),
+					Swarm:        model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Swarm),
+					System:       model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.System),
+					Tasks:        model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Tasks),
+					Volumes:      model.DockerProxyPermissionType(service.DockerProxyConfig.Permission.Volumes),
+				},
+			},
 		}
 		applications = append(applications, app)
 	}

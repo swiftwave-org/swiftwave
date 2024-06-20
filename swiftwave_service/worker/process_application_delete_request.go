@@ -52,6 +52,8 @@ func (m Manager) DeleteApplication(request DeleteApplicationRequest, ctx context
 	if err != nil {
 		log.Println("[WARN] error deleting application from swarm manager : " + application.Name)
 	}
+	// remove docker proxy
+	dockerManager.RemoveDockerProxy(application.DockerProxyServiceName())
 	// prune config mounts
 	dockerManager.PruneConfig(application.ID)
 	return nil

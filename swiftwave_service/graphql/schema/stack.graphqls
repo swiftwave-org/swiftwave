@@ -16,6 +16,8 @@ type StackVerifyResult {
     invalidVolumes: [String!]!
     validServices: [String!]!
     invalidServices: [String!]!
+    validPreferredServers: [String!]!
+    invalidPreferredServers: [String!]!
 }
 
 type ApplicationDeployResult {
