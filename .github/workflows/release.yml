@@ -190,6 +190,7 @@ jobs:
         name: Trigger package repo to update
         runs-on: ubuntu-latest
         needs: [debian-packager, rpm-packager]
+        if: ${{ !endsWith(github.event.release.tag_name,'-rc') }}
         steps:
           - name: Setup environment
             run: |
