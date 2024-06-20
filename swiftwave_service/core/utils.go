@@ -5,6 +5,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -85,6 +86,16 @@ func (d *DockerProxyConfig) Equal(other *DockerProxyConfig) bool {
 		d.Permission.System == other.Permission.System &&
 		d.Permission.Tasks == other.Permission.Tasks &&
 		d.Permission.Volumes == other.Permission.Volumes
+}
+
+func (c *ApplicationCustomHealthCheck) Equal(other *ApplicationCustomHealthCheck) bool {
+	return c.Enabled == other.Enabled &&
+		strings.Compare(c.TestCommand, other.TestCommand) == 0 &&
+		c.IntervalSeconds == other.IntervalSeconds &&
+		c.TimeoutSeconds == other.TimeoutSeconds &&
+		c.StartPeriodSeconds == other.StartPeriodSeconds &&
+		c.StartIntervalSeconds == other.StartIntervalSeconds &&
+		c.Retries == other.Retries
 }
 
 func (application *Application) DockerProxyServiceName() string {

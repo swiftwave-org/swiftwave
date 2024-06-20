@@ -257,6 +257,8 @@ type Application struct {
 	ApplicationGroup string `json:"application_group"`
 	// PreferredServerHostnames - if set, we will schedule deployments to this server
 	PreferredServerHostnames pq.StringArray `json:"preferred_server_hostnames" gorm:"type:text[]"`
+	// CustomHealthCheck - if set, we will use this custom health check
+	CustomHealthCheck ApplicationCustomHealthCheck `json:"custom_health_check" gorm:"embedded;embeddedPrefix:custom_health_check_"`
 	// DockerProxy configuration
 	DockerProxy DockerProxyConfig `json:"docker_proxy" gorm:"embedded;embeddedPrefix:docker_proxy_"`
 }

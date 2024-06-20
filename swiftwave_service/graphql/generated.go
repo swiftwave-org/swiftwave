@@ -77,6 +77,7 @@ type ComplexityRoot struct {
 		Capabilities             func(childComplexity int) int
 		Command                  func(childComplexity int) int
 		ConfigMounts             func(childComplexity int) int
+		CustomHealthCheck        func(childComplexity int) int
 		DeploymentMode           func(childComplexity int) int
 		Deployments              func(childComplexity int) int
 		DockerProxyConfig        func(childComplexity int) int
@@ -97,6 +98,16 @@ type ComplexityRoot struct {
 		ResourceLimit            func(childComplexity int) int
 		Sysctls                  func(childComplexity int) int
 		WebhookToken             func(childComplexity int) int
+	}
+
+	ApplicationCustomHealthCheck struct {
+		Enabled              func(childComplexity int) int
+		IntervalSeconds      func(childComplexity int) int
+		Retries              func(childComplexity int) int
+		StartIntervalSeconds func(childComplexity int) int
+		StartPeriodSeconds   func(childComplexity int) int
+		TestCommand          func(childComplexity int) int
+		TimeoutSeconds       func(childComplexity int) int
 	}
 
 	ApplicationDeployResult struct {
@@ -819,6 +830,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Application.ConfigMounts(childComplexity), true
 
+	case "Application.customHealthCheck":
+		if e.complexity.Application.CustomHealthCheck == nil {
+			break
+		}
+
+		return e.complexity.Application.CustomHealthCheck(childComplexity), true
+
 	case "Application.deploymentMode":
 		if e.complexity.Application.DeploymentMode == nil {
 			break
@@ -958,6 +976,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Application.WebhookToken(childComplexity), true
+
+	case "ApplicationCustomHealthCheck.enabled":
+		if e.complexity.ApplicationCustomHealthCheck.Enabled == nil {
+			break
+		}
+
+		return e.complexity.ApplicationCustomHealthCheck.Enabled(childComplexity), true
+
+	case "ApplicationCustomHealthCheck.interval_seconds":
+		if e.complexity.ApplicationCustomHealthCheck.IntervalSeconds == nil {
+			break
+		}
+
+		return e.complexity.ApplicationCustomHealthCheck.IntervalSeconds(childComplexity), true
+
+	case "ApplicationCustomHealthCheck.retries":
+		if e.complexity.ApplicationCustomHealthCheck.Retries == nil {
+			break
+		}
+
+		return e.complexity.ApplicationCustomHealthCheck.Retries(childComplexity), true
+
+	case "ApplicationCustomHealthCheck.start_interval_seconds":
+		if e.complexity.ApplicationCustomHealthCheck.StartIntervalSeconds == nil {
+			break
+		}
+
+		return e.complexity.ApplicationCustomHealthCheck.StartIntervalSeconds(childComplexity), true
+
+	case "ApplicationCustomHealthCheck.start_period_seconds":
+		if e.complexity.ApplicationCustomHealthCheck.StartPeriodSeconds == nil {
+			break
+		}
+
+		return e.complexity.ApplicationCustomHealthCheck.StartPeriodSeconds(childComplexity), true
+
+	case "ApplicationCustomHealthCheck.test_command":
+		if e.complexity.ApplicationCustomHealthCheck.TestCommand == nil {
+			break
+		}
+
+		return e.complexity.ApplicationCustomHealthCheck.TestCommand(childComplexity), true
+
+	case "ApplicationCustomHealthCheck.timeout_seconds":
+		if e.complexity.ApplicationCustomHealthCheck.TimeoutSeconds == nil {
+			break
+		}
+
+		return e.complexity.ApplicationCustomHealthCheck.TimeoutSeconds(childComplexity), true
 
 	case "ApplicationDeployResult.application":
 		if e.complexity.ApplicationDeployResult.Application == nil {
@@ -3810,6 +3877,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputAppBasicAuthAccessControlListInput,
 		ec.unmarshalInputAppBasicAuthAccessControlUserInput,
+		ec.unmarshalInputApplicationCustomHealthCheckInput,
 		ec.unmarshalInputApplicationInput,
 		ec.unmarshalInputBuildArgInput,
 		ec.unmarshalInputCIFSConfigInput,
@@ -3953,7 +4021,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/app_authentication.graphqls" "schema/application.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/config_mount.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/docker_proxy_config.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/totp.graphqls" "schema/user.graphqls.graphqls"
+//go:embed "schema/app_authentication.graphqls" "schema/application.graphqls" "schema/application_healthcheck.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/config_mount.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/docker_proxy_config.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/totp.graphqls" "schema/user.graphqls.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -3967,6 +4035,7 @@ func sourceData(filename string) string {
 var sources = []*ast.Source{
 	{Name: "schema/app_authentication.graphqls", Input: sourceData("schema/app_authentication.graphqls"), BuiltIn: false},
 	{Name: "schema/application.graphqls", Input: sourceData("schema/application.graphqls"), BuiltIn: false},
+	{Name: "schema/application_healthcheck.graphqls", Input: sourceData("schema/application_healthcheck.graphqls"), BuiltIn: false},
 	{Name: "schema/base.graphqls", Input: sourceData("schema/base.graphqls"), BuiltIn: false},
 	{Name: "schema/build_arg.graphqls", Input: sourceData("schema/build_arg.graphqls"), BuiltIn: false},
 	{Name: "schema/cifs_config.graphqls", Input: sourceData("schema/cifs_config.graphqls"), BuiltIn: false},
@@ -7078,6 +7147,374 @@ func (ec *executionContext) fieldContext_Application_dockerProxyConfig(_ context
 	return fc, nil
 }
 
+func (ec *executionContext) _Application_customHealthCheck(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_customHealthCheck(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CustomHealthCheck, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ApplicationCustomHealthCheck)
+	fc.Result = res
+	return ec.marshalNApplicationCustomHealthCheck2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationCustomHealthCheck(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_customHealthCheck(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "enabled":
+				return ec.fieldContext_ApplicationCustomHealthCheck_enabled(ctx, field)
+			case "test_command":
+				return ec.fieldContext_ApplicationCustomHealthCheck_test_command(ctx, field)
+			case "interval_seconds":
+				return ec.fieldContext_ApplicationCustomHealthCheck_interval_seconds(ctx, field)
+			case "timeout_seconds":
+				return ec.fieldContext_ApplicationCustomHealthCheck_timeout_seconds(ctx, field)
+			case "start_period_seconds":
+				return ec.fieldContext_ApplicationCustomHealthCheck_start_period_seconds(ctx, field)
+			case "start_interval_seconds":
+				return ec.fieldContext_ApplicationCustomHealthCheck_start_interval_seconds(ctx, field)
+			case "retries":
+				return ec.fieldContext_ApplicationCustomHealthCheck_retries(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ApplicationCustomHealthCheck", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationCustomHealthCheck_enabled(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationCustomHealthCheck) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationCustomHealthCheck_enabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Enabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationCustomHealthCheck_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationCustomHealthCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationCustomHealthCheck_test_command(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationCustomHealthCheck) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationCustomHealthCheck_test_command(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TestCommand, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationCustomHealthCheck_test_command(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationCustomHealthCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationCustomHealthCheck_interval_seconds(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationCustomHealthCheck) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationCustomHealthCheck_interval_seconds(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IntervalSeconds, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationCustomHealthCheck_interval_seconds(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationCustomHealthCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationCustomHealthCheck_timeout_seconds(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationCustomHealthCheck) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationCustomHealthCheck_timeout_seconds(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TimeoutSeconds, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationCustomHealthCheck_timeout_seconds(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationCustomHealthCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationCustomHealthCheck_start_period_seconds(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationCustomHealthCheck) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationCustomHealthCheck_start_period_seconds(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartPeriodSeconds, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationCustomHealthCheck_start_period_seconds(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationCustomHealthCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationCustomHealthCheck_start_interval_seconds(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationCustomHealthCheck) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationCustomHealthCheck_start_interval_seconds(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartIntervalSeconds, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationCustomHealthCheck_start_interval_seconds(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationCustomHealthCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationCustomHealthCheck_retries(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationCustomHealthCheck) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationCustomHealthCheck_retries(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Retries, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationCustomHealthCheck_retries(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationCustomHealthCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ApplicationDeployResult_success(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationDeployResult) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ApplicationDeployResult_success(ctx, field)
 	if err != nil {
@@ -7248,6 +7685,8 @@ func (ec *executionContext) fieldContext_ApplicationDeployResult_application(_ c
 				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
+			case "customHealthCheck":
+				return ec.fieldContext_Application_customHealthCheck(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -8572,6 +9011,8 @@ func (ec *executionContext) fieldContext_Deployment_application(_ context.Contex
 				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
+			case "customHealthCheck":
+				return ec.fieldContext_Application_customHealthCheck(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -12743,6 +13184,8 @@ func (ec *executionContext) fieldContext_IngressRule_application(_ context.Conte
 				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
+			case "customHealthCheck":
+				return ec.fieldContext_Application_customHealthCheck(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -13519,6 +13962,8 @@ func (ec *executionContext) fieldContext_Mutation_createApplication(ctx context.
 				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
+			case "customHealthCheck":
+				return ec.fieldContext_Application_customHealthCheck(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -13622,6 +14067,8 @@ func (ec *executionContext) fieldContext_Mutation_updateApplication(ctx context.
 				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
+			case "customHealthCheck":
+				return ec.fieldContext_Application_customHealthCheck(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -18468,6 +18915,8 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_application(_ c
 				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
+			case "customHealthCheck":
+				return ec.fieldContext_Application_customHealthCheck(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -18878,6 +19327,8 @@ func (ec *executionContext) fieldContext_Query_application(ctx context.Context, 
 				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
+			case "customHealthCheck":
+				return ec.fieldContext_Application_customHealthCheck(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -18981,6 +19432,8 @@ func (ec *executionContext) fieldContext_Query_applications(_ context.Context, f
 				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
+			case "customHealthCheck":
+				return ec.fieldContext_Application_customHealthCheck(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -19073,6 +19526,8 @@ func (ec *executionContext) fieldContext_Query_applicationsByGroup(ctx context.C
 				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
 			case "dockerProxyConfig":
 				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
+			case "customHealthCheck":
+				return ec.fieldContext_Application_customHealthCheck(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
@@ -26561,6 +27016,75 @@ func (ec *executionContext) unmarshalInputAppBasicAuthAccessControlUserInput(ctx
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputApplicationCustomHealthCheckInput(ctx context.Context, obj interface{}) (model.ApplicationCustomHealthCheckInput, error) {
+	var it model.ApplicationCustomHealthCheckInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"enabled", "test_command", "interval_seconds", "timeout_seconds", "start_period_seconds", "start_interval_seconds", "retries"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		case "test_command":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("test_command"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestCommand = data
+		case "interval_seconds":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("interval_seconds"))
+			data, err := ec.unmarshalNUint642uint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IntervalSeconds = data
+		case "timeout_seconds":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeout_seconds"))
+			data, err := ec.unmarshalNUint642uint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TimeoutSeconds = data
+		case "start_period_seconds":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_period_seconds"))
+			data, err := ec.unmarshalNUint642uint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StartPeriodSeconds = data
+		case "start_interval_seconds":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_interval_seconds"))
+			data, err := ec.unmarshalNUint642uint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StartIntervalSeconds = data
+		case "retries":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("retries"))
+			data, err := ec.unmarshalNUint642uint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Retries = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, obj interface{}) (model.ApplicationInput, error) {
 	var it model.ApplicationInput
 	asMap := map[string]interface{}{}
@@ -26568,7 +27092,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "configMounts", "capabilities", "sysctls", "dockerfile", "buildArgs", "deploymentMode", "replicas", "resourceLimit", "reservedResource", "upstreamType", "command", "gitCredentialID", "repositoryUrl", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID", "group", "preferredServerHostnames", "dockerProxyConfig"}
+	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "configMounts", "capabilities", "sysctls", "dockerfile", "buildArgs", "deploymentMode", "replicas", "resourceLimit", "reservedResource", "upstreamType", "command", "gitCredentialID", "repositoryUrl", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID", "group", "preferredServerHostnames", "dockerProxyConfig", "customHealthCheck"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -26743,6 +27267,13 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 				return it, err
 			}
 			it.DockerProxyConfig = data
+		case "customHealthCheck":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("customHealthCheck"))
+			data, err := ec.unmarshalNApplicationCustomHealthCheckInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationCustomHealthCheckInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CustomHealthCheck = data
 		}
 	}
 
@@ -28557,6 +29088,80 @@ func (ec *executionContext) _Application(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._Application_dockerProxyConfig(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "customHealthCheck":
+			out.Values[i] = ec._Application_customHealthCheck(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var applicationCustomHealthCheckImplementors = []string{"ApplicationCustomHealthCheck"}
+
+func (ec *executionContext) _ApplicationCustomHealthCheck(ctx context.Context, sel ast.SelectionSet, obj *model.ApplicationCustomHealthCheck) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, applicationCustomHealthCheckImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ApplicationCustomHealthCheck")
+		case "enabled":
+			out.Values[i] = ec._ApplicationCustomHealthCheck_enabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "test_command":
+			out.Values[i] = ec._ApplicationCustomHealthCheck_test_command(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "interval_seconds":
+			out.Values[i] = ec._ApplicationCustomHealthCheck_interval_seconds(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "timeout_seconds":
+			out.Values[i] = ec._ApplicationCustomHealthCheck_timeout_seconds(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "start_period_seconds":
+			out.Values[i] = ec._ApplicationCustomHealthCheck_start_period_seconds(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "start_interval_seconds":
+			out.Values[i] = ec._ApplicationCustomHealthCheck_start_interval_seconds(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "retries":
+			out.Values[i] = ec._ApplicationCustomHealthCheck_retries(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -33562,6 +34167,21 @@ func (ec *executionContext) marshalNApplication2ᚖgithubᚗcomᚋswiftwaveᚑor
 		return graphql.Null
 	}
 	return ec._Application(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNApplicationCustomHealthCheck2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationCustomHealthCheck(ctx context.Context, sel ast.SelectionSet, v *model.ApplicationCustomHealthCheck) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ApplicationCustomHealthCheck(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNApplicationCustomHealthCheckInput2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationCustomHealthCheckInput(ctx context.Context, v interface{}) (*model.ApplicationCustomHealthCheckInput, error) {
+	res, err := ec.unmarshalInputApplicationCustomHealthCheckInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNApplicationDeployResult2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationDeployResultᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ApplicationDeployResult) graphql.Marshaler {

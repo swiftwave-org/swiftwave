@@ -366,6 +366,7 @@ func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Appl
 		ApplicationGroup:         record.Group,
 		PreferredServerHostnames: record.PreferredServerHostnames,
 		DockerProxy:              *dockerProxyConfigToDatabaseObject(record.DockerProxyConfig),
+		CustomHealthCheck:        *applicationCustomHealthCheckInputToDatabaseObject(record.CustomHealthCheck),
 	}
 }
 
@@ -388,6 +389,7 @@ func applicationToGraphqlObject(record *core.Application) *model.Application {
 		PreferredServerHostnames: record.PreferredServerHostnames,
 		DockerProxyHost:          record.DockerProxyServiceName(),
 		DockerProxyConfig:        dockerProxyConfigToGraphqlObject(&record.DockerProxy),
+		CustomHealthCheck:        applicationCustomHealthCheckToGraphqlObject(&record.CustomHealthCheck),
 	}
 }
 
@@ -521,6 +523,32 @@ func dockerProxyPermissionInputToDatabaseObject(record *model.DockerProxyPermiss
 		System:       core.DockerProxyPermissionType(record.System),
 		Tasks:        core.DockerProxyPermissionType(record.Tasks),
 		Volumes:      core.DockerProxyPermissionType(record.Volumes),
+	}
+}
+
+// applicationCustomHealthCheckToGraphqlObject converts ApplicationCustomHealthCheck to ApplicationCustomHealthCheckGraphqlObject
+func applicationCustomHealthCheckToGraphqlObject(record *core.ApplicationCustomHealthCheck) *model.ApplicationCustomHealthCheck {
+	return &model.ApplicationCustomHealthCheck{
+		Enabled:              record.Enabled,
+		TestCommand:          record.TestCommand,
+		IntervalSeconds:      record.IntervalSeconds,
+		TimeoutSeconds:       record.TimeoutSeconds,
+		StartPeriodSeconds:   record.StartPeriodSeconds,
+		StartIntervalSeconds: record.StartIntervalSeconds,
+		Retries:              record.Retries,
+	}
+}
+
+// applicationCustomHealthCheckInputToDatabaseObject converts ApplicationCustomHealthCheckInput to ApplicationCustomHealthCheckDatabaseObject
+func applicationCustomHealthCheckInputToDatabaseObject(record *model.ApplicationCustomHealthCheckInput) *core.ApplicationCustomHealthCheck {
+	return &core.ApplicationCustomHealthCheck{
+		Enabled:              record.Enabled,
+		TestCommand:          record.TestCommand,
+		IntervalSeconds:      record.IntervalSeconds,
+		TimeoutSeconds:       record.TimeoutSeconds,
+		StartPeriodSeconds:   record.StartPeriodSeconds,
+		StartIntervalSeconds: record.StartIntervalSeconds,
+		Retries:              record.Retries,
 	}
 }
 
@@ -709,7 +737,16 @@ func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db g
 			SourceCodeCompressedFileName: nil,
 			Group:                        groupName,
 			Command:                      command,
-			PreferredServerHostnames:     service.PreferredServerHostnames,
+			CustomHealthCheck: &model.ApplicationCustomHealthCheckInput{
+				Enabled:              service.CustomHealthCheck.Enabled,
+				TestCommand:          service.CustomHealthCheck.TestCommand,
+				IntervalSeconds:      service.CustomHealthCheck.IntervalSeconds,
+				TimeoutSeconds:       service.CustomHealthCheck.TimeoutSeconds,
+				StartPeriodSeconds:   service.CustomHealthCheck.StartPeriodSeconds,
+				StartIntervalSeconds: service.CustomHealthCheck.StartIntervalSeconds,
+				Retries:              service.CustomHealthCheck.Retries,
+			},
+			PreferredServerHostnames: service.PreferredServerHostnames,
 			DockerProxyConfig: &model.DockerProxyConfigInput{
 				Enabled: service.DockerProxyConfig.Enabled,
 				Permission: &model.DockerProxyPermissionInput{
