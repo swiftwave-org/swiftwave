@@ -549,6 +549,19 @@ func (m Manager) serviceToServiceSpec(service Service) (swarm.ServiceSpec, error
 		limitMemoryBytes = int64(service.ResourceLimit.MemoryMB * 1024 * 1024)
 	}
 
+	// healthcheck
+	var healthCheck *container.HealthConfig
+	if service.CustomHealthCheck.Enabled {
+		healthCheck = &container.HealthConfig{
+			Test:          []string{"CMD-SHELL", service.CustomHealthCheck.TestCommand},
+			Interval:      time.Duration(service.CustomHealthCheck.IntervalSeconds) * time.Second,
+			Timeout:       time.Duration(service.CustomHealthCheck.TimeoutSeconds) * time.Second,
+			StartPeriod:   time.Duration(service.CustomHealthCheck.StartPeriodSeconds) * time.Second,
+			StartInterval: time.Duration(service.CustomHealthCheck.StartIntervalSeconds) * time.Second,
+			Retries:       int(service.CustomHealthCheck.Retries),
+		}
+	}
+
 	// Build service spec
 	serviceSpec := swarm.ServiceSpec{
 		// Set name of the service
@@ -575,6 +588,7 @@ func (m Manager) serviceToServiceSpec(service Service) (swarm.ServiceSpec, error
 				},
 				CapabilityAdd: service.Capabilities,
 				Sysctls:       service.Sysctls,
+				Healthcheck:   healthCheck,
 			},
 			Placement: &swarm.Placement{
 				Constraints: service.PlacementConstraints,
