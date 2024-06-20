@@ -255,6 +255,10 @@ type Application struct {
 	ResourceStats []ApplicationServiceResourceStat `json:"resource_stats" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// Application ApplicationGroup
 	ApplicationGroup string `json:"application_group"`
+	// PreferredServerHostnames - if set, we will schedule deployments to this server
+	PreferredServerHostnames pq.StringArray `json:"preferred_server_hostnames" gorm:"type:text[]"`
+	// DockerProxy configuration
+	DockerProxy DockerProxyConfig `json:"docker_proxy" gorm:"embedded;embeddedPrefix:docker_proxy_"`
 }
 
 // Deployment hold information about deployment of application

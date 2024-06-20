@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,6 +21,10 @@ import (
 // context used to pass some data to the function e.g. user id, auth info, etc.
 
 func IsExistApplicationName(_ context.Context, db gorm.DB, dockerManager containermanger.Manager, name string) (bool, error) {
+	// name cannot contain any special characters at the end
+	if strings.Contains(name, "/") || strings.Contains(name, "\\") || strings.Contains(name, ":") || strings.Contains(name, "*") || strings.Contains(name, "?") || strings.Contains(name, "\"") || strings.Contains(name, "<") || strings.Contains(name, ">") || strings.Contains(name, "|") || strings.Contains(name, "&") || strings.Contains(name, "_") {
+		return false, errors.New("application name cannot contain any special characters at the end")
+	}
 	// verify from database
 	var count int64
 	tx := db.Model(&Application{}).Where("name = ?", name).Count(&count)
@@ -105,6 +110,18 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	if application.ReservedResource.MemoryMB != 0 && application.ReservedResource.MemoryMB < 6 {
 		return errors.New("reserved memory should be at least 6 MB or 0 for unlimited")
 	}
+	// Verify the PreferredServerHostnames
+	if len(application.PreferredServerHostnames) > 0 {
+		for _, preferredServerHostname := range application.PreferredServerHostnames {
+			_, err := FetchServerIDByHostName(&db, preferredServerHostname)
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return fmt.Errorf("invalid hostname %s provided for preferred server", preferredServerHostname)
+				}
+				return err
+			}
+		}
+	}
 	// State
 	isGitCredentialExist := false
 	isImageRegistryCredentialExist := false
@@ -142,19 +159,25 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 			return errors.New("source code not found")
 		}
 	}
+	// Validate DockerProxy configuration
+	if application.DockerProxy.Enabled && len(application.PreferredServerHostnames) == 0 {
+		return errors.New("you need to select exactly one preferred server for getting access to docker socket proxy")
+	}
 	// create application
 	createdApplication := Application{
-		ID:               uuid.NewString(),
-		Name:             application.Name,
-		DeploymentMode:   application.DeploymentMode,
-		Replicas:         application.Replicas,
-		WebhookToken:     uuid.NewString(),
-		Command:          application.Command,
-		Capabilities:     application.Capabilities,
-		Sysctls:          application.Sysctls,
-		ResourceLimit:    application.ResourceLimit,
-		ReservedResource: application.ReservedResource,
-		ApplicationGroup: application.ApplicationGroup,
+		ID:                       uuid.NewString(),
+		Name:                     application.Name,
+		DeploymentMode:           application.DeploymentMode,
+		Replicas:                 application.Replicas,
+		WebhookToken:             uuid.NewString(),
+		Command:                  application.Command,
+		Capabilities:             application.Capabilities,
+		Sysctls:                  application.Sysctls,
+		ResourceLimit:            application.ResourceLimit,
+		ReservedResource:         application.ReservedResource,
+		ApplicationGroup:         application.ApplicationGroup,
+		DockerProxy:              application.DockerProxy,
+		PreferredServerHostnames: application.PreferredServerHostnames,
 	}
 	tx := db.Create(&createdApplication)
 	if tx.Error != nil {
@@ -297,6 +320,22 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 	}
 	if application.ReservedResource.MemoryMB != 0 && application.ReservedResource.MemoryMB < 6 {
 		return nil, errors.New("reserved memory should be at least 6 MB or 0 for unlimited")
+	}
+	// Verify the PreferredServerHostnames
+	if len(application.PreferredServerHostnames) > 0 {
+		for _, preferredServerHostname := range application.PreferredServerHostnames {
+			_, err := FetchServerIDByHostName(&db, preferredServerHostname)
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return nil, fmt.Errorf("invalid hostname %s provided for preferred server", preferredServerHostname)
+				}
+				return nil, err
+			}
+		}
+	}
+	// check if docker proxy is enabled and preferred servers are not provided
+	if application.DockerProxy.Enabled && len(application.PreferredServerHostnames) != 1 {
+		return nil, errors.New("you must select preferred servers for deployment to get access to docker proxy")
 	}
 	// status
 	isReloadRequired := false
@@ -511,6 +550,52 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 			MountingPath:       mountingPath,
 		}
 		err := persistentVolumeBinding.Create(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+		// reload application
+		isReloadRequired = true
+	}
+	isPreferredServerHostnameChanged := false
+	// check if preferred servers a changed
+	if len(application.PreferredServerHostnames) != len(applicationExistingFull.PreferredServerHostnames) {
+		isPreferredServerHostnameChanged = true
+	} else {
+		// check if elements are changed
+		for _, preferredServerHostname := range application.PreferredServerHostnames {
+			isFound := false
+			for _, preferredServerHostnameExisting := range applicationExistingFull.PreferredServerHostnames {
+				if strings.Compare(preferredServerHostname, preferredServerHostnameExisting) == 0 {
+					isFound = true
+					break
+				}
+			}
+			if !isFound {
+				isPreferredServerHostnameChanged = true
+			}
+		}
+	}
+	if isPreferredServerHostnameChanged {
+		// update preferred server hostnames
+		err = db.Model(&applicationExistingFull).Update("preferred_server_hostnames", application.PreferredServerHostnames).Error
+		if err != nil {
+			return nil, err
+		}
+		// reload application
+		isReloadRequired = true
+	}
+	// check for changes in docker proxy configuration
+	if !application.DockerProxy.Equal(&applicationExistingFull.DockerProxy) {
+		// store docker proxy configuration
+		err = db.Model(&applicationExistingFull).Select("docker_proxy_enabled",
+			"docker_proxy_permission_ping", "docker_proxy_permission_version",
+			"docker_proxy_permission_info", "docker_proxy_permission_events", "docker_proxy_permission_auth",
+			"docker_proxy_permission_secrets", "docker_proxy_permission_build", "docker_proxy_permission_commit",
+			"docker_proxy_permission_configs", "docker_proxy_permission_containers", "docker_proxy_permission_distribution",
+			"docker_proxy_permission_exec", "docker_proxy_permission_grpc", "docker_proxy_permission_images",
+			"docker_proxy_permission_networks", "docker_proxy_permission_nodes", "docker_proxy_permission_plugins",
+			"docker_proxy_permission_services", "docker_proxy_permission_session", "docker_proxy_permission_swarm",
+			"docker_proxy_permission_system", "docker_proxy_permission_tasks", "docker_proxy_permission_volumes").Updates(application).Error
 		if err != nil {
 			return nil, err
 		}

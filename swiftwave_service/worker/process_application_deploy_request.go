@@ -98,8 +98,13 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 	}
 	var environmentVariablesMap = make(map[string]string)
 	for _, environmentVariable := range environmentVariables {
-		environmentVariablesMap[environmentVariable.Key] = environmentVariable.Value
+		value := environmentVariable.Value
+		if application.DockerProxy.Enabled {
+			value = strings.ReplaceAll(value, "{{DOCKER_PROXY_HOST}}", application.DockerProxyServiceName())
+		}
+		environmentVariablesMap[environmentVariable.Key] = value
 	}
+
 	// fetch persistent volumes
 	persistentVolumeBindings, err := core.FindPersistentVolumeBindingsByApplicationId(ctx, *db, request.AppId)
 	if err != nil {
@@ -202,6 +207,19 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 	for _, hostname := range disabledServerHostnames {
 		placementConstraints = append(placementConstraints, "node.hostname!="+hostname)
 	}
+	for _, preferredServerHostName := range application.PreferredServerHostnames {
+		// if it's not a disabled server, add it to the placement constraints
+		isDisabled := false
+		for _, hostname := range disabledServerHostnames {
+			if strings.Compare(hostname, preferredServerHostName) == 0 {
+				isDisabled = true
+				break
+			}
+		}
+		if !isDisabled {
+			placementConstraints = append(placementConstraints, "node.hostname=="+preferredServerHostName)
+		}
+	}
 	// create service
 	service := containermanger.Service{
 		Name:                 application.Name,
@@ -240,6 +258,44 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 	err = deployment.UpdateStatus(ctx, *db, core.DeploymentStatusLive)
 	if err != nil {
 		return err
+	}
+
+	// docker proxy setup
+	if application.DockerProxy.Enabled {
+		err := dockerManager.CreateDockerProxy(application.DockerProxyServiceName(), placementConstraints, containermanger.DockerProxyConfig{
+			Permission: containermanger.DockerProxyPermission{
+				Ping:         convertDockerPermissionType(application.DockerProxy.Permission.Ping),
+				Version:      convertDockerPermissionType(application.DockerProxy.Permission.Version),
+				Info:         convertDockerPermissionType(application.DockerProxy.Permission.Info),
+				Events:       convertDockerPermissionType(application.DockerProxy.Permission.Events),
+				Auth:         convertDockerPermissionType(application.DockerProxy.Permission.Auth),
+				Secrets:      convertDockerPermissionType(application.DockerProxy.Permission.Secrets),
+				Build:        convertDockerPermissionType(application.DockerProxy.Permission.Build),
+				Commit:       convertDockerPermissionType(application.DockerProxy.Permission.Commit),
+				Configs:      convertDockerPermissionType(application.DockerProxy.Permission.Configs),
+				Containers:   convertDockerPermissionType(application.DockerProxy.Permission.Containers),
+				Distribution: convertDockerPermissionType(application.DockerProxy.Permission.Distribution),
+				Exec:         convertDockerPermissionType(application.DockerProxy.Permission.Exec),
+				Grpc:         convertDockerPermissionType(application.DockerProxy.Permission.Grpc),
+				Images:       convertDockerPermissionType(application.DockerProxy.Permission.Images),
+				Networks:     convertDockerPermissionType(application.DockerProxy.Permission.Networks),
+				Nodes:        convertDockerPermissionType(application.DockerProxy.Permission.Nodes),
+				Plugins:      convertDockerPermissionType(application.DockerProxy.Permission.Plugins),
+				Services:     convertDockerPermissionType(application.DockerProxy.Permission.Services),
+				Session:      convertDockerPermissionType(application.DockerProxy.Permission.Session),
+				Swarm:        convertDockerPermissionType(application.DockerProxy.Permission.Swarm),
+				System:       convertDockerPermissionType(application.DockerProxy.Permission.System),
+				Tasks:        convertDockerPermissionType(application.DockerProxy.Permission.Tasks),
+				Volumes:      convertDockerPermissionType(application.DockerProxy.Permission.Volumes),
+			},
+		}, m.Config.SystemConfig.NetworkName)
+		if err != nil {
+			addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to create docker proxy\n", false)
+		} else {
+			addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Docker proxy created successfully\n", false)
+		}
+	} else {
+		dockerManager.RemoveDockerProxy(application.DockerProxyServiceName())
 	}
 
 	// check if the service already exists
@@ -375,4 +431,14 @@ func isHAProxyAccessRequired(ingressRule *core.IngressRule) bool {
 
 func isUDProxyAccessRequired(ingressRule *core.IngressRule) bool {
 	return ingressRule.Protocol == core.UDPProtocol
+}
+
+func convertDockerPermissionType(a core.DockerProxyPermissionType) containermanger.DockerProxyPermissionType {
+	if a == core.DockerProxyReadPermission {
+		return containermanger.DockerProxyReadPermission
+	}
+	if a == core.DockerProxyReadWritePermission {
+		return containermanger.DockerProxyReadWritePermission
+	}
+	return containermanger.DockerProxyNoPermission
 }

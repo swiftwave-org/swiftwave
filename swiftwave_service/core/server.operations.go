@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
 	"net"
 	"time"
@@ -24,6 +25,24 @@ func DeleteServer(db *gorm.DB, id uint) error {
 	server, err := FetchServerByID(db, id)
 	if err != nil {
 		return err
+	}
+	var applications []Application
+
+	tx := db.Raw("SELECT name FROM applications WHERE preferred_server_hostnames @> ARRAY[?]", server.HostName).Scan(&applications)
+	if tx.Error != nil {
+		return fmt.Errorf("failed to fetch linked apps : %s", tx.Error.Error())
+	}
+	if len(applications) > 0 {
+		applicationString := ""
+		for i, application := range applications {
+			applicationString = applicationString + application.Name
+			if i != len(applications)-1 {
+				applicationString = applicationString + ", "
+			} else {
+				applicationString = applicationString + " "
+			}
+		}
+		return fmt.Errorf("server is linked to application(s) : %s\nPlease remove this server from preferred servers of the application(s) before deleting the server", applicationString)
 	}
 	return db.Delete(server).Error
 }
@@ -84,6 +103,9 @@ func FetchAllServers(db *gorm.DB) ([]Server, error) {
 func FetchServerByID(db *gorm.DB, id uint) (*Server, error) {
 	var server Server
 	err := db.First(&server, id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, errors.New("server not found")
+	}
 	return &server, err
 }
 

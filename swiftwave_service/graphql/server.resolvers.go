@@ -261,6 +261,15 @@ func (r *mutationResolver) SetupServer(ctx context.Context, input model.ServerSe
 		return false, err
 	}
 	hostname := strings.TrimSpace(hostnameStdoutBuffer.String())
+	// check if any other server exists with same hostname
+	_, err = core.FetchServerIDByHostName(&r.ServiceManager.DbClient, hostname)
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, errors.New("failed to fetch server id by hostname")
+		}
+	} else {
+		return false, errors.New("you have already some server with same hostname.\nPlease change hostname of current server")
+	}
 	server.HostName = hostname
 	server.Status = core.ServerPreparing
 	server.SwarmMode = core.SwarmMode(input.SwarmMode)
