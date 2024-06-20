@@ -221,7 +221,13 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 			}
 		}
 	}
-	return applicationToGraphqlObject(databaseObject), nil
+	// fetch again to get the latest record
+	application := &core.Application{}
+	err = application.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	return applicationToGraphqlObject(application), nil
 }
 
 // UpdateApplicationGroup is the resolver for the updateApplicationGroup field.

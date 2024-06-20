@@ -2,6 +2,7 @@ package stack_parser
 
 import (
 	"errors"
+	"github.com/hashicorp/go-set"
 	"reflect"
 	"strings"
 
@@ -144,14 +145,16 @@ type Stack struct {
 }
 
 type Service struct {
-	Image       string       `yaml:"image"`
-	Deploy      Deploy       `yaml:"deploy"`
-	Volumes     VolumeList   `yaml:"volumes"`
-	Environment KeyValuePair `yaml:"environment"`
-	CapAdd      []string     `yaml:"cap_add"`
-	Sysctls     KeyValuePair `yaml:"sysctls"`
-	Command     Command      `yaml:"command"`
-	Configs     []Config     `yaml:"configs"`
+	Image                    string            `yaml:"image"`
+	Deploy                   Deploy            `yaml:"deploy"`
+	Volumes                  VolumeList        `yaml:"volumes"`
+	Environment              KeyValuePair      `yaml:"environment"`
+	CapAdd                   []string          `yaml:"cap_add"`
+	Sysctls                  KeyValuePair      `yaml:"sysctls"`
+	Command                  Command           `yaml:"command"`
+	Configs                  []Config          `yaml:"configs"`
+	PreferredServerHostnames []string          `yaml:"preferred_server_hostnames"`
+	DockerProxyConfig        DockerProxyConfig `yaml:"docker_proxy_config"`
 }
 
 // DeploymentMode mode of deployment of application (replicated or global)
@@ -223,7 +226,52 @@ const (
 	DocsVariableTypeOptions     DocsVariableType = "options"
 	DocsVariableTypeVolume      DocsVariableType = "volume"
 	DocsVariableTypeApplication DocsVariableType = "application"
+	DocsVariableTypeServer      DocsVariableType = "server"
 )
+
+// DockerProxyConfig is the configuration for the docker proxy
+type DockerProxyConfig struct {
+	Enabled    bool                  `yaml:"enabled"`
+	Permission DockerProxyPermission `yaml:"permissions"`
+}
+
+// DockerProxyPermissionType is the type of permission to be granted to the proxy
+type DockerProxyPermissionType string
+
+const (
+	// DockerProxyNoPermission no request will be allowed
+	DockerProxyNoPermission DockerProxyPermissionType = "none"
+	// DockerProxyReadPermission only [GET, HEAD] requests will be allowed
+	DockerProxyReadPermission DockerProxyPermissionType = "read"
+	// DockerProxyReadWritePermission all requests will be allowed [GET, HEAD, POST, PUT, DELETE, OPTIONS]
+	DockerProxyReadWritePermission DockerProxyPermissionType = "read_write"
+)
+
+type DockerProxyPermission struct {
+	Ping         DockerProxyPermissionType `yaml:"ping"`
+	Version      DockerProxyPermissionType `yaml:"version"`
+	Info         DockerProxyPermissionType `yaml:"info"`
+	Events       DockerProxyPermissionType `yaml:"events"`
+	Auth         DockerProxyPermissionType `yaml:"auth"`
+	Secrets      DockerProxyPermissionType `yaml:"secrets"`
+	Build        DockerProxyPermissionType `yaml:"build"`
+	Commit       DockerProxyPermissionType `yaml:"commit"`
+	Configs      DockerProxyPermissionType `yaml:"configs"`
+	Containers   DockerProxyPermissionType `yaml:"containers"`
+	Distribution DockerProxyPermissionType `yaml:"distribution"`
+	Exec         DockerProxyPermissionType `yaml:"exec"`
+	Grpc         DockerProxyPermissionType `yaml:"grpc"`
+	Images       DockerProxyPermissionType `yaml:"images"`
+	Networks     DockerProxyPermissionType `yaml:"networks"`
+	Nodes        DockerProxyPermissionType `yaml:"nodes"`
+	Plugins      DockerProxyPermissionType `yaml:"plugins"`
+	Services     DockerProxyPermissionType `yaml:"services"`
+	Session      DockerProxyPermissionType `yaml:"session"`
+	Swarm        DockerProxyPermissionType `yaml:"swarm"`
+	System       DockerProxyPermissionType `yaml:"system"`
+	Tasks        DockerProxyPermissionType `yaml:"tasks"`
+	Volumes      DockerProxyPermissionType `yaml:"volumes"`
+}
 
 func (s *Stack) deepCopy() (*Stack, error) {
 	yamlBytes, err := yaml.Marshal(s)
@@ -254,4 +302,21 @@ func (s *Stack) ServiceNames() []string {
 		serviceNames = append(serviceNames, serviceName)
 	}
 	return serviceNames
+}
+
+func (s *Stack) PreferredServerHostnames() []string {
+	preferredServers := set.New[string](0)
+	for _, service := range s.Services {
+		for _, preferredServerHostname := range service.PreferredServerHostnames {
+			preferredServers.Insert(preferredServerHostname)
+		}
+	}
+	return preferredServers.Slice()
+}
+
+func (s *Service) ValidateDockerProxyConfig() error {
+	if s.DockerProxyConfig.Enabled && len(s.PreferredServerHostnames) != 1 {
+		return errors.New("you must provide exactly one preferred server for getting access to docker socket proxy")
+	}
+	return nil
 }

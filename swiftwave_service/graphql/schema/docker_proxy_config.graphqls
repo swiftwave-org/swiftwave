@@ -1,0 +1,67 @@
+enum DockerProxyPermissionType {
+    none
+    read
+    read_write
+}
+
+type DockerProxyConfig {
+    enabled: Boolean!
+    permission: DockerProxyPermission!
+}
+
+type DockerProxyPermission {
+    ping: DockerProxyPermissionType!
+    version: DockerProxyPermissionType!
+    info: DockerProxyPermissionType!
+    events: DockerProxyPermissionType!
+    auth: DockerProxyPermissionType!
+    secrets: DockerProxyPermissionType!
+    build: DockerProxyPermissionType!
+    commit: DockerProxyPermissionType!
+    configs: DockerProxyPermissionType!
+    containers: DockerProxyPermissionType!
+    distribution: DockerProxyPermissionType!
+    exec: DockerProxyPermissionType!
+    grpc: DockerProxyPermissionType!
+    images: DockerProxyPermissionType!
+    networks: DockerProxyPermissionType!
+    nodes: DockerProxyPermissionType!
+    plugins: DockerProxyPermissionType!
+    services: DockerProxyPermissionType!
+    session: DockerProxyPermissionType!
+    swarm: DockerProxyPermissionType!
+    system: DockerProxyPermissionType!
+    tasks: DockerProxyPermissionType!
+    volumes: DockerProxyPermissionType!
+}
+
+input DockerProxyConfigInput {
+    enabled: Boolean!
+    permission: DockerProxyPermissionInput!
+}
+
+input DockerProxyPermissionInput {
+    ping: DockerProxyPermissionType!
+    version: DockerProxyPermissionType!
+    info: DockerProxyPermissionType!
+    events: DockerProxyPermissionType!
+    auth: DockerProxyPermissionType!
+    secrets: DockerProxyPermissionType!
+    build: DockerProxyPermissionType!
+    commit: DockerProxyPermissionType!
+    configs: DockerProxyPermissionType!
+    containers: DockerProxyPermissionType!
+    distribution: DockerProxyPermissionType!
+    exec: DockerProxyPermissionType!
+    grpc: DockerProxyPermissionType!
+    images: DockerProxyPermissionType!
+    networks: DockerProxyPermissionType!
+    nodes: DockerProxyPermissionType!
+    plugins: DockerProxyPermissionType!
+    services: DockerProxyPermissionType!
+    session: DockerProxyPermissionType!
+    swarm: DockerProxyPermissionType!
+    system: DockerProxyPermissionType!
+    tasks: DockerProxyPermissionType!
+    volumes: DockerProxyPermissionType!
+}

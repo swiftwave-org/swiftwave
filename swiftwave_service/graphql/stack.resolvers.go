@@ -44,13 +44,15 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 	}
 	// create result
 	result := &model.StackVerifyResult{
-		Success:         true,
-		Message:         "",
-		Error:           "",
-		ValidVolumes:    make([]string, 0), // volumes that
-		InvalidVolumes:  make([]string, 0),
-		ValidServices:   make([]string, 0),
-		InvalidServices: make([]string, 0),
+		Success:                 true,
+		Message:                 "",
+		Error:                   "",
+		ValidVolumes:            make([]string, 0), // volumes that
+		InvalidVolumes:          make([]string, 0),
+		ValidServices:           make([]string, 0),
+		InvalidServices:         make([]string, 0),
+		ValidPreferredServers:   make([]string, 0),
+		InvalidPreferredServers: make([]string, 0),
 	}
 	// fetch all the service names
 	serviceNames := stackFilled.ServiceNames()
@@ -84,6 +86,17 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 			result.InvalidVolumes = append(result.InvalidVolumes, volumeName)
 		}
 	}
+	// check preferred server names
+	preferredServerHostnames := stackFilled.PreferredServerHostnames()
+	for _, preferredServerHostname := range preferredServerHostnames {
+		_, err := core.FetchServerIDByHostName(&r.ServiceManager.DbClient, preferredServerHostname)
+		if err != nil {
+			result.InvalidPreferredServers = append(result.InvalidPreferredServers, preferredServerHostname)
+		} else {
+			result.ValidPreferredServers = append(result.ValidPreferredServers, preferredServerHostname)
+		}
+	}
+
 	// set message
 	if len(result.InvalidServices) == 0 {
 		result.Success = true
@@ -97,7 +110,7 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 		if len(unverifiedServiceStr) > 2 {
 			unverifiedServiceStr = unverifiedServiceStr[:len(unverifiedServiceStr)-2]
 		}
-		result.Error = fmt.Sprintf("%s\nConflicting services -> %s . Please change stack name", result.Error, unverifiedServiceStr)
+		result.Error = fmt.Sprintf("%s\nConflicting services -> %s . Please change stack name\n", result.Error, unverifiedServiceStr)
 	}
 
 	if len(result.InvalidVolumes) == 0 {
@@ -112,8 +125,34 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 		if len(unverifiedVolumeStr) > 2 {
 			unverifiedVolumeStr = unverifiedVolumeStr[:len(unverifiedVolumeStr)-2]
 		}
-		result.Error = fmt.Sprintf("%s\nThese volumes doesn't exist -> %s . Please create volumes from dashboard.", result.Error, unverifiedVolumeStr)
+		result.Error = fmt.Sprintf("%s\nThese volumes doesn't exist -> %s . Please create volumes from dashboard.\n", result.Error, unverifiedVolumeStr)
 	}
+
+	if len(result.InvalidPreferredServers) == 0 {
+		result.Success = true
+		result.Message = fmt.Sprintf("%s\nAll preferred servers are verified", result.Message)
+	} else {
+		result.Success = false
+		unverifiedPreferredServerStr := ""
+		for _, preferredServer := range result.InvalidPreferredServers {
+			unverifiedPreferredServerStr += preferredServer + ", "
+		}
+		if len(unverifiedPreferredServerStr) > 2 {
+			unverifiedPreferredServerStr = unverifiedPreferredServerStr[:len(unverifiedPreferredServerStr)-2]
+		}
+		result.Error = fmt.Sprintf("%s\nThese preferred servers doesn't exist -> %s . Please fix in stack config.\n", result.Error, unverifiedPreferredServerStr)
+	}
+
+	// validate docker proxy config
+	for _, service := range stackFilled.ServiceNames() {
+		s := stackFilled.Services[service]
+		err = s.ValidateDockerProxyConfig()
+		if err != nil {
+			result.Success = false
+			result.Error = fmt.Sprintf("%s\n%s -> %s", result.Error, service, err.Error())
+		}
+	}
+
 	result.Message = strings.TrimSpace(result.Message)
 	result.Error = strings.TrimSpace(result.Error)
 	return result, nil

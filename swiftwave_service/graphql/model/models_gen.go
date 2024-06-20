@@ -52,6 +52,9 @@ type Application struct {
 	IsSleeping               bool                       `json:"isSleeping"`
 	Command                  string                     `json:"command"`
 	Group                    string                     `json:"group"`
+	PreferredServerHostnames []string                   `json:"preferredServerHostnames"`
+	DockerProxyHost          string                     `json:"dockerProxyHost"`
+	DockerProxyConfig        *DockerProxyConfig         `json:"dockerProxyConfig"`
 }
 
 type ApplicationDeployResult struct {
@@ -83,6 +86,8 @@ type ApplicationInput struct {
 	DockerImage                  *string                         `json:"dockerImage,omitempty"`
 	ImageRegistryCredentialID    *uint                           `json:"imageRegistryCredentialID,omitempty"`
 	Group                        string                          `json:"group"`
+	PreferredServerHostnames     []string                        `json:"preferredServerHostnames"`
+	DockerProxyConfig            *DockerProxyConfigInput         `json:"dockerProxyConfig"`
 }
 
 type ApplicationResourceAnalytics struct {
@@ -208,6 +213,68 @@ type DockerConfigGeneratorOutput struct {
 	DetectedServiceName *string                 `json:"detectedServiceName,omitempty"`
 	DockerFile          *string                 `json:"dockerFile,omitempty"`
 	DockerBuildArgs     []*DockerConfigBuildArg `json:"dockerBuildArgs,omitempty"`
+}
+
+type DockerProxyConfig struct {
+	Enabled    bool                   `json:"enabled"`
+	Permission *DockerProxyPermission `json:"permission"`
+}
+
+type DockerProxyConfigInput struct {
+	Enabled    bool                        `json:"enabled"`
+	Permission *DockerProxyPermissionInput `json:"permission"`
+}
+
+type DockerProxyPermission struct {
+	Ping         DockerProxyPermissionType `json:"ping"`
+	Version      DockerProxyPermissionType `json:"version"`
+	Info         DockerProxyPermissionType `json:"info"`
+	Events       DockerProxyPermissionType `json:"events"`
+	Auth         DockerProxyPermissionType `json:"auth"`
+	Secrets      DockerProxyPermissionType `json:"secrets"`
+	Build        DockerProxyPermissionType `json:"build"`
+	Commit       DockerProxyPermissionType `json:"commit"`
+	Configs      DockerProxyPermissionType `json:"configs"`
+	Containers   DockerProxyPermissionType `json:"containers"`
+	Distribution DockerProxyPermissionType `json:"distribution"`
+	Exec         DockerProxyPermissionType `json:"exec"`
+	Grpc         DockerProxyPermissionType `json:"grpc"`
+	Images       DockerProxyPermissionType `json:"images"`
+	Networks     DockerProxyPermissionType `json:"networks"`
+	Nodes        DockerProxyPermissionType `json:"nodes"`
+	Plugins      DockerProxyPermissionType `json:"plugins"`
+	Services     DockerProxyPermissionType `json:"services"`
+	Session      DockerProxyPermissionType `json:"session"`
+	Swarm        DockerProxyPermissionType `json:"swarm"`
+	System       DockerProxyPermissionType `json:"system"`
+	Tasks        DockerProxyPermissionType `json:"tasks"`
+	Volumes      DockerProxyPermissionType `json:"volumes"`
+}
+
+type DockerProxyPermissionInput struct {
+	Ping         DockerProxyPermissionType `json:"ping"`
+	Version      DockerProxyPermissionType `json:"version"`
+	Info         DockerProxyPermissionType `json:"info"`
+	Events       DockerProxyPermissionType `json:"events"`
+	Auth         DockerProxyPermissionType `json:"auth"`
+	Secrets      DockerProxyPermissionType `json:"secrets"`
+	Build        DockerProxyPermissionType `json:"build"`
+	Commit       DockerProxyPermissionType `json:"commit"`
+	Configs      DockerProxyPermissionType `json:"configs"`
+	Containers   DockerProxyPermissionType `json:"containers"`
+	Distribution DockerProxyPermissionType `json:"distribution"`
+	Exec         DockerProxyPermissionType `json:"exec"`
+	Grpc         DockerProxyPermissionType `json:"grpc"`
+	Images       DockerProxyPermissionType `json:"images"`
+	Networks     DockerProxyPermissionType `json:"networks"`
+	Nodes        DockerProxyPermissionType `json:"nodes"`
+	Plugins      DockerProxyPermissionType `json:"plugins"`
+	Services     DockerProxyPermissionType `json:"services"`
+	Session      DockerProxyPermissionType `json:"session"`
+	Swarm        DockerProxyPermissionType `json:"swarm"`
+	System       DockerProxyPermissionType `json:"system"`
+	Tasks        DockerProxyPermissionType `json:"tasks"`
+	Volumes      DockerProxyPermissionType `json:"volumes"`
 }
 
 type Domain struct {
@@ -529,13 +596,15 @@ type StackVariableType struct {
 }
 
 type StackVerifyResult struct {
-	Success         bool     `json:"success"`
-	Message         string   `json:"message"`
-	Error           string   `json:"error"`
-	ValidVolumes    []string `json:"validVolumes"`
-	InvalidVolumes  []string `json:"invalidVolumes"`
-	ValidServices   []string `json:"validServices"`
-	InvalidServices []string `json:"invalidServices"`
+	Success                 bool     `json:"success"`
+	Message                 string   `json:"message"`
+	Error                   string   `json:"error"`
+	ValidVolumes            []string `json:"validVolumes"`
+	InvalidVolumes          []string `json:"invalidVolumes"`
+	ValidServices           []string `json:"validServices"`
+	InvalidServices         []string `json:"invalidServices"`
+	ValidPreferredServers   []string `json:"validPreferredServers"`
+	InvalidPreferredServers []string `json:"invalidPreferredServers"`
 }
 
 type Subscription struct {
@@ -735,6 +804,49 @@ func (e *DockerConfigSourceType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e DockerConfigSourceType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type DockerProxyPermissionType string
+
+const (
+	DockerProxyPermissionTypeNone      DockerProxyPermissionType = "none"
+	DockerProxyPermissionTypeRead      DockerProxyPermissionType = "read"
+	DockerProxyPermissionTypeReadWrite DockerProxyPermissionType = "read_write"
+)
+
+var AllDockerProxyPermissionType = []DockerProxyPermissionType{
+	DockerProxyPermissionTypeNone,
+	DockerProxyPermissionTypeRead,
+	DockerProxyPermissionTypeReadWrite,
+}
+
+func (e DockerProxyPermissionType) IsValid() bool {
+	switch e {
+	case DockerProxyPermissionTypeNone, DockerProxyPermissionTypeRead, DockerProxyPermissionTypeReadWrite:
+		return true
+	}
+	return false
+}
+
+func (e DockerProxyPermissionType) String() string {
+	return string(e)
+}
+
+func (e *DockerProxyPermissionType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DockerProxyPermissionType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DockerProxyPermissionType", str)
+	}
+	return nil
+}
+
+func (e DockerProxyPermissionType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
