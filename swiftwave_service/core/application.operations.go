@@ -178,6 +178,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		ApplicationGroup:         application.ApplicationGroup,
 		DockerProxy:              application.DockerProxy,
 		PreferredServerHostnames: application.PreferredServerHostnames,
+		CustomHealthCheck:        application.CustomHealthCheck,
 	}
 	tx := db.Create(&createdApplication)
 	if tx.Error != nil {
@@ -596,6 +597,19 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 			"docker_proxy_permission_networks", "docker_proxy_permission_nodes", "docker_proxy_permission_plugins",
 			"docker_proxy_permission_services", "docker_proxy_permission_session", "docker_proxy_permission_swarm",
 			"docker_proxy_permission_system", "docker_proxy_permission_tasks", "docker_proxy_permission_volumes").Updates(application).Error
+		if err != nil {
+			return nil, err
+		}
+		// reload application
+		isReloadRequired = true
+	}
+	// check for changes in custom health check
+	if !application.CustomHealthCheck.Equal(&applicationExistingFull.CustomHealthCheck) {
+		// store custom health check configuration
+		err = db.Model(&applicationExistingFull).Select("custom_health_check_enabled",
+			"custom_health_check_test_command", "custom_health_check_interval_seconds",
+			"custom_health_check_timeout_seconds", "custom_health_check_start_period_seconds",
+			"custom_health_check_start_interval_seconds", "custom_health_check_retries").Updates(application).Error
 		if err != nil {
 			return nil, err
 		}

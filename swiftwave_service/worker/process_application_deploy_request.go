@@ -240,6 +240,15 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 		ReservedResource: containermanger.Resource{
 			MemoryMB: application.ReservedResource.MemoryMB,
 		},
+		CustomHealthCheck: containermanger.CustomHealthCheck{
+			Enabled:              application.CustomHealthCheck.Enabled,
+			TestCommand:          application.CustomHealthCheck.TestCommand,
+			IntervalSeconds:      application.CustomHealthCheck.IntervalSeconds,
+			TimeoutSeconds:       application.CustomHealthCheck.TimeoutSeconds,
+			StartPeriodSeconds:   application.CustomHealthCheck.StartPeriodSeconds,
+			StartIntervalSeconds: application.CustomHealthCheck.StartIntervalSeconds,
+			Retries:              application.CustomHealthCheck.Retries,
+		},
 	}
 	// find current deployment and mark it as stalled
 	currentDeployment, err := core.FindCurrentLiveDeploymentByApplicationId(ctx, *db, request.AppId)

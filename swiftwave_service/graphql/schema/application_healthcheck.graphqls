@@ -1,0 +1,19 @@
+type ApplicationCustomHealthCheck {
+  enabled: Boolean!
+  test_command: String!
+  interval_seconds: Uint64!
+  timeout_seconds: Uint64!
+  start_period_seconds: Uint64!
+  start_interval_seconds: Uint64!
+  retries: Uint64!
+}
+
+input ApplicationCustomHealthCheckInput {
+  enabled: Boolean!
+  test_command: String!
+  interval_seconds: Uint64!
+  timeout_seconds: Uint64!
+  start_period_seconds: Uint64!
+  start_interval_seconds: Uint64!
+  retries: Uint64!
+}

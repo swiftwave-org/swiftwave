@@ -297,7 +297,6 @@ func (m Manager) RealtimeInfoRunningServices() (map[string]ServiceRealtimeInfo, 
 		// query task list
 		tasks, err := m.client.TaskList(m.ctx, types.TaskListOptions{
 			Filters: filters.NewArgs(
-				filters.Arg("desired-state", "running"),
 				filters.Arg("service", serviceData.Spec.Name),
 			),
 		})
@@ -307,7 +306,9 @@ func (m Manager) RealtimeInfoRunningServices() (map[string]ServiceRealtimeInfo, 
 		servicePlacementCountMap := make(map[string]int) // nodeID:count
 		// set placement infos > how many replicas are running in each node
 		for _, task := range tasks {
-			servicePlacementCountMap[task.NodeID]++
+			if task.Status.State == swarm.TaskStateRunning {
+				servicePlacementCountMap[task.NodeID]++
+			}
 		}
 		for nodeID, count := range servicePlacementCountMap {
 			node := nodeMap[nodeID]
@@ -360,7 +361,6 @@ func (m Manager) RealtimeInfoService(serviceName string, ignoreNodeDetails bool)
 	// query task list
 	tasks, err := m.client.TaskList(m.ctx, types.TaskListOptions{
 		Filters: filters.NewArgs(
-			filters.Arg("desired-state", "running"),
 			filters.Arg("service", serviceData.Spec.Name),
 		),
 	})
@@ -370,7 +370,9 @@ func (m Manager) RealtimeInfoService(serviceName string, ignoreNodeDetails bool)
 	servicePlacementCountMap := make(map[string]int) // nodeID:count
 	// set placement infos > how many replicas are running in each node
 	for _, task := range tasks {
-		servicePlacementCountMap[task.NodeID]++
+		if task.Status.State == swarm.TaskStateRunning {
+			servicePlacementCountMap[task.NodeID]++
+		}
 	}
 	for nodeID, count := range servicePlacementCountMap {
 		if !ignoreNodeDetails {
@@ -411,7 +413,6 @@ func (m Manager) ServiceRunningServers(serviceName string) ([]string, error) {
 			// query task list
 			tasks, err := m.client.TaskList(m.ctx, types.TaskListOptions{
 				Filters: filters.NewArgs(
-					filters.Arg("desired-state", "running"),
 					filters.Arg("service", service.Spec.Name),
 				),
 			})
@@ -420,7 +421,9 @@ func (m Manager) ServiceRunningServers(serviceName string) ([]string, error) {
 			}
 			var runningServers []string
 			for _, task := range tasks {
-				runningServers = append(runningServers, nodeMap[task.NodeID].Description.Hostname)
+				if task.Status.State == swarm.TaskStateRunning {
+					runningServers = append(runningServers, nodeMap[task.NodeID].Description.Hostname)
+				}
 			}
 			return runningServers, nil
 		}
@@ -546,6 +549,19 @@ func (m Manager) serviceToServiceSpec(service Service) (swarm.ServiceSpec, error
 		limitMemoryBytes = int64(service.ResourceLimit.MemoryMB * 1024 * 1024)
 	}
 
+	// healthcheck
+	var healthCheck *container.HealthConfig
+	if service.CustomHealthCheck.Enabled {
+		healthCheck = &container.HealthConfig{
+			Test:          []string{"CMD-SHELL", service.CustomHealthCheck.TestCommand},
+			Interval:      time.Duration(service.CustomHealthCheck.IntervalSeconds) * time.Second,
+			Timeout:       time.Duration(service.CustomHealthCheck.TimeoutSeconds) * time.Second,
+			StartPeriod:   time.Duration(service.CustomHealthCheck.StartPeriodSeconds) * time.Second,
+			StartInterval: time.Duration(service.CustomHealthCheck.StartIntervalSeconds) * time.Second,
+			Retries:       int(service.CustomHealthCheck.Retries),
+		}
+	}
+
 	// Build service spec
 	serviceSpec := swarm.ServiceSpec{
 		// Set name of the service
@@ -572,6 +588,7 @@ func (m Manager) serviceToServiceSpec(service Service) (swarm.ServiceSpec, error
 				},
 				CapabilityAdd: service.Capabilities,
 				Sysctls:       service.Sysctls,
+				Healthcheck:   healthCheck,
 			},
 			Placement: &swarm.Placement{
 				Constraints: service.PlacementConstraints,

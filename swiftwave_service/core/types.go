@@ -66,15 +66,6 @@ const (
 	UpstreamTypeImage      UpstreamType = "image"
 )
 
-// GitProvider : type of git provider
-type GitProvider string
-
-const (
-	GitProviderNone   GitProvider = "none"
-	GitProviderGithub GitProvider = "github"
-	GitProviderGitlab GitProvider = "gitlab"
-)
-
 // DomainSSLStatus : status of the ssl certificate for a domain
 type DomainSSLStatus string
 
@@ -353,6 +344,16 @@ type ApplicationResourceLimit struct {
 
 type ApplicationReservedResource struct {
 	MemoryMB int `json:"memory_mb" gorm:"default:0"`
+}
+
+type ApplicationCustomHealthCheck struct {
+	Enabled              bool   `json:"enabled" gorm:"default:false"`
+	TestCommand          string `json:"test_command"`
+	IntervalSeconds      uint64 `json:"interval_seconds" gorm:"default:10"`      // Time between running the check in seconds
+	TimeoutSeconds       uint64 `json:"timeout_seconds" gorm:"default:5"`        // Maximum time to allow one check to run in seconds
+	StartPeriodSeconds   uint64 `json:"start_period_seconds" gorm:"default:5"`   // Start period for the container to initialize before counting retries towards unstable
+	StartIntervalSeconds uint64 `json:"start_interval_seconds" gorm:"default:5"` // Time between running the check during the start period
+	Retries              uint64 `json:"retries" gorm:"default:0"`                // Consecutive failures needed to report unhealthy
 }
 
 // ************************************************************************************* //

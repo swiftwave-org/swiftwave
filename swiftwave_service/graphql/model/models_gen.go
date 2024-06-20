@@ -32,29 +32,50 @@ type AppBasicAuthAccessControlUserInput struct {
 }
 
 type Application struct {
-	ID                       string                     `json:"id"`
-	Name                     string                     `json:"name"`
-	EnvironmentVariables     []*EnvironmentVariable     `json:"environmentVariables"`
-	PersistentVolumeBindings []*PersistentVolumeBinding `json:"persistentVolumeBindings"`
-	ConfigMounts             []*ConfigMount             `json:"configMounts"`
-	Capabilities             []string                   `json:"capabilities"`
-	Sysctls                  []string                   `json:"sysctls"`
-	ResourceLimit            *ResourceLimit             `json:"resourceLimit"`
-	ReservedResource         *ReservedResource          `json:"reservedResource"`
-	RealtimeInfo             *RealtimeInfo              `json:"realtimeInfo"`
-	LatestDeployment         *Deployment                `json:"latestDeployment"`
-	Deployments              []*Deployment              `json:"deployments"`
-	DeploymentMode           DeploymentMode             `json:"deploymentMode"`
-	Replicas                 uint                       `json:"replicas"`
-	IngressRules             []*IngressRule             `json:"ingressRules"`
-	IsDeleted                bool                       `json:"isDeleted"`
-	WebhookToken             string                     `json:"webhookToken"`
-	IsSleeping               bool                       `json:"isSleeping"`
-	Command                  string                     `json:"command"`
-	Group                    string                     `json:"group"`
-	PreferredServerHostnames []string                   `json:"preferredServerHostnames"`
-	DockerProxyHost          string                     `json:"dockerProxyHost"`
-	DockerProxyConfig        *DockerProxyConfig         `json:"dockerProxyConfig"`
+	ID                       string                        `json:"id"`
+	Name                     string                        `json:"name"`
+	EnvironmentVariables     []*EnvironmentVariable        `json:"environmentVariables"`
+	PersistentVolumeBindings []*PersistentVolumeBinding    `json:"persistentVolumeBindings"`
+	ConfigMounts             []*ConfigMount                `json:"configMounts"`
+	Capabilities             []string                      `json:"capabilities"`
+	Sysctls                  []string                      `json:"sysctls"`
+	ResourceLimit            *ResourceLimit                `json:"resourceLimit"`
+	ReservedResource         *ReservedResource             `json:"reservedResource"`
+	RealtimeInfo             *RealtimeInfo                 `json:"realtimeInfo"`
+	LatestDeployment         *Deployment                   `json:"latestDeployment"`
+	Deployments              []*Deployment                 `json:"deployments"`
+	DeploymentMode           DeploymentMode                `json:"deploymentMode"`
+	Replicas                 uint                          `json:"replicas"`
+	IngressRules             []*IngressRule                `json:"ingressRules"`
+	IsDeleted                bool                          `json:"isDeleted"`
+	WebhookToken             string                        `json:"webhookToken"`
+	IsSleeping               bool                          `json:"isSleeping"`
+	Command                  string                        `json:"command"`
+	Group                    string                        `json:"group"`
+	PreferredServerHostnames []string                      `json:"preferredServerHostnames"`
+	DockerProxyHost          string                        `json:"dockerProxyHost"`
+	DockerProxyConfig        *DockerProxyConfig            `json:"dockerProxyConfig"`
+	CustomHealthCheck        *ApplicationCustomHealthCheck `json:"customHealthCheck"`
+}
+
+type ApplicationCustomHealthCheck struct {
+	Enabled              bool   `json:"enabled"`
+	TestCommand          string `json:"test_command"`
+	IntervalSeconds      uint64 `json:"interval_seconds"`
+	TimeoutSeconds       uint64 `json:"timeout_seconds"`
+	StartPeriodSeconds   uint64 `json:"start_period_seconds"`
+	StartIntervalSeconds uint64 `json:"start_interval_seconds"`
+	Retries              uint64 `json:"retries"`
+}
+
+type ApplicationCustomHealthCheckInput struct {
+	Enabled              bool   `json:"enabled"`
+	TestCommand          string `json:"test_command"`
+	IntervalSeconds      uint64 `json:"interval_seconds"`
+	TimeoutSeconds       uint64 `json:"timeout_seconds"`
+	StartPeriodSeconds   uint64 `json:"start_period_seconds"`
+	StartIntervalSeconds uint64 `json:"start_interval_seconds"`
+	Retries              uint64 `json:"retries"`
 }
 
 type ApplicationDeployResult struct {
@@ -64,30 +85,31 @@ type ApplicationDeployResult struct {
 }
 
 type ApplicationInput struct {
-	Name                         string                          `json:"name"`
-	EnvironmentVariables         []*EnvironmentVariableInput     `json:"environmentVariables"`
-	PersistentVolumeBindings     []*PersistentVolumeBindingInput `json:"persistentVolumeBindings"`
-	ConfigMounts                 []*ConfigMountInput             `json:"configMounts"`
-	Capabilities                 []string                        `json:"capabilities"`
-	Sysctls                      []string                        `json:"sysctls"`
-	Dockerfile                   *string                         `json:"dockerfile,omitempty"`
-	BuildArgs                    []*BuildArgInput                `json:"buildArgs"`
-	DeploymentMode               DeploymentMode                  `json:"deploymentMode"`
-	Replicas                     *uint                           `json:"replicas,omitempty"`
-	ResourceLimit                *ResourceLimitInput             `json:"resourceLimit"`
-	ReservedResource             *ReservedResourceInput          `json:"reservedResource"`
-	UpstreamType                 UpstreamType                    `json:"upstreamType"`
-	Command                      string                          `json:"command"`
-	GitCredentialID              *uint                           `json:"gitCredentialID,omitempty"`
-	RepositoryURL                *string                         `json:"repositoryUrl,omitempty"`
-	RepositoryBranch             *string                         `json:"repositoryBranch,omitempty"`
-	CodePath                     *string                         `json:"codePath,omitempty"`
-	SourceCodeCompressedFileName *string                         `json:"sourceCodeCompressedFileName,omitempty"`
-	DockerImage                  *string                         `json:"dockerImage,omitempty"`
-	ImageRegistryCredentialID    *uint                           `json:"imageRegistryCredentialID,omitempty"`
-	Group                        string                          `json:"group"`
-	PreferredServerHostnames     []string                        `json:"preferredServerHostnames"`
-	DockerProxyConfig            *DockerProxyConfigInput         `json:"dockerProxyConfig"`
+	Name                         string                             `json:"name"`
+	EnvironmentVariables         []*EnvironmentVariableInput        `json:"environmentVariables"`
+	PersistentVolumeBindings     []*PersistentVolumeBindingInput    `json:"persistentVolumeBindings"`
+	ConfigMounts                 []*ConfigMountInput                `json:"configMounts"`
+	Capabilities                 []string                           `json:"capabilities"`
+	Sysctls                      []string                           `json:"sysctls"`
+	Dockerfile                   *string                            `json:"dockerfile,omitempty"`
+	BuildArgs                    []*BuildArgInput                   `json:"buildArgs"`
+	DeploymentMode               DeploymentMode                     `json:"deploymentMode"`
+	Replicas                     *uint                              `json:"replicas,omitempty"`
+	ResourceLimit                *ResourceLimitInput                `json:"resourceLimit"`
+	ReservedResource             *ReservedResourceInput             `json:"reservedResource"`
+	UpstreamType                 UpstreamType                       `json:"upstreamType"`
+	Command                      string                             `json:"command"`
+	GitCredentialID              *uint                              `json:"gitCredentialID,omitempty"`
+	RepositoryURL                *string                            `json:"repositoryUrl,omitempty"`
+	RepositoryBranch             *string                            `json:"repositoryBranch,omitempty"`
+	CodePath                     *string                            `json:"codePath,omitempty"`
+	SourceCodeCompressedFileName *string                            `json:"sourceCodeCompressedFileName,omitempty"`
+	DockerImage                  *string                            `json:"dockerImage,omitempty"`
+	ImageRegistryCredentialID    *uint                              `json:"imageRegistryCredentialID,omitempty"`
+	Group                        string                             `json:"group"`
+	PreferredServerHostnames     []string                           `json:"preferredServerHostnames"`
+	DockerProxyConfig            *DockerProxyConfigInput            `json:"dockerProxyConfig"`
+	CustomHealthCheck            *ApplicationCustomHealthCheckInput `json:"customHealthCheck"`
 }
 
 type ApplicationResourceAnalytics struct {
