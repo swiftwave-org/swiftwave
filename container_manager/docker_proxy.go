@@ -68,19 +68,28 @@ func (m Manager) CreateDockerProxy(serviceName string, placementConstraints []st
 		fmt.Sprintf("VOLUMES_WRITE=%d", boolToInt(config.Permission.Volumes == DockerProxyReadWritePermission)),
 	}
 
-	// Currently, there will be only changes to the environment variables, so those wil be checked for changes
+	// Currently, there will be only changes to the environment variables and placement constraints,so those wil be checked for changes
 	isUpdate := false
 	existingService, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
 	if err == nil {
 		if existingService.Spec.TaskTemplate.ContainerSpec != nil {
 			envVars := existingService.Spec.TaskTemplate.ContainerSpec.Env
 			// if env vars are the same, do not update
-			if isSameList(envVars, environmentVariables) {
-				return nil
-			} else {
+			if !isSameList(envVars, environmentVariables) {
 				isUpdate = true
 			}
 		}
+		if existingService.Spec.TaskTemplate.Placement != nil {
+			constraints := existingService.Spec.TaskTemplate.Placement.Constraints
+			// if constraints are the same, do not update
+			if !isSameList(constraints, placementConstraints) {
+				isUpdate = true
+			}
+		}
+	}
+
+	if !isUpdate {
+		return nil
 	}
 
 	serviceSpec := swarm.ServiceSpec{
