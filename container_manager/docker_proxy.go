@@ -86,10 +86,10 @@ func (m Manager) CreateDockerProxy(serviceName string, placementConstraints []st
 				isUpdate = true
 			}
 		}
-	}
 
-	if !isUpdate {
-		return nil
+		if !isUpdate {
+			return nil
+		}
 	}
 
 	serviceSpec := swarm.ServiceSpec{
