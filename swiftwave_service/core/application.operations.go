@@ -22,7 +22,7 @@ import (
 
 func IsExistApplicationName(_ context.Context, db gorm.DB, dockerManager containermanger.Manager, name string) (bool, error) {
 	// name cannot contain any special characters at the end
-	if strings.Contains(name, "/") || strings.Contains(name, "\\") || strings.Contains(name, ":") || strings.Contains(name, "*") || strings.Contains(name, "?") || strings.Contains(name, "\"") || strings.Contains(name, "<") || strings.Contains(name, ">") || strings.Contains(name, "|") || strings.Contains(name, "&") || strings.Contains(name, "_") {
+	if strings.Contains(name, "/") || strings.Contains(name, "\\") || strings.Contains(name, ":") || strings.Contains(name, "*") || strings.Contains(name, "?") || strings.Contains(name, "\"") || strings.Contains(name, "<") || strings.Contains(name, ">") || strings.Contains(name, "|") || strings.Contains(name, "&") || strings.HasSuffix(name, "_") {
 		return false, errors.New("application name cannot contain any special characters at the end")
 	}
 	// verify from database
