@@ -18,7 +18,7 @@ import (
 // CleanupStack is the resolver for the cleanupStack field.
 func (r *mutationResolver) CleanupStack(ctx context.Context, input model.StackInput) (string, error) {
 	content := input.Content
-	stack, err := stack_parser.ParseStackYaml(content)
+	stack, err := stack_parser.ParseStackYaml(content, r.Config.LocalConfig.Version)
 	if err != nil {
 		return "", err
 	}
@@ -29,7 +29,7 @@ func (r *mutationResolver) CleanupStack(ctx context.Context, input model.StackIn
 func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInput) (*model.StackVerifyResult, error) {
 	// parse yaml
 	content := input.Content
-	stack, err := stack_parser.ParseStackYaml(content)
+	stack, err := stack_parser.ParseStackYaml(content, r.Config.LocalConfig.Version)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,6 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 
 	// set message
 	if len(result.InvalidServices) == 0 {
-		result.Success = true
 		result.Message = "All services are verified"
 	} else {
 		result.Success = false
@@ -114,7 +113,6 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 	}
 
 	if len(result.InvalidVolumes) == 0 {
-		result.Success = true
 		result.Message = fmt.Sprintf("%s\nAll volumes are verified", result.Message)
 	} else {
 		result.Success = false
@@ -129,7 +127,6 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 	}
 
 	if len(result.InvalidPreferredServers) == 0 {
-		result.Success = true
 		result.Message = fmt.Sprintf("%s\nAll preferred servers are verified", result.Message)
 	} else {
 		result.Success = false
@@ -161,7 +158,7 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 // DeployStack is the resolver for the deployStack field.
 func (r *mutationResolver) DeployStack(ctx context.Context, input model.StackInput) ([]*model.ApplicationDeployResult, error) {
 	// parse stack
-	stack, err := stack_parser.ParseStackYaml(input.Content)
+	stack, err := stack_parser.ParseStackYaml(input.Content, r.Config.LocalConfig.Version)
 	if err != nil {
 		return nil, errors.New("stack configuration is not valid")
 	}
