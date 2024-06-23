@@ -99,7 +99,6 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 
 	// set message
 	if len(result.InvalidServices) == 0 {
-		result.Success = true
 		result.Message = "All services are verified"
 	} else {
 		result.Success = false
@@ -114,7 +113,6 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 	}
 
 	if len(result.InvalidVolumes) == 0 {
-		result.Success = true
 		result.Message = fmt.Sprintf("%s\nAll volumes are verified", result.Message)
 	} else {
 		result.Success = false
@@ -129,7 +127,6 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 	}
 
 	if len(result.InvalidPreferredServers) == 0 {
-		result.Success = true
 		result.Message = fmt.Sprintf("%s\nAll preferred servers are verified", result.Message)
 	} else {
 		result.Success = false
