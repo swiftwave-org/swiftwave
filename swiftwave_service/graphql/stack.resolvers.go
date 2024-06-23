@@ -160,7 +160,7 @@ func (r *mutationResolver) DeployStack(ctx context.Context, input model.StackInp
 	// parse stack
 	stack, err := stack_parser.ParseStackYaml(input.Content, r.Config.LocalConfig.Version)
 	if err != nil {
-		return nil, errors.New("stack configuration is not valid")
+		return nil, fmt.Errorf("stack configuration is not valid. %s", err.Error())
 	}
 	// verify stack
 	verifyResult, err := r.VerifyStack(ctx, input)
