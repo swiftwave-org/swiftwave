@@ -140,8 +140,9 @@ func (c *Command) String() string {
 
 // Stack Stack definition
 type Stack struct {
-	Services map[string]Service `yaml:"services"`
-	Docs     *Docs              `yaml:"docs"`
+	MinimumSwiftwaveVersion string             `yaml:"minimum_swiftwave_version"`
+	Services                map[string]Service `yaml:"services"`
+	Docs                    *Docs              `yaml:"docs"`
 }
 
 type Service struct {
@@ -228,6 +229,7 @@ const (
 	DocsVariableTypeVolume      DocsVariableType = "volume"
 	DocsVariableTypeApplication DocsVariableType = "application"
 	DocsVariableTypeServer      DocsVariableType = "server"
+	DocsVariableTypeMarkdown    DocsVariableType = "markdown"
 )
 
 // DockerProxyConfig is the configuration for the docker proxy
