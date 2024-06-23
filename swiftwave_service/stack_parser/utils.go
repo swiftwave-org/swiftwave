@@ -7,7 +7,6 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
-	"math"
 	"math/rand"
 	"regexp"
 	"strconv"
@@ -23,19 +22,8 @@ func ParseStackYaml(yamlStr string, currentSwiftwaveVersion string) (Stack, erro
 		return Stack{}, err
 	}
 	// convert the version to integer
-	stackMinSWVersion, err := versionToInt(stack.MinimumSwiftwaveVersion)
-	if err != nil {
-		return Stack{}, err
-	}
-	if stackMinSWVersion > 0 {
-		SWVersion, err := versionToInt(currentSwiftwaveVersion)
-		if err != nil {
-			return Stack{}, err
-		}
-		if SWVersion >= stackMinSWVersion {
-			return Stack{}, fmt.Errorf(`Required Swiftwave %s. Current Version %s. Please upgrade to latest.`, stack.MinimumSwiftwaveVersion, currentSwiftwaveVersion)
-		}
-
+	if !isCurrentVersionLargerThanMinimum(stack.MinimumSwiftwaveVersion, currentSwiftwaveVersion) {
+		return Stack{}, fmt.Errorf(`required Swiftwave %s. Current Version %s. Please upgrade to latest`, stack.MinimumSwiftwaveVersion, currentSwiftwaveVersion)
 	}
 	// Pre-fill default values
 	for serviceName, service := range stack.Services {
@@ -403,40 +391,32 @@ func fillDefaultDockerProxyPermissionIfNotPresent(val DockerProxyPermissionType)
 	return DockerProxyNoPermission
 }
 
-func versionToInt(version string) (int, error) {
-	if len(version) == 0 {
-		// fallback to the lowest version for backward compatibility
-		return 0, nil
-	}
-	if strings.Compare(version, "develop") == 0 {
-		return math.MaxInt32, nil
-	}
-	// Remove the 'v' prefix if present
-	version = strings.TrimPrefix(version, "v")
-
-	// Split the version string into parts
-	parts := strings.Split(version, ".")
-
-	if len(parts) < 3 {
-		return 0, fmt.Errorf("invalid version format: %s", version)
+func isCurrentVersionLargerThanMinimum(minimumVersion, currentVersion string) bool {
+	if strings.Compare(currentVersion, "develop") == 0 || strings.Compare(currentVersion, "") == 0 {
+		return true
 	}
 
-	major, err := strconv.Atoi(parts[0])
-	if err != nil {
-		return 0, fmt.Errorf("invalid major version: %s", parts[0])
+	minParts := strings.Split(minimumVersion, ".")
+	currentParts := strings.Split(currentVersion, ".")
+
+	for i := 0; i < 3; i++ {
+		if i >= len(minParts) {
+			return true
+		}
+		if i >= len(currentParts) {
+			return false
+		}
+
+		minNum, _ := strconv.Atoi(minParts[i])
+		currentNum, _ := strconv.Atoi(currentParts[i])
+
+		if currentNum > minNum {
+			return true
+		}
+		if minNum > currentNum {
+			return false
+		}
 	}
 
-	minor, err := strconv.Atoi(parts[1])
-	if err != nil {
-		return 0, fmt.Errorf("invalid minor version: %s", parts[1])
-	}
-
-	patch := strings.Split(parts[2], "-")[0] // Remove any pre-release suffix
-	patchNum, err := strconv.Atoi(patch)
-	if err != nil {
-		return 0, fmt.Errorf("invalid patch version: %s", patch)
-	}
-
-	// Combine the parts into a single integer
-	return major*100 + minor*10 + patchNum, nil
+	return false
 }
