@@ -18,7 +18,7 @@ import (
 // CleanupStack is the resolver for the cleanupStack field.
 func (r *mutationResolver) CleanupStack(ctx context.Context, input model.StackInput) (string, error) {
 	content := input.Content
-	stack, err := stack_parser.ParseStackYaml(content)
+	stack, err := stack_parser.ParseStackYaml(content, r.Config.LocalConfig.Version)
 	if err != nil {
 		return "", err
 	}
@@ -29,7 +29,7 @@ func (r *mutationResolver) CleanupStack(ctx context.Context, input model.StackIn
 func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInput) (*model.StackVerifyResult, error) {
 	// parse yaml
 	content := input.Content
-	stack, err := stack_parser.ParseStackYaml(content)
+	stack, err := stack_parser.ParseStackYaml(content, r.Config.LocalConfig.Version)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (r *mutationResolver) VerifyStack(ctx context.Context, input model.StackInp
 // DeployStack is the resolver for the deployStack field.
 func (r *mutationResolver) DeployStack(ctx context.Context, input model.StackInput) ([]*model.ApplicationDeployResult, error) {
 	// parse stack
-	stack, err := stack_parser.ParseStackYaml(input.Content)
+	stack, err := stack_parser.ParseStackYaml(input.Content, r.Config.LocalConfig.Version)
 	if err != nil {
 		return nil, errors.New("stack configuration is not valid")
 	}
