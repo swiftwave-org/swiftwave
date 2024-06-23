@@ -3,6 +3,7 @@ package stack_parser
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
@@ -14,11 +15,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func ParseStackYaml(yamlStr string) (Stack, error) {
+func ParseStackYaml(yamlStr string, currentSwiftwaveVersion string) (Stack, error) {
 	stack := Stack{}
 	err := yaml.Unmarshal([]byte(yamlStr), &stack)
 	if err != nil {
 		return Stack{}, err
+	}
+	// convert the version to integer
+	if !isCurrentVersionLargerThanMinimum(stack.MinimumSwiftwaveVersion, currentSwiftwaveVersion) {
+		return Stack{}, fmt.Errorf(`required Swiftwave %s. Current Version %s. Please upgrade to latest`, stack.MinimumSwiftwaveVersion, currentSwiftwaveVersion)
 	}
 	// Pre-fill default values
 	for serviceName, service := range stack.Services {
@@ -67,6 +72,14 @@ func ParseStackYaml(yamlStr string) (Stack, error) {
 			newServiceName := "{{STACK_NAME}}_" + serviceName
 			stack.Services[newServiceName] = service
 			delete(stack.Services, serviceName)
+		}
+	}
+	// delete the variables with `markdown` type
+	if stack.Docs != nil {
+		for variableKey, variable := range stack.Docs.Variables {
+			if variable.Type == DocsVariableTypeMarkdown {
+				delete(stack.Docs.Variables, variableKey)
+			}
 		}
 	}
 	return stack, nil
@@ -135,6 +148,14 @@ func (s *Stack) FillAndVerifyVariables(variableMapping *map[string]string, servi
 		for i, command := range service.Command {
 			newCommand := variableFillerHelper(command, variableMapping)
 			service.Command[i] = newCommand
+		}
+		// iterate over preferred deployment server
+		if service.PreferredServerHostnames != nil {
+			servers := make([]string, 0)
+			for _, server := range service.PreferredServerHostnames {
+				servers = append(servers, variableFillerHelper(server, variableMapping))
+			}
+			service.PreferredServerHostnames = servers
 		}
 		// inject variable in healthcheck if required
 		newHealthCheckTestCommand := variableFillerHelper(service.CustomHealthCheck.TestCommand, variableMapping)
@@ -368,4 +389,49 @@ func fillDefaultDockerProxyPermissionIfNotPresent(val DockerProxyPermissionType)
 		return val
 	}
 	return DockerProxyNoPermission
+}
+
+func isCurrentVersionLargerThanMinimum(minimumVersion, currentVersion string) bool {
+	if strings.Compare(currentVersion, "develop") == 0 || strings.Compare(currentVersion, "") == 0 {
+		return true
+	}
+	minimumVersion = cleanUpVersion(minimumVersion)
+	currentVersion = cleanUpVersion(currentVersion)
+
+	minParts := strings.Split(minimumVersion, ".")
+	currentParts := strings.Split(currentVersion, ".")
+
+	for i := 0; i < 3; i++ {
+		if i >= len(minParts) {
+			return true
+		}
+		if i >= len(currentParts) {
+			return false
+		}
+
+		minNum, _ := strconv.Atoi(minParts[i])
+		currentNum, _ := strconv.Atoi(currentParts[i])
+
+		if currentNum > minNum {
+			return true
+		}
+		if minNum > currentNum {
+			return false
+		}
+	}
+
+	return false
+}
+
+func cleanUpVersion(version string) string {
+	// v2.0.0 -> 2.0.0
+	// v2.0.0-rc1 -> 2.0.0
+	// v2.0.0-1 -> 2.0.0
+	version = strings.TrimSpace(version)
+	version = strings.TrimPrefix(version, "v")
+	versionParts := strings.Split(version, "-")
+	if len(versionParts) >= 1 {
+		return versionParts[0]
+	}
+	return version
 }
