@@ -22,7 +22,7 @@ func ParseStackYaml(yamlStr string, currentSwiftwaveVersion string) (Stack, erro
 		return Stack{}, err
 	}
 	// convert the version to integer
-	if !isCurrentVersionLargerThanMinimum(stack.MinimumSwiftwaveVersion, currentSwiftwaveVersion) {
+	if !isCurrentVersionSameOrLargerThanMinimum(stack.MinimumSwiftwaveVersion, currentSwiftwaveVersion) {
 		return Stack{}, fmt.Errorf(`required Swiftwave %s. Current Version %s. Please upgrade to latest`, stack.MinimumSwiftwaveVersion, currentSwiftwaveVersion)
 	}
 	// Pre-fill default values
@@ -391,12 +391,16 @@ func fillDefaultDockerProxyPermissionIfNotPresent(val DockerProxyPermissionType)
 	return DockerProxyNoPermission
 }
 
-func isCurrentVersionLargerThanMinimum(minimumVersion, currentVersion string) bool {
+func isCurrentVersionSameOrLargerThanMinimum(minimumVersion, currentVersion string) bool {
 	if strings.Compare(currentVersion, "develop") == 0 || strings.Compare(currentVersion, "") == 0 {
 		return true
 	}
 	minimumVersion = cleanUpVersion(minimumVersion)
 	currentVersion = cleanUpVersion(currentVersion)
+
+	if strings.Compare(minimumVersion, currentVersion) == 0 {
+		return true
+	}
 
 	minParts := strings.Split(minimumVersion, ".")
 	currentParts := strings.Split(currentVersion, ".")
