@@ -69,6 +69,14 @@ func ParseStackYaml(yamlStr string) (Stack, error) {
 			delete(stack.Services, serviceName)
 		}
 	}
+	// delete the variables with `markdown` type
+	if stack.Docs != nil {
+		for variableKey, variable := range stack.Docs.Variables {
+			if variable.Type == DocsVariableTypeMarkdown {
+				delete(stack.Docs.Variables, variableKey)
+			}
+		}
+	}
 	return stack, nil
 }
 
