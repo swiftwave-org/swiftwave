@@ -136,6 +136,14 @@ func (s *Stack) FillAndVerifyVariables(variableMapping *map[string]string, servi
 			newCommand := variableFillerHelper(command, variableMapping)
 			service.Command[i] = newCommand
 		}
+		// iterate over preferred deployment server
+		if service.PreferredServerHostnames != nil {
+			servers := make([]string, 0)
+			for _, server := range service.PreferredServerHostnames {
+				servers = append(servers, variableFillerHelper(server, variableMapping))
+			}
+			service.PreferredServerHostnames = servers
+		}
 		// inject variable in healthcheck if required
 		newHealthCheckTestCommand := variableFillerHelper(service.CustomHealthCheck.TestCommand, variableMapping)
 		service.CustomHealthCheck.TestCommand = newHealthCheckTestCommand
