@@ -395,6 +395,8 @@ func isCurrentVersionLargerThanMinimum(minimumVersion, currentVersion string) bo
 	if strings.Compare(currentVersion, "develop") == 0 || strings.Compare(currentVersion, "") == 0 {
 		return true
 	}
+	minimumVersion = cleanUpVersion(minimumVersion)
+	currentVersion = cleanUpVersion(currentVersion)
 
 	minParts := strings.Split(minimumVersion, ".")
 	currentParts := strings.Split(currentVersion, ".")
@@ -419,4 +421,17 @@ func isCurrentVersionLargerThanMinimum(minimumVersion, currentVersion string) bo
 	}
 
 	return false
+}
+
+func cleanUpVersion(version string) string {
+	// v2.0.0 -> 2.0.0
+	// v2.0.0-rc1 -> 2.0.0
+	// v2.0.0-1 -> 2.0.0
+	version = strings.TrimSpace(version)
+	version = strings.TrimPrefix(version, "v")
+	versionParts := strings.Split(version, "-")
+	if len(versionParts) >= 1 {
+		return versionParts[0]
+	}
+	return version
 }
