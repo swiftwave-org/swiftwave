@@ -85,26 +85,26 @@ func FetchBranches(gitUrl string, username string, password string, privateKey s
 	return branches, nil
 }
 
-func CloneRepository(gitUrl string, branch string, username string, password string, privateKey string, destFolder string) error {
+func CloneRepository(gitUrl string, branch string, username string, password string, privateKey string, destFolder string) (commitHash string, commitMessage string, err error) {
 	// Parse the URL
 	repoInfo, err := ParseGitRepoInfo(gitUrl)
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
 	// Get the auth method
 	auth, err := getAuthMethod(repoInfo, username, password, privateKey)
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
 	// check if folder exists
 	if _, err := os.Stat(destFolder); os.IsNotExist(err) {
-		return errors.New("destination folder does not exist")
+		return "", "", errors.New("destination folder does not exist")
 	}
 
 	// clone the repo
-	_, err = git.PlainClone(destFolder, false, &git.CloneOptions{
+	repo, err := git.PlainClone(destFolder, false, &git.CloneOptions{
 		URL:               gitUrl,
 		Progress:          nil,
 		ReferenceName:     plumbing.NewBranchReferenceName(branch),
@@ -114,9 +114,17 @@ func CloneRepository(gitUrl string, branch string, username string, password str
 		ShallowSubmodules: true,
 	})
 	if err != nil {
-		return errors.New("failed to clone repository")
+		return "", "", errors.New("failed to clone repository")
 	}
-	return nil
+	commitObject, err := repo.CommitObjects()
+	if err != nil {
+		return "", "", errors.New("failed to get commit history of repository")
+	}
+	commit, err := commitObject.Next()
+	if err != nil {
+		return "", "", errors.New("failed to get commit history of repository")
+	}
+	return commit.Hash.String(), commit.Message, nil
 }
 
 // private function

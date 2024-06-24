@@ -168,28 +168,26 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 			log.Println("Failed to remove temporary directory", err)
 		}
 	}(tempDirectory)
-	// fetch commit hash
-	commitHash, err := gitmanager.FetchLatestCommitHash(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitUsername, gitPassword, gitPrivateKey)
-	if err != nil {
-		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch latest commit hash\n", true)
-		return err
-	}
-	addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Fetched latest commit hash > "+commitHash+"\n", false)
-	deployment.CommitHash = commitHash
-	// update deployment
-	err = db.Model(&deployment).Update("commit_hash", commitHash).Error
-	if err != nil {
-		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update commit hash\n", true)
-		return err
-	}
 	// clone git repository
 	addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Cloning git repository > "+deployment.GitRepositoryURL()+"\n", false)
-	err = gitmanager.CloneRepository(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitUsername, gitPassword, gitPrivateKey, tempDirectory)
+	commitHash, commitMessage, err := gitmanager.CloneRepository(deployment.GitRepositoryURL(), deployment.RepositoryBranch, gitUsername, gitPassword, gitPrivateKey, tempDirectory)
 	if err != nil {
-		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to clone git repository\n", true)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to clone git repository\n", false)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Reason > "+err.Error()+"\n", true)
 		return err
 	}
 	addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Cloned git repository successfully\n", false)
+	addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Commit message > "+commitMessage+"\n", false)
+	addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Commit hash > "+commitHash+"\n", false)
+	deployment.CommitHash = commitHash
+	deployment.CommitMessage = commitMessage
+	// update deployment
+	err = db.Model(&deployment).Updates(map[string]interface{}{"commit_hash": commitHash, "commit_message": commitMessage}).Error
+	if err != nil {
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update commit hash and message in database\n", false)
+		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Reason > "+err.Error()+"\n", true)
+		return err
+	}
 	// build docker image
 	addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Started building docker image\n", false)
 	// fetch build args

@@ -163,6 +163,7 @@ type ComplexityRoot struct {
 		BuildArgs                    func(childComplexity int) int
 		CodePath                     func(childComplexity int) int
 		CommitHash                   func(childComplexity int) int
+		CommitMessage                func(childComplexity int) int
 		CreatedAt                    func(childComplexity int) int
 		DockerImage                  func(childComplexity int) int
 		Dockerfile                   func(childComplexity int) int
@@ -1263,6 +1264,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Deployment.CommitHash(childComplexity), true
+
+	case "Deployment.commitMessage":
+		if e.complexity.Deployment.CommitMessage == nil {
+			break
+		}
+
+		return e.complexity.Deployment.CommitMessage(childComplexity), true
 
 	case "Deployment.createdAt":
 		if e.complexity.Deployment.CreatedAt == nil {
@@ -6502,6 +6510,8 @@ func (ec *executionContext) fieldContext_Application_latestDeployment(_ context.
 				return ec.fieldContext_Deployment_repositoryUrl(ctx, field)
 			case "commitHash":
 				return ec.fieldContext_Deployment_commitHash(ctx, field)
+			case "commitMessage":
+				return ec.fieldContext_Deployment_commitMessage(ctx, field)
 			case "codePath":
 				return ec.fieldContext_Deployment_codePath(ctx, field)
 			case "sourceCodeCompressedFileName":
@@ -6596,6 +6606,8 @@ func (ec *executionContext) fieldContext_Application_deployments(_ context.Conte
 				return ec.fieldContext_Deployment_repositoryUrl(ctx, field)
 			case "commitHash":
 				return ec.fieldContext_Deployment_commitHash(ctx, field)
+			case "commitMessage":
+				return ec.fieldContext_Deployment_commitMessage(ctx, field)
 			case "codePath":
 				return ec.fieldContext_Deployment_codePath(ctx, field)
 			case "sourceCodeCompressedFileName":
@@ -9562,6 +9574,50 @@ func (ec *executionContext) fieldContext_Deployment_commitHash(_ context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Deployment_commitMessage(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Deployment_commitMessage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CommitMessage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Deployment_commitMessage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Deployment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Deployment_codePath(ctx context.Context, field graphql.CollectedField, obj *model.Deployment) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Deployment_codePath(ctx, field)
 	if err != nil {
@@ -12480,6 +12536,8 @@ func (ec *executionContext) fieldContext_GitCredential_deployments(_ context.Con
 				return ec.fieldContext_Deployment_repositoryUrl(ctx, field)
 			case "commitHash":
 				return ec.fieldContext_Deployment_commitHash(ctx, field)
+			case "commitMessage":
+				return ec.fieldContext_Deployment_commitMessage(ctx, field)
 			case "codePath":
 				return ec.fieldContext_Deployment_codePath(ctx, field)
 			case "sourceCodeCompressedFileName":
@@ -12750,6 +12808,8 @@ func (ec *executionContext) fieldContext_ImageRegistryCredential_deployments(_ c
 				return ec.fieldContext_Deployment_repositoryUrl(ctx, field)
 			case "commitHash":
 				return ec.fieldContext_Deployment_commitHash(ctx, field)
+			case "commitMessage":
+				return ec.fieldContext_Deployment_commitMessage(ctx, field)
 			case "codePath":
 				return ec.fieldContext_Deployment_codePath(ctx, field)
 			case "sourceCodeCompressedFileName":
@@ -19791,6 +19851,8 @@ func (ec *executionContext) fieldContext_Query_deployment(ctx context.Context, f
 				return ec.fieldContext_Deployment_repositoryUrl(ctx, field)
 			case "commitHash":
 				return ec.fieldContext_Deployment_commitHash(ctx, field)
+			case "commitMessage":
+				return ec.fieldContext_Deployment_commitMessage(ctx, field)
 			case "codePath":
 				return ec.fieldContext_Deployment_codePath(ctx, field)
 			case "sourceCodeCompressedFileName":
@@ -29677,6 +29739,11 @@ func (ec *executionContext) _Deployment(ctx context.Context, sel ast.SelectionSe
 			}
 		case "commitHash":
 			out.Values[i] = ec._Deployment_commitHash(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "commitMessage":
+			out.Values[i] = ec._Deployment_commitMessage(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
