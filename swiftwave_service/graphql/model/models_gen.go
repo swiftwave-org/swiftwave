@@ -198,6 +198,7 @@ type Deployment struct {
 	RepositoryBranch             string                   `json:"repositoryBranch"`
 	RepositoryURL                string                   `json:"repositoryUrl"`
 	CommitHash                   string                   `json:"commitHash"`
+	CommitMessage                string                   `json:"commitMessage"`
 	CodePath                     string                   `json:"codePath"`
 	SourceCodeCompressedFileName string                   `json:"sourceCodeCompressedFileName"`
 	DockerImage                  string                   `json:"dockerImage"`

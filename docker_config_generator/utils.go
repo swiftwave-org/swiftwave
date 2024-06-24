@@ -21,7 +21,7 @@ func (m Manager) GenerateConfigFromGitRepository(git_url string, branch string, 
 	}
 	defer deleteDirectory(tmpFolder)
 	// Clone repository
-	err := GIT.CloneRepository(git_url, branch, username, password, privateKey, tmpFolder)
+	_, _, err := GIT.CloneRepository(git_url, branch, username, password, privateKey, tmpFolder)
 	if err != nil {
 		return DockerFileConfig{}, errors.New("failed to clone repository")
 	}

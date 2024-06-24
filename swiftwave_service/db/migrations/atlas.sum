@@ -1,4 +1,4 @@
-h1:JB7SV0IpChssyqIaptSy9hfeBXa4FAqq1DR67uUHmEA=
+h1:MBKMEy89E8d/dJ6qPEDgVvyviAQkEIIZ2wIVMUmbgqg=
 20240413191732_init.down.sql h1:HoitObGwuKF/akF4qg3dol2FfNTLCEuf6wHYDuCez8I=
 20240413191732_init.up.sql h1:USKdQx/yTz1KJ0+mDwYGhKm3WzX7k+I9+6B6SxImwaE=
 20240414051823_server_custom_ssh_port_added.down.sql h1:IC1DFQBQceTPTRdZOo5/WqytH+ZbgcKrQuMCkhArF/0=
@@ -37,3 +37,5 @@ h1:JB7SV0IpChssyqIaptSy9hfeBXa4FAqq1DR67uUHmEA=
 20240619085857_add_docker_proxy_support.up.sql h1:x3rR28FGyopycYfQPxdHH5YZ+onO3YC5nNfnZLAXAq0=
 20240620100729_add_app_custom_healthcheck.down.sql h1:+0f4N9nwGZzrwoQpQC2ceMud+KK7H055tBdobORx5TI=
 20240620100729_add_app_custom_healthcheck.up.sql h1:kgZY1IBSRF3OXwoAdleIKVtcnbj+AT/f6K8AR1s/7yg=
+20240624161343_add_commit_msg_to_deployment.down.sql h1:tSOS19XmAJvwaAwpbIppYfi5PvRQ2HWz1Go2JGlWNP8=
+20240624161343_add_commit_msg_to_deployment.up.sql h1:JrOb5F2VQkKNAQygCCvy2WEK4u80xsbWWty+bVlNM2w=
