@@ -279,6 +279,7 @@ type Deployment struct {
 	GitSshUser       string  `json:"git_ssh_user"`
 	CodePath         string  `json:"code_path"`
 	CommitHash       string  `json:"commit_hash"`
+	CommitMessage    string  `json:"commit_message"`
 	// Fields for UpstreamType = SourceCode
 	SourceCodeCompressedFileName string `json:"source_code_compressed_file_name"`
 	// Fields for UpstreamType = Image
