@@ -35,6 +35,11 @@ We would love to hear from you and brainstorm on ideas! Join our slack channel.
         <img src="https://contrib.rocks/image?repo=swiftwave-org/app-store" />
     </a>
 </div>
+<div align="left">
+    <a href="https://github.com/swiftwave-org/dashboard/graphs/contributors">
+        <img src="https://contrib.rocks/image?repo=swiftwave-org/dashboard" />
+    </a>
+</div>
 
 Thank you to everyone who helped make Swiftwave better.
 
