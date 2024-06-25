@@ -41,6 +41,7 @@ Thank you to everyone who helped make Swiftwave better.
 ### Sponsors
 <div align="left">
    <a href="https://github.com/fredericalix"><img src="https://images.weserv.nl/?url=https://github.com/fredericalix.png&v=4&h=50&w=50&fit=cover&mask=circle&maxage=7d" /></a>
+   <a href="https://github.com/r1ude"><img src="https://images.weserv.nl/?url=https://avatars.githubusercontent.com/u/171706718&v=4&h=50&w=50&fit=cover&mask=circle&maxage=7d" /></a>
 </div>
 
 Many thanks to all of the sponsors who support Swiftwave.
