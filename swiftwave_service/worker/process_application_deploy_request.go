@@ -264,7 +264,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 		}
 	}
 	// update deployment status
-	err = deployment.UpdateStatus(ctx, *db, core.DeploymentStatusLive)
+	err = deployment.UpdateStatus(ctx, *db, core.DeploymentStatusDeployed)
 	if err != nil {
 		return err
 	}

@@ -64,7 +64,7 @@ type ApplicationDeploymentInfo struct {
 
 func FindApplicationsForForceUpdate(_ context.Context, db gorm.DB) ([]*ApplicationDeploymentInfo, error) {
 	var deployments []*Deployment
-	err := db.Model(&Deployment{}).Where("status = ?", DeploymentStatusLive).Scan(&deployments).Error
+	err := db.Model(&Deployment{}).Where("status = ?", DeploymentStatusDeployed).Scan(&deployments).Error
 	if err != nil {
 		return nil, err
 	}

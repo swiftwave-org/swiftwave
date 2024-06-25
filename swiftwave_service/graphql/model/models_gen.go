@@ -742,7 +742,7 @@ const (
 	DeploymentStatusPending       DeploymentStatus = "pending"
 	DeploymentStatusDeployPending DeploymentStatus = "deployPending"
 	DeploymentStatusDeploying     DeploymentStatus = "deploying"
-	DeploymentStatusLive          DeploymentStatus = "live"
+	DeploymentStatusDeployed      DeploymentStatus = "deployed"
 	DeploymentStatusStopped       DeploymentStatus = "stopped"
 	DeploymentStatusFailed        DeploymentStatus = "failed"
 	DeploymentStatusStalled       DeploymentStatus = "stalled"
@@ -752,7 +752,7 @@ var AllDeploymentStatus = []DeploymentStatus{
 	DeploymentStatusPending,
 	DeploymentStatusDeployPending,
 	DeploymentStatusDeploying,
-	DeploymentStatusLive,
+	DeploymentStatusDeployed,
 	DeploymentStatusStopped,
 	DeploymentStatusFailed,
 	DeploymentStatusStalled,
@@ -760,7 +760,7 @@ var AllDeploymentStatus = []DeploymentStatus{
 
 func (e DeploymentStatus) IsValid() bool {
 	switch e {
-	case DeploymentStatusPending, DeploymentStatusDeployPending, DeploymentStatusDeploying, DeploymentStatusLive, DeploymentStatusStopped, DeploymentStatusFailed, DeploymentStatusStalled:
+	case DeploymentStatusPending, DeploymentStatusDeployPending, DeploymentStatusDeploying, DeploymentStatusDeployed, DeploymentStatusStopped, DeploymentStatusFailed, DeploymentStatusStalled:
 		return true
 	}
 	return false
