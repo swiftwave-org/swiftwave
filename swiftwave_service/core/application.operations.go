@@ -64,7 +64,7 @@ type ApplicationDeploymentInfo struct {
 
 func FindApplicationsForForceUpdate(_ context.Context, db gorm.DB) ([]*ApplicationDeploymentInfo, error) {
 	var deployments []*Deployment
-	err := db.Model(&Deployment{}).Where("status = ?", DeploymentStatusLive).Scan(&deployments).Error
+	err := db.Model(&Deployment{}).Where("status = ?", DeploymentStatusDeployed).Scan(&deployments).Error
 	if err != nil {
 		return nil, err
 	}
@@ -617,7 +617,7 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 		isReloadRequired = true
 	}
 	// update deployment -- if required
-	currentDeploymentID, err := FindCurrentLiveDeploymentIDByApplicationId(ctx, db, application.ID)
+	currentDeploymentID, err := FindCurrentDeployedDeploymentIDByApplicationId(ctx, db, application.ID)
 	if err != nil {
 		currentDeploymentID, err = FindLatestDeploymentIDByApplicationId(ctx, db, application.ID)
 	}
@@ -694,7 +694,7 @@ func (application *Application) RebuildApplication(ctx context.Context, db gorm.
 		return "", err
 	}
 	// create a new deployment from latest deployment
-	latestDeployment, err := FindCurrentLiveDeploymentByApplicationId(ctx, db, application.ID)
+	latestDeployment, err := FindCurrentDeployedDeploymentByApplicationId(ctx, db, application.ID)
 	if err != nil {
 		latestDeployment, err = FindLatestDeploymentByApplicationId(ctx, db, application.ID)
 		if err != nil {

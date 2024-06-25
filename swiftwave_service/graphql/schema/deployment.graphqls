@@ -8,7 +8,7 @@ enum DeploymentStatus {
     pending
     deployPending
     deploying
-    live
+    deployed
     stopped
     failed
     stalled
