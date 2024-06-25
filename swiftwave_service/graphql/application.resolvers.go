@@ -95,7 +95,7 @@ func (r *applicationResolver) RealtimeInfo(ctx context.Context, obj *model.Appli
 // LatestDeployment is the resolver for the latestDeployment field.
 func (r *applicationResolver) LatestDeployment(ctx context.Context, obj *model.Application) (*model.Deployment, error) {
 	// fetch running instance
-	record, err := core.FindCurrentLiveDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
+	record, err := core.FindCurrentDeployedDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
 	if err != nil {
 		record, err = core.FindLatestDeploymentByApplicationId(ctx, r.ServiceManager.DbClient, obj.ID)
 		if err != nil {
