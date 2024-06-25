@@ -82,7 +82,7 @@ type DeploymentStatus string
 const (
 	DeploymentStatusPending       DeploymentStatus = "pending"
 	DeploymentStatusDeployPending DeploymentStatus = "deployPending"
-	DeploymentStatusLive          DeploymentStatus = "live"
+	DeploymentStatusDeployed      DeploymentStatus = "deployed"
 	DeploymentStatusStopped       DeploymentStatus = "stopped"
 	DeploymentStatusFailed        DeploymentStatus = "failed"
 	DeploymentStalled             DeploymentStatus = "stalled"

@@ -24,9 +24,9 @@ func FindLatestDeploymentByApplicationId(ctx context.Context, db gorm.DB, id str
 	return deployment, nil
 }
 
-func FindCurrentLiveDeploymentByApplicationId(ctx context.Context, db gorm.DB, id string) (*Deployment, error) {
+func FindCurrentDeployedDeploymentByApplicationId(ctx context.Context, db gorm.DB, id string) (*Deployment, error) {
 	var deployment = &Deployment{}
-	tx := db.Where("application_id = ? AND status = ?", id, DeploymentStatusLive).Order("created_at desc").First(&deployment)
+	tx := db.Where("application_id = ? AND status = ?", id, DeploymentStatusDeployed).Order("created_at desc").First(&deployment)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
@@ -42,9 +42,9 @@ func FindLatestDeploymentIDByApplicationId(ctx context.Context, db gorm.DB, id s
 	return deployment.ID, nil
 }
 
-func FindCurrentLiveDeploymentIDByApplicationId(ctx context.Context, db gorm.DB, id string) (string, error) {
+func FindCurrentDeployedDeploymentIDByApplicationId(ctx context.Context, db gorm.DB, id string) (string, error) {
 	var deployment = &Deployment{}
-	tx := db.Select("id").Where("application_id = ? AND status = ?", id, DeploymentStatusLive).Order("created_at desc").First(&deployment)
+	tx := db.Select("id").Where("application_id = ? AND status = ?", id, DeploymentStatusDeployed).Order("created_at desc").First(&deployment)
 	if tx.Error != nil {
 		return "", tx.Error
 	}
