@@ -251,7 +251,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 		},
 	}
 	// find current deployment and mark it as stalled
-	currentDeployment, err := core.FindCurrentLiveDeploymentByApplicationId(ctx, *db, request.AppId)
+	currentDeployment, err := core.FindCurrentDeployedDeploymentByApplicationId(ctx, *db, request.AppId)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err

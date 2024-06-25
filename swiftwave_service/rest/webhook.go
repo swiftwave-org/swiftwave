@@ -36,7 +36,7 @@ func (server *Server) redeployApp(c echo.Context) error {
 		return c.String(401, "Unauthorized")
 	}
 	// Fetch latest deployment
-	deployment, err := core.FindCurrentLiveDeploymentByApplicationId(ctx, server.ServiceManager.DbClient, application.ID)
+	deployment, err := core.FindCurrentDeployedDeploymentByApplicationId(ctx, server.ServiceManager.DbClient, application.ID)
 	if err != nil {
 		_, err = core.FindLatestDeploymentByApplicationId(ctx, server.ServiceManager.DbClient, application.ID)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
