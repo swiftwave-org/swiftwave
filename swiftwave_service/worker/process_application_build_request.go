@@ -182,7 +182,7 @@ func (m Manager) buildApplicationForGit(deployment *core.Deployment, db gorm.DB,
 	deployment.CommitHash = commitHash
 	deployment.CommitMessage = commitMessage
 	// update deployment
-	err = db.Model(&deployment).Updates(map[string]interface{}{"commit_hash": commitHash, "commit_message": commitMessage}).Error
+	err = dbWithoutTx.Model(&deployment).Updates(map[string]interface{}{"commit_hash": commitHash, "commit_message": commitMessage}).Error
 	if err != nil {
 		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to update commit hash and message in database\n", false)
 		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Reason > "+err.Error()+"\n", true)
