@@ -7140,14 +7140,11 @@ func (ec *executionContext) _Application_applicationGroup(ctx context.Context, f
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.ApplicationGroup)
 	fc.Result = res
-	return ec.marshalNApplicationGroup2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationGroup(ctx, field.Selections, res)
+	return ec.marshalOApplicationGroup2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Application_applicationGroup(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -29597,16 +29594,13 @@ func (ec *executionContext) _Application(ctx context.Context, sel ast.SelectionS
 		case "applicationGroup":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
 				res = ec._Application_applicationGroup(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
 				return res
 			}
 
@@ -37063,6 +37057,13 @@ func (ec *executionContext) marshalOApplication2ᚖgithubᚗcomᚋswiftwaveᚑor
 		return graphql.Null
 	}
 	return ec._Application(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOApplicationGroup2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationGroup(ctx context.Context, sel ast.SelectionSet, v *model.ApplicationGroup) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ApplicationGroup(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

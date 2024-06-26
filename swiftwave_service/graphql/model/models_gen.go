@@ -52,7 +52,7 @@ type Application struct {
 	IsSleeping               bool                          `json:"isSleeping"`
 	Command                  string                        `json:"command"`
 	ApplicationGroupID       *string                       `json:"applicationGroupID,omitempty"`
-	ApplicationGroup         *ApplicationGroup             `json:"applicationGroup"`
+	ApplicationGroup         *ApplicationGroup             `json:"applicationGroup,omitempty"`
 	PreferredServerHostnames []string                      `json:"preferredServerHostnames"`
 	DockerProxyHost          string                        `json:"dockerProxyHost"`
 	DockerProxyConfig        *DockerProxyConfig            `json:"dockerProxyConfig"`

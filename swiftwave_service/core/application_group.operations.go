@@ -16,7 +16,7 @@ import (
 
 func FindAllApplicationGroups(_ context.Context, db gorm.DB) ([]*ApplicationGroup, error) {
 	var groups []*ApplicationGroup
-	err := db.Model(&ApplicationGroup{}).Select("name").Scan(&groups).Error
+	err := db.Model(&ApplicationGroup{}).Scan(&groups).Error
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func FindApplicationsByApplicationGroupID(_ context.Context, db gorm.DB, groupId
 }
 
 func (applicationGroup *ApplicationGroup) FindById(ctx context.Context, db gorm.DB, id string) error {
-	return db.First(applicationGroup, id).Error
+	return db.Where("id = ?", id).First(applicationGroup).Error
 }
 
 func (applicationGroup *ApplicationGroup) Create(_ context.Context, db gorm.DB) error {
