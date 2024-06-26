@@ -51,7 +51,8 @@ type Application struct {
 	WebhookToken             string                        `json:"webhookToken"`
 	IsSleeping               bool                          `json:"isSleeping"`
 	Command                  string                        `json:"command"`
-	Group                    string                        `json:"group"`
+	ApplicationGroupID       *string                       `json:"applicationGroupID,omitempty"`
+	ApplicationGroup         *ApplicationGroup             `json:"applicationGroup"`
 	PreferredServerHostnames []string                      `json:"preferredServerHostnames"`
 	DockerProxyHost          string                        `json:"dockerProxyHost"`
 	DockerProxyConfig        *DockerProxyConfig            `json:"dockerProxyConfig"`
@@ -84,6 +85,16 @@ type ApplicationDeployResult struct {
 	Application *Application `json:"application,omitempty"`
 }
 
+type ApplicationGroup struct {
+	ID           string         `json:"id"`
+	Name         string         `json:"name"`
+	Applications []*Application `json:"applications"`
+}
+
+type ApplicationGroupInput struct {
+	Name string `json:"name"`
+}
+
 type ApplicationInput struct {
 	Name                         string                             `json:"name"`
 	EnvironmentVariables         []*EnvironmentVariableInput        `json:"environmentVariables"`
@@ -106,7 +117,7 @@ type ApplicationInput struct {
 	SourceCodeCompressedFileName *string                            `json:"sourceCodeCompressedFileName,omitempty"`
 	DockerImage                  *string                            `json:"dockerImage,omitempty"`
 	ImageRegistryCredentialID    *uint                              `json:"imageRegistryCredentialID,omitempty"`
-	Group                        string                             `json:"group"`
+	ApplicationGroupID           *string                            `json:"applicationGroupID,omitempty"`
 	PreferredServerHostnames     []string                           `json:"preferredServerHostnames"`
 	DockerProxyConfig            *DockerProxyConfigInput            `json:"dockerProxyConfig"`
 	CustomHealthCheck            *ApplicationCustomHealthCheckInput `json:"customHealthCheck"`

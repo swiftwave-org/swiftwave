@@ -48,15 +48,6 @@ func FindAllApplications(_ context.Context, db gorm.DB) ([]*Application, error) 
 	return applications, tx.Error
 }
 
-func FindApplicationsByGroup(_ context.Context, db gorm.DB, group string) ([]*Application, error) {
-	var applications []*Application
-	err := db.Model(&Application{}).Where("application_group = ?", group).Scan(&applications).Error
-	if err != nil {
-		return nil, err
-	}
-	return applications, nil
-}
-
 type ApplicationDeploymentInfo struct {
 	ApplicationID string
 	DeploymentID  string
@@ -165,18 +156,17 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 	}
 	// create application
 	createdApplication := Application{
-		ID:               uuid.NewString(),
-		Name:             application.Name,
-		DeploymentMode:   application.DeploymentMode,
-		Replicas:         application.Replicas,
-		WebhookToken:     uuid.NewString(),
-		Command:          application.Command,
-		Capabilities:     application.Capabilities,
-		Sysctls:          application.Sysctls,
-		ResourceLimit:    application.ResourceLimit,
-		ReservedResource: application.ReservedResource,
-		// TODO
-		//ApplicationGroup:         application.ApplicationGroup,
+		ID:                       uuid.NewString(),
+		Name:                     application.Name,
+		DeploymentMode:           application.DeploymentMode,
+		Replicas:                 application.Replicas,
+		WebhookToken:             uuid.NewString(),
+		Command:                  application.Command,
+		Capabilities:             application.Capabilities,
+		Sysctls:                  application.Sysctls,
+		ResourceLimit:            application.ResourceLimit,
+		ReservedResource:         application.ReservedResource,
+		ApplicationGroupID:       application.ApplicationGroupID,
 		DockerProxy:              application.DockerProxy,
 		PreferredServerHostnames: application.PreferredServerHostnames,
 		CustomHealthCheck:        application.CustomHealthCheck,
@@ -670,9 +660,34 @@ func (application *Application) HardDelete(ctx context.Context, db gorm.DB, _ co
 	if len(ingressRules) > 0 {
 		return errors.New("application has ingress rules associated with it")
 	}
+	// fetch application group id
+	var applicationGroupID *string = nil
+	err = db.Model(&application).Select("application_group_id").Where("id = ?", application.ID).Scan(&applicationGroupID).Error
+	if err != nil {
+		return err
+	}
 	// delete application
-	tx := db.Delete(&application)
-	return tx.Error
+	err = db.Delete(&application).Error
+	if err != nil {
+		return err
+	}
+	if applicationGroupID != nil {
+		// if application group is not associated with any other application, delete the group
+		applicationGroup := &ApplicationGroup{
+			ID: *applicationGroupID,
+		}
+		isAnyApplicationAssociatedWithGroup, err := applicationGroup.IsAnyApplicationAssociatedWithGroup(ctx, db)
+		if err != nil {
+			return err
+		}
+		if !isAnyApplicationAssociatedWithGroup {
+			err = applicationGroup.Delete(ctx, db)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (application *Application) IsApplicationDeleted(_ context.Context, db gorm.DB) (bool, error) {
@@ -767,25 +782,18 @@ func (application *Application) MarkAsWake(ctx context.Context, db gorm.DB) erro
 	return tx.Error
 }
 
-func (application *Application) UpdateGroup(ctx context.Context, db gorm.DB, group string) error {
+func (application *Application) UpdateGroup(ctx context.Context, db gorm.DB, groupId string) error {
 	err := application.FindById(ctx, db, application.ID)
 	if err != nil {
 		return err
 	}
-	return db.Model(&application).Update("application_group", group).Error
-}
-
-func FetchApplicationGroups(_ context.Context, db gorm.DB) ([]string, error) {
-	var groups []string
-	err := db.Model(&Application{}).Select("application_group").Where("application_group IS NOT NULL").Group("application_group").Scan(&groups).Error
+	// verify group id
+	var applicationGroup = &ApplicationGroup{
+		ID: groupId,
+	}
+	err = applicationGroup.FindById(ctx, db, groupId)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	// remove "" from slice
-	for i, group := range groups {
-		if group == "" {
-			groups = append(groups[:i], groups[i+1:]...)
-		}
-	}
-	return groups, err
+	return db.Model(&application).Update("application_group_id", applicationGroup.ID).Error
 }

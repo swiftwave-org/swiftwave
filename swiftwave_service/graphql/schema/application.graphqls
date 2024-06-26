@@ -48,7 +48,8 @@ type Application {
     webhookToken: String!
     isSleeping: Boolean!
     command: String!
-    group: String!
+    applicationGroupID: String
+    applicationGroup: ApplicationGroup!
     preferredServerHostnames: [String!]!
     dockerProxyHost: String!
     dockerProxyConfig: DockerProxyConfig!
@@ -101,7 +102,7 @@ input ApplicationInput {
     # required for upstreamType = "Image"
     dockerImage: String
     imageRegistryCredentialID: Uint
-    group: String!
+    applicationGroupID: String
     preferredServerHostnames: [String!]!
     dockerProxyConfig: DockerProxyConfigInput!
     customHealthCheck: ApplicationCustomHealthCheckInput!
@@ -110,16 +111,14 @@ input ApplicationInput {
 extend type Query {
     application(id: String!): Application!
     applications: [Application!]!
-    applicationsByGroup(group: String!): [Application!]!
     isExistApplicationName(name: String!): Boolean!
     applicationResourceAnalytics(id: String!, timeframe: ApplicationResourceAnalyticsTimeframe!): [ApplicationResourceAnalytics!]!
-    applicationGroups: [String!]!
 }
 
 extend type Mutation {
     createApplication(input: ApplicationInput!): Application!
     updateApplication(id: String!, input: ApplicationInput!): Application!
-    updateApplicationGroup(id: String!, group: String!): Boolean!
+    updateApplicationGroup(id: String!, groupId: String!): Boolean!
     deleteApplication(id: String!): Boolean!
     rebuildApplication(id: String!): Boolean!
     restartApplication(id: String!): Boolean!
