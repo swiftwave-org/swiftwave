@@ -20,6 +20,7 @@ func main() {
 		&core.RedirectRule{},
 		&core.PersistentVolume{},
 		&core.ConfigMount{},
+		&core.ApplicationGroup{},
 		&core.Application{},
 		&core.GitCredential{},
 		&core.ImageRegistryCredential{},

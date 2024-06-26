@@ -1,4 +1,4 @@
-h1:b432hkpq37nDG1czxt21T1S/temPuIUoQ3fyuehkN+M=
+h1:hvxXPYu5/HahR/1ICKIZo/MYqsNXMabxSt0SdHKNf8Q=
 20240413191732_init.down.sql h1:HoitObGwuKF/akF4qg3dol2FfNTLCEuf6wHYDuCez8I=
 20240413191732_init.up.sql h1:USKdQx/yTz1KJ0+mDwYGhKm3WzX7k+I9+6B6SxImwaE=
 20240414051823_server_custom_ssh_port_added.down.sql h1:IC1DFQBQceTPTRdZOo5/WqytH+ZbgcKrQuMCkhArF/0=
@@ -39,5 +39,7 @@ h1:b432hkpq37nDG1czxt21T1S/temPuIUoQ3fyuehkN+M=
 20240620100729_add_app_custom_healthcheck.up.sql h1:kgZY1IBSRF3OXwoAdleIKVtcnbj+AT/f6K8AR1s/7yg=
 20240624161343_add_commit_msg_to_deployment.down.sql h1:tSOS19XmAJvwaAwpbIppYfi5PvRQ2HWz1Go2JGlWNP8=
 20240624161343_add_commit_msg_to_deployment.up.sql h1:JrOb5F2VQkKNAQygCCvy2WEK4u80xsbWWty+bVlNM2w=
-20250624161343_rename_app_status_live_to_deployed.down.sql h1:eBRrKO112ul0fqIibuE71ASQFoFQZixRN8qGp9V/RsI=
-20250624161343_rename_app_status_live_to_deployed.up.sql h1:4/ngjaqebN9HiQSGmKyy0B5vYtLeyRkdYS0Yu2QUSRM=
+20240625161343_rename_app_status_live_to_deployed.down.sql h1:2UfnKXqAsrqLKukFmBCcQrhhcr1wyScJYbxBphpHqfs=
+20240625161343_rename_app_status_live_to_deployed.up.sql h1:J5B2Il4UoFg9fZtj1tkCXIJoDHhCDYjj1XUA2088JRc=
+20240626072036_move_application_group_to_relation.down.sql h1:oMF4rB5As6BFCMPAxbm7lXvWyyCb9uqmFOC/AcTsDY8=
+20240626072036_move_application_group_to_relation.up.sql h1:SNdKqmYmIZeE0JcgKiLYFajW/awiz4rXRSAKVdabPZg=
