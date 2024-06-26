@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
+	"github.com/dgryski/trifles/uuid"
 	"strings"
 	"time"
 
@@ -334,6 +335,22 @@ func applicationInputToDeploymentDatabaseObject(record *model.ApplicationInput) 
 	}
 }
 
+// applicationGroupInputToDatabaseObject converts ApplicationGroupInput to ApplicationGroupDatabaseObject
+func applicationGroupInputToDatabaseObject(record *model.ApplicationGroupInput) *core.ApplicationGroup {
+	return &core.ApplicationGroup{
+		ID:   uuid.UUIDv4(),
+		Name: record.Name,
+	}
+}
+
+// applicationGroupToGraphqlObject converts ApplicationGroup to ApplicationGroupGraphqlObject
+func applicationGroupToGraphqlObject(record *core.ApplicationGroup) *model.ApplicationGroup {
+	return &model.ApplicationGroup{
+		ID:   record.ID,
+		Name: record.Name,
+	}
+}
+
 // applicationInputToDatabaseObject converts ApplicationInput to ApplicationDatabaseObject
 func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Application {
 	var environmentVariables = make([]core.EnvironmentVariable, 0)
@@ -364,7 +381,7 @@ func applicationInputToDatabaseObject(record *model.ApplicationInput) *core.Appl
 		ReservedResource:         *reservedResourceInputToDatabaseObject(record.ReservedResource),
 		ResourceLimit:            *resourceLimitInputToDatabaseObject(record.ResourceLimit),
 		IsSleeping:               false,
-		ApplicationGroup:         record.Group,
+		ApplicationGroupID:       record.ApplicationGroupID,
 		PreferredServerHostnames: record.PreferredServerHostnames,
 		DockerProxy:              *dockerProxyConfigToDatabaseObject(record.DockerProxyConfig),
 		CustomHealthCheck:        *applicationCustomHealthCheckInputToDatabaseObject(record.CustomHealthCheck),
@@ -386,7 +403,7 @@ func applicationToGraphqlObject(record *core.Application) *model.Application {
 		ReservedResource:         reservedResourceToGraphqlObject(&record.ReservedResource),
 		IsSleeping:               record.IsSleeping,
 		Command:                  record.Command,
-		Group:                    record.ApplicationGroup,
+		ApplicationGroupID:       record.ApplicationGroupID,
 		PreferredServerHostnames: record.PreferredServerHostnames,
 		DockerProxyHost:          record.DockerProxyServiceName(),
 		DockerProxyConfig:        dockerProxyConfigToGraphqlObject(&record.DockerProxy),
@@ -664,12 +681,8 @@ func userToGraphqlObject(record *core.User) *model.User {
 }
 
 // stackToApplicationsInput converts Stack to ApplicationInput
-func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db gorm.DB) ([]model.ApplicationInput, error) {
+func stackToApplicationsInput(applicationGroupID *string, record *stack_parser.Stack, db gorm.DB) ([]model.ApplicationInput, error) {
 	applications := make([]model.ApplicationInput, 0)
-	groupName := ""
-	if len(record.Services) > 1 {
-		groupName = stackName
-	}
 	for serviceName, service := range record.Services {
 		environmentVariables := make([]*model.EnvironmentVariableInput, 0)
 		for key, value := range service.Environment {
@@ -737,7 +750,7 @@ func stackToApplicationsInput(stackName string, record *stack_parser.Stack, db g
 			RepositoryBranch:             nil,
 			CodePath:                     nil,
 			SourceCodeCompressedFileName: nil,
-			Group:                        groupName,
+			ApplicationGroupID:           applicationGroupID,
 			Command:                      command,
 			CustomHealthCheck: &model.ApplicationCustomHealthCheckInput{
 				Enabled:              service.CustomHealthCheck.Enabled,

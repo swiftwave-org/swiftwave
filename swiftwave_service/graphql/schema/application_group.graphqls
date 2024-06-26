@@ -1,0 +1,19 @@
+type ApplicationGroup {
+    id: String!
+    name: String!
+    applications: [Application!]!
+}
+
+input ApplicationGroupInput {
+    name: String!
+}
+
+extend type Query {
+    applicationGroups: [ApplicationGroup!]!
+    applicationGroup(id: String!): ApplicationGroup!
+}
+
+extend type Mutation {
+    createApplicationGroup(input: ApplicationGroupInput!): ApplicationGroup!
+    deleteApplicationGroup(id: String!): Boolean!
+}

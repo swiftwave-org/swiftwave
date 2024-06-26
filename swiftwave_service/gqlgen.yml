@@ -58,6 +58,12 @@ models:
         resolver: true
       realtimeInfo:
         resolver: true
+      applicationGroup:
+        resolver: true
+  ApplicationGroup:
+    fields:
+      applications:
+        resolver: true
   AppBasicAuthAccessControlList:
     fields:
       users:

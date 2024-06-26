@@ -211,10 +211,19 @@ type ConfigMount struct {
 	FileMode      uint   `json:"file_mode" gorm:"default:444"`
 }
 
+// ApplicationGroup hold information about application group
+type ApplicationGroup struct {
+	ID           string        `json:"id" gorm:"primaryKey"`
+	Name         string        `json:"name" gorm:"unique"`
+	Applications []Application `json:"applications" gorm:"foreignKey:ApplicationGroupID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+}
+
 // Application hold information about application
 type Application struct {
 	ID   string `json:"id" gorm:"primaryKey"`
 	Name string `json:"name" gorm:"unique"`
+	// ApplicationGroupID - if set, this application will be part of the application group
+	ApplicationGroupID *string `json:"application_group_id"`
 	// Environment Variables
 	// On change of environment variables, deployment will be triggered by force update
 	EnvironmentVariables []EnvironmentVariable `json:"environment_variables" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
@@ -253,8 +262,6 @@ type Application struct {
 	IsSleeping bool `json:"is_sleeping" gorm:"default:false"`
 	// Resource Stats
 	ResourceStats []ApplicationServiceResourceStat `json:"resource_stats" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	// Application ApplicationGroup
-	ApplicationGroup string `json:"application_group"`
 	// PreferredServerHostnames - if set, we will schedule deployments to this server
 	PreferredServerHostnames pq.StringArray `json:"preferred_server_hostnames" gorm:"type:text[]"`
 	// CustomHealthCheck - if set, we will use this custom health check

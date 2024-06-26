@@ -186,13 +186,28 @@ func (r *mutationResolver) DeployStack(ctx context.Context, input model.StackInp
 		return nil, err
 	}
 
+	// create applicationGroup if no of services is greater than 1
+	var applicationGroupID *string
+	if len(stackFilled.ServiceNames()) > 1 {
+		applicationGroup := &core.ApplicationGroup{
+			Name: stackName,
+		}
+		err = applicationGroup.Create(ctx, r.ServiceManager.DbClient)
+		if err != nil {
+			return nil, err
+		}
+		applicationGroupID = &applicationGroup.ID
+	}
+
 	// convert to application input
-	applicationsInput, err := stackToApplicationsInput(stackName, stackFilled, r.ServiceManager.DbClient)
+	applicationsInput, err := stackToApplicationsInput(applicationGroupID, stackFilled, r.ServiceManager.DbClient)
 	if err != nil {
 		return nil, err
 	}
 	// result
 	results := make([]*model.ApplicationDeployResult, 0)
+	// at-least one application created ?
+	isAnyApplicationCreated := false
 	// create application
 	for _, applicationInput := range applicationsInput {
 		application, err := r.CreateApplication(ctx, applicationInput)
@@ -203,11 +218,21 @@ func (r *mutationResolver) DeployStack(ctx context.Context, input model.StackInp
 				Application: application,
 			})
 		} else {
+			isAnyApplicationCreated = true
 			results = append(results, &model.ApplicationDeployResult{
 				Success:     true,
 				Message:     "Application created successfully",
 				Application: application,
 			})
+		}
+	}
+	if !isAnyApplicationCreated && applicationGroupID != nil {
+		applicationGroup := &core.ApplicationGroup{
+			Name: *applicationGroupID,
+		}
+		err = applicationGroup.Delete(ctx, r.ServiceManager.DbClient)
+		if err != nil {
+			return nil, err
 		}
 	}
 	return results, nil
