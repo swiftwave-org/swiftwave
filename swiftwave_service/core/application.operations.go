@@ -782,18 +782,13 @@ func (application *Application) MarkAsWake(ctx context.Context, db gorm.DB) erro
 	return tx.Error
 }
 
-func (application *Application) UpdateGroup(ctx context.Context, db gorm.DB, groupId string) error {
+func (application *Application) UpdateGroup(ctx context.Context, db gorm.DB, groupId *string) error {
 	err := application.FindById(ctx, db, application.ID)
 	if err != nil {
 		return err
 	}
-	// verify group id
-	var applicationGroup = &ApplicationGroup{
-		ID: groupId,
+	if groupId != nil && strings.Compare(*groupId, "") == 0 {
+		groupId = nil
 	}
-	err = applicationGroup.FindById(ctx, db, groupId)
-	if err != nil {
-		return err
-	}
-	return db.Model(&application).Update("application_group_id", applicationGroup.ID).Error
+	return db.Model(&application).Update("application_group_id", groupId).Error
 }

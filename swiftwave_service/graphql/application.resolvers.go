@@ -244,7 +244,7 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 }
 
 // UpdateApplicationGroup is the resolver for the updateApplicationGroup field.
-func (r *mutationResolver) UpdateApplicationGroup(ctx context.Context, id string, groupID string) (bool, error) {
+func (r *mutationResolver) UpdateApplicationGroup(ctx context.Context, id string, groupID *string) (bool, error) {
 	var application = &core.Application{}
 	err := application.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {

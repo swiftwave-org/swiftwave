@@ -369,7 +369,7 @@ type ComplexityRoot struct {
 		TestSSHAccessToServer                              func(childComplexity int, id uint) int
 		UpdateAppBasicAuthAccessControlUserPassword        func(childComplexity int, id uint, password string) int
 		UpdateApplication                                  func(childComplexity int, id string, input model.ApplicationInput) int
-		UpdateApplicationGroup                             func(childComplexity int, id string, groupID string) int
+		UpdateApplicationGroup                             func(childComplexity int, id string, groupID *string) int
 		UpdateGitCredential                                func(childComplexity int, id uint, input model.GitCredentialInput) int
 		UpdateImageRegistryCredential                      func(childComplexity int, id uint, input model.ImageRegistryCredentialInput) int
 		VerifyStack                                        func(childComplexity int, input model.StackInput) int
@@ -632,7 +632,7 @@ type MutationResolver interface {
 	DeleteAppBasicAuthAccessControlUser(ctx context.Context, id uint) (bool, error)
 	CreateApplication(ctx context.Context, input model.ApplicationInput) (*model.Application, error)
 	UpdateApplication(ctx context.Context, id string, input model.ApplicationInput) (*model.Application, error)
-	UpdateApplicationGroup(ctx context.Context, id string, groupID string) (bool, error)
+	UpdateApplicationGroup(ctx context.Context, id string, groupID *string) (bool, error)
 	DeleteApplication(ctx context.Context, id string) (bool, error)
 	RebuildApplication(ctx context.Context, id string) (bool, error)
 	RestartApplication(ctx context.Context, id string) (bool, error)
@@ -2769,7 +2769,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateApplicationGroup(childComplexity, args["id"].(string), args["groupId"].(string)), true
+		return e.complexity.Mutation.UpdateApplicationGroup(childComplexity, args["id"].(string), args["groupId"].(*string)), true
 
 	case "Mutation.updateGitCredential":
 		if e.complexity.Mutation.UpdateGitCredential == nil {
@@ -5155,10 +5155,10 @@ func (ec *executionContext) field_Mutation_updateApplicationGroup_args(ctx conte
 		}
 	}
 	args["id"] = arg0
-	var arg1 string
+	var arg1 *string
 	if tmp, ok := rawArgs["groupId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupId"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -14502,7 +14502,7 @@ func (ec *executionContext) _Mutation_updateApplicationGroup(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateApplicationGroup(rctx, fc.Args["id"].(string), fc.Args["groupId"].(string))
+		return ec.resolvers.Mutation().UpdateApplicationGroup(rctx, fc.Args["id"].(string), fc.Args["groupId"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
