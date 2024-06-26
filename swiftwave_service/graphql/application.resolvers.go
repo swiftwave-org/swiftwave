@@ -135,6 +135,19 @@ func (r *applicationResolver) IngressRules(ctx context.Context, obj *model.Appli
 	return result, nil
 }
 
+// ApplicationGroup is the resolver for the applicationGroup field.
+func (r *applicationResolver) ApplicationGroup(ctx context.Context, obj *model.Application) (*model.ApplicationGroup, error) {
+	if obj.ApplicationGroupID == nil {
+		return nil, nil
+	}
+	var record = &core.ApplicationGroup{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, *obj.ApplicationGroupID)
+	if err != nil {
+		return nil, err
+	}
+	return applicationGroupToGraphqlObject(record), nil
+}
+
 // CreateApplication is the resolver for the createApplication field.
 func (r *mutationResolver) CreateApplication(ctx context.Context, input model.ApplicationInput) (*model.Application, error) {
 	record := applicationInputToDatabaseObject(&input)
@@ -231,17 +244,14 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, id string, inp
 }
 
 // UpdateApplicationGroup is the resolver for the updateApplicationGroup field.
-func (r *mutationResolver) UpdateApplicationGroup(ctx context.Context, id string, group string) (bool, error) {
+func (r *mutationResolver) UpdateApplicationGroup(ctx context.Context, id string, groupID *string) (bool, error) {
 	var application = &core.Application{}
 	err := application.FindById(ctx, r.ServiceManager.DbClient, id)
 	if err != nil {
 		return false, err
 	}
-	err = application.UpdateGroup(ctx, r.ServiceManager.DbClient, group)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
+	err = application.UpdateGroup(ctx, r.ServiceManager.DbClient, groupID)
+	return err == nil, err
 }
 
 // DeleteApplication is the resolver for the deleteApplication field.
@@ -426,19 +436,6 @@ func (r *queryResolver) Applications(ctx context.Context) ([]*model.Application,
 	return result, nil
 }
 
-// ApplicationsByGroup is the resolver for the applicationsByGroup field.
-func (r *queryResolver) ApplicationsByGroup(ctx context.Context, group string) ([]*model.Application, error) {
-	records, err := core.FindApplicationsByGroup(ctx, r.ServiceManager.DbClient, group)
-	if err != nil {
-		return nil, err
-	}
-	var result = make([]*model.Application, 0)
-	for _, record := range records {
-		result = append(result, applicationToGraphqlObject(record))
-	}
-	return result, nil
-}
-
 // IsExistApplicationName is the resolver for the isExistApplicationName field.
 func (r *queryResolver) IsExistApplicationName(ctx context.Context, name string) (bool, error) {
 	// fetch docker manager
@@ -480,21 +477,6 @@ func (r *queryResolver) ApplicationResourceAnalytics(ctx context.Context, id str
 		result = append(result, applicationServiceResourceStatToGraphqlObject(record))
 	}
 	return result, nil
-}
-
-// ApplicationGroups is the resolver for the applicationGroups field.
-func (r *queryResolver) ApplicationGroups(ctx context.Context) ([]string, error) {
-	groups, err := core.FetchApplicationGroups(ctx, r.ServiceManager.DbClient)
-	if err != nil {
-		return nil, err
-	}
-	// remove "" from slice
-	for i, group := range groups {
-		if group == "" {
-			groups = append(groups[:i], groups[i+1:]...)
-		}
-	}
-	return groups, err
 }
 
 // Application returns ApplicationResolver implementation.

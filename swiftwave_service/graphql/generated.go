@@ -43,6 +43,7 @@ type Config struct {
 type ResolverRoot interface {
 	AppBasicAuthAccessControlList() AppBasicAuthAccessControlListResolver
 	Application() ApplicationResolver
+	ApplicationGroup() ApplicationGroupResolver
 	Deployment() DeploymentResolver
 	Domain() DomainResolver
 	GitCredential() GitCredentialResolver
@@ -74,6 +75,8 @@ type ComplexityRoot struct {
 	}
 
 	Application struct {
+		ApplicationGroup         func(childComplexity int) int
+		ApplicationGroupID       func(childComplexity int) int
 		Capabilities             func(childComplexity int) int
 		Command                  func(childComplexity int) int
 		ConfigMounts             func(childComplexity int) int
@@ -83,7 +86,6 @@ type ComplexityRoot struct {
 		DockerProxyConfig        func(childComplexity int) int
 		DockerProxyHost          func(childComplexity int) int
 		EnvironmentVariables     func(childComplexity int) int
-		Group                    func(childComplexity int) int
 		ID                       func(childComplexity int) int
 		IngressRules             func(childComplexity int) int
 		IsDeleted                func(childComplexity int) int
@@ -114,6 +116,12 @@ type ComplexityRoot struct {
 		Application func(childComplexity int) int
 		Message     func(childComplexity int) int
 		Success     func(childComplexity int) int
+	}
+
+	ApplicationGroup struct {
+		Applications func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Name         func(childComplexity int) int
 	}
 
 	ApplicationResourceAnalytics struct {
@@ -308,6 +316,7 @@ type ComplexityRoot struct {
 		CreateAppBasicAuthAccessControlList                func(childComplexity int, input model.AppBasicAuthAccessControlListInput) int
 		CreateAppBasicAuthAccessControlUser                func(childComplexity int, input model.AppBasicAuthAccessControlUserInput) int
 		CreateApplication                                  func(childComplexity int, input model.ApplicationInput) int
+		CreateApplicationGroup                             func(childComplexity int, input model.ApplicationGroupInput) int
 		CreateGitCredential                                func(childComplexity int, input model.GitCredentialInput) int
 		CreateImageRegistryCredential                      func(childComplexity int, input model.ImageRegistryCredentialInput) int
 		CreateIngressRule                                  func(childComplexity int, input model.IngressRuleInput) int
@@ -318,6 +327,7 @@ type ComplexityRoot struct {
 		DeleteAppBasicAuthAccessControlList                func(childComplexity int, id uint) int
 		DeleteAppBasicAuthAccessControlUser                func(childComplexity int, id uint) int
 		DeleteApplication                                  func(childComplexity int, id string) int
+		DeleteApplicationGroup                             func(childComplexity int, id string) int
 		DeleteGitCredential                                func(childComplexity int, id uint) int
 		DeleteImageRegistryCredential                      func(childComplexity int, id uint) int
 		DeleteIngressRule                                  func(childComplexity int, id uint) int
@@ -359,7 +369,7 @@ type ComplexityRoot struct {
 		TestSSHAccessToServer                              func(childComplexity int, id uint) int
 		UpdateAppBasicAuthAccessControlUserPassword        func(childComplexity int, id uint, password string) int
 		UpdateApplication                                  func(childComplexity int, id string, input model.ApplicationInput) int
-		UpdateApplicationGroup                             func(childComplexity int, id string, group string) int
+		UpdateApplicationGroup                             func(childComplexity int, id string, groupID *string) int
 		UpdateGitCredential                                func(childComplexity int, id uint, input model.GitCredentialInput) int
 		UpdateImageRegistryCredential                      func(childComplexity int, id uint, input model.ImageRegistryCredentialInput) int
 		VerifyStack                                        func(childComplexity int, input model.StackInput) int
@@ -417,10 +427,10 @@ type ComplexityRoot struct {
 	Query struct {
 		AppBasicAuthAccessControlLists     func(childComplexity int) int
 		Application                        func(childComplexity int, id string) int
+		ApplicationGroup                   func(childComplexity int, id string) int
 		ApplicationGroups                  func(childComplexity int) int
 		ApplicationResourceAnalytics       func(childComplexity int, id string, timeframe model.ApplicationResourceAnalyticsTimeframe) int
 		Applications                       func(childComplexity int) int
-		ApplicationsByGroup                func(childComplexity int, group string) int
 		AvailableDockerConfigs             func(childComplexity int) int
 		CheckGitCredentialRepositoryAccess func(childComplexity int, input model.GitCredentialRepositoryAccessInput) int
 		CurrentUser                        func(childComplexity int) int
@@ -583,6 +593,11 @@ type ApplicationResolver interface {
 	Deployments(ctx context.Context, obj *model.Application) ([]*model.Deployment, error)
 
 	IngressRules(ctx context.Context, obj *model.Application) ([]*model.IngressRule, error)
+
+	ApplicationGroup(ctx context.Context, obj *model.Application) (*model.ApplicationGroup, error)
+}
+type ApplicationGroupResolver interface {
+	Applications(ctx context.Context, obj *model.ApplicationGroup) ([]*model.Application, error)
 }
 type DeploymentResolver interface {
 	Application(ctx context.Context, obj *model.Deployment) (*model.Application, error)
@@ -617,13 +632,15 @@ type MutationResolver interface {
 	DeleteAppBasicAuthAccessControlUser(ctx context.Context, id uint) (bool, error)
 	CreateApplication(ctx context.Context, input model.ApplicationInput) (*model.Application, error)
 	UpdateApplication(ctx context.Context, id string, input model.ApplicationInput) (*model.Application, error)
-	UpdateApplicationGroup(ctx context.Context, id string, group string) (bool, error)
+	UpdateApplicationGroup(ctx context.Context, id string, groupID *string) (bool, error)
 	DeleteApplication(ctx context.Context, id string) (bool, error)
 	RebuildApplication(ctx context.Context, id string) (bool, error)
 	RestartApplication(ctx context.Context, id string) (bool, error)
 	RegenerateWebhookToken(ctx context.Context, id string) (string, error)
 	SleepApplication(ctx context.Context, id string) (bool, error)
 	WakeApplication(ctx context.Context, id string) (bool, error)
+	CreateApplicationGroup(ctx context.Context, input model.ApplicationGroupInput) (*model.ApplicationGroup, error)
+	DeleteApplicationGroup(ctx context.Context, id string) (bool, error)
 	CancelDeployment(ctx context.Context, id string) (bool, error)
 	AddDomain(ctx context.Context, input model.DomainInput) (*model.Domain, error)
 	RemoveDomain(ctx context.Context, id uint) (bool, error)
@@ -694,10 +711,10 @@ type QueryResolver interface {
 	AppBasicAuthAccessControlLists(ctx context.Context) ([]*model.AppBasicAuthAccessControlList, error)
 	Application(ctx context.Context, id string) (*model.Application, error)
 	Applications(ctx context.Context) ([]*model.Application, error)
-	ApplicationsByGroup(ctx context.Context, group string) ([]*model.Application, error)
 	IsExistApplicationName(ctx context.Context, name string) (bool, error)
 	ApplicationResourceAnalytics(ctx context.Context, id string, timeframe model.ApplicationResourceAnalyticsTimeframe) ([]*model.ApplicationResourceAnalytics, error)
-	ApplicationGroups(ctx context.Context) ([]string, error)
+	ApplicationGroups(ctx context.Context) ([]*model.ApplicationGroup, error)
+	ApplicationGroup(ctx context.Context, id string) (*model.ApplicationGroup, error)
 	Deployment(ctx context.Context, id string) (*model.Deployment, error)
 	DockerConfigGenerator(ctx context.Context, input model.DockerConfigGeneratorInput) (*model.DockerConfigGeneratorOutput, error)
 	AvailableDockerConfigs(ctx context.Context) ([]string, error)
@@ -810,6 +827,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AppBasicAuthAccessControlUser.Username(childComplexity), true
 
+	case "Application.applicationGroup":
+		if e.complexity.Application.ApplicationGroup == nil {
+			break
+		}
+
+		return e.complexity.Application.ApplicationGroup(childComplexity), true
+
+	case "Application.applicationGroupID":
+		if e.complexity.Application.ApplicationGroupID == nil {
+			break
+		}
+
+		return e.complexity.Application.ApplicationGroupID(childComplexity), true
+
 	case "Application.capabilities":
 		if e.complexity.Application.Capabilities == nil {
 			break
@@ -872,13 +903,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Application.EnvironmentVariables(childComplexity), true
-
-	case "Application.group":
-		if e.complexity.Application.Group == nil {
-			break
-		}
-
-		return e.complexity.Application.Group(childComplexity), true
 
 	case "Application.id":
 		if e.complexity.Application.ID == nil {
@@ -1047,6 +1071,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ApplicationDeployResult.Success(childComplexity), true
+
+	case "ApplicationGroup.applications":
+		if e.complexity.ApplicationGroup.Applications == nil {
+			break
+		}
+
+		return e.complexity.ApplicationGroup.Applications(childComplexity), true
+
+	case "ApplicationGroup.id":
+		if e.complexity.ApplicationGroup.ID == nil {
+			break
+		}
+
+		return e.complexity.ApplicationGroup.ID(childComplexity), true
+
+	case "ApplicationGroup.name":
+		if e.complexity.ApplicationGroup.Name == nil {
+			break
+		}
+
+		return e.complexity.ApplicationGroup.Name(childComplexity), true
 
 	case "ApplicationResourceAnalytics.cpu_usage_percent":
 		if e.complexity.ApplicationResourceAnalytics.CPUUsagePercent == nil {
@@ -2093,6 +2138,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateApplication(childComplexity, args["input"].(model.ApplicationInput)), true
 
+	case "Mutation.createApplicationGroup":
+		if e.complexity.Mutation.CreateApplicationGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createApplicationGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateApplicationGroup(childComplexity, args["input"].(model.ApplicationGroupInput)), true
+
 	case "Mutation.createGitCredential":
 		if e.complexity.Mutation.CreateGitCredential == nil {
 			break
@@ -2212,6 +2269,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteApplication(childComplexity, args["id"].(string)), true
+
+	case "Mutation.deleteApplicationGroup":
+		if e.complexity.Mutation.DeleteApplicationGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteApplicationGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteApplicationGroup(childComplexity, args["id"].(string)), true
 
 	case "Mutation.deleteGitCredential":
 		if e.complexity.Mutation.DeleteGitCredential == nil {
@@ -2700,7 +2769,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateApplicationGroup(childComplexity, args["id"].(string), args["group"].(string)), true
+		return e.complexity.Mutation.UpdateApplicationGroup(childComplexity, args["id"].(string), args["groupId"].(*string)), true
 
 	case "Mutation.updateGitCredential":
 		if e.complexity.Mutation.UpdateGitCredential == nil {
@@ -2979,6 +3048,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Application(childComplexity, args["id"].(string)), true
 
+	case "Query.applicationGroup":
+		if e.complexity.Query.ApplicationGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Query_applicationGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ApplicationGroup(childComplexity, args["id"].(string)), true
+
 	case "Query.applicationGroups":
 		if e.complexity.Query.ApplicationGroups == nil {
 			break
@@ -3004,18 +3085,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Applications(childComplexity), true
-
-	case "Query.applicationsByGroup":
-		if e.complexity.Query.ApplicationsByGroup == nil {
-			break
-		}
-
-		args, err := ec.field_Query_applicationsByGroup_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ApplicationsByGroup(childComplexity, args["group"].(string)), true
 
 	case "Query.availableDockerConfigs":
 		if e.complexity.Query.AvailableDockerConfigs == nil {
@@ -3886,6 +3955,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputAppBasicAuthAccessControlListInput,
 		ec.unmarshalInputAppBasicAuthAccessControlUserInput,
 		ec.unmarshalInputApplicationCustomHealthCheckInput,
+		ec.unmarshalInputApplicationGroupInput,
 		ec.unmarshalInputApplicationInput,
 		ec.unmarshalInputBuildArgInput,
 		ec.unmarshalInputCIFSConfigInput,
@@ -4029,7 +4099,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/app_authentication.graphqls" "schema/application.graphqls" "schema/application_healthcheck.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/config_mount.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/docker_proxy_config.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/totp.graphqls" "schema/user.graphqls.graphqls"
+//go:embed "schema/app_authentication.graphqls" "schema/application.graphqls" "schema/application_group.graphqls" "schema/application_healthcheck.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/config_mount.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/docker_proxy_config.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/totp.graphqls" "schema/user.graphqls.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -4043,6 +4113,7 @@ func sourceData(filename string) string {
 var sources = []*ast.Source{
 	{Name: "schema/app_authentication.graphqls", Input: sourceData("schema/app_authentication.graphqls"), BuiltIn: false},
 	{Name: "schema/application.graphqls", Input: sourceData("schema/application.graphqls"), BuiltIn: false},
+	{Name: "schema/application_group.graphqls", Input: sourceData("schema/application_group.graphqls"), BuiltIn: false},
 	{Name: "schema/application_healthcheck.graphqls", Input: sourceData("schema/application_healthcheck.graphqls"), BuiltIn: false},
 	{Name: "schema/base.graphqls", Input: sourceData("schema/base.graphqls"), BuiltIn: false},
 	{Name: "schema/build_arg.graphqls", Input: sourceData("schema/build_arg.graphqls"), BuiltIn: false},
@@ -4286,6 +4357,21 @@ func (ec *executionContext) field_Mutation_createAppBasicAuthAccessControlUser_a
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createApplicationGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.ApplicationGroupInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNApplicationGroupInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationGroupInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createApplication_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4428,6 +4514,21 @@ func (ec *executionContext) field_Mutation_deleteAppBasicAuthAccessControlUser_a
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteApplicationGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5054,15 +5155,15 @@ func (ec *executionContext) field_Mutation_updateApplicationGroup_args(ctx conte
 		}
 	}
 	args["id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["group"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg1 *string
+	if tmp, ok := rawArgs["groupId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupId"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["group"] = arg1
+	args["groupId"] = arg1
 	return args, nil
 }
 
@@ -5183,6 +5284,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_applicationGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_applicationResourceAnalytics_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5219,21 +5335,6 @@ func (ec *executionContext) field_Query_application_args(ctx context.Context, ra
 		}
 	}
 	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_applicationsByGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["group"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["group"] = arg0
 	return args, nil
 }
 
@@ -6977,8 +7078,8 @@ func (ec *executionContext) fieldContext_Application_command(_ context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _Application_group(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Application_group(ctx, field)
+func (ec *executionContext) _Application_applicationGroupID(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_applicationGroupID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -6991,24 +7092,21 @@ func (ec *executionContext) _Application_group(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Group, nil
+		return obj.ApplicationGroupID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Application_group(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Application_applicationGroupID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Application",
 		Field:      field,
@@ -7016,6 +7114,55 @@ func (ec *executionContext) fieldContext_Application_group(_ context.Context, fi
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Application_applicationGroup(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_applicationGroup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Application().ApplicationGroup(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ApplicationGroup)
+	fc.Result = res
+	return ec.marshalOApplicationGroup2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationGroup(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_applicationGroup(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ApplicationGroup_id(ctx, field)
+			case "name":
+				return ec.fieldContext_ApplicationGroup_name(ctx, field)
+			case "applications":
+				return ec.fieldContext_ApplicationGroup_applications(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ApplicationGroup", field.Name)
 		},
 	}
 	return fc, nil
@@ -7689,8 +7836,194 @@ func (ec *executionContext) fieldContext_ApplicationDeployResult_application(_ c
 				return ec.fieldContext_Application_isSleeping(ctx, field)
 			case "command":
 				return ec.fieldContext_Application_command(ctx, field)
-			case "group":
-				return ec.fieldContext_Application_group(ctx, field)
+			case "applicationGroupID":
+				return ec.fieldContext_Application_applicationGroupID(ctx, field)
+			case "applicationGroup":
+				return ec.fieldContext_Application_applicationGroup(ctx, field)
+			case "preferredServerHostnames":
+				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
+			case "dockerProxyHost":
+				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
+			case "dockerProxyConfig":
+				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
+			case "customHealthCheck":
+				return ec.fieldContext_Application_customHealthCheck(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationGroup_id(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationGroup_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationGroup_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationGroup_name(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationGroup_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationGroup_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationGroup_applications(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationGroup_applications(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ApplicationGroup().Applications(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Application)
+	fc.Result = res
+	return ec.marshalNApplication2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationGroup_applications(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationGroup",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Application_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Application_name(ctx, field)
+			case "environmentVariables":
+				return ec.fieldContext_Application_environmentVariables(ctx, field)
+			case "persistentVolumeBindings":
+				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
+			case "configMounts":
+				return ec.fieldContext_Application_configMounts(ctx, field)
+			case "capabilities":
+				return ec.fieldContext_Application_capabilities(ctx, field)
+			case "sysctls":
+				return ec.fieldContext_Application_sysctls(ctx, field)
+			case "resourceLimit":
+				return ec.fieldContext_Application_resourceLimit(ctx, field)
+			case "reservedResource":
+				return ec.fieldContext_Application_reservedResource(ctx, field)
+			case "realtimeInfo":
+				return ec.fieldContext_Application_realtimeInfo(ctx, field)
+			case "latestDeployment":
+				return ec.fieldContext_Application_latestDeployment(ctx, field)
+			case "deployments":
+				return ec.fieldContext_Application_deployments(ctx, field)
+			case "deploymentMode":
+				return ec.fieldContext_Application_deploymentMode(ctx, field)
+			case "replicas":
+				return ec.fieldContext_Application_replicas(ctx, field)
+			case "ingressRules":
+				return ec.fieldContext_Application_ingressRules(ctx, field)
+			case "isDeleted":
+				return ec.fieldContext_Application_isDeleted(ctx, field)
+			case "webhookToken":
+				return ec.fieldContext_Application_webhookToken(ctx, field)
+			case "isSleeping":
+				return ec.fieldContext_Application_isSleeping(ctx, field)
+			case "command":
+				return ec.fieldContext_Application_command(ctx, field)
+			case "applicationGroupID":
+				return ec.fieldContext_Application_applicationGroupID(ctx, field)
+			case "applicationGroup":
+				return ec.fieldContext_Application_applicationGroup(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
 			case "dockerProxyHost":
@@ -9015,8 +9348,10 @@ func (ec *executionContext) fieldContext_Deployment_application(_ context.Contex
 				return ec.fieldContext_Application_isSleeping(ctx, field)
 			case "command":
 				return ec.fieldContext_Application_command(ctx, field)
-			case "group":
-				return ec.fieldContext_Application_group(ctx, field)
+			case "applicationGroupID":
+				return ec.fieldContext_Application_applicationGroupID(ctx, field)
+			case "applicationGroup":
+				return ec.fieldContext_Application_applicationGroup(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
 			case "dockerProxyHost":
@@ -13236,8 +13571,10 @@ func (ec *executionContext) fieldContext_IngressRule_application(_ context.Conte
 				return ec.fieldContext_Application_isSleeping(ctx, field)
 			case "command":
 				return ec.fieldContext_Application_command(ctx, field)
-			case "group":
-				return ec.fieldContext_Application_group(ctx, field)
+			case "applicationGroupID":
+				return ec.fieldContext_Application_applicationGroupID(ctx, field)
+			case "applicationGroup":
+				return ec.fieldContext_Application_applicationGroup(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
 			case "dockerProxyHost":
@@ -14014,8 +14351,10 @@ func (ec *executionContext) fieldContext_Mutation_createApplication(ctx context.
 				return ec.fieldContext_Application_isSleeping(ctx, field)
 			case "command":
 				return ec.fieldContext_Application_command(ctx, field)
-			case "group":
-				return ec.fieldContext_Application_group(ctx, field)
+			case "applicationGroupID":
+				return ec.fieldContext_Application_applicationGroupID(ctx, field)
+			case "applicationGroup":
+				return ec.fieldContext_Application_applicationGroup(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
 			case "dockerProxyHost":
@@ -14119,8 +14458,10 @@ func (ec *executionContext) fieldContext_Mutation_updateApplication(ctx context.
 				return ec.fieldContext_Application_isSleeping(ctx, field)
 			case "command":
 				return ec.fieldContext_Application_command(ctx, field)
-			case "group":
-				return ec.fieldContext_Application_group(ctx, field)
+			case "applicationGroupID":
+				return ec.fieldContext_Application_applicationGroupID(ctx, field)
+			case "applicationGroup":
+				return ec.fieldContext_Application_applicationGroup(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
 			case "dockerProxyHost":
@@ -14161,7 +14502,7 @@ func (ec *executionContext) _Mutation_updateApplicationGroup(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateApplicationGroup(rctx, fc.Args["id"].(string), fc.Args["group"].(string))
+		return ec.resolvers.Mutation().UpdateApplicationGroup(rctx, fc.Args["id"].(string), fc.Args["groupId"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14526,6 +14867,124 @@ func (ec *executionContext) fieldContext_Mutation_wakeApplication(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_wakeApplication_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createApplicationGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createApplicationGroup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateApplicationGroup(rctx, fc.Args["input"].(model.ApplicationGroupInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ApplicationGroup)
+	fc.Result = res
+	return ec.marshalNApplicationGroup2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationGroup(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createApplicationGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ApplicationGroup_id(ctx, field)
+			case "name":
+				return ec.fieldContext_ApplicationGroup_name(ctx, field)
+			case "applications":
+				return ec.fieldContext_ApplicationGroup_applications(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ApplicationGroup", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createApplicationGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteApplicationGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteApplicationGroup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteApplicationGroup(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteApplicationGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteApplicationGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -18967,8 +19426,10 @@ func (ec *executionContext) fieldContext_PersistentVolumeBinding_application(_ c
 				return ec.fieldContext_Application_isSleeping(ctx, field)
 			case "command":
 				return ec.fieldContext_Application_command(ctx, field)
-			case "group":
-				return ec.fieldContext_Application_group(ctx, field)
+			case "applicationGroupID":
+				return ec.fieldContext_Application_applicationGroupID(ctx, field)
+			case "applicationGroup":
+				return ec.fieldContext_Application_applicationGroup(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
 			case "dockerProxyHost":
@@ -19379,8 +19840,10 @@ func (ec *executionContext) fieldContext_Query_application(ctx context.Context, 
 				return ec.fieldContext_Application_isSleeping(ctx, field)
 			case "command":
 				return ec.fieldContext_Application_command(ctx, field)
-			case "group":
-				return ec.fieldContext_Application_group(ctx, field)
+			case "applicationGroupID":
+				return ec.fieldContext_Application_applicationGroupID(ctx, field)
+			case "applicationGroup":
+				return ec.fieldContext_Application_applicationGroup(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
 			case "dockerProxyHost":
@@ -19484,8 +19947,10 @@ func (ec *executionContext) fieldContext_Query_applications(_ context.Context, f
 				return ec.fieldContext_Application_isSleeping(ctx, field)
 			case "command":
 				return ec.fieldContext_Application_command(ctx, field)
-			case "group":
-				return ec.fieldContext_Application_group(ctx, field)
+			case "applicationGroupID":
+				return ec.fieldContext_Application_applicationGroupID(ctx, field)
+			case "applicationGroup":
+				return ec.fieldContext_Application_applicationGroup(ctx, field)
 			case "preferredServerHostnames":
 				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
 			case "dockerProxyHost":
@@ -19497,111 +19962,6 @@ func (ec *executionContext) fieldContext_Query_applications(_ context.Context, f
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_applicationsByGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_applicationsByGroup(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ApplicationsByGroup(rctx, fc.Args["group"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.Application)
-	fc.Result = res
-	return ec.marshalNApplication2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_applicationsByGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Application_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Application_name(ctx, field)
-			case "environmentVariables":
-				return ec.fieldContext_Application_environmentVariables(ctx, field)
-			case "persistentVolumeBindings":
-				return ec.fieldContext_Application_persistentVolumeBindings(ctx, field)
-			case "configMounts":
-				return ec.fieldContext_Application_configMounts(ctx, field)
-			case "capabilities":
-				return ec.fieldContext_Application_capabilities(ctx, field)
-			case "sysctls":
-				return ec.fieldContext_Application_sysctls(ctx, field)
-			case "resourceLimit":
-				return ec.fieldContext_Application_resourceLimit(ctx, field)
-			case "reservedResource":
-				return ec.fieldContext_Application_reservedResource(ctx, field)
-			case "realtimeInfo":
-				return ec.fieldContext_Application_realtimeInfo(ctx, field)
-			case "latestDeployment":
-				return ec.fieldContext_Application_latestDeployment(ctx, field)
-			case "deployments":
-				return ec.fieldContext_Application_deployments(ctx, field)
-			case "deploymentMode":
-				return ec.fieldContext_Application_deploymentMode(ctx, field)
-			case "replicas":
-				return ec.fieldContext_Application_replicas(ctx, field)
-			case "ingressRules":
-				return ec.fieldContext_Application_ingressRules(ctx, field)
-			case "isDeleted":
-				return ec.fieldContext_Application_isDeleted(ctx, field)
-			case "webhookToken":
-				return ec.fieldContext_Application_webhookToken(ctx, field)
-			case "isSleeping":
-				return ec.fieldContext_Application_isSleeping(ctx, field)
-			case "command":
-				return ec.fieldContext_Application_command(ctx, field)
-			case "group":
-				return ec.fieldContext_Application_group(ctx, field)
-			case "preferredServerHostnames":
-				return ec.fieldContext_Application_preferredServerHostnames(ctx, field)
-			case "dockerProxyHost":
-				return ec.fieldContext_Application_dockerProxyHost(ctx, field)
-			case "dockerProxyConfig":
-				return ec.fieldContext_Application_dockerProxyConfig(ctx, field)
-			case "customHealthCheck":
-				return ec.fieldContext_Application_customHealthCheck(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_applicationsByGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
 	}
 	return fc, nil
 }
@@ -19764,9 +20124,9 @@ func (ec *executionContext) _Query_applicationGroups(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.([]*model.ApplicationGroup)
 	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNApplicationGroup2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationGroupᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_applicationGroups(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -19776,8 +20136,79 @@ func (ec *executionContext) fieldContext_Query_applicationGroups(_ context.Conte
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ApplicationGroup_id(ctx, field)
+			case "name":
+				return ec.fieldContext_ApplicationGroup_name(ctx, field)
+			case "applications":
+				return ec.fieldContext_ApplicationGroup_applications(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ApplicationGroup", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_applicationGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_applicationGroup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ApplicationGroup(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ApplicationGroup)
+	fc.Result = res
+	return ec.marshalNApplicationGroup2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationGroup(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_applicationGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ApplicationGroup_id(ctx, field)
+			case "name":
+				return ec.fieldContext_ApplicationGroup_name(ctx, field)
+			case "applications":
+				return ec.fieldContext_ApplicationGroup_applications(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ApplicationGroup", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_applicationGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -27147,6 +27578,33 @@ func (ec *executionContext) unmarshalInputApplicationCustomHealthCheckInput(ctx 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputApplicationGroupInput(ctx context.Context, obj interface{}) (model.ApplicationGroupInput, error) {
+	var it model.ApplicationGroupInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, obj interface{}) (model.ApplicationInput, error) {
 	var it model.ApplicationInput
 	asMap := map[string]interface{}{}
@@ -27154,7 +27612,7 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "configMounts", "capabilities", "sysctls", "dockerfile", "buildArgs", "deploymentMode", "replicas", "resourceLimit", "reservedResource", "upstreamType", "command", "gitCredentialID", "repositoryUrl", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID", "group", "preferredServerHostnames", "dockerProxyConfig", "customHealthCheck"}
+	fieldsInOrder := [...]string{"name", "environmentVariables", "persistentVolumeBindings", "configMounts", "capabilities", "sysctls", "dockerfile", "buildArgs", "deploymentMode", "replicas", "resourceLimit", "reservedResource", "upstreamType", "command", "gitCredentialID", "repositoryUrl", "repositoryBranch", "codePath", "sourceCodeCompressedFileName", "dockerImage", "imageRegistryCredentialID", "applicationGroupID", "preferredServerHostnames", "dockerProxyConfig", "customHealthCheck"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27308,13 +27766,13 @@ func (ec *executionContext) unmarshalInputApplicationInput(ctx context.Context, 
 				return it, err
 			}
 			it.ImageRegistryCredentialID = data
-		case "group":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+		case "applicationGroupID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("applicationGroupID"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Group = data
+			it.ApplicationGroupID = data
 		case "preferredServerHostnames":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("preferredServerHostnames"))
 			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
@@ -29131,11 +29589,41 @@ func (ec *executionContext) _Application(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "group":
-			out.Values[i] = ec._Application_group(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+		case "applicationGroupID":
+			out.Values[i] = ec._Application_applicationGroupID(ctx, field, obj)
+		case "applicationGroup":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Application_applicationGroup(ctx, field, obj)
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "preferredServerHostnames":
 			out.Values[i] = ec._Application_preferredServerHostnames(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -29271,6 +29759,86 @@ func (ec *executionContext) _ApplicationDeployResult(ctx context.Context, sel as
 			}
 		case "application":
 			out.Values[i] = ec._ApplicationDeployResult_application(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var applicationGroupImplementors = []string{"ApplicationGroup"}
+
+func (ec *executionContext) _ApplicationGroup(ctx context.Context, sel ast.SelectionSet, obj *model.ApplicationGroup) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, applicationGroupImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ApplicationGroup")
+		case "id":
+			out.Values[i] = ec._ApplicationGroup_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "name":
+			out.Values[i] = ec._ApplicationGroup_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "applications":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ApplicationGroup_applications(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -30947,6 +31515,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "createApplicationGroup":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createApplicationGroup(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteApplicationGroup":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteApplicationGroup(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "cancelDeployment":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_cancelDeployment(ctx, field)
@@ -31937,28 +32519,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "applicationsByGroup":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_applicationsByGroup(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "isExistApplicationName":
 			field := field
 
@@ -32013,6 +32573,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_applicationGroups(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "applicationGroup":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_applicationGroup(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -34305,6 +34887,69 @@ func (ec *executionContext) marshalNApplicationDeployResult2ᚖgithubᚗcomᚋsw
 	return ec._ApplicationDeployResult(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNApplicationGroup2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationGroup(ctx context.Context, sel ast.SelectionSet, v model.ApplicationGroup) graphql.Marshaler {
+	return ec._ApplicationGroup(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNApplicationGroup2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ApplicationGroup) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNApplicationGroup2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationGroup(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNApplicationGroup2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationGroup(ctx context.Context, sel ast.SelectionSet, v *model.ApplicationGroup) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ApplicationGroup(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNApplicationGroupInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationGroupInput(ctx context.Context, v interface{}) (model.ApplicationGroupInput, error) {
+	res, err := ec.unmarshalInputApplicationGroupInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNApplicationInput2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationInput(ctx context.Context, v interface{}) (model.ApplicationInput, error) {
 	res, err := ec.unmarshalInputApplicationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -36412,6 +37057,13 @@ func (ec *executionContext) marshalOApplication2ᚖgithubᚗcomᚋswiftwaveᚑor
 		return graphql.Null
 	}
 	return ec._Application(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOApplicationGroup2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationGroup(ctx context.Context, sel ast.SelectionSet, v *model.ApplicationGroup) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ApplicationGroup(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
