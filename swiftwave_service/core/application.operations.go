@@ -790,5 +790,24 @@ func (application *Application) UpdateGroup(ctx context.Context, db gorm.DB, gro
 	if groupId != nil && strings.Compare(*groupId, "") == 0 {
 		groupId = nil
 	}
-	return db.Model(&application).Update("application_group_id", groupId).Error
+	err = db.Model(&application).Update("application_group_id", groupId).Error
+	if err != nil {
+		return err
+	}
+	if application.ApplicationGroupID != nil {
+		group := &ApplicationGroup{
+			ID: *application.ApplicationGroupID,
+		}
+		isAnyApplicationAssociatedWithGroup, err := group.IsAnyApplicationAssociatedWithGroup(ctx, db)
+		if err != nil {
+			return err
+		}
+		if !isAnyApplicationAssociatedWithGroup {
+			err = group.Delete(ctx, db)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
