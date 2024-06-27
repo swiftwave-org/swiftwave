@@ -13,11 +13,18 @@ enum ApplicationResourceAnalyticsTimeframe {
     last_30_days
 }
 
+enum HealthStatus {
+    healthy
+    unhealthy
+    unknown
+}
+
 type RealtimeInfo {
     InfoFound: Boolean!
     DesiredReplicas: Int!
     RunningReplicas: Int!
     DeploymentMode: DeploymentMode!
+    HealthStatus: HealthStatus!
 }
 
 type ResourceLimit {

@@ -67,28 +67,27 @@ func (r *applicationResolver) RealtimeInfo(ctx context.Context, obj *model.Appli
 			InfoFound:       false,
 			DesiredReplicas: 0,
 			RunningReplicas: 0,
+			DeploymentMode:  obj.DeploymentMode,
 		}, nil
 	}
-	info, err := dockerManager.RealtimeInfoService(obj.Name, true)
+	runningCount, err := dockerManager.NoOfRunningTasks(obj.Name)
 	if err != nil {
 		return &model.RealtimeInfo{
 			InfoFound:       false,
 			DesiredReplicas: 0,
 			RunningReplicas: 0,
-			DeploymentMode:  model.DeploymentModeGlobal,
+			DeploymentMode:  obj.DeploymentMode,
 		}, nil
 	}
-	var deploymentMode model.DeploymentMode
-	if info.ReplicatedService {
-		deploymentMode = model.DeploymentModeReplicated
-	} else {
-		deploymentMode = model.DeploymentModeGlobal
+	var desiredReplicas = -1
+	if obj.DeploymentMode == model.DeploymentModeReplicated {
+		desiredReplicas = int(obj.Replicas)
 	}
 	return &model.RealtimeInfo{
 		InfoFound:       true,
-		DesiredReplicas: info.DesiredReplicas,
-		RunningReplicas: info.RunningReplicas,
-		DeploymentMode:  deploymentMode,
+		DesiredReplicas: desiredReplicas,
+		RunningReplicas: runningCount,
+		DeploymentMode:  obj.DeploymentMode,
 	}, nil
 }
 
@@ -479,7 +478,33 @@ func (r *queryResolver) ApplicationResourceAnalytics(ctx context.Context, id str
 	return result, nil
 }
 
+// HealthStatus is the resolver for the HealthStatus field.
+func (r *realtimeInfoResolver) HealthStatus(ctx context.Context, obj *model.RealtimeInfo) (model.HealthStatus, error) {
+	if obj == nil || !obj.InfoFound {
+		return model.HealthStatusUnknown, nil
+	}
+	if obj.DeploymentMode == model.DeploymentModeReplicated {
+		if obj.DesiredReplicas == obj.RunningReplicas {
+			return model.HealthStatusHealthy, nil
+		} else {
+			return model.HealthStatusUnhealthy, nil
+		}
+	}
+	if obj.DeploymentMode == model.DeploymentModeGlobal {
+		if obj.RunningReplicas > 0 {
+			return model.HealthStatusHealthy, nil
+		} else {
+			return model.HealthStatusUnhealthy, nil
+		}
+	}
+	return model.HealthStatusUnknown, nil
+}
+
 // Application returns ApplicationResolver implementation.
 func (r *Resolver) Application() ApplicationResolver { return &applicationResolver{r} }
 
+// RealtimeInfo returns RealtimeInfoResolver implementation.
+func (r *Resolver) RealtimeInfo() RealtimeInfoResolver { return &realtimeInfoResolver{r} }
+
 type applicationResolver struct{ *Resolver }
+type realtimeInfoResolver struct{ *Resolver }

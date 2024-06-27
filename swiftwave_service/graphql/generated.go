@@ -53,6 +53,7 @@ type ResolverRoot interface {
 	PersistentVolume() PersistentVolumeResolver
 	PersistentVolumeBinding() PersistentVolumeBindingResolver
 	Query() QueryResolver
+	RealtimeInfo() RealtimeInfoResolver
 	RedirectRule() RedirectRuleResolver
 	Server() ServerResolver
 	Subscription() SubscriptionResolver
@@ -474,6 +475,7 @@ type ComplexityRoot struct {
 	RealtimeInfo struct {
 		DeploymentMode  func(childComplexity int) int
 		DesiredReplicas func(childComplexity int) int
+		HealthStatus    func(childComplexity int) int
 		InfoFound       func(childComplexity int) int
 		RunningReplicas func(childComplexity int) int
 	}
@@ -752,6 +754,9 @@ type QueryResolver interface {
 	Users(ctx context.Context) ([]*model.User, error)
 	User(ctx context.Context, id uint) (*model.User, error)
 	CurrentUser(ctx context.Context) (*model.User, error)
+}
+type RealtimeInfoResolver interface {
+	HealthStatus(ctx context.Context, obj *model.RealtimeInfo) (model.HealthStatus, error)
 }
 type RedirectRuleResolver interface {
 	Domain(ctx context.Context, obj *model.RedirectRule) (*model.Domain, error)
@@ -3485,6 +3490,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RealtimeInfo.DesiredReplicas(childComplexity), true
+
+	case "RealtimeInfo.HealthStatus":
+		if e.complexity.RealtimeInfo.HealthStatus == nil {
+			break
+		}
+
+		return e.complexity.RealtimeInfo.HealthStatus(childComplexity), true
 
 	case "RealtimeInfo.InfoFound":
 		if e.complexity.RealtimeInfo.InfoFound == nil {
@@ -6535,6 +6547,8 @@ func (ec *executionContext) fieldContext_Application_realtimeInfo(_ context.Cont
 				return ec.fieldContext_RealtimeInfo_RunningReplicas(ctx, field)
 			case "DeploymentMode":
 				return ec.fieldContext_RealtimeInfo_DeploymentMode(ctx, field)
+			case "HealthStatus":
+				return ec.fieldContext_RealtimeInfo_HealthStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RealtimeInfo", field.Name)
 		},
@@ -22834,6 +22848,50 @@ func (ec *executionContext) fieldContext_RealtimeInfo_DeploymentMode(_ context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _RealtimeInfo_HealthStatus(ctx context.Context, field graphql.CollectedField, obj *model.RealtimeInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RealtimeInfo_HealthStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.RealtimeInfo().HealthStatus(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.HealthStatus)
+	fc.Result = res
+	return ec.marshalNHealthStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐHealthStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RealtimeInfo_HealthStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RealtimeInfo",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type HealthStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RedirectRule_id(ctx context.Context, field graphql.CollectedField, obj *model.RedirectRule) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_RedirectRule_id(ctx, field)
 	if err != nil {
@@ -33445,23 +33503,59 @@ func (ec *executionContext) _RealtimeInfo(ctx context.Context, sel ast.Selection
 		case "InfoFound":
 			out.Values[i] = ec._RealtimeInfo_InfoFound(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "DesiredReplicas":
 			out.Values[i] = ec._RealtimeInfo_DesiredReplicas(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "RunningReplicas":
 			out.Values[i] = ec._RealtimeInfo_RunningReplicas(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "DeploymentMode":
 			out.Values[i] = ec._RealtimeInfo_DeploymentMode(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "HealthStatus":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RealtimeInfo_HealthStatus(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -35645,6 +35739,16 @@ func (ec *executionContext) unmarshalNGitType2githubᚗcomᚋswiftwaveᚑorgᚋs
 }
 
 func (ec *executionContext) marshalNGitType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitType(ctx context.Context, sel ast.SelectionSet, v model.GitType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNHealthStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐHealthStatus(ctx context.Context, v interface{}) (model.HealthStatus, error) {
+	var res model.HealthStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNHealthStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐHealthStatus(ctx context.Context, sel ast.SelectionSet, v model.HealthStatus) graphql.Marshaler {
 	return v
 }
 
