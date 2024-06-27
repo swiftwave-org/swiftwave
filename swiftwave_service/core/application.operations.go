@@ -787,6 +787,10 @@ func (application *Application) UpdateGroup(ctx context.Context, db gorm.DB, gro
 	if err != nil {
 		return err
 	}
+	oldApplicationGroupID := ""
+	if application.ApplicationGroupID != nil {
+		oldApplicationGroupID = *application.ApplicationGroupID
+	}
 	if groupId != nil && strings.Compare(*groupId, "") == 0 {
 		groupId = nil
 	}
@@ -794,9 +798,9 @@ func (application *Application) UpdateGroup(ctx context.Context, db gorm.DB, gro
 	if err != nil {
 		return err
 	}
-	if application.ApplicationGroupID != nil {
+	if groupId == nil && strings.Compare(oldApplicationGroupID, "") != 0 {
 		group := &ApplicationGroup{
-			ID: *application.ApplicationGroupID,
+			ID: oldApplicationGroupID,
 		}
 		isAnyApplicationAssociatedWithGroup, err := group.IsAnyApplicationAssociatedWithGroup(ctx, db)
 		if err != nil {
