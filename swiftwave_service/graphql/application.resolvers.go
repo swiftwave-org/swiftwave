@@ -422,9 +422,9 @@ func (r *queryResolver) Application(ctx context.Context, id string) (*model.Appl
 }
 
 // Applications is the resolver for the applications field.
-func (r *queryResolver) Applications(ctx context.Context) ([]*model.Application, error) {
+func (r *queryResolver) Applications(ctx context.Context, includeGroupedApplications bool) ([]*model.Application, error) {
 	var records []*core.Application
-	records, err := core.FindAllApplications(ctx, r.ServiceManager.DbClient)
+	records, err := core.FindAllApplications(ctx, r.ServiceManager.DbClient, includeGroupedApplications)
 	if err != nil {
 		return nil, err
 	}

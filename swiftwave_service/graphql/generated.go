@@ -431,7 +431,7 @@ type ComplexityRoot struct {
 		ApplicationGroup                   func(childComplexity int, id string) int
 		ApplicationGroups                  func(childComplexity int) int
 		ApplicationResourceAnalytics       func(childComplexity int, id string, timeframe model.ApplicationResourceAnalyticsTimeframe) int
-		Applications                       func(childComplexity int) int
+		Applications                       func(childComplexity int, includeGroupedApplications bool) int
 		AvailableDockerConfigs             func(childComplexity int) int
 		CheckGitCredentialRepositoryAccess func(childComplexity int, input model.GitCredentialRepositoryAccessInput) int
 		CurrentUser                        func(childComplexity int) int
@@ -712,7 +712,7 @@ type PersistentVolumeBindingResolver interface {
 type QueryResolver interface {
 	AppBasicAuthAccessControlLists(ctx context.Context) ([]*model.AppBasicAuthAccessControlList, error)
 	Application(ctx context.Context, id string) (*model.Application, error)
-	Applications(ctx context.Context) ([]*model.Application, error)
+	Applications(ctx context.Context, includeGroupedApplications bool) ([]*model.Application, error)
 	IsExistApplicationName(ctx context.Context, name string) (bool, error)
 	ApplicationResourceAnalytics(ctx context.Context, id string, timeframe model.ApplicationResourceAnalyticsTimeframe) ([]*model.ApplicationResourceAnalytics, error)
 	ApplicationGroups(ctx context.Context) ([]*model.ApplicationGroup, error)
@@ -3089,7 +3089,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Applications(childComplexity), true
+		args, err := ec.field_Query_applications_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Applications(childComplexity, args["includeGroupedApplications"].(bool)), true
 
 	case "Query.availableDockerConfigs":
 		if e.complexity.Query.AvailableDockerConfigs == nil {
@@ -5347,6 +5352,21 @@ func (ec *executionContext) field_Query_application_args(ctx context.Context, ra
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_applications_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 bool
+	if tmp, ok := rawArgs["includeGroupedApplications"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeGroupedApplications"))
+		arg0, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["includeGroupedApplications"] = arg0
 	return args, nil
 }
 
@@ -19898,7 +19918,7 @@ func (ec *executionContext) _Query_applications(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Applications(rctx)
+		return ec.resolvers.Query().Applications(rctx, fc.Args["includeGroupedApplications"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19915,7 +19935,7 @@ func (ec *executionContext) _Query_applications(ctx context.Context, field graph
 	return ec.marshalNApplication2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_applications(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_applications(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -19976,6 +19996,17 @@ func (ec *executionContext) fieldContext_Query_applications(_ context.Context, f
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_applications_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
