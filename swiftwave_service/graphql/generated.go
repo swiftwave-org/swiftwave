@@ -122,6 +122,7 @@ type ComplexityRoot struct {
 	ApplicationGroup struct {
 		Applications func(childComplexity int) int
 		ID           func(childComplexity int) int
+		Logo         func(childComplexity int) int
 		Name         func(childComplexity int) int
 	}
 
@@ -1090,6 +1091,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ApplicationGroup.ID(childComplexity), true
+
+	case "ApplicationGroup.logo":
+		if e.complexity.ApplicationGroup.Logo == nil {
+			break
+		}
+
+		return e.complexity.ApplicationGroup.Logo(childComplexity), true
 
 	case "ApplicationGroup.name":
 		if e.complexity.ApplicationGroup.Name == nil {
@@ -7193,6 +7201,8 @@ func (ec *executionContext) fieldContext_Application_applicationGroup(_ context.
 				return ec.fieldContext_ApplicationGroup_id(ctx, field)
 			case "name":
 				return ec.fieldContext_ApplicationGroup_name(ctx, field)
+			case "logo":
+				return ec.fieldContext_ApplicationGroup_logo(ctx, field)
 			case "applications":
 				return ec.fieldContext_ApplicationGroup_applications(ctx, field)
 			}
@@ -7965,6 +7975,50 @@ func (ec *executionContext) _ApplicationGroup_name(ctx context.Context, field gr
 }
 
 func (ec *executionContext) fieldContext_ApplicationGroup_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationGroup_logo(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationGroup_logo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Logo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationGroup_logo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ApplicationGroup",
 		Field:      field,
@@ -14950,6 +15004,8 @@ func (ec *executionContext) fieldContext_Mutation_createApplicationGroup(ctx con
 				return ec.fieldContext_ApplicationGroup_id(ctx, field)
 			case "name":
 				return ec.fieldContext_ApplicationGroup_name(ctx, field)
+			case "logo":
+				return ec.fieldContext_ApplicationGroup_logo(ctx, field)
 			case "applications":
 				return ec.fieldContext_ApplicationGroup_applications(ctx, field)
 			}
@@ -20186,6 +20242,8 @@ func (ec *executionContext) fieldContext_Query_applicationGroups(_ context.Conte
 				return ec.fieldContext_ApplicationGroup_id(ctx, field)
 			case "name":
 				return ec.fieldContext_ApplicationGroup_name(ctx, field)
+			case "logo":
+				return ec.fieldContext_ApplicationGroup_logo(ctx, field)
 			case "applications":
 				return ec.fieldContext_ApplicationGroup_applications(ctx, field)
 			}
@@ -20238,6 +20296,8 @@ func (ec *executionContext) fieldContext_Query_applicationGroup(ctx context.Cont
 				return ec.fieldContext_ApplicationGroup_id(ctx, field)
 			case "name":
 				return ec.fieldContext_ApplicationGroup_name(ctx, field)
+			case "logo":
+				return ec.fieldContext_ApplicationGroup_logo(ctx, field)
 			case "applications":
 				return ec.fieldContext_ApplicationGroup_applications(ctx, field)
 			}
@@ -29889,6 +29949,11 @@ func (ec *executionContext) _ApplicationGroup(ctx context.Context, sel ast.Selec
 			}
 		case "name":
 			out.Values[i] = ec._ApplicationGroup_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "logo":
+			out.Values[i] = ec._ApplicationGroup_logo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

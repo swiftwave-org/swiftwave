@@ -190,7 +190,9 @@ func (r *mutationResolver) DeployStack(ctx context.Context, input model.StackInp
 	var applicationGroupID *string
 	if len(stackFilled.ServiceNames()) > 1 {
 		applicationGroup := &core.ApplicationGroup{
-			Name: stackName,
+			Name:         stackName,
+			Logo:         stackFilled.Docs.LogoURL,
+			StackContent: input.Content,
 		}
 		err = applicationGroup.Create(ctx, r.ServiceManager.DbClient)
 		if err != nil {

@@ -340,6 +340,7 @@ func applicationGroupInputToDatabaseObject(record *model.ApplicationGroupInput) 
 	return &core.ApplicationGroup{
 		ID:   uuid.UUIDv4(),
 		Name: record.Name,
+		Logo: "",
 	}
 }
 
@@ -348,6 +349,7 @@ func applicationGroupToGraphqlObject(record *core.ApplicationGroup) *model.Appli
 	return &model.ApplicationGroup{
 		ID:   record.ID,
 		Name: record.Name,
+		Logo: record.Logo,
 	}
 }
 
