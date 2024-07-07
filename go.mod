@@ -5,7 +5,7 @@ go 1.21.7
 require (
 	ariga.io/atlas-provider-gorm v0.5.0
 	github.com/99designs/gqlgen v0.17.48
-	github.com/aws/aws-sdk-go v1.54.11
+	github.com/aws/aws-sdk-go v1.54.14
 	github.com/dgryski/trifles v0.0.0-20200323201526-dd97f9abfb48
 	github.com/docker/docker v26.1.4+incompatible
 	github.com/fatih/color v1.17.0
@@ -27,7 +27,7 @@ require (
 	github.com/tredoe/osutil v1.5.0
 	github.com/vektah/gqlparser/v2 v2.5.16
 	github.com/xlzd/gotp v0.1.0
-	golang.org/x/term v0.21.0
+	golang.org/x/term v0.22.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.5.8
 	gorm.io/gorm v1.25.10
@@ -146,7 +146,7 @@ require (
 	golang.org/x/crypto v0.24.0
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/net v0.26.0
-	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 )
