@@ -30,7 +30,7 @@ require (
 	golang.org/x/term v0.22.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.5.9
-	gorm.io/gorm v1.25.10
+	gorm.io/gorm v1.25.11
 	gotest.tools/v3 v3.5.1
 )
 
