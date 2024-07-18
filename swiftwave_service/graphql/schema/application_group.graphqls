@@ -1,6 +1,7 @@
 type ApplicationGroup {
     id: String!
     name: String!
+    logo: String!
     applications: [Application!]!
 }
 

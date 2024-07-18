@@ -53,6 +53,7 @@ type ResolverRoot interface {
 	PersistentVolume() PersistentVolumeResolver
 	PersistentVolumeBinding() PersistentVolumeBindingResolver
 	Query() QueryResolver
+	RealtimeInfo() RealtimeInfoResolver
 	RedirectRule() RedirectRuleResolver
 	Server() ServerResolver
 	Subscription() SubscriptionResolver
@@ -121,6 +122,7 @@ type ComplexityRoot struct {
 	ApplicationGroup struct {
 		Applications func(childComplexity int) int
 		ID           func(childComplexity int) int
+		Logo         func(childComplexity int) int
 		Name         func(childComplexity int) int
 	}
 
@@ -430,7 +432,7 @@ type ComplexityRoot struct {
 		ApplicationGroup                   func(childComplexity int, id string) int
 		ApplicationGroups                  func(childComplexity int) int
 		ApplicationResourceAnalytics       func(childComplexity int, id string, timeframe model.ApplicationResourceAnalyticsTimeframe) int
-		Applications                       func(childComplexity int) int
+		Applications                       func(childComplexity int, includeGroupedApplications bool) int
 		AvailableDockerConfigs             func(childComplexity int) int
 		CheckGitCredentialRepositoryAccess func(childComplexity int, input model.GitCredentialRepositoryAccessInput) int
 		CurrentUser                        func(childComplexity int) int
@@ -474,6 +476,7 @@ type ComplexityRoot struct {
 	RealtimeInfo struct {
 		DeploymentMode  func(childComplexity int) int
 		DesiredReplicas func(childComplexity int) int
+		HealthStatus    func(childComplexity int) int
 		InfoFound       func(childComplexity int) int
 		RunningReplicas func(childComplexity int) int
 	}
@@ -710,7 +713,7 @@ type PersistentVolumeBindingResolver interface {
 type QueryResolver interface {
 	AppBasicAuthAccessControlLists(ctx context.Context) ([]*model.AppBasicAuthAccessControlList, error)
 	Application(ctx context.Context, id string) (*model.Application, error)
-	Applications(ctx context.Context) ([]*model.Application, error)
+	Applications(ctx context.Context, includeGroupedApplications bool) ([]*model.Application, error)
 	IsExistApplicationName(ctx context.Context, name string) (bool, error)
 	ApplicationResourceAnalytics(ctx context.Context, id string, timeframe model.ApplicationResourceAnalyticsTimeframe) ([]*model.ApplicationResourceAnalytics, error)
 	ApplicationGroups(ctx context.Context) ([]*model.ApplicationGroup, error)
@@ -752,6 +755,9 @@ type QueryResolver interface {
 	Users(ctx context.Context) ([]*model.User, error)
 	User(ctx context.Context, id uint) (*model.User, error)
 	CurrentUser(ctx context.Context) (*model.User, error)
+}
+type RealtimeInfoResolver interface {
+	HealthStatus(ctx context.Context, obj *model.RealtimeInfo) (model.HealthStatus, error)
 }
 type RedirectRuleResolver interface {
 	Domain(ctx context.Context, obj *model.RedirectRule) (*model.Domain, error)
@@ -1085,6 +1091,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ApplicationGroup.ID(childComplexity), true
+
+	case "ApplicationGroup.logo":
+		if e.complexity.ApplicationGroup.Logo == nil {
+			break
+		}
+
+		return e.complexity.ApplicationGroup.Logo(childComplexity), true
 
 	case "ApplicationGroup.name":
 		if e.complexity.ApplicationGroup.Name == nil {
@@ -3084,7 +3097,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Applications(childComplexity), true
+		args, err := ec.field_Query_applications_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Applications(childComplexity, args["includeGroupedApplications"].(bool)), true
 
 	case "Query.availableDockerConfigs":
 		if e.complexity.Query.AvailableDockerConfigs == nil {
@@ -3485,6 +3503,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RealtimeInfo.DesiredReplicas(childComplexity), true
+
+	case "RealtimeInfo.HealthStatus":
+		if e.complexity.RealtimeInfo.HealthStatus == nil {
+			break
+		}
+
+		return e.complexity.RealtimeInfo.HealthStatus(childComplexity), true
 
 	case "RealtimeInfo.InfoFound":
 		if e.complexity.RealtimeInfo.InfoFound == nil {
@@ -5338,6 +5363,21 @@ func (ec *executionContext) field_Query_application_args(ctx context.Context, ra
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_applications_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 bool
+	if tmp, ok := rawArgs["includeGroupedApplications"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeGroupedApplications"))
+		arg0, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["includeGroupedApplications"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_checkGitCredentialRepositoryAccess_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -6535,6 +6575,8 @@ func (ec *executionContext) fieldContext_Application_realtimeInfo(_ context.Cont
 				return ec.fieldContext_RealtimeInfo_RunningReplicas(ctx, field)
 			case "DeploymentMode":
 				return ec.fieldContext_RealtimeInfo_DeploymentMode(ctx, field)
+			case "HealthStatus":
+				return ec.fieldContext_RealtimeInfo_HealthStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RealtimeInfo", field.Name)
 		},
@@ -7159,6 +7201,8 @@ func (ec *executionContext) fieldContext_Application_applicationGroup(_ context.
 				return ec.fieldContext_ApplicationGroup_id(ctx, field)
 			case "name":
 				return ec.fieldContext_ApplicationGroup_name(ctx, field)
+			case "logo":
+				return ec.fieldContext_ApplicationGroup_logo(ctx, field)
 			case "applications":
 				return ec.fieldContext_ApplicationGroup_applications(ctx, field)
 			}
@@ -7931,6 +7975,50 @@ func (ec *executionContext) _ApplicationGroup_name(ctx context.Context, field gr
 }
 
 func (ec *executionContext) fieldContext_ApplicationGroup_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplicationGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplicationGroup_logo(ctx context.Context, field graphql.CollectedField, obj *model.ApplicationGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplicationGroup_logo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Logo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplicationGroup_logo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ApplicationGroup",
 		Field:      field,
@@ -14916,6 +15004,8 @@ func (ec *executionContext) fieldContext_Mutation_createApplicationGroup(ctx con
 				return ec.fieldContext_ApplicationGroup_id(ctx, field)
 			case "name":
 				return ec.fieldContext_ApplicationGroup_name(ctx, field)
+			case "logo":
+				return ec.fieldContext_ApplicationGroup_logo(ctx, field)
 			case "applications":
 				return ec.fieldContext_ApplicationGroup_applications(ctx, field)
 			}
@@ -19884,7 +19974,7 @@ func (ec *executionContext) _Query_applications(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Applications(rctx)
+		return ec.resolvers.Query().Applications(rctx, fc.Args["includeGroupedApplications"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19901,7 +19991,7 @@ func (ec *executionContext) _Query_applications(ctx context.Context, field graph
 	return ec.marshalNApplication2ᚕᚖgithubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐApplicationᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_applications(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_applications(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -19962,6 +20052,17 @@ func (ec *executionContext) fieldContext_Query_applications(_ context.Context, f
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_applications_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -20141,6 +20242,8 @@ func (ec *executionContext) fieldContext_Query_applicationGroups(_ context.Conte
 				return ec.fieldContext_ApplicationGroup_id(ctx, field)
 			case "name":
 				return ec.fieldContext_ApplicationGroup_name(ctx, field)
+			case "logo":
+				return ec.fieldContext_ApplicationGroup_logo(ctx, field)
 			case "applications":
 				return ec.fieldContext_ApplicationGroup_applications(ctx, field)
 			}
@@ -20193,6 +20296,8 @@ func (ec *executionContext) fieldContext_Query_applicationGroup(ctx context.Cont
 				return ec.fieldContext_ApplicationGroup_id(ctx, field)
 			case "name":
 				return ec.fieldContext_ApplicationGroup_name(ctx, field)
+			case "logo":
+				return ec.fieldContext_ApplicationGroup_logo(ctx, field)
 			case "applications":
 				return ec.fieldContext_ApplicationGroup_applications(ctx, field)
 			}
@@ -22829,6 +22934,50 @@ func (ec *executionContext) fieldContext_RealtimeInfo_DeploymentMode(_ context.C
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type DeploymentMode does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RealtimeInfo_HealthStatus(ctx context.Context, field graphql.CollectedField, obj *model.RealtimeInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RealtimeInfo_HealthStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.RealtimeInfo().HealthStatus(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.HealthStatus)
+	fc.Result = res
+	return ec.marshalNHealthStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐHealthStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RealtimeInfo_HealthStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RealtimeInfo",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type HealthStatus does not have child fields")
 		},
 	}
 	return fc, nil
@@ -29803,6 +29952,11 @@ func (ec *executionContext) _ApplicationGroup(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "logo":
+			out.Values[i] = ec._ApplicationGroup_logo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "applications":
 			field := field
 
@@ -33445,23 +33599,59 @@ func (ec *executionContext) _RealtimeInfo(ctx context.Context, sel ast.Selection
 		case "InfoFound":
 			out.Values[i] = ec._RealtimeInfo_InfoFound(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "DesiredReplicas":
 			out.Values[i] = ec._RealtimeInfo_DesiredReplicas(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "RunningReplicas":
 			out.Values[i] = ec._RealtimeInfo_RunningReplicas(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "DeploymentMode":
 			out.Values[i] = ec._RealtimeInfo_DeploymentMode(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "HealthStatus":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RealtimeInfo_HealthStatus(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -35645,6 +35835,16 @@ func (ec *executionContext) unmarshalNGitType2githubᚗcomᚋswiftwaveᚑorgᚋs
 }
 
 func (ec *executionContext) marshalNGitType2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐGitType(ctx context.Context, sel ast.SelectionSet, v model.GitType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNHealthStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐHealthStatus(ctx context.Context, v interface{}) (model.HealthStatus, error) {
+	var res model.HealthStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNHealthStatus2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐHealthStatus(ctx context.Context, sel ast.SelectionSet, v model.HealthStatus) graphql.Marshaler {
 	return v
 }
 

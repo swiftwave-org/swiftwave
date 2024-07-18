@@ -88,6 +88,7 @@ type ApplicationDeployResult struct {
 type ApplicationGroup struct {
 	ID           string         `json:"id"`
 	Name         string         `json:"name"`
+	Logo         string         `json:"logo"`
 	Applications []*Application `json:"applications"`
 }
 
@@ -518,6 +519,7 @@ type RealtimeInfo struct {
 	DesiredReplicas int            `json:"DesiredReplicas"`
 	RunningReplicas int            `json:"RunningReplicas"`
 	DeploymentMode  DeploymentMode `json:"DeploymentMode"`
+	HealthStatus    HealthStatus   `json:"HealthStatus"`
 }
 
 type RedirectRule struct {
@@ -967,6 +969,49 @@ func (e *GitType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e GitType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type HealthStatus string
+
+const (
+	HealthStatusHealthy   HealthStatus = "healthy"
+	HealthStatusUnhealthy HealthStatus = "unhealthy"
+	HealthStatusUnknown   HealthStatus = "unknown"
+)
+
+var AllHealthStatus = []HealthStatus{
+	HealthStatusHealthy,
+	HealthStatusUnhealthy,
+	HealthStatusUnknown,
+}
+
+func (e HealthStatus) IsValid() bool {
+	switch e {
+	case HealthStatusHealthy, HealthStatusUnhealthy, HealthStatusUnknown:
+		return true
+	}
+	return false
+}
+
+func (e HealthStatus) String() string {
+	return string(e)
+}
+
+func (e *HealthStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = HealthStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid HealthStatus", str)
+	}
+	return nil
+}
+
+func (e HealthStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
