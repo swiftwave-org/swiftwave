@@ -6,8 +6,6 @@ package graphql
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
@@ -67,7 +65,12 @@ func (r *queryResolver) ApplicationGroups(ctx context.Context) ([]*model.Applica
 
 // ApplicationGroup is the resolver for the applicationGroup field.
 func (r *queryResolver) ApplicationGroup(ctx context.Context, id string) (*model.ApplicationGroup, error) {
-	panic(fmt.Errorf("not implemented: ApplicationGroup - applicationGroup"))
+	var record = &core.ApplicationGroup{}
+	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	if err != nil {
+		return nil, err
+	}
+	return applicationGroupToGraphqlObject(record), nil
 }
 
 // ApplicationGroup returns ApplicationGroupResolver implementation.

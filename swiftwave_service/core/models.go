@@ -211,10 +211,12 @@ type ConfigMount struct {
 	FileMode      uint   `json:"file_mode" gorm:"default:444"`
 }
 
-// ApplicationGroup hold information about application group
+// ApplicationGroup hold information about application-group
 type ApplicationGroup struct {
 	ID           string        `json:"id" gorm:"primaryKey"`
-	Name         string        `json:"name" gorm:"unique"`
+	Name         string        `json:"name"`
+	Logo         string        `json:"logo"`
+	StackContent string        `json:"stack_content"`
 	Applications []Application `json:"applications" gorm:"foreignKey:ApplicationGroupID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 

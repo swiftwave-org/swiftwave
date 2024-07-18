@@ -48,11 +48,10 @@ type CustomHealthCheck struct {
 }
 
 type ServiceRealtimeInfo struct {
-	Name              string                     `json:"name"`
-	PlacementInfos    []ServiceTaskPlacementInfo `json:"placementinfos"`
-	DesiredReplicas   int                        `json:"desiredreplicas"`
-	RunningReplicas   int                        `json:"runningreplicas"`
-	ReplicatedService bool                       `json:"replicatedservice"`
+	Name              string `json:"name"`
+	DesiredReplicas   int    `json:"desiredreplicas"`
+	RunningReplicas   int    `json:"runningreplicas"`
+	ReplicatedService bool   `json:"replicatedservice"`
 }
 
 type ServiceTaskPlacementInfo struct {

@@ -255,140 +255,24 @@ func (m Manager) SetServiceReplicaCount(serviceName string, replicas int) error 
 	}
 }
 
-func (m Manager) RealtimeInfoRunningServices() (map[string]ServiceRealtimeInfo, error) {
-	// fetch all nodes and store in map > nodeID:nodeDetails
-	nodes, err := m.client.NodeList(m.ctx, types.NodeListOptions{})
-	if err != nil {
-		return nil, errors.New("error getting node list")
-	}
-	nodeMap := make(map[string]swarm.Node)
-	for _, node := range nodes {
-		nodeMap[node.ID] = node
-	}
-	// fetch all services and store in map > serviceName:serviceDetails
-	services, err := m.client.ServiceList(m.ctx, types.ServiceListOptions{})
-	if err != nil {
-		return nil, errors.New("error getting service list")
-	}
-	// create map of service name to service realtime info
-	serviceRealtimeInfoMap := make(map[string]ServiceRealtimeInfo)
-	// analyze each service
-	for _, service := range services {
-		runningCount := 0
-
-		// inspect service to get desired count
-		serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, service.ID, types.ServiceInspectOptions{})
-		if err != nil {
-			continue
-		}
-		// create service realtime info
-		serviceRealtimeInfo := ServiceRealtimeInfo{}
-		serviceRealtimeInfo.Name = serviceData.Spec.Name
-		serviceRealtimeInfo.PlacementInfos = []ServiceTaskPlacementInfo{}
-		// set desired count
-		if serviceData.Spec.Mode.Replicated != nil {
-			serviceRealtimeInfo.DesiredReplicas = int(*serviceData.Spec.Mode.Replicated.Replicas)
-			serviceRealtimeInfo.ReplicatedService = true
-		} else {
-			serviceRealtimeInfo.DesiredReplicas = -1
-			serviceRealtimeInfo.ReplicatedService = false
-		}
-
-		// query task list
-		tasks, err := m.client.TaskList(m.ctx, types.TaskListOptions{
-			Filters: filters.NewArgs(
-				filters.Arg("service", serviceData.Spec.Name),
-			),
-		})
-		if err != nil {
-			continue
-		}
-		servicePlacementCountMap := make(map[string]int) // nodeID:count
-		// set placement infos > how many replicas are running in each node
-		for _, task := range tasks {
-			if task.Status.State == swarm.TaskStateRunning {
-				servicePlacementCountMap[task.NodeID]++
-			}
-		}
-		for nodeID, count := range servicePlacementCountMap {
-			node := nodeMap[nodeID]
-			serviceRealtimeInfo.PlacementInfos = append(serviceRealtimeInfo.PlacementInfos, ServiceTaskPlacementInfo{
-				NodeID:          nodeID,
-				NodeName:        node.Description.Hostname,
-				IsManagerNode:   node.Spec.Role != swarm.NodeRoleManager,
-				RunningReplicas: count,
-			})
-			runningCount += count
-		}
-		// set service realtime info in map
-		serviceRealtimeInfo.RunningReplicas = runningCount
-		serviceRealtimeInfoMap[serviceRealtimeInfo.Name] = serviceRealtimeInfo
-	}
-	return serviceRealtimeInfoMap, nil
-}
-
-func (m Manager) RealtimeInfoService(serviceName string, ignoreNodeDetails bool) (ServiceRealtimeInfo, error) {
-	runningCount := 0
-	serviceRealtimeInfo := ServiceRealtimeInfo{}
-	// fetch all nodes and store in map > nodeID:nodeDetails
-	nodeMap := make(map[string]swarm.Node)
-	if !ignoreNodeDetails {
-		nodes, err := m.client.NodeList(m.ctx, types.NodeListOptions{})
-		if err != nil {
-			return serviceRealtimeInfo, errors.New("error getting node list")
-		}
-		for _, node := range nodes {
-			nodeMap[node.ID] = node
-		}
-	}
-	// inspect service to get desired count
-	serviceData, _, err := m.client.ServiceInspectWithRaw(m.ctx, serviceName, types.ServiceInspectOptions{})
-	if err != nil {
-		return serviceRealtimeInfo, errors.New("error getting service")
-	}
-	// create service realtime info
-	serviceRealtimeInfo.Name = serviceData.Spec.Name
-	serviceRealtimeInfo.PlacementInfos = []ServiceTaskPlacementInfo{}
-	// set desired count
-	if serviceData.Spec.Mode.Replicated != nil {
-		serviceRealtimeInfo.DesiredReplicas = int(*serviceData.Spec.Mode.Replicated.Replicas)
-		serviceRealtimeInfo.ReplicatedService = true
-	} else {
-		serviceRealtimeInfo.DesiredReplicas = -1
-		serviceRealtimeInfo.ReplicatedService = false
-	}
-
+func (m Manager) NoOfRunningTasks(serviceName string) (int, error) {
 	// query task list
 	tasks, err := m.client.TaskList(m.ctx, types.TaskListOptions{
 		Filters: filters.NewArgs(
-			filters.Arg("service", serviceData.Spec.Name),
+			filters.Arg("service", serviceName),
 		),
 	})
 	if err != nil {
-		return serviceRealtimeInfo, err
+		return 0, err
 	}
-	servicePlacementCountMap := make(map[string]int) // nodeID:count
+	runningCount := 0
 	// set placement infos > how many replicas are running in each node
 	for _, task := range tasks {
 		if task.Status.State == swarm.TaskStateRunning {
-			servicePlacementCountMap[task.NodeID]++
+			runningCount++
 		}
 	}
-	for nodeID, count := range servicePlacementCountMap {
-		if !ignoreNodeDetails {
-			node := nodeMap[nodeID]
-			serviceRealtimeInfo.PlacementInfos = append(serviceRealtimeInfo.PlacementInfos, ServiceTaskPlacementInfo{
-				NodeID:          nodeID,
-				NodeName:        node.Description.Hostname,
-				IsManagerNode:   node.Spec.Role != swarm.NodeRoleManager,
-				RunningReplicas: count,
-			})
-		}
-		runningCount += count
-	}
-	// set service realtime info in map
-	serviceRealtimeInfo.RunningReplicas = runningCount
-	return serviceRealtimeInfo, nil
+	return runningCount, nil
 }
 
 // ServiceRunningServers Fetch the servers where a service is running
