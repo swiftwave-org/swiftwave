@@ -42,9 +42,14 @@ func IsExistApplicationName(_ context.Context, db gorm.DB, dockerManager contain
 	return false, nil
 }
 
-func FindAllApplications(_ context.Context, db gorm.DB) ([]*Application, error) {
+func FindAllApplications(_ context.Context, db gorm.DB, includeGroupedApplications bool) ([]*Application, error) {
 	var applications []*Application
-	tx := db.Find(&applications)
+	var tx *gorm.DB
+	if includeGroupedApplications {
+		tx = db.Find(&applications)
+	} else {
+		tx = db.Where("application_group_id IS NULL").Find(&applications)
+	}
 	return applications, tx.Error
 }
 

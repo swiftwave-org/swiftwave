@@ -60,6 +60,10 @@ models:
         resolver: true
       applicationGroup:
         resolver: true
+  RealtimeInfo:
+    fields:
+      HealthStatus:
+        resolver: true
   ApplicationGroup:
     fields:
       applications:

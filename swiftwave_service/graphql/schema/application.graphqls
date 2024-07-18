@@ -13,11 +13,18 @@ enum ApplicationResourceAnalyticsTimeframe {
     last_30_days
 }
 
+enum HealthStatus {
+    healthy
+    unhealthy
+    unknown
+}
+
 type RealtimeInfo {
     InfoFound: Boolean!
     DesiredReplicas: Int!
     RunningReplicas: Int!
     DeploymentMode: DeploymentMode!
+    HealthStatus: HealthStatus!
 }
 
 type ResourceLimit {
@@ -110,7 +117,7 @@ input ApplicationInput {
 
 extend type Query {
     application(id: String!): Application!
-    applications: [Application!]!
+    applications(includeGroupedApplications: Boolean!): [Application!]!
     isExistApplicationName(name: String!): Boolean!
     applicationResourceAnalytics(id: String!, timeframe: ApplicationResourceAnalyticsTimeframe!): [ApplicationResourceAnalytics!]!
 }
