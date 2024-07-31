@@ -2,17 +2,18 @@ package gitmanager
 
 import (
 	"errors"
+	"os"
+	"sort"
+	"strings"
+
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
-	cryptoSSH "golang.org/x/crypto/ssh"
 	"github.com/go-git/go-git/v5/storage/memory"
-	"os"
-	"sort"
-	"strings"
+	cryptoSSH "golang.org/x/crypto/ssh"
 )
 
 func FetchLatestCommitHash(gitUrl string, branch string, username string, password string, privateKey string) (string, error) {
