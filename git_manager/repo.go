@@ -2,6 +2,10 @@ package gitmanager
 
 import (
 	"errors"
+	"os"
+	"sort"
+	"strings"
+
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -9,9 +13,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/go-git/go-git/v5/storage/memory"
-	"os"
-	"sort"
-	"strings"
+	cryptoSSH "golang.org/x/crypto/ssh"
 )
 
 func FetchLatestCommitHash(gitUrl string, branch string, username string, password string, privateKey string) (string, error) {
@@ -146,6 +148,7 @@ func getAuthMethod(repoInfo *GitRepoInfo, username string, password string, priv
 			if err != nil {
 				return nil, err
 			}
+			privateKeyAuth.HostKeyCallback = cryptoSSH.InsecureIgnoreHostKey()
 			auth = privateKeyAuth
 		} else {
 			if isGitSSHAgentForwardingEnabled() {
@@ -153,6 +156,7 @@ func getAuthMethod(repoInfo *GitRepoInfo, username string, password string, priv
 				if err != nil {
 					return nil, err
 				}
+				sshAgentAuth.HostKeyCallback = cryptoSSH.InsecureIgnoreHostKey()
 				auth = sshAgentAuth
 			} else {
 				return nil, errors.New("please setup SSH Agent Forwarding in your server SSH config for git authentication. You can use integrated authentication mechanisms by providing a ssh git credential")
