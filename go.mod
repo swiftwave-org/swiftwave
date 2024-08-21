@@ -7,7 +7,7 @@ require (
 	github.com/99designs/gqlgen v0.17.48
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/dgryski/trifles v0.0.0-20200323201526-dd97f9abfb48
-	github.com/docker/docker v27.0.3+incompatible
+	github.com/docker/docker v27.1.1+incompatible
 	github.com/fatih/color v1.17.0
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/go-redis/redis/v8 v8.11.5
@@ -23,7 +23,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
-	github.com/testcontainers/testcontainers-go v0.32.0
+	github.com/testcontainers/testcontainers-go v0.33.0
 	github.com/tredoe/osutil v1.5.0
 	github.com/vektah/gqlparser/v2 v2.5.16
 	github.com/xlzd/gotp v0.1.0
@@ -65,11 +65,10 @@ require (
 require (
 	ariga.io/atlas-go-sdk v0.2.3 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
-	github.com/Microsoft/hcsshim v0.11.5 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/containerd/containerd v1.7.18 // indirect
-	github.com/containerd/errdefs v0.1.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
+	github.com/containerd/platforms v0.2.1 // indirect
 	github.com/cpuguy83/dockercfg v0.3.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
@@ -81,7 +80,6 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -114,9 +112,8 @@ require (
 	go.opentelemetry.io/otel/metric v1.24.0 // indirect
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20231030173426-d783a09b4405 // indirect
-	google.golang.org/grpc v1.59.0 // indirect
-	google.golang.org/protobuf v1.34.1 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gorm.io/driver/mysql v1.5.1 // indirect
 	gorm.io/driver/sqlite v1.5.2 // indirect
