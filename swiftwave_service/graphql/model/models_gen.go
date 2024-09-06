@@ -51,6 +51,7 @@ type Application struct {
 	WebhookToken             string                        `json:"webhookToken"`
 	IsSleeping               bool                          `json:"isSleeping"`
 	Command                  string                        `json:"command"`
+	Hostname                 string                        `json:"hostname"`
 	ApplicationGroupID       *string                       `json:"applicationGroupID,omitempty"`
 	ApplicationGroup         *ApplicationGroup             `json:"applicationGroup,omitempty"`
 	PreferredServerHostnames []string                      `json:"preferredServerHostnames"`
@@ -117,6 +118,7 @@ type ApplicationInput struct {
 	CodePath                     *string                            `json:"codePath,omitempty"`
 	SourceCodeCompressedFileName *string                            `json:"sourceCodeCompressedFileName,omitempty"`
 	DockerImage                  *string                            `json:"dockerImage,omitempty"`
+	Hostname                     string                             `json:"hostname"`
 	ImageRegistryCredentialID    *uint                              `json:"imageRegistryCredentialID,omitempty"`
 	ApplicationGroupID           *string                            `json:"applicationGroupID,omitempty"`
 	PreferredServerHostnames     []string                           `json:"preferredServerHostnames"`

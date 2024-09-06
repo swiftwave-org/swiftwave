@@ -224,6 +224,7 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 	service := containermanger.Service{
 		Name:                 application.Name,
 		Image:                dockerImageUri,
+		Hostname:             application.Hostname,
 		Command:              command,
 		Env:                  environmentVariablesMap,
 		Networks:             []string{m.Config.SystemConfig.NetworkName},
