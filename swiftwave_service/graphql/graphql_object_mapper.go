@@ -755,6 +755,7 @@ func stackToApplicationsInput(applicationGroupID *string, record *stack_parser.S
 			CodePath:                     nil,
 			SourceCodeCompressedFileName: nil,
 			ApplicationGroupID:           applicationGroupID,
+			Hostname:                     service.Hostname,
 			Command:                      command,
 			CustomHealthCheck: &model.ApplicationCustomHealthCheckInput{
 				Enabled:              service.CustomHealthCheck.Enabled,

@@ -152,6 +152,7 @@ type Service struct {
 	Environment              KeyValuePair      `yaml:"environment"`
 	CapAdd                   []string          `yaml:"cap_add"`
 	Sysctls                  KeyValuePair      `yaml:"sysctls"`
+	Hostname                 string            `yaml:"hostname"`
 	Command                  Command           `yaml:"command"`
 	Configs                  []Config          `yaml:"configs"`
 	CustomHealthCheck        CustomHealthCheck `yaml:"custom_health_check"`
