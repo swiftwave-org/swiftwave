@@ -21,6 +21,7 @@ const (
 type Service struct {
 	Name                 string            `json:"name"`
 	Image                string            `json:"image"`
+	Hostname             string            `json:"hostname,omitempty"`
 	Command              []string          `json:"command,omitempty"`
 	Env                  map[string]string `json:"env,omitempty"`
 	Capabilities         []string          `json:"capabilities,omitempty"`
