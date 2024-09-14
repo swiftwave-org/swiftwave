@@ -26,6 +26,7 @@ func (m Manager) GetService(serviceName string) (Service, error) {
 	service := Service{
 		Name:     serviceData.Spec.Name,
 		Image:    serviceData.Spec.TaskTemplate.ContainerSpec.Image,
+		Hostname: serviceData.Spec.TaskTemplate.ContainerSpec.Hostname,
 		Command:  serviceData.Spec.TaskTemplate.ContainerSpec.Command,
 		Env:      make(map[string]string),
 		Networks: []string{},
@@ -456,11 +457,12 @@ func (m Manager) serviceToServiceSpec(service Service) (swarm.ServiceSpec, error
 		TaskTemplate: swarm.TaskSpec{
 			// Set container spec
 			ContainerSpec: &swarm.ContainerSpec{
-				Image:   service.Image,
-				Command: service.Command,
-				Env:     env,
-				Mounts:  volumeMounts,
-				Configs: configs,
+				Image:    service.Image,
+				Command:  service.Command,
+				Hostname: service.Hostname,
+				Env:      env,
+				Mounts:   volumeMounts,
+				Configs:  configs,
 				Privileges: &swarm.Privileges{
 					NoNewPrivileges: true,
 					AppArmor: &swarm.AppArmorOpts{
