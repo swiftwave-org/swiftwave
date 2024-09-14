@@ -166,6 +166,7 @@ func (application *Application) Create(ctx context.Context, db gorm.DB, dockerMa
 		DeploymentMode:           application.DeploymentMode,
 		Replicas:                 application.Replicas,
 		WebhookToken:             uuid.NewString(),
+		Hostname:                 application.Hostname,
 		Command:                  application.Command,
 		Capabilities:             application.Capabilities,
 		Sysctls:                  application.Sysctls,
@@ -356,6 +357,16 @@ func (application *Application) Update(ctx context.Context, db gorm.DB, _ contai
 	if applicationExistingFull.Command != application.Command {
 		// update command
 		err = db.Model(&applicationExistingFull).Update("command", application.Command).Error
+		if err != nil {
+			return nil, err
+		}
+		// reload application
+		isReloadRequired = true
+	}
+	// check if Hostname is changed
+	if strings.Compare(applicationExistingFull.Hostname, application.Hostname) != 0 {
+		// update Hostnamee
+		err = db.Model(&applicationExistingFull).Update("hostname", application.Hostname).Error
 		if err != nil {
 			return nil, err
 		}
