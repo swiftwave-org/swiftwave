@@ -226,6 +226,8 @@ type Application struct {
 	Name string `json:"name" gorm:"unique"`
 	// ApplicationGroupID - if set, this application will be part of the application group
 	ApplicationGroupID *string `json:"application_group_id"`
+	// Hostname - hostname of the container, can be blank
+	Hostname string `json:"hostname"`
 	// Environment Variables
 	// On change of environment variables, deployment will be triggered by force update
 	EnvironmentVariables []EnvironmentVariable `json:"environment_variables" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
