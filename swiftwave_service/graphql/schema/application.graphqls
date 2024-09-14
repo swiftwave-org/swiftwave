@@ -55,6 +55,7 @@ type Application {
     webhookToken: String!
     isSleeping: Boolean!
     command: String!
+    hostname: String!
     applicationGroupID: String
     applicationGroup: ApplicationGroup
     preferredServerHostnames: [String!]!
@@ -108,6 +109,7 @@ input ApplicationInput {
     sourceCodeCompressedFileName: String
     # required for upstreamType = "Image"
     dockerImage: String
+    hostname: String!
     imageRegistryCredentialID: Uint
     applicationGroupID: String
     preferredServerHostnames: [String!]!
