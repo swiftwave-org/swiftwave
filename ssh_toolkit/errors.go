@@ -25,7 +25,7 @@ var errorsWhenSSHClientNeedToBeRecreated = []string{
 	"subsystem request failed",
 	"EOF",
 	"broken pipe",
-	"closing write end of pipe"
+	"closing write end of pipe",
 }
 
 func isErrorWhenSSHClientNeedToBeRecreated(err error) bool {
