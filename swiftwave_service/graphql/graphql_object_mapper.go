@@ -56,7 +56,7 @@ func gitCredentialInputToDatabaseObject(record *model.GitCredentialInput, create
 					sshPrivateKey = string(privateKeyPem) + "\n"
 					publicKey, err := ssh.NewPublicKey(pub)
 					if err == nil {
-						sshPublicKey = "ssh-ed25519" + " " + base64.StdEncoding.EncodeToString(publicKey.Marshal()) + " swiftwave"
+						sshPublicKey = "ssh-ed25519 " + base64.StdEncoding.EncodeToString(publicKey.Marshal()) + " swiftwave"
 					}
 				}
 			}
@@ -68,8 +68,13 @@ func gitCredentialInputToDatabaseObject(record *model.GitCredentialInput, create
 			}
 			p, err := ssh.ParsePrivateKey([]byte(sshPrivateKey))
 			if err == nil {
-				if p.PublicKey().Type() == ssh.KeyAlgoED25519 {
-					sshPublicKey = "ssh-ed25519" + " " + base64.StdEncoding.EncodeToString(p.PublicKey().Marshal()) + " swiftwave"
+				if p.PublicKey().Type() == ssh.KeyAlgoRSA ||
+					p.PublicKey().Type() == ssh.KeyAlgoDSA ||
+					p.PublicKey().Type() == ssh.KeyAlgoECDSA256 || p.PublicKey().Type() == ssh.KeyAlgoECDSA384 || p.PublicKey().Type() == ssh.KeyAlgoECDSA521 ||
+					p.PublicKey().Type() == ssh.KeyAlgoSKECDSA256 ||
+					p.PublicKey().Type() == ssh.KeyAlgoED25519 ||
+					p.PublicKey().Type() == ssh.KeyAlgoSKED25519 {
+					sshPublicKey = p.PublicKey().Type() + " " + base64.StdEncoding.EncodeToString(p.PublicKey().Marshal()) + " swiftwave"
 				}
 			}
 		}
