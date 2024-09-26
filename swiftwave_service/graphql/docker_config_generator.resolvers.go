@@ -26,7 +26,7 @@ func (r *queryResolver) DockerConfigGenerator(ctx context.Context, input model.D
 		filename = filepath.Join(r.Config.LocalConfig.ServiceConfig.TarballDirectoryPath, filename)
 		config, err := r.ServiceManager.DockerConfigGenerator.GenerateConfigFromSourceCodeTar(filename)
 		if err != nil {
-			return nil, errors.New("failed to generate docker config from source code")
+			return nil, errors.New("failed to generate docker config from source code\nerror : " + err.Error())
 		}
 		return &model.DockerConfigGeneratorOutput{
 			DockerFile:          &config.DockerFile,
@@ -59,7 +59,7 @@ func (r *queryResolver) DockerConfigGenerator(ctx context.Context, input model.D
 		}
 		config, err := r.ServiceManager.DockerConfigGenerator.GenerateConfigFromGitRepository(repoInfo.URL(), *input.RepositoryBranch, *input.CodePath, gitUsername, gitPassword, gitPrivateKey)
 		if err != nil {
-			return nil, errors.New("failed to generate docker config from git repository")
+			return nil, errors.New("failed to generate docker config from git repository\nerror : " + err.Error())
 		}
 		return &model.DockerConfigGeneratorOutput{
 			DockerFile:          &config.DockerFile,
@@ -75,7 +75,7 @@ func (r *queryResolver) DockerConfigGenerator(ctx context.Context, input model.D
 		dockerfile = strings.ReplaceAll(dockerfile, "\\n", "\r\n")
 		config, err := r.ServiceManager.DockerConfigGenerator.GenerateConfigFromCustomDocker(dockerfile)
 		if err != nil {
-			return nil, errors.New("failed to generate docker config from custom docker file")
+			return nil, errors.New("failed to generate docker config from custom docker file\nerror : " + err.Error())
 		}
 		return &model.DockerConfigGeneratorOutput{
 			DockerFile:          &config.DockerFile,
