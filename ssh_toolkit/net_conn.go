@@ -12,7 +12,7 @@ func NetConnOverSSH(
 	host string, port int, user string, privateKey string, // for ssh client
 ) (net.Conn, error) {
 	// fetch ssh client
-	sshRecord, err := getSSHClient(host, port, user, privateKey)
+	sshRecord, err := getSSHClientWithOptions(host, port, user, privateKey, true)
 	if err != nil {
 		if isErrorWhenSSHClientNeedToBeRecreated(err) {
 			DeleteSSHClient(host)

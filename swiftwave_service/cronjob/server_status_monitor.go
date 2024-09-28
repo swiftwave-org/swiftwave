@@ -15,6 +15,7 @@ func (m Manager) MonitorServerStatus() {
 	logger.CronJobLogger.Println("Starting server status monitor [cronjob]")
 	for {
 		m.monitorServerStatus()
+		time.Sleep(2 * time.Second)
 	}
 }
 
@@ -84,7 +85,7 @@ func (m Manager) isServerOnline(server core.Server) bool {
 		cmd := "echo ok"
 		stdoutBuf := new(bytes.Buffer)
 		stderrBuf := new(bytes.Buffer)
-		err := ssh_toolkit.ExecCommandOverSSH(cmd, stdoutBuf, stderrBuf, 3, server.IP, server.SSHPort, server.User, m.Config.SystemConfig.SshPrivateKey)
+		err := ssh_toolkit.ExecCommandOverSSHWithOptions(cmd, stdoutBuf, stderrBuf, 3, server.IP, server.SSHPort, server.User, m.Config.SystemConfig.SshPrivateKey, false)
 		if err != nil {
 			logger.CronJobLoggerError.Println("Error while checking if server is online", server.HostName, err.Error())
 			time.Sleep(1 * time.Second)

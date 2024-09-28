@@ -15,8 +15,16 @@ func ExecCommandOverSSH(cmd string,
 	stdoutBuf, stderrBuf *bytes.Buffer, sessionTimeoutSeconds int, // for target task
 	host string, port int, user string, privateKey string, // for ssh client
 ) error {
+	return ExecCommandOverSSHWithOptions(cmd, stdoutBuf, stderrBuf, sessionTimeoutSeconds, host, port, user, privateKey, true)
+}
+
+func ExecCommandOverSSHWithOptions(cmd string,
+	stdoutBuf, stderrBuf *bytes.Buffer, sessionTimeoutSeconds int, // for target task
+	host string, port int, user string, privateKey string, // for ssh client
+	validate bool, // if true, will validate if server is online
+) error {
 	// fetch ssh client
-	sshRecord, err := getSSHClient(host, port, user, privateKey)
+	sshRecord, err := getSSHClientWithOptions(host, port, user, privateKey, validate)
 	if err != nil {
 		if isErrorWhenSSHClientNeedToBeRecreated(err) {
 			DeleteSSHClient(host)
