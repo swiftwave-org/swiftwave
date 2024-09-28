@@ -3,18 +3,20 @@ package swiftwave
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/http"
+	"strings"
+
 	"github.com/fatih/color"
 	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
+	"github.com/swiftwave-org/swiftwave/ssh_toolkit"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/console"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/dashboard"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
-	"log"
-	"net/http"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -31,6 +33,15 @@ func StartSwiftwave(config *config.Config) {
 		CancelImageBuildTopic: "cancel_image_build",
 	}
 	manager.Load(*config)
+
+	// Set the server status validator for ssh
+	ssh_toolkit.SetValidator(func(host string) bool {
+		server, err := core.FetchServerByIP(&manager.DbClient, host)
+		if err != nil {
+			return false
+		}
+		return server.Status != core.ServerOffline
+	})
 
 	// Create pubsub default topics
 	err := manager.PubSubClient.CreateTopic(manager.CancelImageBuildTopic)
@@ -50,7 +61,7 @@ func StartSwiftwave(config *config.Config) {
 	cronjobManager.Start(true)
 
 	// create a channel to block the main thread
-	var waitForever chan struct{}
+	waitForever := make(chan struct{})
 
 	// StartSwiftwave the swift wave server
 	go StartServer(config, manager, workerManager)
