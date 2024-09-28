@@ -102,7 +102,7 @@ func DeleteSSHClient(host string) {
 			}
 		}
 		clientEntry.mutex.Unlock()
+		delete(sshClientPool.clients, host)
 	}
-	delete(sshClientPool.clients, host)
 	sshClientPool.mutex.Unlock()
 }

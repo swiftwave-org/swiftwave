@@ -51,12 +51,13 @@ func ExecCommandOverSSH(cmd string,
 	if err != nil {
 		if isErrorWhenSSHClientNeedToBeRecreated(err) {
 			DeleteSSHClient(host)
-		}
-		if isErrorWhenSSHClientNeedToBeRecreated(errors.New(stderrBuf.String())) {
-			DeleteSSHClient(host)
 			return fmt.Errorf("%s - %s", err, stderrBuf.String())
 		}
 		return err
+	}
+	if isErrorWhenSSHClientNeedToBeRecreated(errors.New(stderrBuf.String())) {
+		DeleteSSHClient(host)
+		return fmt.Errorf("%s - %s", err, stderrBuf.String())
 	}
 	return nil
 }
