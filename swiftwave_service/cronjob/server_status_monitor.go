@@ -48,9 +48,6 @@ func (m Manager) monitorServerStatus() {
 }
 
 func (m Manager) checkAndUpdateServerStatus(server core.Server) {
-	if server.Status == core.ServerOffline {
-		ssh_toolkit.DeleteSSHClient(server.HostName)
-	}
 	if m.isServerOnline(server) {
 		err := core.MarkServerAsOnline(&m.ServiceManager.DbClient, &server)
 		if err != nil {
