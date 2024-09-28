@@ -1,6 +1,7 @@
 package ssh_toolkit
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -13,12 +14,23 @@ var sshClientPool *sshConnectionPool
 
 func init() {
 	sshClientPool = &sshConnectionPool{
-		clients: make(map[string]*sshClient),
-		mutex:   &sync.RWMutex{},
+		clients:   make(map[string]*sshClient),
+		mutex:     &sync.RWMutex{},
+		validator: nil,
 	}
 }
 
-func getSSHClient(host string, port int, user string, privateKey string) (*ssh.Client, error) {
+func SetValidator(validator ServerOnlineStatusValidator) {
+	sshClientPool.mutex.Lock()
+	defer sshClientPool.mutex.Unlock()
+	sshClientPool.validator = &validator
+}
+
+func getSSHClientWithOptions(host string, port int, user string, privateKey string, validate bool) (*ssh.Client, error) {
+	// reject if server is offline
+	if validate && sshClientPool.validator != nil && !(*sshClientPool.validator)(host) {
+		return nil, errors.New("server is offline, cannot connect to it")
+	}
 	sshClientPool.mutex.RLock()
 	clientEntry, ok := sshClientPool.clients[host]
 	sshClientPool.mutex.RUnlock()
@@ -102,7 +114,7 @@ func DeleteSSHClient(host string) {
 			}
 		}
 		clientEntry.mutex.Unlock()
+		delete(sshClientPool.clients, host)
 	}
-	delete(sshClientPool.clients, host)
 	sshClientPool.mutex.Unlock()
 }

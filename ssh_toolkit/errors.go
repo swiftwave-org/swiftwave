@@ -1,6 +1,8 @@
 package ssh_toolkit
 
-import "strings"
+import (
+	"strings"
+)
 
 var errorsWhenSSHClientNeedToBeRecreated = []string{
 	"dial timeout",
@@ -23,17 +25,20 @@ var errorsWhenSSHClientNeedToBeRecreated = []string{
 	"open failed",
 	"handshake failed",
 	"subsystem request failed",
-	"EOF",
+	"eof",
 	"broken pipe",
 	"closing write end of pipe",
+	"connection reset by peer",
+	"unexpected packet in response to channel open",
 }
 
 func isErrorWhenSSHClientNeedToBeRecreated(err error) bool {
 	if err == nil {
 		return false
 	}
+	errMsg := strings.ToLower(err.Error())
 	for _, msg := range errorsWhenSSHClientNeedToBeRecreated {
-		if strings.Contains(err.Error(), msg) {
+		if strings.Contains(errMsg, msg) {
 			return true
 		}
 	}
