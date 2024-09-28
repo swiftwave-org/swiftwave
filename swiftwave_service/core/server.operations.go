@@ -3,9 +3,10 @@ package core
 import (
 	"errors"
 	"fmt"
-	"gorm.io/gorm"
 	"net"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // CreateServer creates a new server in the database
@@ -103,6 +104,16 @@ func FetchAllServers(db *gorm.DB) ([]Server, error) {
 func FetchServerByID(db *gorm.DB, id uint) (*Server, error) {
 	var server Server
 	err := db.First(&server, id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, errors.New("server not found")
+	}
+	return &server, err
+}
+
+// FetchServerByIP fetches a server by its IP from the database
+func FetchServerByIP(db *gorm.DB, ip string) (*Server, error) {
+	var server Server
+	err := db.Where("ip = ?", ip).First(&server).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errors.New("server not found")
 	}

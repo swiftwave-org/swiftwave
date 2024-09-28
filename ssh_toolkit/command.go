@@ -15,8 +15,16 @@ func ExecCommandOverSSH(cmd string,
 	stdoutBuf, stderrBuf *bytes.Buffer, sessionTimeoutSeconds int, // for target task
 	host string, port int, user string, privateKey string, // for ssh client
 ) error {
+	return ExecCommandOverSSHWithOptions(cmd, stdoutBuf, stderrBuf, sessionTimeoutSeconds, host, port, user, privateKey, true)
+}
+
+func ExecCommandOverSSHWithOptions(cmd string,
+	stdoutBuf, stderrBuf *bytes.Buffer, sessionTimeoutSeconds int, // for target task
+	host string, port int, user string, privateKey string, // for ssh client
+	validate bool, // if true, will validate if server is online
+) error {
 	// fetch ssh client
-	sshRecord, err := getSSHClient(host, port, user, privateKey)
+	sshRecord, err := getSSHClientWithOptions(host, port, user, privateKey, validate)
 	if err != nil {
 		if isErrorWhenSSHClientNeedToBeRecreated(err) {
 			DeleteSSHClient(host)
@@ -49,12 +57,9 @@ func ExecCommandOverSSH(cmd string,
 	// run command
 	err = session.Run(cmd)
 	if err != nil {
-		if isErrorWhenSSHClientNeedToBeRecreated(err) {
+		if isErrorWhenSSHClientNeedToBeRecreated(err) || isErrorWhenSSHClientNeedToBeRecreated(errors.New(stderrBuf.String())) {
 			DeleteSSHClient(host)
-		}
-		if isErrorWhenSSHClientNeedToBeRecreated(errors.New(stderrBuf.String())) {
-			DeleteSSHClient(host)
-			return fmt.Errorf("%s - %s", err, stderrBuf.String())
+			return fmt.Errorf("%s - %s", err.Error(), stderrBuf.String())
 		}
 		return err
 	}
