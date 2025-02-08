@@ -73,6 +73,10 @@ func startHttpServer() {
 	e.GET("/nf-rules/:uuid", getNFRule)
 	e.DELETE("/nf-rules/:uuid", deleteNFRule)
 
+	// HAProxy API
+	e.GET("/haproxy/service-status", getHAProxyStatus)
+	e.Any("/haproxy/*", sendRequestToHAProxy)
+
 	if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		e.Logger.Fatal(err)
 	}

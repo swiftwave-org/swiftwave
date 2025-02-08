@@ -64,5 +64,3 @@ Many thanks to all of the sponsors who support Swiftwave.
 ### License
 
 [Apache-2.0](LICENSE)
-
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fswiftwave-org%2Fswiftwave.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fswiftwave-org%2Fswiftwave?ref=badge_large)

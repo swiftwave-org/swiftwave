@@ -15,9 +15,11 @@ const (
 type AgentConfig struct {
 	ID                      uint                    `gorm:"primaryKey"`
 	NodeType                NodeType                `json:"node_type" gorm:"column:node_type"`
+	SwiftwaveServiceAddress string                  `json:"swiftwave_service_address" gorm:"column:swiftwave_service_address"`
 	WireguardConfig         WireguardConfig         `json:"wireguard_config" gorm:"embedded;embeddedPrefix:wireguard_"`
 	MasterNodeConnectConfig MasterNodeConnectConfig `json:"master_node_connect_config" gorm:"embedded;embeddedPrefix:master_node_connect_config_"`
 	DockerNetwork           DockerNetworkConfig     `json:"docker_network" gorm:"embedded;embeddedPrefix:docker_network_"`
+	HaproxyConfig           HAProxyConfig           `json:"haproxy_config" gorm:"embedded;embeddedPrefix:haproxy_"`
 }
 
 type WireguardConfig struct {
@@ -35,6 +37,12 @@ type DockerNetworkConfig struct {
 	BridgeId       string `json:"bridge_id" gorm:"column:bridge_id"`
 	GatewayAddress string `json:"gateway_address" gorm:"column:gateway_address"`
 	Subnet         string `json:"subnet" gorm:"column:subnet"`
+}
+
+type HAProxyConfig struct {
+	Enabled  bool   `json:"enabled" gorm:"column:enabled"`
+	Username string `json:"username" gorm:"column:username"`
+	Password string `json:"password" gorm:"column:password"`
 }
 
 func GetConfig() (*AgentConfig, error) {

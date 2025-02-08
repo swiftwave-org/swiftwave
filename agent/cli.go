@@ -25,6 +25,8 @@ func init() {
 	setupCmd.Flags().String("wireguard-address", "", "Wireguard address")
 	setupCmd.Flags().String("docker-network-gateway-address", "", "Docker network gateway address")
 	setupCmd.Flags().String("docker-network-subnet", "", "Docker network subnet")
+	setupCmd.Flags().String("swiftwave-service-address", "", "Swiftwave service address ip:port")
+	setupCmd.Flags().Bool("enable-haproxy", false, "Enable haproxy")
 
 	setupCmd.Flags().Bool("master-node", false, "Setup as a master node")
 	setupCmd.Flags().String("master-node-endpoint", "", "Master server endpoint")
@@ -35,6 +37,7 @@ func init() {
 	setupCmd.MarkFlagRequired("wireguard-address")
 	setupCmd.MarkFlagRequired("docker-network-gateway-address")
 	setupCmd.MarkFlagRequired("docker-network-subnet")
+	setupCmd.MarkFlagRequired("swiftwave-service-address")
 }
 
 var rootCmd = &cobra.Command{
@@ -68,7 +71,14 @@ var startCmd = &cobra.Command{
 var setupCmd = &cobra.Command{
 	Use: "setup",
 	Run: func(cmd *cobra.Command, args []string) {
-		_, err := GetConfig()
+		// Migrate the database
+		err := MigrateDatabase()
+		if err != nil {
+			cmd.PrintErr("Failed to migrate database")
+			return
+		}
+		// Try to get the config
+		_, err = GetConfig()
 		if err == nil {
 			cmd.Println("Sorry, you can't change any config")
 			return
@@ -80,13 +90,27 @@ var setupCmd = &cobra.Command{
 			return
 		}
 
+		isEnableHaproxy, err := cmd.Flags().GetBool("enable-haproxy")
+		if err != nil {
+			cmd.PrintErr("Invalid enable haproxy flag")
+			return
+		}
+
+		// validate swiftwave service address
+		_, _, err = net.SplitHostPort(cmd.Flag("swiftwave-service-address").Value.String())
+		if err != nil {
+			cmd.PrintErr("Invalid swiftwave service address")
+			return
+		}
+
 		nodeType := WorkerNode
 		if isMasterNode {
 			nodeType = MasterNode
 		}
 
 		config := AgentConfig{
-			NodeType: nodeType,
+			NodeType:                nodeType,
+			SwiftwaveServiceAddress: cmd.Flag("swiftwave-service-address").Value.String(),
 			WireguardConfig: WireguardConfig{
 				PrivateKey: cmd.Flag("wireguard-private-key").Value.String(),
 				Address:    cmd.Flag("wireguard-address").Value.String(),
@@ -99,6 +123,11 @@ var setupCmd = &cobra.Command{
 				Endpoint:   cmd.Flag("master-node-endpoint").Value.String(),
 				PublicKey:  cmd.Flag("master-node-public-key").Value.String(),
 				AllowedIPs: cmd.Flag("master-node-allowed-ips").Value.String(),
+			},
+			HaproxyConfig: HAProxyConfig{
+				Enabled:  isEnableHaproxy,
+				Username: GenerateRandomString(10),
+				Password: GenerateRandomString(30),
 			},
 		}
 
@@ -137,6 +166,20 @@ var setupCmd = &cobra.Command{
 			}
 		}()
 
+		// Get ip from wireguard address
+		ip, _, err := net.ParseCIDR(config.WireguardConfig.Address)
+		if err != nil {
+			cmd.PrintErr("Failed to parse wireguard address")
+			return
+		}
+
+		// Install haproxy
+		err = installHAProxy(config.SwiftwaveServiceAddress, fmt.Sprintf("%s:53", ip), config.HaproxyConfig.Username, config.HaproxyConfig.Password)
+		if err != nil {
+			cmd.PrintErr(err.Error())
+			return
+		}
+
 		err = SetConfig(&config)
 		if err != nil {
 			cmd.PrintErr(err.Error())
@@ -162,6 +205,12 @@ var setupCmd = &cobra.Command{
 			cmd.PrintErr(err.Error())
 			return
 		}
+		// Enable haproxy and data plane api
+		if config.HaproxyConfig.Enabled {
+			enableHAProxy()
+		}
+		cmd.Println("Haproxy and data plane api enabled")
+
 		isSuccess = true
 	},
 }
@@ -208,6 +257,11 @@ var getConfig = &cobra.Command{
 		cmd.Printf("  • Bridge ID ---------- %s\n", config.DockerNetwork.BridgeId)
 		cmd.Printf("  • Gateway Address ---- %s\n", config.DockerNetwork.GatewayAddress)
 		cmd.Printf("  • Subnet ------------- %s\n", config.DockerNetwork.Subnet)
+		cmd.Println()
+		cmd.Println("Haproxy Configuration:")
+		cmd.Printf("  • Enabled ------------ %t\n", config.HaproxyConfig.Enabled)
+		cmd.Printf("  • Username ---------- %s\n", config.HaproxyConfig.Username)
+		cmd.Printf("  • Password ---------- %s\n", config.HaproxyConfig.Password)
 	},
 }
 
@@ -216,7 +270,7 @@ var cleanup = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// Ask for confirmation
 		fmt.Println("This will delete all containers and remove docker and wireguard networks")
-		fmt.Println("Are you sure you want to continue? (y/n)")
+		fmt.Print("Are you sure you want to continue? (y/n) : ")
 		var response string
 		_, err := fmt.Scanln(&response)
 		if err != nil {
@@ -274,6 +328,9 @@ var cleanup = &cobra.Command{
 		_ = IPTablesClient.ClearChain("nat", NatPostroutingChainName)
 		_ = IPTablesClient.ClearChain("nat", NatInputChainName)
 		_ = IPTablesClient.ClearChain("nat", NatOutputChainName)
+		// Disable haproxy and data plane api
+		disableHAProxy()
+		cmd.Println("Haproxy and data plane api disabled")
 		// Backup and remove the database file
 		moveDBFilesToBackup()
 		// Done
