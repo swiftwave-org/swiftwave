@@ -37,12 +37,21 @@ type ServerLog struct {
 
 // User hold information about user
 type User struct {
-	ID           uint     `json:"id" gorm:"primaryKey"`
-	Username     string   `json:"username" gorm:"unique"`
-	Role         UserRole `json:"role" gorm:"default:'user'"`
-	PasswordHash string   `json:"password_hash"`
-	TotpEnabled  bool     `json:"totp_enabled" gorm:"default:false"`
-	TotpSecret   string   `json:"totp_secret"`
+	ID           uint          `json:"id" gorm:"primaryKey"`
+	Username     string        `json:"username" gorm:"unique"`
+	Role         UserRole      `json:"role" gorm:"default:'user'"`
+	PasswordHash string        `json:"password_hash"`
+	TotpEnabled  bool          `json:"totp_enabled" gorm:"default:false"`
+	TotpSecret   string        `json:"totp_secret"`
+	Sessions     []UserSession `json:"sessions" gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
+
+// UserSession hold information about
+type UserSession struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	UserID    uint      `json:"user_id"`
+	SessionID string    `json:"session_id" gorm:"index"`
+	ExpiresAt time.Time `json:"expires_at"`
 }
 
 // ************************************************************************************* //

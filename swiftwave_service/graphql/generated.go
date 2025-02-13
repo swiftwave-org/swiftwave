@@ -354,6 +354,7 @@ type ComplexityRoot struct {
 		FetchAnalyticsServiceToken                         func(childComplexity int, id uint, rotate bool) int
 		InstallDependenciesOnServer                        func(childComplexity int, id uint) int
 		IssueSsl                                           func(childComplexity int, id uint) int
+		Login                                              func(childComplexity int, input model.UserCredential) int
 		PromoteServerToManager                             func(childComplexity int, id uint) int
 		ProtectIngressRuleUsingBasicAuth                   func(childComplexity int, id uint, appBasicAuthAccessControlListID uint) int
 		PutServerInMaintenanceMode                         func(childComplexity int, id uint) int
@@ -645,6 +646,7 @@ type MutationResolver interface {
 	WakeApplication(ctx context.Context, id string) (bool, error)
 	CreateApplicationGroup(ctx context.Context, input model.ApplicationGroupInput) (*model.ApplicationGroup, error)
 	DeleteApplicationGroup(ctx context.Context, id string) (bool, error)
+	Login(ctx context.Context, input model.UserCredential) (string, error)
 	CancelDeployment(ctx context.Context, id string) (bool, error)
 	AddDomain(ctx context.Context, input model.DomainInput) (*model.Domain, error)
 	RemoveDomain(ctx context.Context, id uint) (bool, error)
@@ -2574,6 +2576,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.IssueSsl(childComplexity, args["id"].(uint)), true
 
+	case "Mutation.login":
+		if e.complexity.Mutation.Login == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_login_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Login(childComplexity, args["input"].(model.UserCredential)), true
+
 	case "Mutation.promoteServerToManager":
 		if e.complexity.Mutation.PromoteServerToManager == nil {
 			break
@@ -4018,6 +4032,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputServerSetupInput,
 		ec.unmarshalInputStackInput,
 		ec.unmarshalInputStackVariableType,
+		ec.unmarshalInputUserCredential,
 		ec.unmarshalInputUserInput,
 	)
 	first := true
@@ -4132,7 +4147,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/app_authentication.graphqls" "schema/application.graphqls" "schema/application_group.graphqls" "schema/application_healthcheck.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/config_mount.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/docker_proxy_config.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/totp.graphqls" "schema/user.graphqls.graphqls"
+//go:embed "schema/app_authentication.graphqls" "schema/application.graphqls" "schema/application_group.graphqls" "schema/application_healthcheck.graphqls" "schema/authentication.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/config_mount.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/docker_proxy_config.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/totp.graphqls" "schema/user.graphqls.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -4148,6 +4163,7 @@ var sources = []*ast.Source{
 	{Name: "schema/application.graphqls", Input: sourceData("schema/application.graphqls"), BuiltIn: false},
 	{Name: "schema/application_group.graphqls", Input: sourceData("schema/application_group.graphqls"), BuiltIn: false},
 	{Name: "schema/application_healthcheck.graphqls", Input: sourceData("schema/application_healthcheck.graphqls"), BuiltIn: false},
+	{Name: "schema/authentication.graphqls", Input: sourceData("schema/authentication.graphqls"), BuiltIn: false},
 	{Name: "schema/base.graphqls", Input: sourceData("schema/base.graphqls"), BuiltIn: false},
 	{Name: "schema/build_arg.graphqls", Input: sourceData("schema/build_arg.graphqls"), BuiltIn: false},
 	{Name: "schema/cifs_config.graphqls", Input: sourceData("schema/cifs_config.graphqls"), BuiltIn: false},
@@ -4930,6 +4946,21 @@ func (ec *executionContext) field_Mutation_issueSSL_args(ctx context.Context, ra
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UserCredential
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUserCredential2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐUserCredential(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -15139,6 +15170,61 @@ func (ec *executionContext) fieldContext_Mutation_deleteApplicationGroup(ctx con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteApplicationGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_login(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Login(rctx, fc.Args["input"].(model.UserCredential))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_login(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_login_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -29314,6 +29400,40 @@ func (ec *executionContext) unmarshalInputStackVariableType(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUserCredential(ctx context.Context, obj interface{}) (model.UserCredential, error) {
+	var it model.UserCredential
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"username", "password"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "username":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Username = data
+		case "password":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Password = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj interface{}) (model.UserInput, error) {
 	var it model.UserInput
 	asMap := map[string]interface{}{}
@@ -31754,6 +31874,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "deleteApplicationGroup":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteApplicationGroup(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "login":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_login(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -37072,6 +37199,11 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋswiftwaveᚑorgᚋswi
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUserCredential2githubᚗcomᚋswiftwaveᚑorgᚋswiftwaveᚋswiftwave_serviceᚋgraphqlᚋmodelᚐUserCredential(ctx context.Context, v interface{}) (model.UserCredential, error) {
+	res, err := ec.unmarshalInputUserCredential(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

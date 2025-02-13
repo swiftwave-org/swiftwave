@@ -1,4 +1,4 @@
-h1:dFMxl02tstPc5Nmao8FA3S7sM7mIXqsSy34VElMP2gk=
+h1:SwRv04ZCBJM2kVRlT9CroRjbfMlf4sOror5mPG2X/EM=
 20240413191732_init.down.sql h1:HoitObGwuKF/akF4qg3dol2FfNTLCEuf6wHYDuCez8I=
 20240413191732_init.up.sql h1:USKdQx/yTz1KJ0+mDwYGhKm3WzX7k+I9+6B6SxImwaE=
 20240414051823_server_custom_ssh_port_added.down.sql h1:IC1DFQBQceTPTRdZOo5/WqytH+ZbgcKrQuMCkhArF/0=
@@ -47,3 +47,5 @@ h1:dFMxl02tstPc5Nmao8FA3S7sM7mIXqsSy34VElMP2gk=
 20240628175617_add_extra_fields_in_app_group.up.sql h1:+qBOQc/2bhG1igFdUbWSsZEy01aORuPyBPvxKVXJJoA=
 20240906153014_add_hostname_in_application.down.sql h1:tFY94wo3G+UYA51UYt9jbfwwPTS/hCd3pG2F7smUEB8=
 20240906153014_add_hostname_in_application.up.sql h1:JAhs73vgSIUzt0l8M8ltRp98dVkwL5lXrdkfHvJ+arE=
+20250213190430_test.down.sql h1:ra8BJ92iaL0/Kc7MThF+wzbM1/szBVKHxJUWLq1hf5o=
+20250213190430_test.up.sql h1:EDgRcbJknAyddUQ9X3+uGw/MNDilVWHRKcC+9Xuxuxg=

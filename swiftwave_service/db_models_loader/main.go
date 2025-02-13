@@ -17,6 +17,7 @@ func main() {
 		&core.Server{},
 		&core.ServerLog{},
 		&core.User{},
+		&core.UserSession{},
 		&core.Domain{},
 		&core.RedirectRule{},
 		&core.PersistentVolume{},

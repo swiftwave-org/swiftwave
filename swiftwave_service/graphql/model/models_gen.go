@@ -653,6 +653,11 @@ type User struct {
 	TotpEnabled bool   `json:"totpEnabled"`
 }
 
+type UserCredential struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 type UserInput struct {
 	Username string `json:"username"`
 	Password string `json:"password"`

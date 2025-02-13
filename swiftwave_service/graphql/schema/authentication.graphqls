@@ -1,0 +1,9 @@
+input UserCredential {
+    username: String!
+    password: String!
+}
+
+
+extend type Mutation {
+    login(input: UserCredential!): String!
+}
