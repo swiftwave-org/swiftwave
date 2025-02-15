@@ -116,6 +116,56 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 		}
 	})
 
+	// Add `authorized` & `username` key to the context
+	echoServer.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if strings.Compare(c.Request().URL.Path, "/") == 0 ||
+				strings.HasPrefix(c.Request().URL.Path, "/healthcheck") ||
+				strings.HasPrefix(c.Request().URL.Path, "/.well-known") ||
+				strings.HasPrefix(c.Request().URL.Path, "/auth") ||
+				strings.HasPrefix(c.Request().URL.Path, "/webhook") ||
+				strings.HasPrefix(c.Request().URL.Path, "/dashboard") ||
+				strings.HasPrefix(c.Request().URL.Path, "/playground") {
+				return next(c)
+			}
+			// check if a GET request at /graphql and a websocket upgrade request
+			if strings.HasPrefix(c.Request().URL.Path, "/graphql") &&
+				strings.Compare(c.Request().Method, http.MethodGet) == 0 &&
+				strings.Compare(c.Request().URL.RawQuery, "") == 0 &&
+				strings.Contains(strings.ToLower(c.Request().Header.Get("Connection")), "upgrade") &&
+				strings.Compare(strings.ToLower(c.Request().Header.Get("Upgrade")), "websocket") == 0 {
+				return next(c)
+			}
+
+			// on console websocket connection allow without jwt, as auth will be handled by the console server
+			if strings.HasPrefix(c.Request().URL.Path, "/console/ws") &&
+				strings.Compare(c.Request().Method, http.MethodGet) == 0 &&
+				strings.Compare(c.Request().URL.RawQuery, "") == 0 &&
+				strings.Contains(strings.ToLower(c.Request().Header.Get("Connection")), "upgrade") &&
+				strings.Compare(strings.ToLower(c.Request().Header.Get("Upgrade")), "websocket") == 0 {
+				return next(c)
+			}
+
+			// Whitelist console's HTML, JS, CSS
+			if (strings.Compare(c.Request().URL.Path, "/console") == 0 ||
+				strings.Compare(c.Request().URL.Path, "/console/main.js") == 0 ||
+				strings.Compare(c.Request().URL.Path, "/console/xterm.js") == 0 ||
+				strings.Compare(c.Request().URL.Path, "/console/xterm-addon-fit.js") == 0 ||
+				strings.Compare(c.Request().URL.Path, "/console/xterm.css") == 0) &&
+				strings.Compare(c.Request().Method, http.MethodGet) == 0 {
+				return next(c)
+			}
+
+			// Authenticate request
+
+			c.Set("authorized", false)
+			c.Set("username", "")
+			c.Set("hostname", "")
+
+			return next(c)
+		}
+	})
+
 	// Create GraphQL Server
 	graphqlServer := graphql.Server{
 		EchoServer:     echoServer,
