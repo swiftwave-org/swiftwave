@@ -5,6 +5,6 @@ input UserCredential {
 
 
 extend type Mutation {
-    login(input: UserCredential!): String!
+    login(input: UserCredential!): Boolean!
     logout: Boolean!
 }

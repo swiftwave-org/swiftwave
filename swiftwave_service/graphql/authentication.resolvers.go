@@ -14,30 +14,30 @@ import (
 )
 
 // Login is the resolver for the login field.
-func (r *mutationResolver) Login(ctx context.Context, input model.UserCredential) (string, error) {
+func (r *mutationResolver) Login(ctx context.Context, input model.UserCredential) (bool, error) {
 	// validate input
 
 	if input.Username == "" || input.Password == "" {
-		return "", errors.New("username and password cannot be empty")
+		return false, errors.New("username and password cannot be empty")
 	}
 
 	user, err := core.FindUserByUsername(ctx, r.ServiceManager.DbClient, input.Username)
 	if err != nil {
-		return "", errors.New("invalid username or password")
+		return false, errors.New("invalid username or password")
 	}
 	if !user.CheckPassword(input.Password) {
-		return "", errors.New("invalid username or password")
+		return false, errors.New("invalid username or password")
 	}
 
 	token, err := core.CreateSession(ctx, r.ServiceManager.DbClient, user)
 	if err != nil {
-		return "", errors.New("failed to create session")
+		return false, errors.New("failed to create session")
 	}
 
 	// Extract Echo context
 	eCtx, err := GetEchoContext(ctx)
 	if err != nil {
-		return "", err
+		return false, err
 	}
 	eCtx.SetCookie(&http.Cookie{
 		Name:     "session_id",
@@ -47,7 +47,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.UserCredential
 		Path:     "/",
 	})
 
-	return token, nil
+	return true, nil
 }
 
 // Logout is the resolver for the logout field.

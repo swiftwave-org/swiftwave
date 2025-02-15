@@ -648,7 +648,7 @@ type MutationResolver interface {
 	WakeApplication(ctx context.Context, id string) (bool, error)
 	CreateApplicationGroup(ctx context.Context, input model.ApplicationGroupInput) (*model.ApplicationGroup, error)
 	DeleteApplicationGroup(ctx context.Context, id string) (bool, error)
-	Login(ctx context.Context, input model.UserCredential) (string, error)
+	Login(ctx context.Context, input model.UserCredential) (bool, error)
 	Logout(ctx context.Context) (bool, error)
 	CancelDeployment(ctx context.Context, id string) (bool, error)
 	AddDomain(ctx context.Context, input model.DomainInput) (*model.Domain, error)
@@ -15533,9 +15533,9 @@ func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_login(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -15545,7 +15545,7 @@ func (ec *executionContext) fieldContext_Mutation_login(ctx context.Context, fie
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	defer func() {
