@@ -7,10 +7,10 @@ package graphql
 import (
 	"context"
 	"errors"
-	"github.com/labstack/echo/v4"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"net/http"
 
+	echo "github.com/labstack/echo/v4"
+	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
 

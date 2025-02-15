@@ -2,22 +2,30 @@ package graphql
 
 import (
 	"context"
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/labstack/echo/v4"
+	"github.com/pkg/errors"
 )
 
 func (server *Server) Initialize() {
+	c := Config{Resolvers: &Resolver{
+		Config:         *server.Config,
+		ServiceManager: *server.ServiceManager,
+		WorkerManager:  *server.WorkerManager,
+	}}
+	c.Directives.IsAuthenticated = func(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
+		info := GetAuthInfo(ctx)
+		if info.IsAuthorized() {
+			return next(ctx)
+		}
+		return nil, errors.New("unauthenticated")
+	}
 	graphqlHandler := handler.New(
-		NewExecutableSchema(
-			Config{Resolvers: &Resolver{
-				Config:         *server.Config,
-				ServiceManager: *server.ServiceManager,
-				WorkerManager:  *server.WorkerManager,
-			}},
-		),
+		NewExecutableSchema(c),
 	)
 
 	graphqlHandler.AddTransport(transport.POST{})

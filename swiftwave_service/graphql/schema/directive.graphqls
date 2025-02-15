@@ -1,0 +1,1 @@
+directive @isAuthenticated on FIELD_DEFINITION

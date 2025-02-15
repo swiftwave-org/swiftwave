@@ -60,6 +60,7 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	IsAuthenticated func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -4147,7 +4148,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/app_authentication.graphqls" "schema/application.graphqls" "schema/application_group.graphqls" "schema/application_healthcheck.graphqls" "schema/authentication.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/config_mount.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/docker_config_generator.graphqls" "schema/docker_proxy_config.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/totp.graphqls" "schema/user.graphqls.graphqls"
+//go:embed "schema/app_authentication.graphqls" "schema/application.graphqls" "schema/application_group.graphqls" "schema/application_healthcheck.graphqls" "schema/authentication.graphqls" "schema/base.graphqls" "schema/build_arg.graphqls" "schema/cifs_config.graphqls" "schema/config_mount.graphqls" "schema/deployment.graphqls" "schema/deployment_log.graphqls" "schema/directive.graphqls" "schema/docker_config_generator.graphqls" "schema/docker_proxy_config.graphqls" "schema/domain.graphqls" "schema/environment_variable.graphqls" "schema/git.graphqls" "schema/git_credential.graphqls" "schema/image_registry_credential.graphqls" "schema/ingress_rule.graphqls" "schema/nfs_config.graphqls" "schema/persistent_volume.graphqls" "schema/persistent_volume_backup.graphqls" "schema/persistent_volume_binding.graphqls" "schema/persistent_volume_restore.graphqls" "schema/redirect_rule.graphqls" "schema/runtime_log.graphqls" "schema/server.graphqls" "schema/server_log.graphqls" "schema/stack.graphqls" "schema/system.graphqls" "schema/system_log.graphqls" "schema/totp.graphqls" "schema/user.graphqls.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -4170,6 +4171,7 @@ var sources = []*ast.Source{
 	{Name: "schema/config_mount.graphqls", Input: sourceData("schema/config_mount.graphqls"), BuiltIn: false},
 	{Name: "schema/deployment.graphqls", Input: sourceData("schema/deployment.graphqls"), BuiltIn: false},
 	{Name: "schema/deployment_log.graphqls", Input: sourceData("schema/deployment_log.graphqls"), BuiltIn: false},
+	{Name: "schema/directive.graphqls", Input: sourceData("schema/directive.graphqls"), BuiltIn: false},
 	{Name: "schema/docker_config_generator.graphqls", Input: sourceData("schema/docker_config_generator.graphqls"), BuiltIn: false},
 	{Name: "schema/docker_proxy_config.graphqls", Input: sourceData("schema/docker_proxy_config.graphqls"), BuiltIn: false},
 	{Name: "schema/domain.graphqls", Input: sourceData("schema/domain.graphqls"), BuiltIn: false},
@@ -22751,8 +22753,28 @@ func (ec *executionContext) _Query_currentUser(ctx context.Context, field graphq
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().CurrentUser(rctx)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().CurrentUser(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAuthenticated == nil {
+				return nil, errors.New("directive isAuthenticated is not implemented")
+			}
+			return ec.directives.IsAuthenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model.User`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)

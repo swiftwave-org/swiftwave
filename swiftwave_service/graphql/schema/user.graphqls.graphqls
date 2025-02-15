@@ -17,7 +17,7 @@ input PasswordUpdateInput {
 extend type Query {
     users : [User]!
     user(id: Uint!) : User
-    currentUser : User!
+    currentUser : User! @isAuthenticated
 }
 
 extend type Mutation {
