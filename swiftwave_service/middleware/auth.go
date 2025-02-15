@@ -14,6 +14,7 @@ type AuthInfo struct {
 	userID     uint
 	context    context.Context
 	db         *gorm.DB
+	sessionID  string
 }
 
 func (a AuthInfo) IsAuthorized() bool {
@@ -22,6 +23,10 @@ func (a AuthInfo) IsAuthorized() bool {
 
 func (a AuthInfo) GetUserID() uint {
 	return a.userID
+}
+
+func (a AuthInfo) GetSessionID() string {
+	return a.sessionID
 }
 
 func (a AuthInfo) GetUser() (core.User, error) {
@@ -54,30 +59,28 @@ func AuthResolverMiddleware(dbClient *gorm.DB) func(next echo.HandlerFunc) echo.
 
 			// Authenticate request
 			sessionId, err := c.Cookie("session_id")
-			if err != nil {
-				c.Set("auth", AuthInfo{
-					authorized: false,
-					userID:     0,
-					context:    ctx,
-					db:         dbClient,
-				})
-			} else {
+			isLoggedIn := false
+			if err == nil {
 				userId, err := core.FetchUserIDBySessionID(ctx, *dbClient, sessionId.Value)
-				if err != nil {
-					c.Set("auth", AuthInfo{
-						authorized: false,
-						userID:     0,
-						context:    ctx,
-						db:         dbClient,
-					})
-				} else {
+				if err == nil {
 					c.Set("auth", AuthInfo{
 						authorized: true,
 						userID:     userId,
 						context:    ctx,
 						db:         dbClient,
+						sessionID:  sessionId.Value,
 					})
+					isLoggedIn = true
 				}
+			}
+			if !isLoggedIn {
+				c.Set("auth", AuthInfo{
+					authorized: false,
+					userID:     0,
+					context:    ctx,
+					db:         dbClient,
+					sessionID:  "",
+				})
 			}
 			return next(c)
 		}
