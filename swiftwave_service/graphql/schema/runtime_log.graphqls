@@ -14,5 +14,5 @@ enum RuntimeLogTimeframe {
 }
 
 extend type Subscription {
-    fetchRuntimeLog(applicationId: String!, timeframe: RuntimeLogTimeframe!): RuntimeLog!
+    fetchRuntimeLog(applicationId: String!, timeframe: RuntimeLogTimeframe!): RuntimeLog! @isAuthenticated
 }

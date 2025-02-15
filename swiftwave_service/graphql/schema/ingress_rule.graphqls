@@ -52,17 +52,17 @@ type IngressRule {
 }
 
 extend type Query {
-    ingressRule(id: Uint!): IngressRule!
-    ingressRules: [IngressRule!]!
-    isNewIngressRuleValid(input: IngressRuleValidationInput!): Boolean!
+    ingressRule(id: Uint!): IngressRule! @isAuthenticated
+    ingressRules: [IngressRule!]! @isAuthenticated
+    isNewIngressRuleValid(input: IngressRuleValidationInput!): Boolean! @isAuthenticated
 }
 
 extend type Mutation {
-    createIngressRule(input: IngressRuleInput!): IngressRule!
-    recreateIngressRule(id: Uint!): Boolean!
-    enableHttpsRedirectIngressRule(id: Uint!): Boolean!
-    disableHttpsRedirectIngressRule(id: Uint!): Boolean!
-    deleteIngressRule(id: Uint!): Boolean!
-    protectIngressRuleUsingBasicAuth(id: Uint!, appBasicAuthAccessControlListId: Uint!): Boolean!
-    disableIngressRuleProtection(id: Uint!): Boolean!
+    createIngressRule(input: IngressRuleInput!): IngressRule! @isAuthenticated
+    recreateIngressRule(id: Uint!): Boolean! @isAuthenticated
+    enableHttpsRedirectIngressRule(id: Uint!): Boolean! @isAuthenticated
+    disableHttpsRedirectIngressRule(id: Uint!): Boolean! @isAuthenticated
+    deleteIngressRule(id: Uint!): Boolean! @isAuthenticated
+    protectIngressRuleUsingBasicAuth(id: Uint!, appBasicAuthAccessControlListId: Uint!): Boolean! @isAuthenticated
+    disableIngressRuleProtection(id: Uint!): Boolean! @isAuthenticated
 }

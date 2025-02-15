@@ -4,5 +4,5 @@ type DeploymentLog {
 }
 
 extend type Subscription {
-    fetchDeploymentLog(id: String!): DeploymentLog!
+    fetchDeploymentLog(id: String!): DeploymentLog! @isAuthenticated
 }

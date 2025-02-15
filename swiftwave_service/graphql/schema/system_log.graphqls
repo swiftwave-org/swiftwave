@@ -4,5 +4,5 @@ type FileInfo {
 }
 
 extend type Query {
-    fetchSystemLogRecords: [FileInfo]!
+    fetchSystemLogRecords: [FileInfo]! @isAuthenticated
 }

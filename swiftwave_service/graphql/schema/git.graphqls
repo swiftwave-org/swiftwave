@@ -4,5 +4,5 @@ input GitBranchesQueryInput {
 }
 
 extend type Query {
-    gitBranches(input: GitBranchesQueryInput!): [String!]!
+    gitBranches(input: GitBranchesQueryInput!): [String!]! @isAuthenticated
 }

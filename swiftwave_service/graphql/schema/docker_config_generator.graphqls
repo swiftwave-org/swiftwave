@@ -31,7 +31,7 @@ type DockerConfigGeneratorOutput {
 }
 
 extend type Query {
-    dockerConfigGenerator(input: DockerConfigGeneratorInput!): DockerConfigGeneratorOutput
-    availableDockerConfigs: [String!]
-    dockerConfigFromServiceName(serviceName: String!): DockerConfigGeneratorOutput
+    dockerConfigGenerator(input: DockerConfigGeneratorInput!): DockerConfigGeneratorOutput @isAuthenticated
+    availableDockerConfigs: [String!] @isAuthenticated
+    dockerConfigFromServiceName(serviceName: String!): DockerConfigGeneratorOutput @isAuthenticated
 }

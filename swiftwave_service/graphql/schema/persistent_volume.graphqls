@@ -23,13 +23,13 @@ input PersistentVolumeInput {
 }
 
 extend type Query {
-    persistentVolumes: [PersistentVolume]
-    persistentVolume(id: Uint!): PersistentVolume
-    persistentVolumeSizeMb(id: Uint!): Float!
-    isExistPersistentVolume(name: String!): Boolean!
+    persistentVolumes: [PersistentVolume] @isAuthenticated
+    persistentVolume(id: Uint!): PersistentVolume @isAuthenticated
+    persistentVolumeSizeMb(id: Uint!): Float! @isAuthenticated
+    isExistPersistentVolume(name: String!): Boolean! @isAuthenticated
 }
 
 extend type Mutation {
-    createPersistentVolume(input: PersistentVolumeInput!): PersistentVolume
-    deletePersistentVolume(id: Uint!): Boolean!
+    createPersistentVolume(input: PersistentVolumeInput!): PersistentVolume @isAuthenticated
+    deletePersistentVolume(id: Uint!): Boolean! @isAuthenticated
 }

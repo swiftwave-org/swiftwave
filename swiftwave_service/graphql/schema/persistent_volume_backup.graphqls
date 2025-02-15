@@ -24,7 +24,7 @@ type PersistentVolumeBackup {
 }
 
 extend type Mutation {
-    backupPersistentVolume(input: PersistentVolumeBackupInput!): PersistentVolumeBackup
-    deletePersistentVolumeBackup(id: Uint!): Boolean!
-    deletePersistentVolumeBackupsByPersistentVolumeId(persistentVolumeId: Uint!): Boolean!
+    backupPersistentVolume(input: PersistentVolumeBackupInput!): PersistentVolumeBackup @isAuthenticated
+    deletePersistentVolumeBackup(id: Uint!): Boolean! @isAuthenticated
+    deletePersistentVolumeBackupsByPersistentVolumeId(persistentVolumeId: Uint!): Boolean! @isAuthenticated
 }

@@ -118,20 +118,20 @@ input ApplicationInput {
 }
 
 extend type Query {
-    application(id: String!): Application!
-    applications(includeGroupedApplications: Boolean!): [Application!]!
-    isExistApplicationName(name: String!): Boolean!
-    applicationResourceAnalytics(id: String!, timeframe: ApplicationResourceAnalyticsTimeframe!): [ApplicationResourceAnalytics!]!
+    application(id: String!): Application! @isAuthenticated
+    applications(includeGroupedApplications: Boolean!): [Application!]! @isAuthenticated
+    isExistApplicationName(name: String!): Boolean! @isAuthenticated
+    applicationResourceAnalytics(id: String!, timeframe: ApplicationResourceAnalyticsTimeframe!): [ApplicationResourceAnalytics!]! @isAuthenticated
 }
 
 extend type Mutation {
-    createApplication(input: ApplicationInput!): Application!
-    updateApplication(id: String!, input: ApplicationInput!): Application!
-    updateApplicationGroup(id: String!, groupId: String): Boolean!
-    deleteApplication(id: String!): Boolean!
-    rebuildApplication(id: String!): Boolean!
-    restartApplication(id: String!): Boolean!
-    regenerateWebhookToken(id: String!): String!
-    sleepApplication(id: String!): Boolean!
-    wakeApplication(id: String!): Boolean!
+    createApplication(input: ApplicationInput!): Application! @isAuthenticated
+    updateApplication(id: String!, input: ApplicationInput!): Application! @isAuthenticated
+    updateApplicationGroup(id: String!, groupId: String): Boolean! @isAuthenticated
+    deleteApplication(id: String!): Boolean! @isAuthenticated
+    rebuildApplication(id: String!): Boolean! @isAuthenticated
+    restartApplication(id: String!): Boolean! @isAuthenticated
+    regenerateWebhookToken(id: String!): String! @isAuthenticated
+    sleepApplication(id: String!): Boolean! @isAuthenticated
+    wakeApplication(id: String!): Boolean! @isAuthenticated
 }

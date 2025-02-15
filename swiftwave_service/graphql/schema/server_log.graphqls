@@ -6,5 +6,5 @@ type ServerLog {
 }
 
 extend type Query {
-    fetchServerLogContent(id: Uint!): String!
+    fetchServerLogContent(id: Uint!): String! @isAuthenticated
 }

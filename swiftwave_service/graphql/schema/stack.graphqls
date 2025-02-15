@@ -27,7 +27,7 @@ type ApplicationDeployResult {
 }
 
 extend type Mutation {
-    cleanupStack(input: StackInput!): String!
-    verifyStack(input: StackInput!): StackVerifyResult!
-    deployStack(input: StackInput!): [ApplicationDeployResult!]!
+    cleanupStack(input: StackInput!): String! @isAuthenticated
+    verifyStack(input: StackInput!): StackVerifyResult! @isAuthenticated
+    deployStack(input: StackInput!): [ApplicationDeployResult!]! @isAuthenticated
 }

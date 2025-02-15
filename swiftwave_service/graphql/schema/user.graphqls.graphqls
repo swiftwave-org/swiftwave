@@ -15,13 +15,13 @@ input PasswordUpdateInput {
 }
 
 extend type Query {
-    users : [User]!
-    user(id: Uint!) : User
+    users : [User]! @isAuthenticated
+    user(id: Uint!) : User @isAuthenticated
     currentUser : User! @isAuthenticated
 }
 
 extend type Mutation {
-    createUser(input: UserInput): User
-    deleteUser(id: Uint!) : Boolean!
-    changePassword(input: PasswordUpdateInput) : Boolean!
+    createUser(input: UserInput): User @isAuthenticated
+    deleteUser(id: Uint!) : Boolean! @isAuthenticated
+    changePassword(input: PasswordUpdateInput) : Boolean! @isAuthenticated
 }

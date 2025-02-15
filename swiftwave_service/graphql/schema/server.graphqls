@@ -91,35 +91,35 @@ type NetworkInterface {
 }
 
 extend type Query {
-    noOfServers: Int!
-    noOfPreparedServers: Int!
-    servers: [Server!]
-    server(id: Uint!): Server!
-    publicSSHKey: String!
-    serverResourceAnalytics(id: Uint!, timeframe: ServerResourceAnalyticsTimeframe!): [ServerResourceAnalytics!]!
-    serverDiskUsage(id: Uint!): [ServerDisksUsage!]! # return last 1000 records
-    serverLatestResourceAnalytics(id: Uint!): ServerResourceAnalytics!
-    serverLatestDiskUsage(id: Uint!): ServerDisksUsage!
-    networkInterfacesOnServer(id: Uint!): [NetworkInterface!]!
+    noOfServers: Int! @isAuthenticated
+    noOfPreparedServers: Int! @isAuthenticated
+    servers: [Server!] @isAuthenticated
+    server(id: Uint!): Server! @isAuthenticated
+    publicSSHKey: String! @isAuthenticated
+    serverResourceAnalytics(id: Uint!, timeframe: ServerResourceAnalyticsTimeframe!): [ServerResourceAnalytics!]! @isAuthenticated
+    serverDiskUsage(id: Uint!): [ServerDisksUsage!]! @isAuthenticated # return last 1000 records
+    serverLatestResourceAnalytics(id: Uint!): ServerResourceAnalytics! @isAuthenticated
+    serverLatestDiskUsage(id: Uint!): ServerDisksUsage! @isAuthenticated
+    networkInterfacesOnServer(id: Uint!): [NetworkInterface!]! @isAuthenticated
 }
 
 extend type Mutation {
-    createServer(input: NewServerInput!): Server!
-    deleteServer(id: Uint!): Boolean!
-    testSSHAccessToServer(id: Uint!): Boolean!
-    checkDependenciesOnServer(id: Uint!): [Dependency!]
-    installDependenciesOnServer(id: Uint!): Boolean!
-    setupServer(input: ServerSetupInput!): Boolean!
-    promoteServerToManager(id: Uint!): Boolean!
-    demoteServerToWorker(id: Uint!): Boolean!
-    restrictDeploymentOnServer(id: Uint!): Boolean!
-    allowDeploymentOnServer(id: Uint!): Boolean!
-    putServerInMaintenanceMode(id: Uint!): Boolean!
-    putServerOutOfMaintenanceMode(id: Uint!): Boolean!
-    removeServerFromSwarmCluster(id: Uint!): Boolean!
-    enableProxyOnServer(id: Uint!, type: ProxyType!): Boolean!
-    disableProxyOnServer(id: Uint!): Boolean!
-    fetchAnalyticsServiceToken(id: Uint!, rotate:Boolean!): String!
-    changeServerIpAddress(id: Uint!, ip: String!): Boolean!
-    changeServerSSHPort(id: Uint!, port: Int!): Boolean!
+    createServer(input: NewServerInput!): Server! @isAuthenticated
+    deleteServer(id: Uint!): Boolean! @isAuthenticated
+    testSSHAccessToServer(id: Uint!): Boolean! @isAuthenticated
+    checkDependenciesOnServer(id: Uint!): [Dependency!] @isAuthenticated
+    installDependenciesOnServer(id: Uint!): Boolean! @isAuthenticated
+    setupServer(input: ServerSetupInput!): Boolean! @isAuthenticated
+    promoteServerToManager(id: Uint!): Boolean! @isAuthenticated
+    demoteServerToWorker(id: Uint!): Boolean! @isAuthenticated
+    restrictDeploymentOnServer(id: Uint!): Boolean! @isAuthenticated
+    allowDeploymentOnServer(id: Uint!): Boolean! @isAuthenticated
+    putServerInMaintenanceMode(id: Uint!): Boolean! @isAuthenticated
+    putServerOutOfMaintenanceMode(id: Uint!): Boolean! @isAuthenticated
+    removeServerFromSwarmCluster(id: Uint!): Boolean! @isAuthenticated
+    enableProxyOnServer(id: Uint!, type: ProxyType!): Boolean! @isAuthenticated
+    disableProxyOnServer(id: Uint!): Boolean! @isAuthenticated
+    fetchAnalyticsServiceToken(id: Uint!, rotate:Boolean!): String! @isAuthenticated
+    changeServerIpAddress(id: Uint!, ip: String!): Boolean! @isAuthenticated
+    changeServerSSHPort(id: Uint!, port: Int!): Boolean! @isAuthenticated
 }

@@ -35,14 +35,14 @@ type Domain {
 }
 
 extend type Query {
-    domains: [Domain!]!
-    domain(id: Uint!): Domain!
-    verifyDomainConfiguration(name: String!): Boolean!
+    domains: [Domain!]! @isAuthenticated
+    domain(id: Uint!): Domain! @isAuthenticated
+    verifyDomainConfiguration(name: String!): Boolean! @isAuthenticated
 }
 
 extend type Mutation {
-    addDomain(input: DomainInput!): Domain!
-    removeDomain(id: Uint!): Boolean!
-    issueSSL(id: Uint!): Domain!
-    addCustomSSL(id: Uint!, input: CustomSSLInput!): Domain!
+    addDomain(input: DomainInput!): Domain! @isAuthenticated
+    removeDomain(id: Uint!): Boolean! @isAuthenticated
+    issueSSL(id: Uint!): Domain! @isAuthenticated
+    addCustomSSL(id: Uint!, input: CustomSSLInput!): Domain! @isAuthenticated
 }

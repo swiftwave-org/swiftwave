@@ -21,13 +21,13 @@ type AppBasicAuthAccessControlUser {
 }
 
 extend type Query {
-    appBasicAuthAccessControlLists: [AppBasicAuthAccessControlList!]!
+    appBasicAuthAccessControlLists: [AppBasicAuthAccessControlList!]! @isAuthenticated
 }
 
 extend type Mutation {
-    createAppBasicAuthAccessControlList(input: AppBasicAuthAccessControlListInput!): AppBasicAuthAccessControlList!
-    deleteAppBasicAuthAccessControlList(id: Uint!): Boolean!
-    createAppBasicAuthAccessControlUser(input: AppBasicAuthAccessControlUserInput!): AppBasicAuthAccessControlUser!
-    updateAppBasicAuthAccessControlUserPassword(id: Uint!, password: String!): Boolean!
-    deleteAppBasicAuthAccessControlUser(id: Uint!): Boolean!
+    createAppBasicAuthAccessControlList(input: AppBasicAuthAccessControlListInput!): AppBasicAuthAccessControlList! @isAuthenticated
+    deleteAppBasicAuthAccessControlList(id: Uint!): Boolean! @isAuthenticated
+    createAppBasicAuthAccessControlUser(input: AppBasicAuthAccessControlUserInput!): AppBasicAuthAccessControlUser! @isAuthenticated
+    updateAppBasicAuthAccessControlUserPassword(id: Uint!, password: String!): Boolean! @isAuthenticated
+    deleteAppBasicAuthAccessControlUser(id: Uint!): Boolean! @isAuthenticated
 }

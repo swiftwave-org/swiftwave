@@ -53,9 +53,9 @@ type Deployment {
 }
 
 extend type Query {
-    deployment(id: String!): Deployment!
+    deployment(id: String!): Deployment! @isAuthenticated
 }
 
 extend type Mutation {
-    cancelDeployment(id: String!): Boolean!
+    cancelDeployment(id: String!): Boolean! @isAuthenticated
 }

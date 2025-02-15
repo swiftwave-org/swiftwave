@@ -22,6 +22,6 @@ type PersistentVolumeRestore {
 }
 
 extend type Mutation {
-    deletePersistentVolumeRestore(id: Uint!): Boolean!
-    deletePersistentVolumeRestoresByPersistentVolumeId(persistentVolumeId: Uint!): Boolean!
+    deletePersistentVolumeRestore(id: Uint!): Boolean! @isAuthenticated
+    deletePersistentVolumeRestoresByPersistentVolumeId(persistentVolumeId: Uint!): Boolean! @isAuthenticated
 }

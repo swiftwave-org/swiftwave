@@ -10,11 +10,11 @@ input ApplicationGroupInput {
 }
 
 extend type Query {
-    applicationGroups: [ApplicationGroup!]!
-    applicationGroup(id: String!): ApplicationGroup!
+    applicationGroups: [ApplicationGroup!]! @isAuthenticated
+    applicationGroup(id: String!): ApplicationGroup! @isAuthenticated
 }
 
 extend type Mutation {
-    createApplicationGroup(input: ApplicationGroupInput!): ApplicationGroup!
-    deleteApplicationGroup(id: String!): Boolean!
+    createApplicationGroup(input: ApplicationGroupInput!): ApplicationGroup! @isAuthenticated
+    deleteApplicationGroup(id: String!): Boolean! @isAuthenticated
 }

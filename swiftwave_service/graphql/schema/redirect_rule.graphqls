@@ -23,11 +23,11 @@ type RedirectRule {
 }
 
 extend type Query {
-    redirectRule(id: Uint!): RedirectRule!
-    redirectRules: [RedirectRule!]!
+    redirectRule(id: Uint!): RedirectRule! @isAuthenticated
+    redirectRules: [RedirectRule!]! @isAuthenticated
 }
 
 extend type Mutation {
-    createRedirectRule(input: RedirectRuleInput!): RedirectRule!
-    deleteRedirectRule(id: Uint!): Boolean!
+    createRedirectRule(input: RedirectRuleInput!): RedirectRule! @isAuthenticated
+    deleteRedirectRule(id: Uint!): Boolean! @isAuthenticated
 }

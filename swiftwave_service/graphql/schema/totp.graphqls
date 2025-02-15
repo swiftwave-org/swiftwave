@@ -4,7 +4,7 @@ type RequestTotpEnable {
 }
 
 extend type Mutation {
-    requestTotpEnable: RequestTotpEnable!
-    enableTotp(totp: String!): Boolean!
-    disableTotp: Boolean!
+    requestTotpEnable: RequestTotpEnable! @isAuthenticated
+    enableTotp(totp: String!): Boolean! @isAuthenticated
+    disableTotp: Boolean! @isAuthenticated
 }
