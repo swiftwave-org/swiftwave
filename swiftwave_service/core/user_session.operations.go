@@ -29,8 +29,8 @@ func CreateSession(ctx context.Context, db gorm.DB, user User) (string, error) {
 	return sessionRecord.SessionID, nil
 }
 
-// GetUserIDBySessionID : get user by session id
-func GetUserIDBySessionID(ctx context.Context, db gorm.DB, sessionID string) (uint, error) {
+// FetchUserIDBySessionID : get user by session id
+func FetchUserIDBySessionID(ctx context.Context, db gorm.DB, sessionID string) (uint, error) {
 	var session UserSession
 	err := db.Where("session_id = ?", sessionID).Select("user_id").First(&session).Error
 	if err != nil {

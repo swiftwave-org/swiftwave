@@ -54,7 +54,7 @@ func installHAProxy(swiftwaveAddress string, dnsServer string, username string, 
 
 	// Write default dataplaneapi config
 	dataplaneapiConfigContent := dataplaneapiConfig
-	dataplaneapiConfigContent = strings.ReplaceAll(dataplaneapiConfigContent, "{{ .Username }}", username)
+	dataplaneapiConfigContent = strings.ReplaceAll(dataplaneapiConfigContent, "{{ .userID }}", username)
 	passwordHash, err := GenerateBasicAuthPassword(password)
 	if err != nil {
 		return err
@@ -175,7 +175,7 @@ dataplaneapi:
   scheme:
     - http
   user:
-  - name: {{ .Username }}
+  - name: {{ .userID }}
     insecure: false
     password: {{ .Password }}
   resources:

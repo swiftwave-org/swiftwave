@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/labstack/echo/v4"
+	swiftwaveMiddleware "github.com/swiftwave-org/swiftwave/swiftwave_service/middleware"
 	"log"
 	"os"
 	"os/user"
@@ -176,5 +178,25 @@ func (r *mutationResolver) RunActionsInAllHAProxyNodes(ctx context.Context, db *
 		return errors.New("failed to run actions in all haproxy nodes due to unknown error")
 	} else {
 		return nil
+	}
+}
+
+func GetEchoContext(ctx context.Context) (echo.Context, error) {
+	if c, ok := ctx.Value("echoContext").(echo.Context); ok {
+		return c, nil
+	} else {
+		return nil, errors.New("failed to get echo context")
+	}
+}
+
+func GetAuthInfo(ctx context.Context) swiftwaveMiddleware.AuthInfo {
+	eCtx, err := GetEchoContext(ctx)
+	if err != nil {
+		return swiftwaveMiddleware.AuthInfo{}
+	}
+	if m, ok := eCtx.Get("auth").(swiftwaveMiddleware.AuthInfo); ok {
+		return m
+	} else {
+		return swiftwaveMiddleware.AuthInfo{}
 	}
 }

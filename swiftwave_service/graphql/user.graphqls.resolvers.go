@@ -103,8 +103,7 @@ func (r *queryResolver) User(ctx context.Context, id uint) (*model.User, error) 
 
 // CurrentUser is the resolver for the currentUser field.
 func (r *queryResolver) CurrentUser(ctx context.Context) (*model.User, error) {
-	username := ctx.Value("username").(string)
-	user, err := core.FindUserByUsername(ctx, r.ServiceManager.DbClient, username)
+	user, err := GetAuthInfo(ctx).GetUser()
 	if err != nil {
 		return nil, err
 	}

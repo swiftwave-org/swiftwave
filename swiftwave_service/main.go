@@ -2,17 +2,16 @@ package swiftwave
 
 import (
 	"fmt"
-	"log"
-	"net/http"
-	"strings"
-
 	"github.com/fatih/color"
 	"github.com/swiftwave-org/swiftwave/pkg/ssh_toolkit"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/dashboard"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
+	custom_middleware "github.com/swiftwave-org/swiftwave/swiftwave_service/middleware"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
+	"log"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -94,88 +93,19 @@ func StartServer(config *config.Config, manager *service_manager.ServiceManager,
 		Format: "${method} ${uri} | ${remote_ip} | ${status} ${error}\n",
 	}))
 	echoServer.Use(middleware.CORS())
+	echoServer.Use(custom_middleware.CacheMiddleware())
+	echoServer.Use(custom_middleware.AuthResolverMiddleware(&manager.DbClient))
 
-	// Cache middleware
-	// Cache JS, CSS and PNG files for 1 year, as if static content changes, the uri also changes
-	// So setting cache-control header to max-age to 1 year
-	// + it will also set etag header to the file name
-	echoServer.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			if strings.HasSuffix(c.Request().RequestURI, ".js") || strings.HasSuffix(c.Request().RequestURI, ".css") || strings.HasSuffix(c.Request().RequestURI, ".png") || strings.HasSuffix(c.Request().RequestURI, ".ttf") {
-				s := strings.Split(c.Request().RequestURI, "/")
-				etag := s[len(s)-1]
-				c.Response().Header().Set("Etag", etag)
-				c.Response().Header().Set("Cache-Control", "max-age=31536000")
-				if match := c.Request().Header.Get("If-None-Match"); match != "" {
-					if strings.Contains(match, etag) {
-						return c.NoContent(http.StatusNotModified)
-					}
-				}
-			}
-			return next(c)
-		}
-	})
+	// Handle dashboard
+	dashboard.RegisterHandlers(echoServer, false)
 
-	// Add `authorized` & `username` key to the context
-	echoServer.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			if strings.Compare(c.Request().URL.Path, "/") == 0 ||
-				strings.HasPrefix(c.Request().URL.Path, "/healthcheck") ||
-				strings.HasPrefix(c.Request().URL.Path, "/.well-known") ||
-				strings.HasPrefix(c.Request().URL.Path, "/auth") ||
-				strings.HasPrefix(c.Request().URL.Path, "/webhook") ||
-				strings.HasPrefix(c.Request().URL.Path, "/dashboard") ||
-				strings.HasPrefix(c.Request().URL.Path, "/playground") {
-				return next(c)
-			}
-			// check if a GET request at /graphql and a websocket upgrade request
-			if strings.HasPrefix(c.Request().URL.Path, "/graphql") &&
-				strings.Compare(c.Request().Method, http.MethodGet) == 0 &&
-				strings.Compare(c.Request().URL.RawQuery, "") == 0 &&
-				strings.Contains(strings.ToLower(c.Request().Header.Get("Connection")), "upgrade") &&
-				strings.Compare(strings.ToLower(c.Request().Header.Get("Upgrade")), "websocket") == 0 {
-				return next(c)
-			}
-
-			// on console websocket connection allow without jwt, as auth will be handled by the console server
-			if strings.HasPrefix(c.Request().URL.Path, "/console/ws") &&
-				strings.Compare(c.Request().Method, http.MethodGet) == 0 &&
-				strings.Compare(c.Request().URL.RawQuery, "") == 0 &&
-				strings.Contains(strings.ToLower(c.Request().Header.Get("Connection")), "upgrade") &&
-				strings.Compare(strings.ToLower(c.Request().Header.Get("Upgrade")), "websocket") == 0 {
-				return next(c)
-			}
-
-			// Whitelist console's HTML, JS, CSS
-			if (strings.Compare(c.Request().URL.Path, "/console") == 0 ||
-				strings.Compare(c.Request().URL.Path, "/console/main.js") == 0 ||
-				strings.Compare(c.Request().URL.Path, "/console/xterm.js") == 0 ||
-				strings.Compare(c.Request().URL.Path, "/console/xterm-addon-fit.js") == 0 ||
-				strings.Compare(c.Request().URL.Path, "/console/xterm.css") == 0) &&
-				strings.Compare(c.Request().Method, http.MethodGet) == 0 {
-				return next(c)
-			}
-
-			// Authenticate request
-
-			c.Set("authorized", false)
-			c.Set("username", "")
-			c.Set("hostname", "")
-
-			return next(c)
-		}
-	})
-
-	// Create GraphQL Server
+	// GQL Server
 	graphqlServer := graphql.Server{
 		EchoServer:     echoServer,
 		Config:         config,
 		ServiceManager: manager,
 		WorkerManager:  workerManager,
 	}
-	// Initialize Dashboard Web App
-	dashboard.RegisterHandlers(echoServer, false)
-	// Initialize GraphQL Server
 	graphqlServer.Initialize()
 
 	// Start the server

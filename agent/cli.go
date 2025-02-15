@@ -309,7 +309,7 @@ var getConfig = &cobra.Command{
 		cmd.Println()
 		cmd.Println("Haproxy Configuration:")
 		cmd.Printf("  • Enabled ------------ %t\n", config.HaproxyConfig.Enabled)
-		cmd.Printf("  • Username ---------- %s\n", config.HaproxyConfig.Username)
+		cmd.Printf("  • userID ---------- %s\n", config.HaproxyConfig.Username)
 		cmd.Printf("  • Password ---------- %s\n", config.HaproxyConfig.Password)
 	},
 }

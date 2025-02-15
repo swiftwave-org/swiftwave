@@ -15,10 +15,10 @@ func init() {
 	userManagementCmd.AddCommand(createUserCmd)
 	userManagementCmd.AddCommand(deleteUserCmd)
 	userManagementCmd.AddCommand(disableTotpCmd)
-	createUserCmd.Flags().StringP("username", "u", "", "Username")
+	createUserCmd.Flags().StringP("username", "u", "", "userID")
 	createUserCmd.Flags().StringP("password", "p", "", "Password [Optional]")
-	deleteUserCmd.Flags().StringP("username", "u", "", "Username")
-	disableTotpCmd.Flags().StringP("username", "u", "", "Username")
+	deleteUserCmd.Flags().StringP("username", "u", "", "userID")
+	disableTotpCmd.Flags().StringP("username", "u", "", "userID")
 }
 
 var userManagementCmd = &cobra.Command{
@@ -41,7 +41,7 @@ var createUserCmd = &cobra.Command{
 		username := cmd.Flag("username").Value.String()
 		password := cmd.Flag("password").Value.String()
 		if username == "" {
-			printError("Username is required")
+			printError("userID is required")
 			err := cmd.Help()
 			if err != nil {
 				return
@@ -108,7 +108,7 @@ var deleteUserCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		username := cmd.Flag("username").Value.String()
 		if username == "" {
-			printError("Username is required")
+			printError("userID is required")
 			err := cmd.Help()
 			if err != nil {
 				return
@@ -146,7 +146,7 @@ var disableTotpCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		username := cmd.Flag("username").Value.String()
 		if username == "" {
-			printError("Username is required")
+			printError("userID is required")
 			err := cmd.Help()
 			if err != nil {
 				return
