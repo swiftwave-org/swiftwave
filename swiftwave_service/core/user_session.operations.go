@@ -29,6 +29,11 @@ func CreateSession(ctx context.Context, db gorm.DB, user User) (string, error) {
 	return sessionRecord.SessionID, nil
 }
 
+// DeleteSessionBySessionID : delete session record by session id
+func DeleteSessionBySessionID(ctx context.Context, db gorm.DB, sessionID string) error {
+	return db.Where("session_id = ?", sessionID).Delete(&UserSession{}).Error
+}
+
 // FetchUserIDBySessionID : get user by session id
 func FetchUserIDBySessionID(ctx context.Context, db gorm.DB, sessionID string) (uint, error) {
 	var session UserSession

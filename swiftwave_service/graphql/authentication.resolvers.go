@@ -9,7 +9,6 @@ import (
 	"errors"
 	"net/http"
 
-	echo "github.com/labstack/echo/v4"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 )
@@ -36,7 +35,10 @@ func (r *mutationResolver) Login(ctx context.Context, input model.UserCredential
 	}
 
 	// Extract Echo context
-	eCtx := ctx.Value("echoContext").(echo.Context)
+	eCtx, err := GetEchoContext(ctx)
+	if err != nil {
+		return "", err
+	}
 	eCtx.SetCookie(&http.Cookie{
 		Name:     "session_id",
 		Value:    token,
@@ -46,4 +48,17 @@ func (r *mutationResolver) Login(ctx context.Context, input model.UserCredential
 	})
 
 	return token, nil
+}
+
+// Logout is the resolver for the logout field.
+func (r *mutationResolver) Logout(ctx context.Context) (bool, error) {
+	auth := GetAuthInfo(ctx)
+	if !auth.IsAuthorized() {
+		return true, nil
+	}
+	err := core.DeleteSessionBySessionID(ctx, r.ServiceManager.DbClient, auth.GetSessionID())
+	if err != nil {
+		return false, errors.New("failed to remove session")
+	}
+	return true, nil
 }
