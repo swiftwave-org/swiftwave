@@ -9,22 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func ValidateAnalyticsServiceToken(ctx context.Context, db gorm.DB, id string, token string) (verified bool, serverHostName string, err error) {
-	// fetch token from database
-	var tokenData AnalyticsServiceToken
-	tx := db.Where("id = ? AND token = ?", id, token).First(&tokenData)
-	if tx.Error != nil {
-		return false, "", tx.Error
-	}
-	// fetch hostname from database
-	var server Server
-	tx = db.Select("host_name").Where("id = ?", tokenData.ServerID).First(&server)
-	if tx.Error != nil {
-		return false, "", tx.Error
-	}
-	return true, server.HostName, nil
-}
-
 func FetchAnalyticsServiceToken(ctx context.Context, db gorm.DB, serverId uint) (*AnalyticsServiceToken, error) {
 	// check if token exists
 	var tokenData AnalyticsServiceToken

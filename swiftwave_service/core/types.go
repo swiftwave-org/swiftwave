@@ -30,14 +30,6 @@ const (
 	ServerOffline    ServerStatus = "offline"
 )
 
-// SwarmMode : mode of the swarm
-type SwarmMode string
-
-const (
-	SwarmManager SwarmMode = "manager"
-	SwarmWorker  SwarmMode = "worker"
-)
-
 // ProxyType : type of the proxy
 type ProxyType string
 
@@ -51,6 +43,18 @@ type ProxyConfig struct {
 	Enabled      bool      `json:"enabled" gorm:"default:false"`
 	SetupRunning bool      `json:"setup_running" gorm:"default:false"` // just to show warning to user, that's it
 	Type         ProxyType `json:"type" gorm:"default:'active'"`
+}
+
+// ************************************************************************************* //
+//							Wireguard Configuration          		   			   		  //
+// ************************************************************************************* //
+
+// WireguardConfig represents the configuration structure for a WireGuard VPN connection.
+type WireguardConfig struct {
+	PublicKey  string `json:"public_key"`
+	PrivateKey string `json:"private_key"`
+	IP         string `json:"ip"`
+	Port       int    `json:"port"`
 }
 
 // ************************************************************************************* //

@@ -17,7 +17,6 @@ import (
 	haproxymanager "github.com/swiftwave-org/swiftwave/pkg/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"gorm.io/gorm"
 )
@@ -56,22 +55,24 @@ func sanitizeFileName(fileName string) string {
 }
 
 func FetchDockerManager(ctx context.Context, db *gorm.DB) (*containermanger.Manager, error) {
-	// Fetch a random swarm manager
-	swarmManagerServer, err := core.FetchSwarmManager(db)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// no online swarm manager
-			logger.GraphQLLogger.Println("failed to fetch docker manager due to no online swarm manager")
-			return nil, errors.New("failed to fetch docker manager due to no online swarm manager")
-		}
-		return nil, errors.New("failed to fetch swarm manager")
-	}
-	// Fetch docker manager
-	dockerManager, err := manager.DockerClient(ctx, swarmManagerServer)
-	if err != nil {
-		return nil, errors.New("failed to fetch docker manager")
-	}
-	return dockerManager, nil
+	return nil, nil
+	// TODO fix
+	//// Fetch a random swarm manager
+	//swarmManagerServer, err := core.FetchSwarmManager(db)
+	//if err != nil {
+	//	if errors.Is(err, gorm.ErrRecordNotFound) {
+	//		// no online swarm manager
+	//		logger.GraphQLLogger.Println("failed to fetch docker manager due to no online swarm manager")
+	//		return nil, errors.New("failed to fetch docker manager due to no online swarm manager")
+	//	}
+	//	return nil, errors.New("failed to fetch swarm manager")
+	//}
+	//// Fetch docker manager
+	//dockerManager, err := manager.DockerClient(ctx, swarmManagerServer)
+	//if err != nil {
+	//	return nil, errors.New("failed to fetch docker manager")
+	//}
+	//return dockerManager, nil
 }
 
 func AppendPublicSSHKeyLocally(pubKey string) error {

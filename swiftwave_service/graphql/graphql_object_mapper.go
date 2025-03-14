@@ -809,39 +809,43 @@ func stackToApplicationsInput(applicationGroupID *string, record *stack_parser.S
 
 // newServerInputToDatabaseObject converts NewServerInput to ServerDatabaseObject
 func newServerInputToDatabaseObject(record *model.NewServerInput) *core.Server {
-	return &core.Server{
-		IP:                   record.IP,
-		SSHPort:              record.SSHPort,
-		HostName:             "",
-		User:                 record.User,
-		ScheduleDeployments:  false,
-		MaintenanceMode:      false,
-		DockerUnixSocketPath: "",
-		SwarmMode:            core.SwarmMode(model.SwarmModeWorker),
-		ProxyConfig: core.ProxyConfig{
-			Enabled: false,
-			Type:    core.ProxyType(model.ProxyTypeActive),
-		},
-		Status: core.ServerStatus(model.ServerStatusNeedsSetup),
-	}
+	// TODO fix
+	//return &core.Server{
+	//	IP:                   record.IP,
+	//	SSHPort:              record.SSHPort,
+	//	HostName:             "",
+	//	User:                 record.User,
+	//	ScheduleDeployments:  false,
+	//	MaintenanceMode:      false,
+	//	DockerUnixSocketPath: "",
+	//	SwarmMode:            core.SwarmMode(model.SwarmModeWorker),
+	//	ProxyConfig: core.ProxyConfig{
+	//		Enabled: false,
+	//		Type:    core.ProxyType(model.ProxyTypeActive),
+	//	},
+	//	Status: core.ServerStatus(model.ServerStatusNeedsSetup),
+	//}
+	return nil
 }
 
 // serverToGraphqlObject converts Server to ServerGraphqlObject
 func serverToGraphqlObject(record *core.Server) *model.Server {
-	return &model.Server{
-		ID:                   record.ID,
-		IP:                   record.IP,
-		SSHPort:              record.SSHPort,
-		Hostname:             record.HostName,
-		User:                 record.User,
-		ScheduleDeployments:  record.ScheduleDeployments,
-		MaintenanceMode:      record.MaintenanceMode,
-		DockerUnixSocketPath: record.DockerUnixSocketPath,
-		SwarmMode:            model.SwarmMode(record.SwarmMode),
-		ProxyType:            model.ProxyType(record.ProxyConfig.Type),
-		ProxyEnabled:         record.ProxyConfig.Enabled,
-		Status:               model.ServerStatus(record.Status),
-	}
+	// TODO fix
+	//return &model.Server{
+	//	ID:                   record.ID,
+	//	IP:                   record.IP,
+	//	SSHPort:              record.SSHPort,
+	//	Hostname:             record.HostName,
+	//	User:                 record.User,
+	//	ScheduleDeployments:  record.ScheduleDeployments,
+	//	MaintenanceMode:      record.MaintenanceMode,
+	//	DockerUnixSocketPath: record.DockerUnixSocketPath,
+	//	SwarmMode:            model.SwarmMode(record.SwarmMode),
+	//	ProxyType:            model.ProxyType(record.ProxyConfig.Type),
+	//	ProxyEnabled:         record.ProxyConfig.Enabled,
+	//	Status:               model.ServerStatus(record.Status),
+	//}
+	return nil
 }
 
 // serverLogToGraphqlObject converts ServerLog to ServerLogGraphqlObject

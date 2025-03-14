@@ -2,7 +2,6 @@ package core
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"time"
 
@@ -11,11 +10,8 @@ import (
 
 // CreateServer creates a new server in the database
 func CreateServer(db *gorm.DB, server *Server) error {
-	if server.IP == "" {
+	if server.PublicIP == "" {
 		return errors.New("IP is required")
-	}
-	if server.User == "" {
-		return errors.New("user is required")
 	}
 	server.LastPing = time.Now()
 	return db.Create(server).Error
@@ -27,24 +23,25 @@ func DeleteServer(db *gorm.DB, id uint) error {
 	if err != nil {
 		return err
 	}
-	var applications []Application
-
-	tx := db.Raw("SELECT name FROM applications WHERE preferred_server_hostnames @> ARRAY[?]", server.HostName).Scan(&applications)
-	if tx.Error != nil {
-		return fmt.Errorf("failed to fetch linked apps : %s", tx.Error.Error())
-	}
-	if len(applications) > 0 {
-		applicationString := ""
-		for i, application := range applications {
-			applicationString = applicationString + application.Name
-			if i != len(applications)-1 {
-				applicationString = applicationString + ", "
-			} else {
-				applicationString = applicationString + " "
-			}
-		}
-		return fmt.Errorf("server is linked to application(s) : %s\nPlease remove this server from preferred servers of the application(s) before deleting the server", applicationString)
-	}
+	// TODO handle later
+	//var applications []Application
+	//
+	//tx := db.Raw("SELECT name FROM applications WHERE preferred_server_hostnames @> ARRAY[?]", server.HostName).Scan(&applications)
+	//if tx.Error != nil {
+	//	return fmt.Errorf("failed to fetch linked apps : %s", tx.Error.Error())
+	//}
+	//if len(applications) > 0 {
+	//	applicationString := ""
+	//	for i, application := range applications {
+	//		applicationString = applicationString + application.Name
+	//		if i != len(applications)-1 {
+	//			applicationString = applicationString + ", "
+	//		} else {
+	//			applicationString = applicationString + " "
+	//		}
+	//	}
+	//	return fmt.Errorf("server is linked to application(s) : %s\nPlease remove this server from preferred servers of the application(s) before deleting the server", applicationString)
+	//}
 	return db.Delete(server).Error
 }
 
@@ -134,24 +131,6 @@ func FetchAllOnlineServers(db *gorm.DB) ([]Server, error) {
 	return servers, err
 }
 
-// FetchSwarmManager fetches the swarm manager from the database
-func FetchSwarmManager(db *gorm.DB) (Server, error) {
-	var server Server
-	// The reason behind using Order("RANDOM()") is
-	// if any swarm manager is down, the next one will be used
-	// so remove the possibility of complete failure
-	err := db.Where("status = ?", ServerOnline).Where("swarm_mode = ?", SwarmManager).Order("RANDOM()").First(&server).Error
-	return server, err
-}
-
-// FetchSwarmManagerExceptServer fetches the swarm manager from the database except the given server
-func FetchSwarmManagerExceptServer(db *gorm.DB, serverId uint) (Server, error) {
-	var swarmManager Server
-	err := db.Where("status = ?", ServerOnline).Where("swarm_mode = ?", SwarmManager).Where("id != ?", serverId).Order("RANDOM()").First(&swarmManager).Error
-	return swarmManager, err
-
-}
-
 // FetchProxyActiveServers fetches all active servers from the database
 func FetchProxyActiveServers(db *gorm.DB) ([]Server, error) {
 	isAnyActiveProxyServerOffline, err := IsAnyActiveProxyServerOffline(db)
@@ -221,18 +200,4 @@ func MarkServerAsOffline(db *gorm.DB, server *Server) error {
 // ChangeProxyType changes the proxy type of server in the database
 func ChangeProxyType(db *gorm.DB, server *Server, proxyType ProxyType) error {
 	return db.Model(server).Update("proxy_type", proxyType).Error
-}
-
-// FetchDisabledDeploymentServerHostNames fetches the hostnames of all servers that are not in deployment mode
-func FetchDisabledDeploymentServerHostNames(db *gorm.DB) ([]string, error) {
-	var disabledServers []Server
-	err := db.Where("schedule_deployments = ?", false).Select("host_name").Distinct("host_name").Find(&disabledServers).Error
-	if err != nil {
-		return nil, err
-	}
-	var hostNames []string
-	for _, server := range disabledServers {
-		hostNames = append(hostNames, server.HostName)
-	}
-	return hostNames, nil
 }

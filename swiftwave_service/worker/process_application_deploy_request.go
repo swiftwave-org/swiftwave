@@ -5,7 +5,6 @@ import (
 	"errors"
 	haproxymanager "github.com/swiftwave-org/swiftwave/pkg/haproxy_manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"log"
 	"strings"
 
@@ -15,43 +14,44 @@ import (
 )
 
 func (m Manager) DeployApplication(request DeployApplicationRequest, _ context.Context, _ context.CancelFunc) error {
-	// fetch the swarm server
-	swarmManager, err := core.FetchSwarmManager(&m.ServiceManager.DbClient)
-	if err != nil {
-		return err
-	}
-	// create docker manager
-	dockerManager, err := manager.DockerClient(context.Background(), swarmManager)
-	if err != nil {
-		return err
-	}
-	// fetch all proxy servers
-	proxyServers := make([]core.Server, 0)
-	if !request.IgnoreProxyUpdate {
-		proxyServers, err = core.FetchProxyActiveServers(&m.ServiceManager.DbClient)
-		if err != nil {
-			return err
-		}
-	}
-	// fetch all haproxy managers
-	haproxyManagers, err := manager.HAProxyClients(context.Background(), proxyServers)
-	if err != nil {
-		return err
-	}
-	err = m.deployApplicationHelper(request, dockerManager, haproxyManagers)
-	if err != nil {
-		// mark as failed
-		ctx := context.Background()
-		addPersistentDeploymentLog(m.ServiceManager.DbClient, m.ServiceManager.PubSubClient, request.DeploymentId, "Deployment failed > \n"+err.Error()+"\n", false)
-		deployment := &core.Deployment{}
-		deployment.ID = request.DeploymentId
-		err = deployment.UpdateStatus(ctx, m.ServiceManager.DbClient, core.DeploymentStatusFailed)
-		if err != nil {
-			log.Println("failed to update deployment status to failed", err)
-		}
-	}
-	// prune config mounts
-	dockerManager.PruneConfig(request.AppId)
+	// TODO fix
+	//// fetch the swarm server
+	//swarmManager, err := core.FetchSwarmManager(&m.ServiceManager.DbClient)
+	//if err != nil {
+	//	return err
+	//}
+	//// create docker manager
+	//dockerManager, err := manager.DockerClient(context.Background(), swarmManager)
+	//if err != nil {
+	//	return err
+	//}
+	//// fetch all proxy servers
+	//proxyServers := make([]core.Server, 0)
+	//if !request.IgnoreProxyUpdate {
+	//	proxyServers, err = core.FetchProxyActiveServers(&m.ServiceManager.DbClient)
+	//	if err != nil {
+	//		return err
+	//	}
+	//}
+	//// fetch all haproxy managers
+	//haproxyManagers, err := manager.HAProxyClients(context.Background(), proxyServers)
+	//if err != nil {
+	//	return err
+	//}
+	//err = m.deployApplicationHelper(request, dockerManager, haproxyManagers)
+	//if err != nil {
+	//	// mark as failed
+	//	ctx := context.Background()
+	//	addPersistentDeploymentLog(m.ServiceManager.DbClient, m.ServiceManager.PubSubClient, request.DeploymentId, "Deployment failed > \n"+err.Error()+"\n", false)
+	//	deployment := &core.Deployment{}
+	//	deployment.ID = request.DeploymentId
+	//	err = deployment.UpdateStatus(ctx, m.ServiceManager.DbClient, core.DeploymentStatusFailed)
+	//	if err != nil {
+	//		log.Println("failed to update deployment status to failed", err)
+	//	}
+	//}
+	//// prune config mounts
+	//dockerManager.PruneConfig(request.AppId)
 	return nil
 }
 
@@ -199,7 +199,10 @@ func (m Manager) deployApplicationHelper(request DeployApplicationRequest, docke
 	}
 	// prepare placement constraints
 	var placementConstraints = make([]string, 0)
-	disabledServerHostnames, err := core.FetchDisabledDeploymentServerHostNames(&m.ServiceManager.DbClient)
+	// TODO fix
+	//disabledServerHostnames, err := core.FetchDisabledDeploymentServerHostNames(&m.ServiceManager.DbClient)
+	disabledServerHostnames := make([]string, 0)
+	err = nil
 	if err != nil {
 		addPersistentDeploymentLog(dbWithoutTx, pubSubClient, deployment.ID, "Failed to fetch disabled deployment servers\nPlease check database connection\n", false)
 		return err

@@ -73,7 +73,7 @@ func (persistentVolume *PersistentVolume) Create(ctx context.Context, db gorm.DB
 	// check if any server is offline
 	for _, server := range servers {
 		if server.Status == ServerOffline {
-			return fmt.Errorf("server %s is offline", server.IP)
+			return fmt.Errorf("server %s [%d] is offline", server.Name, server.ID)
 		}
 	}
 	// create docker manager for all servers
@@ -84,7 +84,7 @@ func (persistentVolume *PersistentVolume) Create(ctx context.Context, db gorm.DB
 			if err != nil {
 				return err
 			}
-			dockerManagers[server.IP] = *dockerManager
+			dockerManagers[server.Name] = *dockerManager
 		}
 	}
 

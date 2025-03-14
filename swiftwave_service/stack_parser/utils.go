@@ -1,11 +1,8 @@
 package stack_parser
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
-	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
 	"math/rand"
 	"regexp"
@@ -162,75 +159,76 @@ func (s *Stack) FillAndVerifyVariables(variableMapping *map[string]string, servi
 		service.CustomHealthCheck.TestCommand = newHealthCheckTestCommand
 		stackCopy.Services[serviceName] = service
 	}
-	// check if docs present
-	if stackCopy.Docs != nil {
-		// fetch a swarm manager server
-		server, err := core.FetchSwarmManager(&serviceManager.DbClient)
-		if err != nil {
-			return nil, errors.New("error in fetching swarm manager")
-		}
-		// fetch docker manager
-		dockerManager, err := manager.DockerClient(context.Background(), server)
-		if err != nil {
-			return nil, errors.New("error in connecting to docker manager")
-		}
-		// verify the type of variables
-		for variableKey, variable := range stackCopy.Docs.Variables {
-			// check if variableKey is present in variableMapping
-			if _, ok := (*variableMapping)[variableKey]; ok {
-				if variable.Type == DocsVariableTypeInteger {
-					_, err := stringToInteger((*variableMapping)[variableKey])
-					if err != nil {
-						return nil, errors.New("variable " + variableKey + " should be integer")
-					}
-				} else if variable.Type == DocsVariableTypeFloat {
-					_, err := strconv.ParseFloat((*variableMapping)[variableKey], 64)
-					if err != nil {
-						return nil, errors.New("variable " + variableKey + " should be float")
-					}
-				} else if variable.Type == DocsVariableTypeOptions {
-					isValid := false
-					for _, option := range variable.Options {
-						if option.Value == (*variableMapping)[variableKey] {
-							isValid = true
-							break
-						}
-					}
-					if !isValid {
-						return nil, errors.New("variable " + variableKey + " should be one of the provided options")
-					}
-				} else if variable.Type == DocsVariableTypeVolume {
-					val := (*variableMapping)[variableKey]
-					isExist, err := core.IsExistPersistentVolume(context.Background(), serviceManager.DbClient, val, *dockerManager)
-					if err != nil {
-						return nil, errors.New("error in checking volume " + val)
-					}
-					if !isExist {
-						return nil, errors.New("volume " + val + " doesn't exist. Create it or choose another volume")
-					}
-				} else if variable.Type == DocsVariableTypeText {
-					// do nothing, just for the sake of completeness
-				} else if variable.Type == DocsVariableTypeApplication {
-					val := (*variableMapping)[variableKey]
-					isExist, err := core.IsExistApplicationName(context.Background(), serviceManager.DbClient, *dockerManager, val)
-					if err != nil {
-						return nil, errors.New("error in checking application " + val)
-					}
-					if !isExist {
-						return nil, errors.New("application " + val + " doesn't exist. Create it or choose another application")
-					}
-				} else if variable.Type == DocsVariableTypeServer {
-					val := (*variableMapping)[variableKey]
-					_, err := core.FetchServerIDByHostName(&serviceManager.DbClient, val)
-					if err != nil {
-						return nil, errors.New("invalid server " + val + " provided")
-					}
-				} else {
-					return nil, errors.New("invalid variable type")
-				}
-			}
-		}
-	}
+	// TODO fix
+	//// check if docs present
+	//if stackCopy.Docs != nil {
+	//	// fetch a swarm manager server
+	//	server, err := core.FetchSwarmManager(&serviceManager.DbClient)
+	//	if err != nil {
+	//		return nil, errors.New("error in fetching swarm manager")
+	//	}
+	//	// fetch docker manager
+	//	dockerManager, err := manager.DockerClient(context.Background(), server)
+	//	if err != nil {
+	//		return nil, errors.New("error in connecting to docker manager")
+	//	}
+	//	// verify the type of variables
+	//	for variableKey, variable := range stackCopy.Docs.Variables {
+	//		// check if variableKey is present in variableMapping
+	//		if _, ok := (*variableMapping)[variableKey]; ok {
+	//			if variable.Type == DocsVariableTypeInteger {
+	//				_, err := stringToInteger((*variableMapping)[variableKey])
+	//				if err != nil {
+	//					return nil, errors.New("variable " + variableKey + " should be integer")
+	//				}
+	//			} else if variable.Type == DocsVariableTypeFloat {
+	//				_, err := strconv.ParseFloat((*variableMapping)[variableKey], 64)
+	//				if err != nil {
+	//					return nil, errors.New("variable " + variableKey + " should be float")
+	//				}
+	//			} else if variable.Type == DocsVariableTypeOptions {
+	//				isValid := false
+	//				for _, option := range variable.Options {
+	//					if option.Value == (*variableMapping)[variableKey] {
+	//						isValid = true
+	//						break
+	//					}
+	//				}
+	//				if !isValid {
+	//					return nil, errors.New("variable " + variableKey + " should be one of the provided options")
+	//				}
+	//			} else if variable.Type == DocsVariableTypeVolume {
+	//				val := (*variableMapping)[variableKey]
+	//				isExist, err := core.IsExistPersistentVolume(context.Background(), serviceManager.DbClient, val, *dockerManager)
+	//				if err != nil {
+	//					return nil, errors.New("error in checking volume " + val)
+	//				}
+	//				if !isExist {
+	//					return nil, errors.New("volume " + val + " doesn't exist. Create it or choose another volume")
+	//				}
+	//			} else if variable.Type == DocsVariableTypeText {
+	//				// do nothing, just for the sake of completeness
+	//			} else if variable.Type == DocsVariableTypeApplication {
+	//				val := (*variableMapping)[variableKey]
+	//				isExist, err := core.IsExistApplicationName(context.Background(), serviceManager.DbClient, *dockerManager, val)
+	//				if err != nil {
+	//					return nil, errors.New("error in checking application " + val)
+	//				}
+	//				if !isExist {
+	//					return nil, errors.New("application " + val + " doesn't exist. Create it or choose another application")
+	//				}
+	//			} else if variable.Type == DocsVariableTypeServer {
+	//				val := (*variableMapping)[variableKey]
+	//				_, err := core.FetchServerIDByHostName(&serviceManager.DbClient, val)
+	//				if err != nil {
+	//					return nil, errors.New("invalid server " + val + " provided")
+	//				}
+	//			} else {
+	//				return nil, errors.New("invalid variable type")
+	//			}
+	//		}
+	//	}
+	//}
 	return stackCopy, nil
 }
 

@@ -9,14 +9,10 @@ import (
 // Server hold information about server
 type Server struct {
 	ID                    uint                   `json:"id" gorm:"primaryKey"`
-	IP                    string                 `json:"ip" gorm:"unique"`
-	HostName              string                 `json:"host_name"`
-	User                  string                 `json:"user"`
-	SSHPort               int                    `json:"ssh_port" gorm:"default:22"`
-	MaintenanceMode       bool                   `json:"maintenance_mode" gorm:"default:false"`
+	Name                  string                 `json:"name" gorm:"unique"`
+	PublicIP              string                 `json:"public_ip" gorm:"not null"`
+	WireguardConfig       WireguardConfig        `json:"wireguard_config" gorm:"embedded;embeddedPrefix:wireguard_"`
 	ScheduleDeployments   bool                   `json:"schedule_deployments" gorm:"default:true"`
-	DockerUnixSocketPath  string                 `json:"docker_unix_socket_path"`
-	SwarmMode             SwarmMode              `json:"swarm_mode"`
 	ProxyConfig           ProxyConfig            `json:"proxy_config" gorm:"embedded;embeddedPrefix:proxy_"`
 	Status                ServerStatus           `json:"status"`
 	LastPing              time.Time              `json:"last_ping"`

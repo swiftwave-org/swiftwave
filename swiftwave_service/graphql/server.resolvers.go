@@ -16,8 +16,6 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
-	swiftwaveServiceManagerDocker "github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
-	"gorm.io/gorm"
 )
 
 // CreateServer is the resolver for the createServer field.
@@ -54,63 +52,64 @@ func (r *mutationResolver) DeleteServer(ctx context.Context, id uint) (bool, err
 	// 7. Remove from swarm cluster
 	// 8. Remove from the database
 
-	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
-	if err != nil {
-		return false, err
-	}
-	// If `need_setup`, delete it from database
-	if server.Status == core.ServerNeedsSetup {
-		err = core.DeleteServer(&r.ServiceManager.DbClient, id)
-		if err != nil {
-			return false, err
-		}
-		return true, nil
-	}
-	// If `preparing`, it can't be deleted
-	if server.Status == core.ServerPreparing {
-		return false, errors.New("server is preparing, you can delete it only after it come out of `preparing` status")
-	}
-	// If it's the last server, then delete it from db
-	servers, err := core.FetchAllServers(&r.ServiceManager.DbClient)
-	if err != nil {
-		return false, err
-	}
-	if len(servers) == 1 {
-		err = core.DeleteServer(&r.ServiceManager.DbClient, id)
-		if err != nil {
-			return false, err
-		}
-		return true, nil
-	}
-	// if not the last server, then required additional steps
-	if server.SwarmMode == core.SwarmManager {
-		return false, errors.New("from 'Actions' menu, demote this server to 'Swarm Worker' mode to proceed for deletion")
-	}
-	if server.ProxyConfig.Enabled {
-		return false, errors.New("from 'Actions' menu, disable ingress proxy on this server to proceed for deletion")
-	}
-	// fetch another swarm manager
-	otherSwarmManager, err := core.FetchSwarmManagerExceptServer(&r.ServiceManager.DbClient, id)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false, errors.New("no other swarm manager found to proceed for deletion")
-		}
-	}
-	// fetch docker manager
-	dockerManager, err := swiftwaveServiceManagerDocker.DockerClient(ctx, otherSwarmManager)
-	if err != nil {
-		return false, err
-	}
-	// remove from swarm cluster
-	err = dockerManager.RemoveNode(server.HostName)
-	if err != nil {
-		return false, err
-	}
-	// remove from local database
-	err = core.DeleteServer(&r.ServiceManager.DbClient, id)
-	if err != nil {
-		return false, err
-	}
+	// TODO fix
+	//server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)
+	//if err != nil {
+	//	return false, err
+	//}
+	//// If `need_setup`, delete it from database
+	//if server.Status == core.ServerNeedsSetup {
+	//	err = core.DeleteServer(&r.ServiceManager.DbClient, id)
+	//	if err != nil {
+	//		return false, err
+	//	}
+	//	return true, nil
+	//}
+	//// If `preparing`, it can't be deleted
+	//if server.Status == core.ServerPreparing {
+	//	return false, errors.New("server is preparing, you can delete it only after it come out of `preparing` status")
+	//}
+	//// If it's the last server, then delete it from db
+	//servers, err := core.FetchAllServers(&r.ServiceManager.DbClient)
+	//if err != nil {
+	//	return false, err
+	//}
+	//if len(servers) == 1 {
+	//	err = core.DeleteServer(&r.ServiceManager.DbClient, id)
+	//	if err != nil {
+	//		return false, err
+	//	}
+	//	return true, nil
+	//}
+	//// if not the last server, then required additional steps
+	//if server.SwarmMode == core.SwarmManager {
+	//	return false, errors.New("from 'Actions' menu, demote this server to 'Swarm Worker' mode to proceed for deletion")
+	//}
+	//if server.ProxyConfig.Enabled {
+	//	return false, errors.New("from 'Actions' menu, disable ingress proxy on this server to proceed for deletion")
+	//}
+	//// fetch another swarm manager
+	//otherSwarmManager, err := core.FetchSwarmManagerExceptServer(&r.ServiceManager.DbClient, id)
+	//if err != nil {
+	//	if errors.Is(err, gorm.ErrRecordNotFound) {
+	//		return false, errors.New("no other swarm manager found to proceed for deletion")
+	//	}
+	//}
+	//// fetch docker manager
+	//dockerManager, err := swiftwaveServiceManagerDocker.DockerClient(ctx, otherSwarmManager)
+	//if err != nil {
+	//	return false, err
+	//}
+	//// remove from swarm cluster
+	//err = dockerManager.RemoveNode(server.HostName)
+	//if err != nil {
+	//	return false, err
+	//}
+	//// remove from local database
+	//err = core.DeleteServer(&r.ServiceManager.DbClient, id)
+	//if err != nil {
+	//	return false, err
+	//}
 	return true, nil
 }
 
@@ -140,15 +139,15 @@ func (r *mutationResolver) ChangeServerIPAddress(ctx context.Context, id uint, i
 	if len(ip) == 0 {
 		return false, errors.New("IP is required")
 	}
-	if strings.Compare(server.IP, ip) == 0 {
-		return false, errors.New("IP is already " + server.IP)
+	if strings.Compare(server.PublicIP, ip) == 0 {
+		return false, errors.New("IP is already " + server.PublicIP)
 	}
 	err = core.ChangeServerIP(&r.ServiceManager.DbClient, server, ip)
 	if err != nil {
 		return false, err
 	}
 	// Exit process
-	logger.GraphQLLoggerError.Println("Server " + server.HostName + " IP changed to " + ip + "\nRestarting swiftwave in 2 seconds to take effect")
+	logger.GraphQLLoggerError.Println("Server " + server.Name + " IP changed to " + ip + "\nRestarting swiftwave in 2 seconds to take effect")
 	// Restart swiftwave service
 	go func() {
 		<-time.After(2 * time.Second)
@@ -267,23 +266,25 @@ func (r *queryResolver) ServerLatestDiskUsage(ctx context.Context, id uint) (*mo
 
 // SwarmNodeStatus is the resolver for the swarmNodeStatus field.
 func (r *serverResolver) SwarmNodeStatus(ctx context.Context, obj *model.Server) (string, error) {
-	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, obj.ID)
-	if err != nil {
-		return "", nil
-	}
-	if server.Status != core.ServerOnline {
-		return "", nil
-	}
-	// Fetch any swarm manager
-	swarmManagerServer, err := core.FetchSwarmManager(&r.ServiceManager.DbClient)
-	if err != nil {
-		return "", nil
-	}
-	manager, err := swiftwaveServiceManagerDocker.DockerClient(ctx, swarmManagerServer)
-	if err != nil {
-		return "", nil
-	}
-	return manager.FetchNodeStatus(server.HostName)
+	// TODO fix
+	//server, err := core.FetchServerByID(&r.ServiceManager.DbClient, obj.ID)
+	//if err != nil {
+	//	return "", nil
+	//}
+	//if server.Status != core.ServerOnline {
+	//	return "", nil
+	//}
+	//// Fetch any swarm manager
+	//swarmManagerServer, err := core.FetchSwarmManager(&r.ServiceManager.DbClient)
+	//if err != nil {
+	//	return "", nil
+	//}
+	//manager, err := swiftwaveServiceManagerDocker.DockerClient(ctx, swarmManagerServer)
+	//if err != nil {
+	//	return "", nil
+	//}
+	//return manager.FetchNodeStatus(server.HostName)
+	return "hello", nil
 }
 
 // Logs is the resolver for the logs field.

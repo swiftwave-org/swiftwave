@@ -26,9 +26,9 @@ func init() {
 
 	setupCmd.Flags().String("auth-token-hash", "", "Auth token hash")
 	setupCmd.Flags().String("wireguard-private-key", "", "Wireguard private key")
-	setupCmd.Flags().String("wireguard-address", "", "Wireguard address")
-	setupCmd.Flags().String("docker-network-gateway-address", "", "Docker network gateway address")
-	setupCmd.Flags().String("docker-network-subnet", "", "Docker network subnet")
+	setupCmd.Flags().String("wireguard-address", "", "Wireguard address ip/cidr")
+	setupCmd.Flags().String("docker-network-gateway-address", "", "Docker network gateway address (ip)")
+	setupCmd.Flags().String("docker-network-subnet", "", "Docker network subnet ip/cidr")
 	setupCmd.Flags().String("swiftwave-service-address", "", "Swiftwave service address ip:port")
 	setupCmd.Flags().Bool("enable-haproxy", false, "Enable haproxy")
 

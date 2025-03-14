@@ -6,8 +6,6 @@ package graphql
 
 import (
 	"context"
-	"errors"
-
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/graphql/model"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/manager"
@@ -111,28 +109,30 @@ func (r *queryResolver) PersistentVolume(ctx context.Context, id uint) (*model.P
 
 // PersistentVolumeSizeMb is the resolver for the persistentVolumeSizeMb field.
 func (r *queryResolver) PersistentVolumeSizeMb(ctx context.Context, id uint) (float64, error) {
-	// fetch record
-	var record core.PersistentVolume
-	err := record.FindById(ctx, r.ServiceManager.DbClient, id)
-	if err != nil {
-		return 0, err
-	}
-	// Fetch a random swarm manager
-	swarmManagerServer, err := core.FetchSwarmManager(&r.ServiceManager.DbClient)
-	if err != nil {
-		return 0, errors.New("failed to fetch swarm manager")
-	}
-	// Fetch docker manager
-	dockerManager, err := manager.DockerClient(ctx, swarmManagerServer)
-	if err != nil {
-		return 0, errors.New("failed to fetch docker manager")
-	}
-	// fetch size
-	size, err := dockerManager.SizeVolume(record.Name, swarmManagerServer.IP, swarmManagerServer.SSHPort, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey)
-	if err != nil {
-		return 0, err
-	}
-	return size, nil
+	// TODO fix
+	//// fetch record
+	//var record core.PersistentVolume
+	//err := record.FindById(ctx, r.ServiceManager.DbClient, id)
+	//if err != nil {
+	//	return 0, err
+	//}
+	//// Fetch a random swarm manager
+	//swarmManagerServer, err := core.FetchSwarmManager(&r.ServiceManager.DbClient)
+	//if err != nil {
+	//	return 0, errors.New("failed to fetch swarm manager")
+	//}
+	//// Fetch docker manager
+	//dockerManager, err := manager.DockerClient(ctx, swarmManagerServer)
+	//if err != nil {
+	//	return 0, errors.New("failed to fetch docker manager")
+	//}
+	//// fetch size
+	//size, err := dockerManager.SizeVolume(record.Name, swarmManagerServer.IP, swarmManagerServer.SSHPort, swarmManagerServer.User, r.Config.SystemConfig.SshPrivateKey)
+	//if err != nil {
+	//	return 0, err
+	//}
+	//return size, nil
+	return 0, nil
 }
 
 // IsExistPersistentVolume is the resolver for the isExistPersistentVolume field.
