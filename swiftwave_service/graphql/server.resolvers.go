@@ -113,22 +113,6 @@ func (r *mutationResolver) DeleteServer(ctx context.Context, id uint) (bool, err
 	return true, nil
 }
 
-// FetchAnalyticsServiceToken is the resolver for the fetchAnalyticsServiceToken field.
-func (r *mutationResolver) FetchAnalyticsServiceToken(ctx context.Context, id uint, rotate bool) (string, error) {
-	var tokenRecord *core.AnalyticsServiceToken
-	var err error
-	if !rotate {
-		tokenRecord, err = core.FetchAnalyticsServiceToken(ctx, r.ServiceManager.DbClient, id)
-	} else {
-		tokenRecord, err = core.RotateAnalyticsServiceToken(ctx, r.ServiceManager.DbClient, id)
-	}
-	if err != nil {
-		return "", err
-	} else {
-		return tokenRecord.IDToken()
-	}
-}
-
 // ChangeServerIPAddress is the resolver for the changeServerIpAddress field.
 func (r *mutationResolver) ChangeServerIPAddress(ctx context.Context, id uint, ip string) (bool, error) {
 	server, err := core.FetchServerByID(&r.ServiceManager.DbClient, id)

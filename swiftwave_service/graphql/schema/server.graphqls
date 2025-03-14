@@ -104,6 +104,5 @@ extend type Query {
 extend type Mutation {
     createServer(input: NewServerInput!): Server! @isAuthenticated
     deleteServer(id: Uint!): Boolean! @isAuthenticated
-    fetchAnalyticsServiceToken(id: Uint!, rotate:Boolean!): String! @isAuthenticated
     changeServerIpAddress(id: Uint!, ip: String!): Boolean! @isAuthenticated
 }

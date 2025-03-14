@@ -8,19 +8,17 @@ import (
 
 // Server hold information about server
 type Server struct {
-	ID                    uint                   `json:"id" gorm:"primaryKey"`
-	Name                  string                 `json:"name" gorm:"unique"`
-	PublicIP              string                 `json:"public_ip" gorm:"not null"`
-	AgentToken            string                 `json:"agent_token" gorm:"unique"`
-	WireguardConfig       WireguardConfig        `json:"wireguard_config" gorm:"embedded;embeddedPrefix:wireguard_"`
-	ScheduleDeployments   bool                   `json:"schedule_deployments" gorm:"default:true"`
-	ProxyConfig           ProxyConfig            `json:"proxy_config" gorm:"embedded;embeddedPrefix:proxy_"`
-	Status                ServerStatus           `json:"status"`
-	LastPing              time.Time              `json:"last_ping"`
-	Logs                  []ServerLog            `json:"logs" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	ConsoleTokens         []ConsoleToken         `json:"console_tokens" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	AnalyticsServiceToken *AnalyticsServiceToken `json:"analytics_service_token" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	ResourceStats         []ServerResourceStat   `json:"resource_stats" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ID                  uint                 `json:"id" gorm:"primaryKey"`
+	Name                string               `json:"name" gorm:"unique"`
+	PublicIP            string               `json:"public_ip" gorm:"not null"`
+	AgentToken          string               `json:"agent_token" gorm:"unique"`
+	WireguardConfig     WireguardConfig      `json:"wireguard_config" gorm:"embedded;embeddedPrefix:wireguard_"`
+	ScheduleDeployments bool                 `json:"schedule_deployments" gorm:"default:true"`
+	ProxyConfig         ProxyConfig          `json:"proxy_config" gorm:"embedded;embeddedPrefix:proxy_"`
+	Status              ServerStatus         `json:"status"`
+	LastPing            time.Time            `json:"last_ping"`
+	Logs                []ServerLog          `json:"logs" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ResourceStats       []ServerResourceStat `json:"resource_stats" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 // ServerLog hold logs of server
@@ -262,8 +260,6 @@ type Application struct {
 	ResourceLimit ApplicationResourceLimit `json:"resource_limit" gorm:"embedded;embeddedPrefix:resource_limit_"`
 	// Reserved Resource
 	ReservedResource ApplicationReservedResource `json:"reserved_resource" gorm:"embedded;embeddedPrefix:reserved_resource_"`
-	// ConsoleTokens
-	ConsoleTokens []ConsoleToken `json:"console_tokens" gorm:"foreignKey:ApplicationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// Is deleted - soft delete - will be deleted from database in background
 	IsDeleted bool `json:"is_deleted" gorm:"default:false"`
 	// Webhook token
@@ -319,28 +315,6 @@ type DeploymentLog struct {
 	DeploymentID string    `json:"deployment_id"`
 	Content      string    `json:"content"`
 	CreatedAt    time.Time `json:"created_at"`
-}
-
-// ConsoleToken hold information about console auth tokens, used in establishing websocket connection
-// Note this
-// If Target == ConsoleTargetTypeServer, ServerID denote which server to ssh into
-// If Target == ConsoleTargetTypeApplication, ApplicationID denote which application to connect to and ServerID denote which server to connect to.
-// In case of ConsoleTargetTypeApplication, we will connect to ServerID and try to ssh into the application container
-// If ServerID server has no container for the application, we will return error
-type ConsoleToken struct {
-	ID            string        `json:"id" gorm:"primaryKey"`
-	Target        ConsoleTarget `json:"target_type"`
-	ServerID      *uint         `json:"server_id"`
-	ApplicationID *string       `json:"application_id"`
-	Token         string        `json:"token" gorm:"unique"`
-	ExpiresAt     time.Time     `json:"expires_at"`
-}
-
-type AnalyticsServiceToken struct {
-	ID        string    `json:"id" gorm:"primaryKey"`
-	Token     string    `json:"token" gorm:"unique"`
-	ServerID  uint      `json:"server_id"`
-	CreatedAt time.Time `json:"created_at"`
 }
 
 // ************************************************************************************* //

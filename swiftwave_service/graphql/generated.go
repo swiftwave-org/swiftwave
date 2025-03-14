@@ -346,7 +346,6 @@ type ComplexityRoot struct {
 		DisableTotp                                        func(childComplexity int) int
 		EnableHTTPSRedirectIngressRule                     func(childComplexity int, id uint) int
 		EnableTotp                                         func(childComplexity int, totp string) int
-		FetchAnalyticsServiceToken                         func(childComplexity int, id uint, rotate bool) int
 		IssueSsl                                           func(childComplexity int, id uint) int
 		Login                                              func(childComplexity int, input model.UserCredential) int
 		Logout                                             func(childComplexity int) int
@@ -663,7 +662,6 @@ type MutationResolver interface {
 	DeleteRedirectRule(ctx context.Context, id uint) (bool, error)
 	CreateServer(ctx context.Context, input model.NewServerInput) (*model.Server, error)
 	DeleteServer(ctx context.Context, id uint) (bool, error)
-	FetchAnalyticsServiceToken(ctx context.Context, id uint, rotate bool) (string, error)
 	ChangeServerIPAddress(ctx context.Context, id uint, ip string) (bool, error)
 	CleanupStack(ctx context.Context, input model.StackInput) (string, error)
 	VerifyStack(ctx context.Context, input model.StackInput) (*model.StackVerifyResult, error)
@@ -2438,18 +2436,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EnableTotp(childComplexity, args["totp"].(string)), true
-
-	case "Mutation.fetchAnalyticsServiceToken":
-		if e.complexity.Mutation.FetchAnalyticsServiceToken == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_fetchAnalyticsServiceToken_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.FetchAnalyticsServiceToken(childComplexity, args["id"].(uint), args["rotate"].(bool)), true
 
 	case "Mutation.issueSSL":
 		if e.complexity.Mutation.IssueSsl == nil {
@@ -4576,30 +4562,6 @@ func (ec *executionContext) field_Mutation_enableTotp_args(ctx context.Context, 
 		}
 	}
 	args["totp"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_fetchAnalyticsServiceToken_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 uint
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUint2uint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 bool
-	if tmp, ok := rawArgs["rotate"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rotate"))
-		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["rotate"] = arg1
 	return args, nil
 }
 
@@ -17541,81 +17503,6 @@ func (ec *executionContext) fieldContext_Mutation_deleteServer(ctx context.Conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteServer_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_fetchAnalyticsServiceToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_fetchAnalyticsServiceToken(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().FetchAnalyticsServiceToken(rctx, fc.Args["id"].(uint), fc.Args["rotate"].(bool))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAuthenticated == nil {
-				return nil, errors.New("directive isAuthenticated is not implemented")
-			}
-			return ec.directives.IsAuthenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(string); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_fetchAnalyticsServiceToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_fetchAnalyticsServiceToken_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -32820,13 +32707,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "deleteServer":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteServer(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "fetchAnalyticsServiceToken":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_fetchAnalyticsServiceToken(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

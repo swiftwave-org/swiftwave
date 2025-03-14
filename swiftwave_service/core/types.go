@@ -283,14 +283,6 @@ var FedoraDependenciesInstallCommands = map[string]string{
 	"docker":  "curl -fsSL get.docker.com | sh -",
 }
 
-// ConsoleTarget : type of console target
-type ConsoleTarget string
-
-const (
-	ConsoleTargetTypeServer      ConsoleTarget = "server"
-	ConsoleTargetTypeApplication ConsoleTarget = "application"
-)
-
 // ************************************************************************************* //
 //                              	Server Related Stats       		   			         //
 // ************************************************************************************* //
