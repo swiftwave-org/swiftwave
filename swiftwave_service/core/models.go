@@ -11,6 +11,7 @@ type Server struct {
 	ID                    uint                   `json:"id" gorm:"primaryKey"`
 	Name                  string                 `json:"name" gorm:"unique"`
 	PublicIP              string                 `json:"public_ip" gorm:"not null"`
+	AgentToken            string                 `json:"agent_token" gorm:"unique"`
 	WireguardConfig       WireguardConfig        `json:"wireguard_config" gorm:"embedded;embeddedPrefix:wireguard_"`
 	ScheduleDeployments   bool                   `json:"schedule_deployments" gorm:"default:true"`
 	ProxyConfig           ProxyConfig            `json:"proxy_config" gorm:"embedded;embeddedPrefix:proxy_"`
