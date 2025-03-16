@@ -1,12 +1,16 @@
 package core
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
-	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
 // SetPassword : set password for user
@@ -100,4 +104,29 @@ func (c *ApplicationCustomHealthCheck) Equal(other *ApplicationCustomHealthCheck
 
 func (application *Application) DockerProxyServiceName() string {
 	return application.ID + "-dp"
+}
+
+func GenerateToken(n int) (string, error) {
+	bytes := make([]byte, n)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
+}
+
+func GenerateWGPrivateKey() (string, error) {
+	key, err := wgtypes.GeneratePrivateKey()
+	if err != nil {
+		return "", err
+	}
+	return key.String(), nil
+}
+
+func GenerateWGPublicKey(privateKey string) (string, error) {
+	key, err := wgtypes.ParseKey(privateKey)
+	if err != nil {
+		return "", err
+	}
+	return key.PublicKey().String(), nil
 }

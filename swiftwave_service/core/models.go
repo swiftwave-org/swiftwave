@@ -1,9 +1,10 @@
 package core
 
 import (
+	"time"
+
 	"github.com/lib/pq"
 	"gorm.io/gorm"
-	"time"
 )
 
 // Server hold information about server
@@ -14,7 +15,7 @@ type Server struct {
 	AgentToken          string               `json:"agent_token" gorm:"unique"`
 	WireguardConfig     WireguardConfig      `json:"wireguard_config" gorm:"embedded;embeddedPrefix:wireguard_"`
 	ScheduleDeployments bool                 `json:"schedule_deployments" gorm:"default:true"`
-	ProxyConfig         ProxyConfig          `json:"proxy_config" gorm:"embedded;embeddedPrefix:proxy_"`
+	ProxyEnabled        bool                 `json:"proxy_enabled" gorm:"default:false"`
 	Status              ServerStatus         `json:"status"`
 	LastPing            time.Time            `json:"last_ping"`
 	Logs                []ServerLog          `json:"logs" gorm:"foreignKey:ServerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`

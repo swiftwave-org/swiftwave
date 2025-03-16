@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"time"
 
@@ -12,6 +13,24 @@ import (
 func CreateServer(db *gorm.DB, server *Server) error {
 	if server.PublicIP == "" {
 		return errors.New("IP is required")
+	}
+	token, err := GenerateToken(32)
+	if err != nil {
+		return fmt.Errorf("failed to generate token : %s", err.Error())
+	}
+	server.AgentToken = token
+	wgPrivateKey, err := GenerateWGPrivateKey()
+	if err != nil {
+		return fmt.Errorf("failed to generate wg private key : %s", err.Error())
+	}
+	server.WireguardConfig.PrivateKey = wgPrivateKey
+	wgPublicKey, err := GenerateWGPublicKey(wgPrivateKey)
+	if err != nil {
+		return fmt.Errorf("failed to generate wg public key : %s", err.Error())
+	}
+	server.WireguardConfig = WireguardConfig{
+		PrivateKey: wgPrivateKey,
+		PublicKey:  wgPublicKey,
 	}
 	server.LastPing = time.Now()
 	return db.Create(server).Error
@@ -147,30 +166,37 @@ func FetchProxyActiveServers(db *gorm.DB) ([]Server, error) {
 		return nil, errors.New("all proxy servers need to be online to perform this action")
 	}
 	var servers []Server
-	err = db.Where("status = ?", ServerOnline).Where("proxy_enabled = ?", true).Where("proxy_type = ?", ActiveProxy).Find(&servers).Error
+	//TODO fix this
+	// err = db.Where("status = ?", ServerOnline).Where("proxy_enabled = ?", true).Where("proxy_type = ?", ActiveProxy).Find(&servers).Error
 	return servers, err
 }
 
 // IsAnyActiveProxyServerOffline checks if any active proxy server is offline
 func IsAnyActiveProxyServerOffline(db *gorm.DB) (bool, error) {
-	var count int64
-	err := db.Model(&Server{}).Where("status = ?", ServerOffline).Where("proxy_enabled = ?", true).Where("proxy_type = ?", ActiveProxy).Count(&count).Error
-	return count > 0, err
+	//TODO fix this
+	// var count int64
+	// err := db.Model(&Server{}).Where("status = ?", ServerOffline).Where("proxy_enabled = ?", true).Where("proxy_type = ?", ActiveProxy).Count(&count).Error
+	// return count > 0, err
+	return false, nil
 }
 
 // FetchRandomActiveProxyServer fetches a random active server from the database
 func FetchRandomActiveProxyServer(db *gorm.DB) (Server, error) {
-	var server Server
-	err := db.Where("status = ?", ServerOnline).Where("proxy_enabled = ?", true).Where("proxy_type = ?", ActiveProxy).Order("RANDOM()").First(&server).Error
-	return server, err
+	//TODO fix this
+	// var server Server
+	// err := db.Where("status = ?", ServerOnline).Where("proxy_enabled = ?", true).Where("proxy_type = ?", ActiveProxy).Order("RANDOM()").First(&server).Error
+	// return server, err
+	return Server{}, nil
 
 }
 
 // FetchBackupProxyServers fetches all backup servers from the database
 func FetchBackupProxyServers(db *gorm.DB) ([]Server, error) {
-	var servers []Server
-	err := db.Where("status = ?", ServerOnline).Where("proxy_enabled = ?", true).Where("proxy_type = ?", BackupProxy).Find(&servers).Error
-	return servers, err
+	//TODO fix this
+	// var servers []Server
+	// err := db.Where("status = ?", ServerOnline).Where("proxy_enabled = ?", true).Where("proxy_type = ?", BackupProxy).Find(&servers).Error
+	// return servers, err
+	return nil, nil
 }
 
 // FetchAllProxyServers fetches all proxy servers from the database
@@ -195,9 +221,4 @@ func MarkServerAsOnline(db *gorm.DB, server *Server) error {
 // MarkServerAsOffline marks a server as offline in the database
 func MarkServerAsOffline(db *gorm.DB, server *Server) error {
 	return db.Model(server).Update("status", ServerOffline).Error
-}
-
-// ChangeProxyType changes the proxy type of server in the database
-func ChangeProxyType(db *gorm.DB, server *Server, proxyType ProxyType) error {
-	return db.Model(server).Update("proxy_type", proxyType).Error
 }

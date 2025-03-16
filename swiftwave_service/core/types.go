@@ -30,21 +30,6 @@ const (
 	ServerOffline    ServerStatus = "offline"
 )
 
-// ProxyType : type of the proxy
-type ProxyType string
-
-const (
-	BackupProxy ProxyType = "backup"
-	ActiveProxy ProxyType = "active"
-)
-
-// ProxyConfig : hold information about proxy configuration
-type ProxyConfig struct {
-	Enabled      bool      `json:"enabled" gorm:"default:false"`
-	SetupRunning bool      `json:"setup_running" gorm:"default:false"` // just to show warning to user, that's it
-	Type         ProxyType `json:"type" gorm:"default:'active'"`
-}
-
 // ************************************************************************************* //
 //							Wireguard Configuration          		   			   		  //
 // ************************************************************************************* //
