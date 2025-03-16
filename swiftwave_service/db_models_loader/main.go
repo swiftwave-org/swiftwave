@@ -35,8 +35,6 @@ func main() {
 		&SSL.KeyAuthorizationToken{},
 		&core.PersistentVolumeBackup{},
 		&core.PersistentVolumeRestore{},
-		&core.ConsoleToken{},
-		&core.AnalyticsServiceToken{},
 		&core.ServerResourceStat{},
 		&core.ApplicationServiceResourceStat{},
 		&core.AppBasicAuthAccessControlList{},
