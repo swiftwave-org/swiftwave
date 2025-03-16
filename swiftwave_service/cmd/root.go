@@ -3,11 +3,12 @@ package cmd
 import (
 	_ "embed"
 	"fmt"
+	"os"
+
 	swiftwave_config "github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/local_config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config/system_config/bootstrap"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/db"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -15,10 +16,12 @@ import (
 var config *swiftwave_config.Config
 
 func init() {
+	rootCmd.Flags().SortFlags = false
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(configCmd)
 	rootCmd.AddCommand(dbMigrateCmd)
 	rootCmd.AddCommand(tlsCmd)
+	rootCmd.AddCommand(serverManagementCmd)
 	rootCmd.AddCommand(userManagementCmd)
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(serviceCmd)

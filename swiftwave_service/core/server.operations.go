@@ -11,6 +11,9 @@ import (
 
 // CreateServer creates a new server in the database
 func CreateServer(db *gorm.DB, server *Server) error {
+	if server.Name == "" {
+		return errors.New("name is required")
+	}
 	if server.PublicIP == "" {
 		return errors.New("IP is required")
 	}
@@ -120,6 +123,16 @@ func FetchAllServers(db *gorm.DB) ([]Server, error) {
 func FetchServerByID(db *gorm.DB, id uint) (*Server, error) {
 	var server Server
 	err := db.First(&server, id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, errors.New("server not found")
+	}
+	return &server, err
+}
+
+// FetchServerByName fetches a server by its name from the database
+func FetchServerByName(db *gorm.DB, name string) (*Server, error) {
+	var server Server
+	err := db.Where("name = ?", name).First(&server).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errors.New("server not found")
 	}
