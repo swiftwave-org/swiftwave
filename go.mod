@@ -11,7 +11,7 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/go-git/go-git/v5 v5.13.2
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/hashicorp/go-set v0.1.14
 	github.com/labstack/echo/v4 v4.13.3
