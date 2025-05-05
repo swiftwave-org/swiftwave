@@ -1,10 +1,11 @@
 module github.com/swiftwave-org/swiftwave
 
 go 1.21.7
+
 require (
 	ariga.io/atlas-provider-gorm v0.5.0
 	github.com/99designs/gqlgen v0.17.48
-	github.com/aws/aws-sdk-go v1.55.6
+	github.com/aws/aws-sdk-go v1.55.7
 	github.com/dgryski/trifles v0.0.0-20200323201526-dd97f9abfb48
 	github.com/docker/docker v27.1.1+incompatible
 	github.com/fatih/color v1.18.0
