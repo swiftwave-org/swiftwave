@@ -1,6 +1,7 @@
 module github.com/swiftwave-org/swiftwave
 
 go 1.21.7
+
 require (
 	ariga.io/atlas-provider-gorm v0.5.0
 	github.com/99designs/gqlgen v0.17.48
@@ -30,7 +31,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12
-	gotest.tools/v3 v3.5.1
+	gotest.tools/v3 v3.5.2
 )
 
 require (
