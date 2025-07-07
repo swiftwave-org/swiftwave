@@ -1,11 +1,12 @@
 module github.com/swiftwave-org/swiftwave
 
-go 1.21.7
+go 1.22
+
 require (
 	ariga.io/atlas-provider-gorm v0.5.0
 	github.com/99designs/gqlgen v0.17.48
 	github.com/aws/aws-sdk-go v1.55.6
-	github.com/dgryski/trifles v0.0.0-20200323201526-dd97f9abfb48
+	github.com/dgryski/trifles v0.0.0-20230903005119-f50d829f2e54
 	github.com/docker/docker v27.1.1+incompatible
 	github.com/fatih/color v1.18.0
 	github.com/go-git/go-git/v5 v5.13.1
@@ -24,7 +25,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go v0.33.0
 	github.com/tredoe/osutil v1.5.0
-	github.com/vektah/gqlparser/v2 v2.5.19
+	github.com/vektah/gqlparser/v2 v2.5.30
 	github.com/xlzd/gotp v0.1.0
 	golang.org/x/term v0.29.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -36,7 +37,7 @@ require (
 require (
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/ProtonMail/go-crypto v1.1.3 // indirect
-	github.com/agnivade/levenshtein v1.1.1 // indirect
+	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
