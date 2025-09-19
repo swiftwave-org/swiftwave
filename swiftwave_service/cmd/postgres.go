@@ -100,7 +100,7 @@ var postgresStartCmd = &cobra.Command{
 			"-v", "/var/lib/swiftwave/postgres:/bitnami/postgresql:rw",
 			"-p", config.LocalConfig.PostgresqlConfig.Host+":"+strconv.Itoa(config.LocalConfig.PostgresqlConfig.Port)+":5432",
 			"--user", "0:0",
-			"bitnami/postgresql:latest")
+			"bitnamilegacy/postgresql:17.6.0")
 		dockerCmd.Stdout = os.Stdout
 		dockerCmd.Stderr = os.Stderr
 		err = dockerCmd.Run()
