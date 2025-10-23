@@ -1,6 +1,7 @@
 module github.com/swiftwave-org/swiftwave
 
 go 1.21.7
+
 require (
 	ariga.io/atlas-provider-gorm v0.5.0
 	github.com/99designs/gqlgen v0.17.48
@@ -29,7 +30,7 @@ require (
 	golang.org/x/term v0.29.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.5.11
-	gorm.io/gorm v1.25.12
+	gorm.io/gorm v1.31.0
 	gotest.tools/v3 v3.5.1
 )
 
@@ -89,7 +90,7 @@ require (
 	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
-	github.com/mattn/go-sqlite3 v1.14.17 // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/microsoft/go-mssqldb v1.6.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/patternmatcher v0.6.0 // indirect
@@ -114,7 +115,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gorm.io/driver/mysql v1.5.1 // indirect
-	gorm.io/driver/sqlite v1.5.2 // indirect
+	gorm.io/driver/sqlite v1.6.0 // indirect
 	gorm.io/driver/sqlserver v1.5.2 // indirect
 )
 
