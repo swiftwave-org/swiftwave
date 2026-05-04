@@ -20,7 +20,7 @@ require (
 	github.com/mholt/acmez v1.2.0
 	github.com/moby/sys/user v0.4.0
 	github.com/oklog/ulid v1.3.1
-	github.com/rabbitmq/amqp091-go v1.10.0
+	github.com/rabbitmq/amqp091-go v1.11.0
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go v0.33.0
