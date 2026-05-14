@@ -89,7 +89,7 @@ func newSSHClient(host string, port int, user string, privateKey string, timeout
 			ssh.PublicKeys(signer),
 		},
 		Timeout:         time.Duration(timeoutSeconds) * time.Second,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: getHostKeyCallback(),
 	}
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), config)
 	if err != nil {

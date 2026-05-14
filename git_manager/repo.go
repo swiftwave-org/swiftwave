@@ -36,7 +36,7 @@ func FetchLatestCommitHash(gitUrl string, branch string, username string, passwo
 	})
 	refs, err := remote.List(&git.ListOptions{
 		Auth:            auth,
-		InsecureSkipTLS: true,
+		InsecureSkipTLS: isInsecureSkipTLS(),
 		PeelingOption:   git.IgnorePeeled,
 	})
 	if err != nil {
@@ -70,7 +70,7 @@ func FetchBranches(gitUrl string, username string, password string, privateKey s
 	})
 	refs, err := remote.List(&git.ListOptions{
 		Auth:            auth,
-		InsecureSkipTLS: true,
+		InsecureSkipTLS: isInsecureSkipTLS(),
 		PeelingOption:   git.IgnorePeeled,
 	})
 	if err != nil {
