@@ -10,7 +10,7 @@
     "@commitlint/config-conventional": "^17.7.0",
     "@magidoc/cli": "^4.1.2",
     "axios": "^1.7.4",
-    "gh-pages": "^6.1.0",
+    "gh-pages": "^6.3.0",
     "husky": "^8.0.3"
   }
 }
