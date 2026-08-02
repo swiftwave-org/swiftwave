@@ -1,1 +1,0 @@
-import{H as n,R as o}from"./control.f5b05b5f.js";function d(r,e){if(isNaN(r)||r<400||r>599)throw new Error(`HTTP error status codes must be between 400 and 599 — ${r} is invalid`);return new n(r,e)}function w(r,e){if(isNaN(r)||r<300||r>308)throw new Error("Invalid status code");return new o(r,e.toString())}new TextEncoder;export{d as e,w as r};
