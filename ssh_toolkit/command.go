@@ -55,7 +55,7 @@ func ExecCommandOverSSHWithOptions(cmd string,
 	session.Stdout = stdoutBuf
 	session.Stderr = stderrBuf
 	// run command
-	err = session.Run(cmd)
+	err = runCommandWithTimeout(session, cmd, sshCommandMaxDuration)
 	if err != nil {
 		if isErrorWhenSSHClientNeedToBeRecreated(err) || isErrorWhenSSHClientNeedToBeRecreated(errors.New(stderrBuf.String())) {
 			DeleteSSHClient(host)
@@ -81,6 +81,32 @@ func getSSHSessionWithTimeout(client *ssh.Client, timeout int) (*ssh.Session, er
 	case result := <-resultCh:
 		return result.session, result.err
 	case <-time.After(time.Duration(timeout) * time.Second):
+		// the session may still turn up later, it would leak a channel on the server
+		go func() {
+			if result := <-resultCh; result.session != nil {
+				_ = result.session.Close()
+			}
+		}()
 		return nil, fmt.Errorf("session creation timeout after %d seconds", timeout)
+	}
+}
+
+// runCommandWithTimeout is a safety net, a command that never finishes should not pin a
+// goroutine forever. Detecting a dead connection is the pool keepalive's job.
+func runCommandWithTimeout(session *ssh.Session, cmd string, timeout time.Duration) error {
+	if err := session.Start(cmd); err != nil {
+		return err
+	}
+	done := make(chan error, 1)
+	go func() {
+		done <- session.Wait()
+	}()
+	select {
+	case err := <-done:
+		return err
+	case <-time.After(timeout):
+		_ = session.Signal(ssh.SIGKILL)
+		_ = session.Close()
+		return fmt.Errorf("command timeout after %s", timeout)
 	}
 }
