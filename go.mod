@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go v1.55.6
 	github.com/dgryski/trifles v0.0.0-20200323201526-dd97f9abfb48
 	github.com/docker/docker v27.1.1+incompatible
-	github.com/fatih/color v1.18.0
+	github.com/fatih/color v1.19.0
 	github.com/go-git/go-git/v5 v5.19.1
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt/v5 v5.2.1
@@ -58,14 +58,14 @@ require (
 	github.com/sosodev/duration v1.3.1 // indirect
 	github.com/urfave/cli/v2 v2.27.2 // indirect
 	github.com/xrash/smetrics v0.0.0-20240312152122-5f08fbb34913 // indirect
-	golang.org/x/time v0.8.0 // indirect
+	golang.org/x/time v0.12.0 // indirect
 )
 
 require (
 	ariga.io/atlas-go-sdk v0.2.3 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
-	github.com/containerd/containerd v1.7.18 // indirect
+	github.com/containerd/containerd v1.7.33 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/platforms v0.2.1 // indirect
 	github.com/cpuguy83/dockercfg v0.3.1 // indirect
@@ -73,7 +73,7 @@ require (
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/go-logr/logr v1.4.1 // indirect
+	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
@@ -96,6 +96,7 @@ require (
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/patternmatcher v0.6.0 // indirect
 	github.com/moby/sys/sequential v0.5.0 // indirect
+	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
@@ -113,7 +114,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gorm.io/driver/mysql v1.5.1 // indirect
 	gorm.io/driver/sqlite v1.5.2 // indirect
@@ -143,7 +143,7 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.52.0
 	golang.org/x/mod v0.35.0 // indirect
-	golang.org/x/net v0.54.0
+	golang.org/x/net v0.55.0
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.44.0 // indirect
