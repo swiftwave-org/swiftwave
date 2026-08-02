@@ -1,6 +1,8 @@
 package ssh_toolkit
 
 import (
+	"errors"
+	"io"
 	"strings"
 )
 
@@ -23,9 +25,8 @@ var errorsWhenSSHClientNeedToBeRecreated = []string{
 	"connection closed by remote host",
 	"connect failed",
 	"open failed",
-	"handshake failed",
 	"subsystem request failed",
-	"eof",
+	"unexpected eof",
 	"broken pipe",
 	"closing write end of pipe",
 	"connection reset by peer",
@@ -35,6 +36,9 @@ var errorsWhenSSHClientNeedToBeRecreated = []string{
 func isErrorWhenSSHClientNeedToBeRecreated(err error) bool {
 	if err == nil {
 		return false
+	}
+	if errors.Is(err, io.EOF) {
+		return true
 	}
 	errMsg := strings.ToLower(err.Error())
 	for _, msg := range errorsWhenSSHClientNeedToBeRecreated {

@@ -10,6 +10,10 @@ import (
 // UpdateSSL : Add SSL certificate to HAProxy
 func (s Manager) UpdateSSL(transactionId string, domain string, privateKey []byte, fullChain []byte) error {
 	_ = transactionId
+	// the domain becomes the certificate file name
+	if err := ValidateDomainName(domain); err != nil {
+		return err
+	}
 	// Create a new buffer
 	var buffer bytes.Buffer
 	// Add the full chain
