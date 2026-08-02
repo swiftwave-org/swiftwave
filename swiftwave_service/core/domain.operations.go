@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	haproxymanager "github.com/swiftwave-org/swiftwave/haproxy_manager"
 	"gorm.io/gorm"
 )
 
@@ -35,6 +36,9 @@ func (domain *Domain) FindById(_ context.Context, db gorm.DB, id uint) error {
 }
 
 func (domain *Domain) Create(_ context.Context, db gorm.DB) error {
+	if err := haproxymanager.ValidateDomainName(domain.Name); err != nil {
+		return err
+	}
 	err := domain.validateAndFillSSLInfo()
 	if err != nil {
 		return err
@@ -44,6 +48,9 @@ func (domain *Domain) Create(_ context.Context, db gorm.DB) error {
 }
 
 func (domain *Domain) Update(_ context.Context, db gorm.DB) error {
+	if err := haproxymanager.ValidateDomainName(domain.Name); err != nil {
+		return err
+	}
 	err := domain.validateAndFillSSLInfo()
 	if err != nil {
 		return err
