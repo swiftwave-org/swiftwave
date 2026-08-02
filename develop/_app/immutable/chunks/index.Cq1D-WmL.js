@@ -1,0 +1,1 @@
+import{R as o,H as n}from"./control.CRCH9sfa.js";function w(r,e){throw isNaN(r)||r<400||r>599?new Error(`HTTP error status codes must be between 400 and 599 — ${r} is invalid`):new n(r,e)}function d(r,e){throw isNaN(r)||r<300||r>308?new Error("Invalid status code"):new o(r,e.toString())}new TextEncoder;export{w as e,d as r};
