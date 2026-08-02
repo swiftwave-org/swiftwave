@@ -11,6 +11,9 @@ import (
 )
 
 func (s Manager) EnableHTTPSRedirection(transactionId string, domainName string) error {
+	if err := ValidateDomainName(domainName); err != nil {
+		return err
+	}
 	frontendName := s.GenerateFrontendName(HTTPMode, 80)
 	// check if http-request rule already exists
 	index, err := s.FetchIndexOfHTTPSRedirection(transactionId, domainName)
@@ -49,6 +52,9 @@ func (s Manager) EnableHTTPSRedirection(transactionId string, domainName string)
 }
 
 func (s Manager) FetchIndexOfHTTPSRedirection(transactionId string, domainName string) (int, error) {
+	if err := ValidateDomainName(domainName); err != nil {
+		return -1, err
+	}
 	frontendName := s.GenerateFrontendName(HTTPMode, 80)
 
 	params := QueryParameters{}

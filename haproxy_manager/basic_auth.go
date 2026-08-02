@@ -194,6 +194,9 @@ func (s Manager) SetupBasicAuthentication(transactionId string, listenerMode Lis
 	if listenerMode == TCPMode {
 		return errors.New("basic authentication is not supported for TCP mode")
 	}
+	if err := ValidateDomainName(domain); err != nil {
+		return err
+	}
 	frontendName := s.GenerateFrontendName(listenerMode, bindPort)
 	// check if user-list exists
 	isUserListExist, err := s.IsUserListExist(transactionId, userListName)
