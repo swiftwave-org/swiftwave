@@ -24,7 +24,7 @@ func DirectSSH(
 			ssh.PublicKeys(signer),
 		},
 		Timeout:         time.Duration(30) * time.Second,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: getHostKeyCallback(),
 	}
 	// dial ssh
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), config)
@@ -89,7 +89,7 @@ func DirectSSHToContainer(
 			ssh.PublicKeys(signer),
 		},
 		Timeout:         time.Duration(30) * time.Second,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: getHostKeyCallback(),
 	}
 	// dial ssh
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), config)

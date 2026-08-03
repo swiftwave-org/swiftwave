@@ -1,6 +1,9 @@
 package worker
 
 import (
+	"context"
+	"sync"
+
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
 )
@@ -9,6 +12,13 @@ import (
 type Manager struct {
 	Config         *config.Config
 	ServiceManager *service_manager.ServiceManager
+	// ctx / cancel drive cooperative shutdown of background goroutines (e.g.
+	// the deployment-log batcher). wg tracks them so Shutdown can wait for
+	// in-flight DB flushes before returning. wg is a pointer because Manager
+	// is passed by value into method receivers throughout the package.
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     *sync.WaitGroup
 }
 
 // Queue names
