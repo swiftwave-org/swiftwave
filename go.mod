@@ -27,7 +27,7 @@ require (
 	github.com/tredoe/osutil v1.5.0
 	github.com/vektah/gqlparser/v2 v2.5.33
 	github.com/xlzd/gotp v0.1.0
-	golang.org/x/term v0.43.0
+	golang.org/x/term v0.45.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.25.12
@@ -142,7 +142,7 @@ require (
 	golang.org/x/crypto v0.52.0
 	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/net v0.55.0
-	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.44.0 // indirect
 )
