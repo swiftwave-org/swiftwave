@@ -11,10 +11,10 @@ require (
 	github.com/fatih/color v1.19.0
 	github.com/go-git/go-git/v5 v5.19.1
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/hashicorp/go-set v0.1.14
-	github.com/labstack/echo-jwt/v4 v4.3.0
+	github.com/labstack/echo-jwt/v4 v4.4.0
 	github.com/labstack/echo/v4 v4.15.4
 	github.com/lib/pq v1.10.9
 	github.com/mholt/acmez v1.2.0
