@@ -11,6 +11,9 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 )
 
+// guards against stacking up checks for a server that is responding slowly
+var serverStatusCheckInFlight sync.Map
+
 func (m Manager) MonitorServerStatus() {
 	logger.CronJobLogger.Println("Starting server status monitor [cronjob]")
 	for {
@@ -38,9 +41,13 @@ func (m Manager) monitorServerStatus() {
 		if server.Status == core.ServerNeedsSetup || server.Status == core.ServerPreparing {
 			continue
 		}
+		if _, busy := serverStatusCheckInFlight.LoadOrStore(server.IP, struct{}{}); busy {
+			continue
+		}
 		wg.Add(1)
 		go func(server core.Server) {
 			defer wg.Done()
+			defer serverStatusCheckInFlight.Delete(server.IP)
 			m.checkAndUpdateServerStatus(server)
 		}(server)
 	}

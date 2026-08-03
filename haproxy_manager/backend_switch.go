@@ -10,6 +10,11 @@ import (
 )
 
 func (s Manager) AddBackendSwitch(transactionId string, listenerMode ListenerMode, bindPort int, backendName string, domainName string) error {
+	if listenerMode != TCPMode {
+		if err := ValidateDomainName(domainName); err != nil {
+			return err
+		}
+	}
 	// check if backend switch already exists
 	index, err := s.FetchBackendSwitchIndex(transactionId, listenerMode, bindPort, backendName, domainName)
 	if err != nil {
@@ -60,6 +65,11 @@ func (s Manager) AddBackendSwitch(transactionId string, listenerMode ListenerMod
 }
 
 func (s Manager) FetchBackendSwitchIndex(transactionId string, listenerMode ListenerMode, bindPort int, backendName string, domainName string) (int, error) {
+	if listenerMode != TCPMode {
+		if err := ValidateDomainName(domainName); err != nil {
+			return -1, err
+		}
+	}
 	frontendName := s.GenerateFrontendName(listenerMode, bindPort)
 	params := QueryParameters{}
 	params.add("transaction_id", transactionId)

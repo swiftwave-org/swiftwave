@@ -42,6 +42,12 @@ func dialWithTimeout(client *ssh.Client, network, address string, timeout time.D
 	case result := <-resultCh:
 		return result.conn, result.err
 	case <-time.After(timeout):
+		// the connection may still turn up later, nobody would be left to close it
+		go func() {
+			if result := <-resultCh; result.conn != nil {
+				_ = result.conn.Close()
+			}
+		}()
 		return nil, fmt.Errorf("dial timeout after %s", timeout)
 	}
 }
