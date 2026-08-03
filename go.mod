@@ -25,7 +25,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.33.0
 	github.com/tredoe/osutil v1.5.0
-	github.com/vektah/gqlparser/v2 v2.5.33
+	github.com/vektah/gqlparser/v2 v2.5.36
 	github.com/xlzd/gotp v0.1.0
 	golang.org/x/term v0.44.0
 	gopkg.in/yaml.v3 v3.0.1
