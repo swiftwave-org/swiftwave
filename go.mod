@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	ariga.io/atlas-provider-gorm v0.5.0
-	github.com/99designs/gqlgen v0.17.90
+	github.com/99designs/gqlgen v0.17.94
 	github.com/aws/aws-sdk-go v1.55.6
 	github.com/dgryski/trifles v0.0.0-20230903005119-f50d829f2e54
 	github.com/docker/docker v27.1.1+incompatible
@@ -25,9 +25,9 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.33.0
 	github.com/tredoe/osutil v1.5.0
-	github.com/vektah/gqlparser/v2 v2.5.33
+	github.com/vektah/gqlparser/v2 v2.5.36
 	github.com/xlzd/gotp v0.1.0
-	golang.org/x/term v0.44.0
+	golang.org/x/term v0.45.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.25.12
@@ -60,6 +60,7 @@ require (
 	ariga.io/atlas-go-sdk v0.2.3 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
+	github.com/coder/websocket v1.8.15 // indirect
 	github.com/containerd/containerd v1.7.33 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/platforms v0.2.1 // indirect
@@ -103,14 +104,14 @@ require (
 	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
-	github.com/urfave/cli/v3 v3.8.0 // indirect
+	github.com/urfave/cli/v3 v3.10.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
 	go.opentelemetry.io/otel v1.24.0 // indirect
 	go.opentelemetry.io/otel/metric v1.24.0 // indirect
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
-	golang.org/x/sync v0.21.0 // indirect
+	golang.org/x/sync v0.22.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gorm.io/driver/mysql v1.5.1 // indirect
@@ -139,10 +140,10 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
-	golang.org/x/crypto v0.53.0
-	golang.org/x/mod v0.36.0 // indirect
-	golang.org/x/net v0.56.0
-	golang.org/x/sys v0.46.0 // indirect
-	golang.org/x/text v0.38.0 // indirect
-	golang.org/x/tools v0.45.0 // indirect
+	golang.org/x/crypto v0.54.0
+	golang.org/x/mod v0.38.0 // indirect
+	golang.org/x/net v0.57.0
+	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/text v0.40.0 // indirect
+	golang.org/x/tools v0.48.0 // indirect
 )
