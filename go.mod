@@ -16,7 +16,7 @@ require (
 	github.com/hashicorp/go-set v0.1.14
 	github.com/labstack/echo-jwt/v4 v4.3.0
 	github.com/labstack/echo/v4 v4.15.4
-	github.com/lib/pq v1.10.9
+	github.com/lib/pq v1.12.3
 	github.com/mholt/acmez v1.2.0
 	github.com/moby/sys/user v0.4.0
 	github.com/oklog/ulid v1.3.1
