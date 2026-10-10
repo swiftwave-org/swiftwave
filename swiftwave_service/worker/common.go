@@ -1,12 +1,15 @@
 package worker
 
 import (
+	"context"
 	"fmt"
+	"log"
+	"sync"
+	"time"
+
 	"github.com/swiftwave-org/swiftwave/pubsub"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/core"
 	"gorm.io/gorm"
-	"log"
-	"time"
 )
 
 var deploymentLogBuffer = make(chan core.DeploymentLog, 10000)
@@ -45,22 +48,39 @@ func addDeploymentLog(pubSubClient pubsub.Client, deploymentId string, content s
 	}
 }
 
-func bulkInsertDeploymentLogs(dbClient gorm.DB) {
+func bulkInsertDeploymentLogs(ctx context.Context, wg *sync.WaitGroup, dbClient gorm.DB) {
+	defer wg.Done()
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
 	for {
-		var deploymentLogs []core.DeploymentLog
-		for len(deploymentLogBuffer) > 0 {
-			deploymentLog := <-deploymentLogBuffer
-			deploymentLogs = append(deploymentLogs, deploymentLog)
+		select {
+		case <-ctx.Done():
+			// Drain whatever is left so logs buffered just before shutdown
+			// still make it to the database.
+			flushDeploymentLogs(dbClient)
+			return
+		case <-ticker.C:
+			flushDeploymentLogs(dbClient)
 		}
-
-		if len(deploymentLogs) > 0 {
-			db := dbClient.Session(&gorm.Session{CreateBatchSize: 1000})
-			err := db.Create(&deploymentLogs).Error
-			if err != nil {
-				log.Println("failed to bulk insert deployment logs")
-			}
-		}
-		<-time.After(2 * time.Second)
 	}
+}
 
+func flushDeploymentLogs(dbClient gorm.DB) {
+	var deploymentLogs []core.DeploymentLog
+drain:
+	for {
+		select {
+		case deploymentLog := <-deploymentLogBuffer:
+			deploymentLogs = append(deploymentLogs, deploymentLog)
+		default:
+			break drain
+		}
+	}
+	if len(deploymentLogs) == 0 {
+		return
+	}
+	db := dbClient.Session(&gorm.Session{CreateBatchSize: 1000})
+	if err := db.Create(&deploymentLogs).Error; err != nil {
+		log.Println("failed to bulk insert deployment logs")
+	}
 }

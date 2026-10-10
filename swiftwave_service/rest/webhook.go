@@ -8,9 +8,19 @@ import (
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/logger"
 	"gorm.io/gorm"
 	"io"
+	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
+
+// webhookRequestTimeout caps how long a webhook request may run.
+const webhookRequestTimeout = 30 * time.Second
+
+// webhookMaxBodyBytes caps the payload size to keep large/slow uploads from
+// holding webhook workers indefinitely (1 MiB is well above any sane Git/Docker
+// registry webhook payload).
+const webhookMaxBodyBytes int64 = 1 << 20
 
 // ANY /webhook/redeploy-app/:app-id/:webhook-token
 func (server *Server) redeployApp(c echo.Context) error {
@@ -19,7 +29,8 @@ func (server *Server) redeployApp(c echo.Context) error {
 	if appId == "" || webhookToken == "" {
 		return c.String(400, "Invalid request")
 	}
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(c.Request().Context(), webhookRequestTimeout)
+	defer cancel()
 	// Fetch App
 	application := core.Application{
 		ID: appId,
@@ -45,10 +56,11 @@ func (server *Server) redeployApp(c echo.Context) error {
 		return c.String(500, "Error fetching deployment")
 	}
 
-	// Get body from request
-	body, err := io.ReadAll(c.Request().Body)
+	// Get body from request — cap at webhookMaxBodyBytes so a slow/large upload
+	// can't pin a webhook handler.
+	body, err := io.ReadAll(http.MaxBytesReader(c.Response().Writer, c.Request().Body, webhookMaxBodyBytes))
 	if err != nil {
-		return c.String(500, "Error reading request body")
+		return c.String(413, "Request body too large or unreadable")
 	}
 	bodyString := string(body)
 	// url decode body

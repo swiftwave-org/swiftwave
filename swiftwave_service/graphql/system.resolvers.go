@@ -21,7 +21,17 @@ func (r *mutationResolver) RestartSystem(ctx context.Context) (bool, error) {
 		color.Green("Restarting swiftwave service")
 		color.Yellow("Swiftwave service will be restarted in 2 seconds")
 		color.Yellow("If you are running without enabling service, run `swiftwave start` to start the service")
-		_ = exec.Command("systemctl", "restart", "swiftwave.service").Run()
+		out, err := exec.Command("systemctl", "restart", "swiftwave.service").CombinedOutput()
+		if err != nil {
+			color.Red("Failed to restart swiftwave.service: %v", err)
+			if len(out) > 0 {
+				color.Red("systemctl output: %s", string(out))
+			}
+			color.Yellow("System may be in a broken state — run `systemctl status swiftwave.service` and restart manually if needed")
+			// Do NOT os.Exit — leaving the current process alive lets the operator
+			// recover instead of dropping the API entirely on a failed restart.
+			return
+		}
 		os.Exit(0)
 	}()
 	return true, nil

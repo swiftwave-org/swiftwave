@@ -1,6 +1,9 @@
 package worker
 
 import (
+	"context"
+	"sync"
+
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/config"
 	"github.com/swiftwave-org/swiftwave/swiftwave_service/service_manager"
 )
@@ -12,13 +15,30 @@ func NewManager(config *config.Config, manager *service_manager.ServiceManager) 
 	if manager == nil {
 		panic("manager cannot be nil")
 	}
-	workerManager := Manager{
+	ctx, cancel := context.WithCancel(context.Background())
+	wg := &sync.WaitGroup{}
+	workerManager := &Manager{
 		Config:         config,
 		ServiceManager: manager,
+		ctx:            ctx,
+		cancel:         cancel,
+		wg:             wg,
 	}
 	workerManager.registerWorkerFunctions()
-	go bulkInsertDeploymentLogs(manager.DbClient)
-	return &workerManager
+	wg.Add(1)
+	go bulkInsertDeploymentLogs(ctx, wg, manager.DbClient)
+	return workerManager
+}
+
+// Shutdown cancels background goroutines (e.g. the deployment-log batcher)
+// and blocks until they finish flushing. Safe to call multiple times.
+func (m *Manager) Shutdown() {
+	if m.cancel != nil {
+		m.cancel()
+	}
+	if m.wg != nil {
+		m.wg.Wait()
+	}
 }
 
 func (m Manager) StartConsumers(nowait bool) error {

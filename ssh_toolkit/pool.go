@@ -127,7 +127,7 @@ func (s *sshClient) connect(host string, port int, user string, privateKey strin
 			ssh.PublicKeys(signer),
 		},
 		Timeout:         timeout,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: getHostKeyCallback(),
 	}
 	sshConn, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
 	if err != nil {
