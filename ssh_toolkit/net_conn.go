@@ -7,10 +7,18 @@ import (
 	"time"
 )
 
+func isLocalHost(host string) bool {
+	return host == "127.0.0.1" || host == "localhost" || host == "::1" || host == ""
+}
+
 func NetConnOverSSH(
 	network, address string, netTimeoutSeconds int, // for target task
 	host string, port int, user string, privateKey string, // for ssh client
 ) (net.Conn, error) {
+	// If connecting to the local server, bypass SSH entirely and connect directly
+	if isLocalHost(host) {
+		return net.DialTimeout(network, address, time.Duration(netTimeoutSeconds)*time.Second)
+	}
 	// fetch ssh client
 	sshRecord, err := getSSHClientWithOptions(host, port, user, privateKey, true)
 	if err != nil {

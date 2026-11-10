@@ -2,6 +2,7 @@ package ssh_toolkit
 
 import (
 	"sync"
+	"time"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -20,9 +21,10 @@ type sshClient struct {
 	// ready is closed once client and err are populated
 	ready chan struct{}
 	// credentials this connection was established with, to detect rotation
-	port     int
-	user     string
-	credHash string
+	port      int
+	user      string
+	credHash  string
+	createdAt time.Time
 
 	stopKeepAlive chan struct{}
 	closeOnce     sync.Once

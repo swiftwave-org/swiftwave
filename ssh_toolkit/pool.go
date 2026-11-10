@@ -57,17 +57,18 @@ func acquireSSHClientEntry(host string, port int, user string, credHash string) 
 	var stale *sshClient
 	sshClientPool.mutex.Lock()
 	if entry, ok := sshClientPool.clients[host]; ok {
-		if entry.port == port && entry.user == user && entry.credHash == credHash {
+		if entry.port == port && entry.user == user && entry.credHash == credHash && time.Since(entry.createdAt) < 30*time.Minute {
 			sshClientPool.mutex.Unlock()
 			return entry, false
 		}
 		stale = entry
 	}
 	entry := &sshClient{
-		ready:    make(chan struct{}),
-		port:     port,
-		user:     user,
-		credHash: credHash,
+		ready:     make(chan struct{}),
+		port:      port,
+		user:      user,
+		credHash:  credHash,
+		createdAt: time.Now(),
 	}
 	sshClientPool.clients[host] = entry
 	sshClientPool.mutex.Unlock()

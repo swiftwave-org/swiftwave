@@ -2,6 +2,7 @@ package cronjob
 
 import (
 	"bytes"
+	"net"
 	"strings"
 	"sync"
 	"time"
@@ -79,6 +80,18 @@ func (m Manager) checkAndUpdateServerStatus(server core.Server) {
 }
 
 func (m Manager) isServerOnline(server core.Server) bool {
+	// For local server, check docker socket directly without running SSH
+	if server.IP == "127.0.0.1" || server.IP == "localhost" || server.IP == "::1" || server.IP == "" {
+		socketPath := server.DockerUnixSocketPath
+		if socketPath == "" {
+			socketPath = "/var/run/docker.sock"
+		}
+		conn, err := net.DialTimeout("unix", socketPath, 2*time.Second)
+		if err == nil {
+			_ = conn.Close()
+			return true
+		}
+	}
 	retries := 3 // try for 3 times before giving up
 	if server.Status == core.ServerOffline {
 		/**
