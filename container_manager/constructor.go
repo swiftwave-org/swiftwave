@@ -17,6 +17,7 @@ func New(ctx context.Context, conn net.Conn) (*Manager, error) {
 				DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
 					return conn, nil
 				},
+				DisableKeepAlives: true,
 			},
 		}),
 	)
